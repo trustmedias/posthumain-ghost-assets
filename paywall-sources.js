@@ -9,14 +9,9 @@
  *   <script src="https://cdn.jsdelivr.net/gh/USER/REPO@v1.0.0/paywall-sources.js" defer></script>
  *
  * Autonome : injecte son propre CSS, aucune dépendance.
- * AUCUNE modification du HTML des articles : le script accroche directement
- * les liens d'appel de note  <a href="#source-N">  generes tels quels par les
- * plugins. Les citations restent donc 100 % editables dans l'editeur Ghost.
- * Détection d'accès : présence/absence de la cible #source-N dans le DOM.
- *   • cible présente  → article gratuit OU abonné → saut d'ancre natif.
- *   • cible absente   → enquête premium + lecteur sans accès → popup CTA.
- *     (l'absence de la cible encode à elle seule « premium ET non-abonné » :
- *      la liste des sources n'est servie au navigateur que si on y a accès.)
+ * Détection d'accès : présence/absence de #source-N dans le DOM.
+ *   • cible présente  → article gratuit ou abonné → saut d'ancre natif.
+ *   • cible absente   → contenu derrière le paywall → popup de conversion.
  * ========================================================================== */
 (function () {
   "use strict";
@@ -109,18 +104,34 @@
     if (e.key === "Escape") closeModal();
   }
 
-  /* --- Interception des clics sur les appels de note ----------------------- */
-  /* On cible tout lien pointant vers une ancre #source-N (href*="#source-"),  */
-  /* ce qui couvre `#source-3` comme `/slug/#source-3`. Aucun attribut requis. */
+  /* --- Interception des clics sur les appels de note ----------------------- *
+   * FIX : les appels de note réels sont rendus `[<a href="#source-N">N</a>]`
+   * (cf. style-guide.md). L'ancien sélecteur `a[data-ph-source]` ne matchait
+   * donc AUCUN lien → le popup ne s'ouvrait jamais. On cible désormais le lien
+   * par son href `#source-N`, et on lit N depuis le href (fallback sur
+   * data-ph-source pour rester compatible si l'attribut existe).
+   * --------------------------------------------------------------------------*/
   document.addEventListener("click", function (e) {
-    var link = e.target.closest && e.target.closest('a[href*="#source-"]');
+    if (!e.target.closest) return;
+
+    var link = e.target.closest('a[href^="#source-"], a[data-ph-source]');
     if (!link) return;
 
-    var m = (link.getAttribute("href") || "").match(/#source-([\w-]+)/);
-    if (!m) return;
+    /* Numéro de la source : depuis le href, sinon depuis data-ph-source. */
+    var n = null;
+    var href = link.getAttribute("href") || "";
+    var m = href.match(/^#source-(\w+)$/);
+    if (m) {
+      n = m[1];
+    } else if (link.hasAttribute("data-ph-source")) {
+      n = link.getAttribute("data-ph-source");
+    }
+    if (!n) return;
 
-    if (document.getElementById("source-" + m[1])) return; /* cible présente → natif */
+    /* Cible présente (article gratuit / abonné) → laisser le saut d'ancre natif. */
+    if (document.getElementById("source-" + n)) return;
 
+    /* Cible absente (contenu derrière le paywall) → popup de conversion. */
     e.preventDefault();
     openModal();
   }, false);
