@@ -26,7 +26,7 @@
     ".ph-srcm-overlay.is-open{opacity:1;visibility:visible}",
     ".ph-srcm-card{position:relative;width:100%;max-width:440px;background:#0f0f0f;border:1px solid rgba(0,255,119,.28);border-radius:0;padding:38px 32px 32px;box-shadow:0 24px 70px rgba(0,0,0,.6),0 0 0 1px rgba(0,255,119,.06) inset;text-align:center;transform:translateY(14px) scale(.98);transition:transform .22s ease;font-family:inherit}",
     ".ph-srcm-overlay.is-open .ph-srcm-card{transform:translateY(0) scale(1)}",
-    ".ph-srcm-close{position:absolute;top:12px;right:14px;width:34px;height:34px;line-height:34px;background:none;border:none;cursor:pointer;color:#888;font-size:24px;border-radius:0;transition:color .15s,background .15s}",
+    ".ph-srcm-close{position:absolute;top:12px;right:14px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;background:none;border:none;cursor:pointer;color:#888;font-size:24px;border-radius:0;transition:color .15s,background .15s}",
     ".ph-srcm-close:hover{color:#fff;background:rgba(255,255,255,.06)}",
     ".ph-srcm-badge{display:inline-flex;align-items:center;gap:7px;margin-bottom:18px;padding:6px 13px;background:rgba(0,255,119,.10);border:1px solid rgba(0,255,119,.35);border-radius:0;color:#00ff77;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}",
     ".ph-srcm-badge svg{width:13px;height:13px}",
@@ -35,7 +35,7 @@
     ".ph-srcm-text b{color:#e8e8e8}",
     ".ph-srcm-btn{display:block;width:100%;padding:14px 20px;margin-top:10px;border-radius:0;cursor:pointer;font-size:15px;font-weight:700;font-family:inherit;text-decoration:none;border:1px solid transparent;transition:transform .12s ease,background .15s ease,border-color .15s ease}",
     ".ph-srcm-btn:active{transform:translateY(1px)}",
-    ".ph-srcm-btn--primary{background:#00ff77;color:#fff!important}",
+    ".ph-srcm-btn--primary{background:#00ff77;color:#060606!important}",
     ".ph-srcm-btn--primary:hover{background:#46ff9a}",
     ".ph-srcm-btn--ghost{background:transparent;color:#cfcfcf;border-color:rgba(255,255,255,.16)}",
     ".ph-srcm-btn--ghost:hover{color:#fff;border-color:rgba(255,255,255,.32)}",
@@ -63,18 +63,18 @@
     overlay.className = "ph-srcm-overlay";
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
-    overlay.setAttribute("aria-label", "Sources reservees aux abonnes");
+    overlay.setAttribute("aria-label", "Sources réservées aux abonnés");
     overlay.innerHTML =
       '<div class="ph-srcm-card">' +
         '<button class="ph-srcm-close" aria-label="Fermer">&times;</button>' +
         '<span class="ph-srcm-badge">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
-          'Sources verrouillees' +
+          'Sources verrouillées' +
         '</span>' +
-        '<h2 class="ph-srcm-title">La source est reservee aux abonnes</h2>' +
-        '<p class="ph-srcm-text">Cette enquete est <b>integralement sourcee</b>. Les references citees dans le texte font partie du dossier reserve aux abonnes Posthumain.</p>' +
-        '<a class="ph-srcm-btn ph-srcm-btn--primary" href="' + SIGNUP_URL + '">Debloquer les sources &mdash; S’abonner</a>' +
-        '<a class="ph-srcm-btn ph-srcm-btn--ghost" href="' + SIGNIN_URL + '">Deja abonne&nbsp;? <b>Se connecter</b></a>' +
+        '<h2 class="ph-srcm-title">La source est réservée aux abonnés</h2>' +
+        '<p class="ph-srcm-text">Cette enquête est <b>intégralement sourcée</b>. Les références citées dans le texte font partie du dossier réservé aux abonnés Posthumain.</p>' +
+        '<a class="ph-srcm-btn ph-srcm-btn--primary" href="' + SIGNUP_URL + '">Débloquer les sources &mdash; S’abonner</a>' +
+        '<a class="ph-srcm-btn ph-srcm-btn--ghost" href="' + SIGNIN_URL + '">Déjà abonné&nbsp;? <b>Se connecter</b></a>' +
       '</div>';
     document.body.appendChild(overlay);
 
