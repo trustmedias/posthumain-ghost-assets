@@ -35,7 +35,7 @@
     ".ph-srcm-text b{color:#e8e8e8}",
     ".ph-srcm-btn{display:block;width:100%;padding:14px 20px;margin-top:10px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700;font-family:inherit;text-decoration:none;border:1px solid transparent;transition:transform .12s ease,background .15s ease,border-color .15s ease}",
     ".ph-srcm-btn:active{transform:translateY(1px)}",
-    ".ph-srcm-btn--primary{background:#00ff77;color:#0a0a0a}",
+    ".ph-srcm-btn--primary{background:#00ff77;color:#fff!important}",
     ".ph-srcm-btn--primary:hover{background:#46ff9a}",
     ".ph-srcm-btn--ghost{background:transparent;color:#cfcfcf;border-color:rgba(255,255,255,.16)}",
     ".ph-srcm-btn--ghost:hover{color:#fff;border-color:rgba(255,255,255,.32)}",
