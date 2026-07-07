@@ -102,7 +102,7 @@
     ".ph-nl-btn:active{transform:translateY(1px)}",
     ".ph-nl-btn[disabled]{opacity:.55;cursor:default;transform:none}",
     ".ph-nl-error{margin:0;min-height:18px;color:#ff5f56;font-size:13px;line-height:1.4}",
-    ".ph-nl-note{margin:14px 0 0;color:#6f6f6f;font-size:12px;line-height:1.5}",
+    ".ph-nl-note{margin:16px 0 0;color:#8f8f8f;font-size:13px;line-height:1.5}",
     ".ph-nl-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none}",
     ".ph-nl-success{display:none}",
     ".ph-nl-card.is-success .ph-nl-success{display:block}",
@@ -141,24 +141,24 @@
         '<div class="ph-nl-main">' +
           '<span class="ph-nl-badge">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>' +
-            'Newsletter Posthumain' +
+            'Rejoignez le mouvement' +
           '</span>' +
-          '<h2 class="ph-nl-title">Le futur n&rsquo;attendra pas.<br><em>Vous, si&nbsp;?</em></h2>' +
-          '<p class="ph-nl-text">IA, longévité, neurotechnologies, transhumanisme&nbsp;: recevez les <b>enquêtes et analyses Posthumain</b> directement dans votre boîte mail, avant tout le monde.</p>' +
+          '<h2 class="ph-nl-title">Un temps d&rsquo;avance <em>sur le futur.</em></h2>' +
+          '<p class="ph-nl-text">IA, longévité, neurotech&nbsp;: l&rsquo;essentiel décrypté, avant tout le monde.</p>' +
           '<form class="ph-nl-form" novalidate>' +
             '<input class="ph-nl-input" type="email" name="email" placeholder="votre@email.com" autocomplete="email" inputmode="email" aria-label="Votre adresse email" required>' +
             '<input class="ph-nl-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">' +
-            '<button class="ph-nl-btn" type="submit">Explorer le futur avec nous</button>' +
+            '<button class="ph-nl-btn" type="submit">J&rsquo;embarque</button>' +
             '<p class="ph-nl-error" role="alert" aria-live="polite"></p>' +
           '</form>' +
-          '<p class="ph-nl-note">Zéro spam. Désinscription en un clic. Aucune confirmation requise.</p>' +
+          '<p class="ph-nl-note">Zéro spam. Un clic pour partir.</p>' +
         '</div>' +
         '<div class="ph-nl-success">' +
           '<div class="ph-nl-check">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8.5 12.5 2.5 2.5 5-6"/></svg>' +
           '</div>' +
           '<h2 class="ph-nl-title">Bienvenue à bord.</h2>' +
-          '<p class="ph-nl-text">C&rsquo;est noté&nbsp;! Vous recevrez nos prochaines publications directement dans votre boîte mail.</p>' +
+          '<p class="ph-nl-text">Vous y êtes. Rendez-vous très vite dans votre boîte mail.</p>' +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
