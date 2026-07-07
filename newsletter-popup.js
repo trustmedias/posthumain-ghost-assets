@@ -141,14 +141,14 @@
         '<div class="ph-nl-main">' +
           '<span class="ph-nl-badge">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>' +
-            'Rejoignez le mouvement' +
+            'Newsletter Posthumain' +
           '</span>' +
-          '<h2 class="ph-nl-title">Un temps d&rsquo;avance <em>sur le futur.</em></h2>' +
-          '<p class="ph-nl-text">IA, longévité, neurotech&nbsp;: l&rsquo;essentiel décrypté, avant tout le monde.</p>' +
+          '<h2 class="ph-nl-title">Comprenez le futur <em>avant les autres.</em></h2>' +
+          '<p class="ph-nl-text">Chaque jour, nos enquêtes sur l&rsquo;IA, la longévité et l&rsquo;humain augmenté&nbsp;&mdash; dans votre boîte mail.</p>' +
           '<form class="ph-nl-form" novalidate>' +
             '<input class="ph-nl-input" type="email" name="email" placeholder="votre@email.com" autocomplete="email" inputmode="email" aria-label="Votre adresse email" required>' +
             '<input class="ph-nl-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">' +
-            '<button class="ph-nl-btn" type="submit">J&rsquo;embarque</button>' +
+            '<button class="ph-nl-btn" type="submit">Je m&rsquo;abonne</button>' +
             '<p class="ph-nl-error" role="alert" aria-live="polite"></p>' +
           '</form>' +
           '<p class="ph-nl-note">Zéro spam. Un clic pour partir.</p>' +
