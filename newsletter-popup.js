@@ -24,7 +24,7 @@
   /* --- Réglages (modifiables) ---------------------------------------------- */
   var WEBHOOK_URL = "https://trustmedias.app.n8n.cloud/webhook/ph-newsletter-signup";
   var COOLDOWN_DAYS = 120;          /* jours avant de re-proposer après fermeture   */
-  var SCROLL_TRIGGER_PERCENT = 18;  /* % de scroll qui déclenche (15–20 conseillé)  */
+  var SCROLL_TRIGGER_PERCENT = 15;  /* % de scroll qui déclenche (15–20 conseillé)  */
   var MIN_TIME_ON_PAGE_MS = 5000;   /* temps mini sur la page avant éligibilité     */
   var EXIT_INTENT = true;           /* déclencheur secondaire : souris qui sort en  */
                                     /* haut de la fenêtre (desktop uniquement)      */
