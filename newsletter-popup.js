@@ -54,7 +54,7 @@
   }
   function isEligible() {
     var s = readState();
-    if (s.subscribed || s.member) return false;
+    if (s.subscribed) return false;
     if (s.lastShownAt && Date.now() - s.lastShownAt < COOLDOWN_DAYS * 864e5) return false;
     return true;
   }
@@ -265,14 +265,18 @@
     });
   }
 
-  /* --- Membres Ghost : déjà connecté → jamais de popup ------------------------ */
+  /* --- Membres Ghost : déjà connecté → pas de popup ---------------------------- *
+   * Ghost répond 204 (vide) pour un visiteur ANONYME et 200 + JSON du membre
+   * pour un membre connecté : seul un 200 avec un email compte comme membre.    */
   function checkNotMember() {
     return fetch("/members/api/member", { credentials: "same-origin" })
       .then(function (res) {
-        if (res.ok) { writeState({ member: true }); return false; }
-        return true;                       /* 204/401/404 → pas connecté */
+        if (!res.ok || res.status === 204) return true;   /* anonyme → afficher */
+        return res.json().then(function (m) {
+          return !(m && m.email);                          /* membre → masquer  */
+        }).catch(function () { return true; });
       })
-      .catch(function () { return true; }); /* en cas de doute, on affiche */
+      .catch(function () { return true; });  /* en cas de doute, on affiche */
   }
 
   /* --- Déclencheurs ----------------------------------------------------------- */
