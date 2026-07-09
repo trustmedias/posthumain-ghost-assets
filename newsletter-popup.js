@@ -102,7 +102,7 @@
     ".ph-nl-btn:active{transform:translateY(1px)}",
     ".ph-nl-btn[disabled]{opacity:.55;cursor:default;transform:none}",
     ".ph-nl-error{margin:0;min-height:18px;color:#ff5f56;font-size:13px;line-height:1.4}",
-    ".ph-nl-note{margin:16px 0 0;color:#8f8f8f;font-size:11px;line-height:1.5}",
+    ".ph-nl-note{margin:5px 0 0;color:#8f8f8f;font-size:13px!important;line-height:1.5}",
     ".ph-nl-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none}",
     ".ph-nl-success{display:none}",
     ".ph-nl-card.is-success .ph-nl-success{display:block}",
