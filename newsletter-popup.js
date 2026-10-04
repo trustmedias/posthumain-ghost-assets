@@ -254,7 +254,9 @@
       if (timer) clearTimeout(timer);
       if (!res.ok) throw new Error("HTTP " + res.status);
       writeState({ subscribed: true });
-      overlay.querySelector(".ph-nl-card").classList.add("is-success");
+      var card = overlay.querySelector(".ph-nl-card");
+      card.style.minHeight = card.offsetHeight + "px";
+      card.classList.add("is-success");
       if (window.plausible) window.plausible("Newsletter signup");
       setTimeout(closeModal, 3500);
     }).catch(function () {
