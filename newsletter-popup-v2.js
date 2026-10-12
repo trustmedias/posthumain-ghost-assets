@@ -14,14 +14,15 @@
  * Hébergement : GitHub → jsDelivr. Référencé en UNE ligne dans
  *   Ghost Admin → Settings → Code injection → Site Footer :
  *
- *   <script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@main/newsletter-popup.js" defer></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@main/newsletter-popup-v2.js" defer></script>
  *
  * Autonome : injecte son propre CSS, aucune dépendance.
  * Règles d'affichage :
  *   • déclenché après SCROLL_TRIGGER_PERCENT % de scroll (ou exit-intent desktop),
  *     et jamais avant MIN_TIME_ON_PAGE_MS sur la page ;
  *   • max 1 affichage tous les COOLDOWN_DAYS jours (localStorage) ;
- *   • plus jamais après inscription réussie, ni pour les membres Ghost connectés ;
+ *   • plus jamais après inscription réussie, ni pour les membres Ghost connectés,
+ *     ni sur un navigateur arrivé une fois depuis un email Posthumain (?ref=…) ;
  *   • ne s'affiche pas par-dessus le popup paywall (paywall-sources.js).
  * ========================================================================== */
 (function () {
@@ -61,10 +62,24 @@
   }
   function isEligible() {
     var s = readState();
-    if (s.subscribed) return false;
+    if (s.subscribed || s.knownSubscriber) return false;
     if (s.lastShownAt && Date.now() - s.lastShownAt < COOLDOWN_DAYS * 864e5) return false;
     return true;
   }
+
+  /* --- Visiteur arrivé depuis un email Posthumain → déjà abonné ---------------- *
+   * Un clic dans un email Ghost n'ouvre pas de session sur le site : le visiteur
+   * est anonyme pour checkNotMember(). Les liens des emails portent un paramètre
+   * ref (Ghost : « posthumain-newsletter », « posthumain-daily-briefs-newsletter »…,
+   * best-of : « best-of »). On mémorise ce navigateur comme abonné : plus de popup,
+   * ni sur cette page ni plus tard (même en revenant depuis Google ou Facebook). */
+  var EMAIL_REF = /(^|-)newsletter$|^best-of$/i;
+  (function detectEmailVisit() {
+    try {
+      var ref = new URLSearchParams(location.search).get("ref") || "";
+      if (EMAIL_REF.test(ref)) writeState({ knownSubscriber: true });
+    } catch (e) {}
+  })();
 
   /* --- Mémorisation des UTM (survivent à la navigation interne) ------------- */
   var UTM_KEY = "ph-nl-utm";
