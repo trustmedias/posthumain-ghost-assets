@@ -202,10 +202,14 @@
     overlay.offsetHeight; /* reflow → transition */
     overlay.classList.add("is-open");
     document.addEventListener("keydown", onKeydown, true);
-    setTimeout(function () {
-      var input = overlay.querySelector(".ph-nl-input");
-      if (input) input.focus({ preventScroll: true });
-    }, 280);
+    /* focus auto seulement avec souris : sur mobile, ouvrir le clavier
+       sans geste de l'utilisateur fait bouger la carte (CLS) */
+    if (window.matchMedia && window.matchMedia("(pointer:fine)").matches) {
+      setTimeout(function () {
+        var input = overlay.querySelector(".ph-nl-input");
+        if (input) input.focus({ preventScroll: true });
+      }, 280);
+    }
     if (window.plausible) window.plausible("Newsletter popup shown");
   }
 
