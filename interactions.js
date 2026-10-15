@@ -55,7 +55,7 @@
     ".ph-term-copy:focus-visible{outline:2px solid #00ff77;outline-offset:2px}",
     ".ph-term-copy svg{width:15px;height:15px;flex:0 0 auto}",
     ".ph-term-copy .ph-ic-ok{display:none}",
-    ".ph-term-copy.is-copied{background:#00ff77!important;border-color:#00ff77!important;color:#060606!important}",
+    ".ph-term-copy.is-copied,.ph-term-copy.is-copied:hover{background:#00ff77!important;border-color:#00ff77!important;color:#060606!important;transition:none!important}",
     ".ph-term-copy.is-copied .ph-ic-copy{display:none}",
     ".ph-term-copy.is-copied .ph-ic-ok{display:block}",
     ".ph-term-copy.is-manual{background:transparent!important;color:#e6efe9!important;border-color:rgba(255,255,255,.3)!important}",
