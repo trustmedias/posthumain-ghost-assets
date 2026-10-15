@@ -21,7 +21,9 @@
  *      <!--kg-card-end: html-->
  *
  * 2. BLOCS CODE  —  toute carte code Ghost (<pre><code>) reçoit le même habillage
- *    terminal + bouton Copier (le langage s'affiche en libellé).
+ *    terminal + bouton Copier (le langage s'affiche en libellé). Exclus : schémas
+ *    en caractères de dessin, blocs au « langage » libre, et tout ce qui est dans
+ *    un élément [data-ph-nocopy].
  *
  * 3. ANCIENS ARTICLES  —  les paragraphes « <strong>Demande à copier</strong> :
  *    <em>« … »</em> » (format utilisé jusqu'au 15/10/2026) sont aussi convertis,
@@ -252,10 +254,13 @@
 
   /* 2. Cartes code Ghost ---------------------------------------------------- */
   function enhanceCode(pre) {
-    if (pre.closest(".ph-term")) return;
+    if (pre.closest(".ph-term") || pre.closest("[data-ph-nocopy]")) return;
     var code = pre.querySelector("code") || pre;
-    var m = (code.className || "").match(/language-([\w+#-]+)/);
-    var lang = m ? m[1] : "";
+    // Pas de bouton Copier sur ce qui n'est pas du code : schéma en caractères de dessin
+    // (┌─┐…) ou bloc dont le « langage » est un libellé libre (ex. « Schéma simplifié »).
+    var raw = ((code.className || "").match(/language-(\S+)/) || [])[1] || "";
+    if (/[\u2500-\u259F]/.test(pre.textContent) || (raw && !/^[\w+#.-]+$/.test(raw))) return;
+    var lang = raw;
     var label = lang ? (lang === "prompt" || lang === "text" || lang === "plaintext" ? "Prompt à copier" : lang) : "Code";
     var shell = makeShell(label, "code");
     var host = pre.parentNode && pre.parentNode.classList && pre.parentNode.classList.contains("kg-code-card") ? pre.parentNode : pre;
