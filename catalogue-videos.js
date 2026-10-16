@@ -144,6 +144,7 @@
     '#phc .phc-ghost{background:rgba(237,244,241,.12);color:var(--fg)}',
     '#phc .phc-ghost:hover{background:rgba(237,244,241,.2)}',
     '#phc .phc-ghost[aria-pressed="true"]{color:var(--accent)}',
+    '@media (max-width:480px){#phc .phc-btn{padding:11px 15px;font-size:14px;gap:7px}#phc .phc-hide-sm{display:none}}',
     '@media (min-width:900px){',
     '#phc .phc-hero{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:center;min-height:clamp(460px,70vh,640px)}',
     '#phc .phc-hero-art{grid-column:2;grid-row:1;aspect-ratio:auto;height:100%;-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 9%);mask-image:linear-gradient(to right,transparent 0%,#000 9%)}',
@@ -445,7 +446,7 @@
       '<div class="phc-actions">' +
       '<button type="button" class="phc-btn phc-play" data-play="' + v.id + '">' + svg('play') + (resume ? 'Reprendre à ' + mmss(prog(v.id).t) : 'Lecture') + '</button>' +
       '<button type="button" class="phc-btn phc-ghost" data-list="' + v.id + '" aria-pressed="' + inList(v.id) + '">' + svg(inList(v.id) ? 'check' : 'plus') + 'Ma liste</button>' +
-      '<button type="button" class="phc-btn phc-ghost" data-open="' + v.id + '">' + svg('info') + 'Infos</button>' +
+      '<button type="button" class="phc-btn phc-ghost" data-open="' + v.id + '" aria-label="Infos">' + svg('info') + '<span class="phc-hide-sm">Infos</span></button>' +
       '</div></div>';
   }
 
