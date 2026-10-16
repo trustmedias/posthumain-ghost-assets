@@ -8,7 +8,9 @@
  *   - Contenu de la page = une carte HTML :  <div id="ph-catalogue"></div>
  *     Ghost ne livre cette carte qu'aux abonnés payants : c'est elle qui ouvre la porte.
  *   - Code injection DE LA PAGE (Page settings → Code injection → Page footer) :
- *     <script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@main/posthumain-tv.js" defer></script>
+ *     <script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@<COMMIT>/posthumain-tv.js" defer></script>
+ *     Version FIGÉE par hash de commit (le cache jsDelivr de @main peut servir l'ancienne version des heures) :
+ *     après chaque modification de ce fichier, mettre le nouveau hash dans le Code injection de la page /tv.
  *
  * FONCTIONNEMENT :
  *   - Abonné (la carte #ph-catalogue est présente) → catalogue plein écran.
