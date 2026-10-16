@@ -24,13 +24,17 @@
  *     mémorisés sur l'appareil (localStorage), comme « Ma liste », ET synchronisés entre appareils via la
  *     fonction Supabase tv-state (projet PosthumanOS jfmzhndapfmvdhphuwfm, table tv_member_state), authentifiée
  *     par le jeton d'identité Ghost (/members/api/session). Si la synchro échoue, tout reste local.
- *   - PRÊT POUR BUNNY STREAM (vidéos hébergées, exclusivités) : une page vidéo dont la fiche porte
+ *   - ÉTIQUETTES : « VIDÉO YT » (YT en rouge) sur les vidéos YouTube, « POSTHUMAIN TV » sur les exclusivités.
+ *   - EXCLUSIVITÉS POSTHUMAIN TV (Bunny Stream) : l'usine appelle la fonction Supabase tv-video (action create),
+ *     qui envoie le MP4 chez Bunny et crée la page Ghost réservée aux abonnés, avec la fiche :
  *       <div class="ph-video-meta" data-source="bunny" data-bunny="ID_BIBLIOTHEQUE/GUID_VIDEO" data-exclusive="1"
- *            data-theme="ia" data-series="comment" data-duration="420" hidden></div>
- *     est lue dans le lecteur Bunny (iframe.mediadelivery.net + player.js : reprise, épisode suivant),
- *     avec un badge « Exclusif » et une rangée « Exclusivités abonnés ». Sur un article réservé aux abonnés,
- *     placer la fiche AVANT <!--members-only--> : la Content API ne livre que la partie publique.
- *     Plan complet : doc projet « Posthumain TV — plan vidéos natives (Bunny Stream) ».
+ *            data-until="AAAA-MM-JJ" data-theme="ia" data-series="comment" data-duration="780" hidden></div>
+ *     placée AVANT le séparateur abonnés (la Content API ne livre que la partie publique d'une page payante).
+ *     Lecture : lien d'embed signé demandé à la fonction tv-play (abonné payant/complimentary vérifié côté serveur),
+ *     puis lecteur Bunny + player.js (reprise, épisode suivant). Après 3 mois, tv-video (promote) bascule la page
+ *     sur YouTube ; sa fiche porte data-was="bn-GUID" et la progression / « Ma liste » suivent l'ancien identifiant.
+ *   - Lien direct vers un documentaire : /tv/?v=<id> (id YouTube, ou bn-<GUID> pour une exclusivité).
+ *     Doc complet : projet Claude « Posthumain TV — Bunny Stream : mise en service ».
  * ============================================================================= */
 (function (run) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
@@ -49,6 +53,7 @@
   var PORTAL_SIGNIN = '#/portal/signin';
   // Lecteur Bunny Stream : bibliothèque player.js documentée par Bunny (événements, reprise)
   var SYNC_URL = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/tv-state';
+  var PLAY_URL = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/tv-play'; // lien Bunny signé (abonnés)
   var BUNNY_PLAYERJS = 'https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js';
   var THEME_ROWS_FROM = 6;   // rangées par thème seulement à partir de N vidéos (sinon doublons)
   var SERIES_ROWS_FROM = 10; // rangées par série à partir de N vidéos
@@ -197,8 +202,18 @@
     '#phc .phc-cap{display:grid;gap:2px;padding-inline:2px}',
     '#phc .phc-t{font-size:13px;font-weight:600;line-height:1.3;color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
     '#phc .phc-s{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}',
-    '#phc .phc-tag{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:2px 6px;border-radius:3px}',
-    '#phc .phc-excl{background:var(--fg);color:var(--bg)}',
+    '#phc .phc-badges{position:absolute;top:8px;left:8px;right:36px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;pointer-events:none}',
+    '#phc .phc-tag{font-family:var(--mono);font-size:9.5px;line-height:1.5;letter-spacing:.12em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:2px 6px;border-radius:3px}',
+    /* Étiquettes de source : VIDÉO YT (YouTube) / POSTHUMAIN TV (exclusivités Bunny) */
+    '#phc .phc-src{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;font-weight:500;line-height:1.5;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;padding:2px 6px;border-radius:3px;background:rgba(6,9,10,.84);color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}',
+    '#phc .phc-src-yt i{font-style:normal;font-family:var(--body);font-weight:800;font-size:10px;letter-spacing:.02em;line-height:1.3;background:#ff0033;color:#fff;border-radius:3px;padding:0 4px}',
+    '#phc .phc-src-tv{border:1px solid var(--accent);box-shadow:0 0 12px var(--glow);padding:1px 6px}',
+    '#phc .phc-src-tv svg{width:11px;height:11px;stroke:none}',
+    '#phc .phc-src-tv b{color:var(--accent);font-weight:500}',
+    '#phc .phc-eyebrow .phc-src,#phc .phc-sheet-body .phc-src{font-size:11px}',
+    '#phc .phc-sheet-body .phc-src-yt i{font-size:11.5px}',
+    '#phc .phc-msg{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;padding:20px;text-align:center;color:var(--soft);font-size:14px}',
+    '#phc .phc-msg b{color:var(--fg);font-size:16px}',
     '#phc .phc-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.18)}',
     '#phc .phc-bar i{display:block;height:100%;background:var(--accent);box-shadow:0 0 8px var(--glow)}',
     '#phc .phc-seen{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);display:grid;place-items:center;color:var(--accent)}',
@@ -339,6 +354,7 @@
       bunnyLib: bn ? bn[1] : '',
       bunnyId: bn ? bn[2] : '',
       exclusive: attr(metaTag, 'exclusive') === '1',
+      was: attr(metaTag, 'was'), // ancien identifiant (exclusivité passée sur YouTube)
       postId: p.id,
       title: p.title,
       url: p.url,
@@ -400,6 +416,8 @@
         '<h1>Posthumain TV</h1>' +
         '<p>Tous nos documentaires sur l\'IA, la tech et le futur, rangés par thème. Lecture en plein écran, sur ton téléphone ou ta télé.</p>' +
         '<ul>' +
+        ((videos || []).some(function (v) { return v.source === 'bunny'; })
+          ? '<li>' + svg('check') + 'Des documentaires exclusifs Posthumain TV, en avant-première 3 mois avant YouTube</li>' : '') +
         '<li>' + svg('check') + 'Un nouveau documentaire de 7 minutes tous les deux jours</li>' +
         '<li>' + svg('check') + 'Reprise là où tu t\'es arrêté, épisode suivant automatique</li>' +
         '<li>' + svg('check') + 'Les enquêtes premium du site incluses</li>' +
@@ -495,6 +513,7 @@
       if (!tk) return;
       return syncCall('GET', null, tk).then(function (s) {
         var changed = applyRemote(s);
+        if (changed) migrateLegacy();
         if (changed && $('#phc-player', root) && $('#phc-player', root).hidden) renderAll();
         pushNow(false); // remonte ce que cet appareil avait de plus récent
       });
@@ -544,20 +563,27 @@
     bits.push('<span>' + esc(THEMES[v.theme]) + '</span>');
     if (v.series) bits.push('<span>' + esc(SERIES[v.series]) + '</span>');
     if (v.source === 'youtube') bits.push('<span>Sous-titres YouTube</span>');
-    if (v.exclusive) bits.push('<span>Exclusivité abonnés</span>');
     return '<div class="phc-meta">' + bits.join('') + '</div>';
+  }
+
+  // Étiquette de source : « POSTHUMAIN TV » (exclusivité hébergée chez nous) ou « VIDÉO YT » (YouTube)
+  function srcBadge(v) {
+    return v.source === 'bunny'
+      ? '<span class="phc-src phc-src-tv" title="Exclusivité Posthumain TV"><svg aria-hidden="true"><use href="#phc-logo"></use></svg>Posthumain <b>TV</b></span>'
+      : '<span class="phc-src phc-src-yt" title="Vidéo publiée sur YouTube">Vidéo <i>YT</i></span>';
   }
 
   function renderHero() {
     var el = $('#phc-hero', root);
     if (!VIDEOS.length) { el.innerHTML = ''; return; }
-    // le plus récent pas encore vu, sinon le plus récent
-    var v = VIDEOS.filter(function (x) { return !isDone(x.id); })[0] || VIDEOS[0];
+    // une exclusivité de moins de 7 jours pas encore vue ; sinon le plus récent pas encore vu ; sinon le plus récent
+    var v = VIDEOS.filter(function (x) { return x.source === 'bunny' && !isDone(x.id) && x.date && Date.now() - new Date(x.date).getTime() < 7 * 86400000; })[0] ||
+      VIDEOS.filter(function (x) { return !isDone(x.id); })[0] || VIDEOS[0];
     var resume = inProgress(v.id);
     el.innerHTML =
       '<div class="phc-hero-art"><img src="' + esc(sized(v.img, 1200)) + '" alt="" data-full="' + esc(v.img) + '"></div>' +
       '<div class="phc-hero-copy">' +
-      '<div class="phc-eyebrow">' + (v.exclusive ? '<span class="phc-new">Exclusif abonnés</span>' : isNew(v) ? '<span class="phc-new">Nouveau</span>' : '') + '<span>Documentaire</span></div>' +
+      '<div class="phc-eyebrow">' + srcBadge(v) + (isNew(v) ? '<span class="phc-new">Nouveau</span>' : '') + '<span>Documentaire</span></div>' +
       '<h1>' + esc(v.title) + '</h1>' + metaLine(v) +
       (v.desc ? '<p class="phc-desc">' + esc(v.desc) + '</p>' : '') +
       '<div class="phc-actions">' +
@@ -582,7 +608,7 @@
     var sub = [v.duration ? minutes(v.duration) : '', THEMES[v.theme]].filter(Boolean).join(' · ');
     return '<button type="button" class="phc-card" data-open="' + esc(v.id) + '" aria-label="' + esc(v.title) + '">' +
       '<span class="phc-thumb"><img src="' + esc(sized(v.img, 600)) + '" alt="" loading="lazy" data-full="' + esc(v.img) + '">' +
-      (v.exclusive ? '<span class="phc-tag phc-excl">Exclusif</span>' : isNew(v) ? '<span class="phc-tag">Nouveau</span>' : '') +
+      '<span class="phc-badges">' + srcBadge(v) + (isNew(v) ? '<span class="phc-tag">Nouveau</span>' : '') + '</span>' +
       (isDone(v.id) ? '<span class="phc-seen" title="Déjà vu">' + svg('check') + '</span>' : '') +
       (r > 0.03 && !isDone(v.id) ? '<span class="phc-bar"><i style="width:' + Math.round(r * 100) + '%"></i></span>' : '') +
       '</span><span class="phc-cap"><span class="phc-t">' + esc(v.title) + '</span><span class="phc-s">' + esc(sub) + '</span></span></button>';
@@ -618,7 +644,7 @@
       html = row(THEMES[filter], pool, pool.length + (pool.length > 1 ? ' vidéos' : ' vidéo'));
     } else {
       html += row('Reprendre', VIDEOS.filter(function (v) { return inProgress(v.id); }));
-      html += row('Exclusivités abonnés', VIDEOS.filter(function (v) { return v.exclusive; }), 'seulement sur Posthumain TV');
+      html += row('Exclusivités Posthumain TV', VIDEOS.filter(function (v) { return v.source === 'bunny'; }), 'en avant-première, 3 mois avant YouTube');
       html += row('Nouveautés', VIDEOS.slice(0, 12), '7 minutes pour comprendre', SOON);
       if (VIDEOS.length >= THEME_ROWS_FROM) {
         Object.keys(THEMES).forEach(function (t) {
@@ -673,7 +699,7 @@
     sc.innerHTML = '<div class="phc-sheet" role="dialog" aria-modal="true" aria-label="' + esc(v.title) + '">' +
       '<div class="phc-sheet-art"><img src="' + esc(sized(v.img, 1200)) + '" alt="" data-full="' + esc(v.img) + '">' +
       '<button type="button" class="phc-x" data-close aria-label="Fermer">' + svg('x') + '</button></div>' +
-      '<div class="phc-sheet-body"><h3>' + esc(v.title) + '</h3>' + metaLine(v) +
+      '<div class="phc-sheet-body"><div>' + srcBadge(v) + '</div><h3>' + esc(v.title) + '</h3>' + metaLine(v) +
       (v.desc ? '<p>' + esc(v.desc) + '</p>' : '') +
       '<div class="phc-actions">' +
       '<button type="button" class="phc-btn phc-play" data-play="' + esc(v.id) + '">' + svg('play') + (resume ? 'Reprendre à ' + mmss(prog(v.id).t) : 'Lecture') + '</button>' +
@@ -806,12 +832,46 @@
       });
     });
   }
+  var PLAY_ERRORS = {
+    not_subscriber: 'Ton abonnement n\'apparaît pas comme actif sur ce compte. Reconnecte-toi ou vérifie ton abonnement.',
+    not_available: 'Ce documentaire n\'est plus disponible ici. Recharge la page.',
+    unauthorized: 'Ta session a expiré. Recharge la page pour te reconnecter.'
+  };
+  function bunnyFailed(v, pl, code) {
+    var slot = $('.phc-yt', pl);
+    if (!slot || current !== v) return;
+    slot.innerHTML = '<div class="phc-msg"><b>Lecture impossible pour le moment</b><span>' +
+      esc(PLAY_ERRORS[code] || 'Le serveur vidéo ne répond pas. Réessaie dans un instant.') + '</span>' +
+      '<button type="button" class="phc-btn phc-ghost" data-play="' + esc(v.id) + '">Réessayer</button></div>';
+  }
   function startBunny(v, start, pl) {
-    // Lecteur Bunny Stream (vidéos hébergées, ex. exclusivités abonnés). Bibliothèque/vidéo dans data-bunny="LIB/GUID".
+    // Exclusivité Posthumain TV (Bunny Stream) : la bibliothèque n'accepte que des liens signés,
+    // demandés à tv-play (abonné vérifié côté serveur), puis lecteur Bunny + player.js.
+    var slot = $('.phc-yt', pl);
+    if (!slot) return;
+    slot.innerHTML = '<div class="phc-msg">Chargement…</div>';
+    ghostToken().then(function (tk) {
+      if (!tk) throw new Error('unauthorized');
+      return fetch(PLAY_URL, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: v.id })
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          if (!r.ok || !j.url) throw new Error(j.error || 'http_' + r.status);
+          return j.url;
+        });
+      });
+    }).then(function (src) {
+      if (current !== v) return;
+      mountBunny(v, start, pl, src);
+    }).catch(function (err) { bunnyFailed(v, pl, err && err.message); });
+  }
+  function mountBunny(v, start, pl, src) {
     var slot = $('.phc-yt', pl);
     if (!slot) return;
     var ifr = document.createElement('iframe');
-    ifr.src = 'https://iframe.mediadelivery.net/embed/' + v.bunnyLib + '/' + v.bunnyId + '?autoplay=true&preload=true&responsive=true';
+    ifr.src = src;
     ifr.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen');
     ifr.setAttribute('allowfullscreen', '');
     ifr.setAttribute('title', v.title);
@@ -966,11 +1026,49 @@
 
   // ---------------------------------------------------------------------------
   // Démarrage
+  // Exclusivité passée sur YouTube : sa progression et sa place dans « Ma liste » suivent le nouvel identifiant
+  var legacy = {};
+  function migrateLegacy() {
+    var moved = false;
+    VIDEOS.forEach(function (v) {
+      if (!v.was) return;
+      legacy[v.was] = v.id;
+      if (progress[v.was]) {
+        if (!progress[v.id] || (progress[v.was].at || 0) > (progress[v.id].at || 0)) progress[v.id] = progress[v.was];
+        delete progress[v.was];
+        moved = true;
+      }
+      var i = myList.indexOf(v.was);
+      if (i !== -1) {
+        if (myList.indexOf(v.id) === -1) myList[i] = v.id; else myList.splice(i, 1);
+        listAt = Date.now();
+        moved = true;
+      }
+    });
+    if (moved) {
+      store('phc-progress', progress); store('phc-list', myList); store('phc-list-at', listAt);
+      schedulePush(true);
+    }
+    return moved;
+  }
+  // Lien direct : /tv/?v=<id> ouvre la fiche du documentaire
+  function openFromUrl() {
+    var want = '';
+    try { want = new URLSearchParams(location.search).get('v') || ''; } catch (e) {}
+    if (!want) want = decodeURIComponent((/[#&]v=([^&]+)/.exec(location.hash) || [])[1] || '');
+    if (!want) return;
+    try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+    if (!byId[want] && legacy[want]) want = legacy[want];
+    if (byId[want]) openSheet(want);
+  }
+
   loadCatalogue().then(function (videos) {
     VIDEOS = videos;
     VIDEOS.forEach(function (v) { byId[v.id] = v; });
+    migrateLegacy();
     shell();
     renderAll();
+    openFromUrl();
     initialSync();
   }).catch(function (err) {
     root.innerHTML = ICONS + '<div class="phc-loading">Posthumain TV n\'a pas pu se charger. Recharge la page dans un instant.</div>';
