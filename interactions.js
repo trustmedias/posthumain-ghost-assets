@@ -32,7 +32,7 @@
  * 4. ÉTIQUETTE « VIDÉO »  —  sur TOUTES les pages (accueil, catégories, « latest »,
  *    articles liés…), chaque carte d'article qui mène à une page Vidéos
  *    (lien /videos/…, versions longues YouTube) reçoit une pastille rouge
- *    « ▶ VIDÉO » en haut à gauche de sa miniature, pour qu'on ne la prenne pas
+ *    « ▶ VIDÉO » en haut à droite de sa miniature, pour qu'on ne la prenne pas
  *    pour un article. Pur CSS (pseudo-élément en position absolue) : aucun
  *    décalage de mise en page, marche aussi pour les cartes chargées ensuite.
  *
@@ -330,8 +330,8 @@
   /* --- 4. Étiquette « VIDÉO » sur les cartes (toutes les pages) ------------- */
   var VIDEO_BADGE_CSS = [
     "a.gh-card-link[href*=\"/videos/\"] .gh-card-image{position:relative}",
-    "a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{content:\"\\25B6\\FE0E\\00A0\\00A0VID\\00C9O\";position:absolute;top:8px;left:8px;z-index:2;padding:5px 8px 4px 7px;border-radius:4px;background:#ff0033;color:#fff;font:700 11px/1 \"Fira Mono\",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap}",
-    "@media(max-width:600px){a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{top:6px;left:6px;padding:4px 6px 3px 5px;font-size:10px}}",
+    "a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{content:\"\\25B6\\FE0E\\00A0\\00A0VID\\00C9O\";position:absolute;top:8px;right:8px;z-index:2;padding:5px 8px 4px 7px;border-radius:4px;background:#ff0033;color:#fff;font:700 11px/1 \"Fira Mono\",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap}",
+    "@media(max-width:600px){a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{top:6px;right:6px;padding:4px 6px 3px 5px;font-size:10px}}",
     "@media print{a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{display:none}}"
   ].join("");
   function injectVideoBadge() {
