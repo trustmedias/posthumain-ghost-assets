@@ -1,14 +1,14 @@
 /* =============================================================================
- * POSTHUMAIN — catalogue-videos.js
- * Page « Catalogue vidéo » (posthumain.com/catalogue-videos/), à la Netflix.
+ * POSTHUMAIN — posthumain-tv.js
+ * Posthumain TV (posthumain.com/tv/) : le catalogue des documentaires, à la Netflix.
  * -----------------------------------------------------------------------------
  * MISE EN PLACE (une seule fois, dans Ghost) :
- *   - Page Ghost, slug « catalogue-videos », accès « Abonnés payants »
+ *   - Page Ghost « Posthumain TV », slug « tv », accès « Abonnés payants »
  *     (Ghost y inclut les membres complimentary).
  *   - Contenu de la page = une carte HTML :  <div id="ph-catalogue"></div>
  *     Ghost ne livre cette carte qu'aux abonnés payants : c'est elle qui ouvre la porte.
  *   - Code injection DE LA PAGE (Page settings → Code injection → Page footer) :
- *     <script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@main/catalogue-videos.js" defer></script>
+ *     <script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@main/posthumain-tv.js" defer></script>
  *
  * FONCTIONNEMENT :
  *   - Abonné (la carte #ph-catalogue est présente) → catalogue plein écran.
@@ -112,7 +112,7 @@
     '#phc .phc-brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}',
     '#phc .phc-brand svg{width:30px;height:30px;stroke:none;filter:drop-shadow(0 0 6px var(--glow))}',
     '#phc .phc-brand b{display:block;font-family:var(--mono);font-weight:500;font-size:13px;letter-spacing:.22em;line-height:1.2}',
-    '#phc .phc-brand small{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);line-height:1.4}',
+    '#phc .phc-brand small{display:block;font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);line-height:1.4}',
     '#phc .phc-nav{display:flex;gap:18px;font-size:14px;color:var(--muted)}',
     '#phc .phc-nav button{background:none;border:0;padding:4px 0;cursor:pointer}',
     '#phc .phc-nav button[aria-current="true"]{color:var(--fg);font-weight:600}',
@@ -270,7 +270,7 @@
   scope.appendChild(style);
   var root = document.createElement('div');
   root.id = 'phc';
-  root.innerHTML = ICONS + '<div class="phc-loading">Chargement du catalogue…</div>';
+  root.innerHTML = ICONS + '<div class="phc-loading">Chargement de Posthumain TV…</div>';
   scope.appendChild(root);
   function focused() { return (scope.activeElement !== undefined ? scope.activeElement : document.activeElement) || null; }
   document.documentElement.classList.add('phc-lock');
@@ -356,7 +356,7 @@
         '<div class="phc-wall"><div class="phc-pw">' +
         '<svg class="phc-logo" aria-hidden="true"><use href="#phc-logo"></use></svg>' +
         '<div class="phc-kicker">Réservé aux abonnés</div>' +
-        '<h1>Le catalogue vidéo Posthumain</h1>' +
+        '<h1>Posthumain TV</h1>' +
         '<p>Tous nos documentaires sur l\'IA, la tech et le futur, rangés par thème. Lecture en plein écran, sur ton téléphone ou ta télé.</p>' +
         '<ul>' +
         '<li>' + svg('check') + 'Un nouveau documentaire de 7 minutes tous les deux jours</li>' +
@@ -403,7 +403,7 @@
   function shell() {
     root.innerHTML = ICONS +
       '<header class="phc-top" id="phc-top">' +
-      '<a class="phc-brand" href="/" aria-label="Posthumain, retour au site"><svg aria-hidden="true"><use href="#phc-logo"></use></svg><span><b>POSTHUMAIN</b><small>Catalogue vidéo</small></span></a>' +
+      '<a class="phc-brand" href="/" aria-label="Posthumain, retour au site"><svg aria-hidden="true"><use href="#phc-logo"></use></svg><span><b>POSTHUMAIN</b><small>TV</small></span></a>' +
       '<nav class="phc-nav" aria-label="Sections">' +
       '<button type="button" data-nav="home" aria-current="true">Accueil</button>' +
       '<button type="button" data-nav="all">Tous les documentaires</button>' +
@@ -775,7 +775,7 @@
     shell();
     renderAll();
   }).catch(function (err) {
-    root.innerHTML = ICONS + '<div class="phc-loading">Le catalogue n\'a pas pu se charger. Recharge la page dans un instant.</div>';
-    if (window.console) console.warn('[catalogue-videos]', err);
+    root.innerHTML = ICONS + '<div class="phc-loading">Posthumain TV n\'a pas pu se charger. Recharge la page dans un instant.</div>';
+    if (window.console) console.warn('[posthumain-tv]', err);
   });
 });
