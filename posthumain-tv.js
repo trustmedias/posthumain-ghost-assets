@@ -19,7 +19,14 @@
  *       <div class="ph-video-meta" data-youtube="ID" data-theme="ia" data-series="comment" data-duration="408" hidden></div>
  *     Sans cette carte (anciennes pages) : vidéo lue dans l'iframe YouTube, thème « ia » par défaut.
  *   - Lecteur YouTube intégré (youtube-nocookie) : reprise là où on s'est arrêté et épisode suivant,
- *     mémorisés sur l'appareil (localStorage).
+ *     mémorisés sur l'appareil (localStorage), comme « Ma liste ».
+ *   - PRÊT POUR BUNNY STREAM (vidéos hébergées, exclusivités) : une page vidéo dont la fiche porte
+ *       <div class="ph-video-meta" data-source="bunny" data-bunny="ID_BIBLIOTHEQUE/GUID_VIDEO" data-exclusive="1"
+ *            data-theme="ia" data-series="comment" data-duration="420" hidden></div>
+ *     est lue dans le lecteur Bunny (iframe.mediadelivery.net + player.js : reprise, épisode suivant),
+ *     avec un badge « Exclusif » et une rangée « Exclusivités abonnés ». Sur un article réservé aux abonnés,
+ *     placer la fiche AVANT <!--members-only--> : la Content API ne livre que la partie publique.
+ *     Plan complet : doc projet « Posthumain TV — plan vidéos natives (Bunny Stream) ».
  * ============================================================================= */
 (function (run) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
@@ -36,6 +43,8 @@
   var PORTAL_SIGNUP = '#/portal/signup';          // visiteur non connecté (même logique que paywall-flow.js)
   var PORTAL_UPGRADE = '#/portal/account/plans';  // membre gratuit connecté
   var PORTAL_SIGNIN = '#/portal/signin';
+  // Lecteur Bunny Stream : bibliothèque player.js documentée par Bunny (événements, reprise)
+  var BUNNY_PLAYERJS = 'https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js';
   var THEME_ROWS_FROM = 6;   // rangées par thème seulement à partir de N vidéos (sinon doublons)
   var SERIES_ROWS_FROM = 10; // rangées par série à partir de N vidéos
 
@@ -121,6 +130,14 @@
     '#phc .phc-site{font-size:13px;color:var(--muted);text-decoration:none;white-space:nowrap}',
     '#phc .phc-site:hover{color:var(--fg)}',
     '@media (max-width:720px){#phc .phc-nav{display:none}}',
+    /* Barre d'onglets en bas (mobile) : Accueil / Tous / Ma liste */
+    '#phc .phc-tabs{display:none}',
+    '@media (max-width:720px){#phc .phc-tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);background:rgba(6,9,10,.97);border-top:1px solid var(--line);backdrop-filter:blur(10px)}',
+    '#phc .phc-tabs button{background:none;border:0;padding:9px 4px 8px;display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer}',
+    '#phc .phc-tabs svg{width:22px;height:22px}',
+    '#phc .phc-tabs button[aria-current="true"]{color:var(--accent)}',
+    '#phc .phc-rows{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}',
+    '#phc .phc-site{display:none}}',
 
     /* Héros */
     '#phc .phc-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr);margin-top:-64px}',
@@ -161,7 +178,9 @@
     /* Rangées */
     '#phc .phc-rows{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;padding-block:14px calc(60px + env(safe-area-inset-bottom,0px))}',
     '#phc .phc-row{min-width:0}',
-    '#phc .phc-row h2{margin:0 0 10px;font-family:var(--body);font-size:17px;font-weight:600;color:var(--fg);display:flex;align-items:baseline;gap:10px;padding-left:var(--gl);padding-right:var(--gr)}',
+    '#phc .phc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:20px 12px;padding-left:var(--gl);padding-right:var(--gr);padding-top:6px}',
+    '#phc .phc-grid .phc-card{width:auto}',
+    '#phc .phc-row h2{margin:0 0 10px;font-family:var(--body);font-size:17px;font-weight:600;color:var(--fg);display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding-left:var(--gl);padding-right:var(--gr)}',
     '#phc .phc-row h2 span{font-size:12px;font-weight:400;color:var(--muted)}',
     '#phc .phc-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-left:var(--gl);scrollbar-width:none;padding-left:var(--gl);padding-right:var(--gr);padding-block:6px 10px}',
     '#phc .phc-track::-webkit-scrollbar{display:none}',
@@ -174,6 +193,7 @@
     '#phc .phc-t{font-size:13px;font-weight:600;line-height:1.3;color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
     '#phc .phc-s{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}',
     '#phc .phc-tag{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:2px 6px;border-radius:3px}',
+    '#phc .phc-excl{background:var(--fg);color:var(--bg)}',
     '#phc .phc-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.18)}',
     '#phc .phc-bar i{display:block;height:100%;background:var(--accent);box-shadow:0 0 8px var(--glow)}',
     '#phc .phc-seen{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);display:grid;place-items:center;color:var(--accent)}',
@@ -254,6 +274,9 @@
     '<symbol id="phc-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><path d="M12 11v6M12 7.5v.01" stroke-width="2.2" stroke-linecap="round"/></symbol>' +
     '<symbol id="phc-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-width="2.2" stroke-linecap="round"/></symbol>' +
     '<symbol id="phc-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>' +
+    '<symbol id="phc-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" stroke-width="2" stroke-linejoin="round"/></symbol>' +
+    '<symbol id="phc-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5" stroke-width="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" stroke-width="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" stroke-width="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" stroke-width="2"/></symbol>' +
+    '<symbol id="phc-bookmark" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/></symbol>' +
     '<symbol id="phc-tv" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2" stroke-width="2"/><path d="M8 21h8" stroke-width="2" stroke-linecap="round"/></symbol>' +
     '</svg>';
 
@@ -292,16 +315,24 @@
     var html = p.html || '';
     var metaTag = (/<div[^>]*class="ph-video-meta"[^>]*>/.exec(html) || [''])[0];
     var yt = attr(metaTag, 'youtube') || ((/youtube(?:-nocookie)?\.com\/embed\/([A-Za-z0-9_-]{11})/.exec(html) || [])[1]) || '';
-    if (!yt) return null;
+    // Vidéo hébergée chez Bunny Stream : data-source="bunny" data-bunny="ID_BIBLIOTHEQUE/GUID_VIDEO"
+    var bn = /^(\d+)\/([A-Za-z0-9-]{8,})$/.exec(attr(metaTag, 'bunny'));
+    var source = attr(metaTag, 'source') === 'bunny' && bn ? 'bunny' : 'youtube';
+    if (source === 'youtube' && !yt) return null;
     var theme = attr(metaTag, 'theme');
     var dur = parseFloat(attr(metaTag, 'duration')) || 0;
     if (dur && dur < 30) dur = dur * 60; // durée donnée en minutes
     return {
-      id: yt,
+      id: source === 'bunny' ? 'bn-' + bn[2] : yt,
+      source: source,
+      yt: yt,
+      bunnyLib: bn ? bn[1] : '',
+      bunnyId: bn ? bn[2] : '',
+      exclusive: attr(metaTag, 'exclusive') === '1',
       postId: p.id,
       title: p.title,
       url: p.url,
-      img: p.feature_image || ('https://i.ytimg.com/vi/' + yt + '/maxresdefault.jpg'),
+      img: p.feature_image || (yt ? 'https://i.ytimg.com/vi/' + yt + '/maxresdefault.jpg' : ''),
       desc: p.custom_excerpt || p.excerpt || '',
       date: p.published_at,
       theme: THEMES[theme] ? theme : 'ia',
@@ -414,6 +445,11 @@
       '<main id="phc-main"><section class="phc-hero" id="phc-hero"></section>' +
       '<div class="phc-chips" id="phc-chips" role="toolbar" aria-label="Thèmes"></div>' +
       '<div class="phc-rows" id="phc-rows"></div></main>' +
+      '<nav class="phc-tabs" aria-label="Sections">' +
+      '<button type="button" data-nav="home" aria-current="true">' + svg('home') + 'Accueil</button>' +
+      '<button type="button" data-nav="all">' + svg('grid') + 'Tous</button>' +
+      '<button type="button" data-nav="list">' + svg('bookmark') + 'Ma liste</button>' +
+      '</nav>' +
       '<div class="phc-scrim" id="phc-scrim" hidden></div>' +
       '<div class="phc-player" id="phc-player" hidden></div>';
     root.addEventListener('scroll', function () {
@@ -427,7 +463,8 @@
     if (v.duration) bits.push('<span class="phc-dur">' + mmss(v.duration) + '</span>');
     bits.push('<span>' + esc(THEMES[v.theme]) + '</span>');
     if (v.series) bits.push('<span>' + esc(SERIES[v.series]) + '</span>');
-    bits.push('<span>Sous-titres YouTube</span>');
+    if (v.source === 'youtube') bits.push('<span>Sous-titres YouTube</span>');
+    if (v.exclusive) bits.push('<span>Exclusivité abonnés</span>');
     return '<div class="phc-meta">' + bits.join('') + '</div>';
   }
 
@@ -440,13 +477,13 @@
     el.innerHTML =
       '<div class="phc-hero-art"><img src="' + esc(sized(v.img, 1200)) + '" alt="" data-full="' + esc(v.img) + '"></div>' +
       '<div class="phc-hero-copy">' +
-      '<div class="phc-eyebrow">' + (isNew(v) ? '<span class="phc-new">Nouveau</span>' : '') + '<span>Documentaire</span></div>' +
+      '<div class="phc-eyebrow">' + (v.exclusive ? '<span class="phc-new">Exclusif abonnés</span>' : isNew(v) ? '<span class="phc-new">Nouveau</span>' : '') + '<span>Documentaire</span></div>' +
       '<h1>' + esc(v.title) + '</h1>' + metaLine(v) +
       (v.desc ? '<p class="phc-desc">' + esc(v.desc) + '</p>' : '') +
       '<div class="phc-actions">' +
-      '<button type="button" class="phc-btn phc-play" data-play="' + v.id + '">' + svg('play') + (resume ? 'Reprendre à ' + mmss(prog(v.id).t) : 'Lecture') + '</button>' +
-      '<button type="button" class="phc-btn phc-ghost" data-list="' + v.id + '" aria-pressed="' + inList(v.id) + '">' + svg(inList(v.id) ? 'check' : 'plus') + 'Ma liste</button>' +
-      '<button type="button" class="phc-btn phc-ghost" data-open="' + v.id + '" aria-label="Infos">' + svg('info') + '<span class="phc-hide-sm">Infos</span></button>' +
+      '<button type="button" class="phc-btn phc-play" data-play="' + esc(v.id) + '">' + svg('play') + (resume ? 'Reprendre à ' + mmss(prog(v.id).t) : 'Lecture') + '</button>' +
+      '<button type="button" class="phc-btn phc-ghost" data-list="' + esc(v.id) + '" aria-pressed="' + inList(v.id) + '">' + svg(inList(v.id) ? 'check' : 'plus') + 'Ma liste</button>' +
+      '<button type="button" class="phc-btn phc-ghost" data-open="' + esc(v.id) + '" aria-label="Infos">' + svg('info') + '<span class="phc-hide-sm">Infos</span></button>' +
       '</div></div>';
   }
 
@@ -463,9 +500,9 @@
   function card(v) {
     var r = ratio(v.id);
     var sub = [v.duration ? minutes(v.duration) : '', THEMES[v.theme]].filter(Boolean).join(' · ');
-    return '<button type="button" class="phc-card" data-open="' + v.id + '" aria-label="' + esc(v.title) + '">' +
+    return '<button type="button" class="phc-card" data-open="' + esc(v.id) + '" aria-label="' + esc(v.title) + '">' +
       '<span class="phc-thumb"><img src="' + esc(sized(v.img, 600)) + '" alt="" loading="lazy" data-full="' + esc(v.img) + '">' +
-      (isNew(v) ? '<span class="phc-tag">Nouveau</span>' : '') +
+      (v.exclusive ? '<span class="phc-tag phc-excl">Exclusif</span>' : isNew(v) ? '<span class="phc-tag">Nouveau</span>' : '') +
       (isDone(v.id) ? '<span class="phc-seen" title="Déjà vu">' + svg('check') + '</span>' : '') +
       (r > 0.03 && !isDone(v.id) ? '<span class="phc-bar"><i style="width:' + Math.round(r * 100) + '%"></i></span>' : '') +
       '</span><span class="phc-cap"><span class="phc-t">' + esc(v.title) + '</span><span class="phc-s">' + esc(sub) + '</span></span></button>';
@@ -478,6 +515,12 @@
       '<div class="phc-track">' + items.map(card).join('') + (extra || '') + '</div></section>';
   }
 
+  function grid(title, items, note) {
+    return '<section class="phc-row"><h2>' + esc(title) + (note ? '<span>' + esc(note) + '</span>' : '') + '</h2>' +
+      '<div class="phc-grid">' + items.map(card).join('') + '</div></section>';
+  }
+  function count(n) { return n + (n > 1 ? ' vidéos' : ' vidéo'); }
+
   function renderRows() {
     var el = $('#phc-rows', root);
     if (!VIDEOS.length) {
@@ -488,13 +531,14 @@
     var html = '';
     if (view === 'list') {
       var mine = VIDEOS.filter(function (v) { return inList(v.id); });
-      html = mine.length ? row('Ma liste', mine) : '<p class="phc-empty">Ta liste est vide. Touche « Ma liste » sur un documentaire pour le retrouver ici.</p>';
+      html = mine.length ? grid('Ma liste', mine, count(mine.length)) : '<section class="phc-row"><h2>Ma liste</h2><p class="phc-empty">Ta liste est vide. Touche « Ma liste » sur un documentaire pour le retrouver ici.</p></section>';
     } else if (view === 'all') {
-      html = row('Tous les documentaires', pool, pool.length + (pool.length > 1 ? ' vidéos' : ' vidéo'));
+      html = grid(filter === 'all' ? 'Tous les documentaires' : THEMES[filter], pool, count(pool.length));
     } else if (filter !== 'all') {
       html = row(THEMES[filter], pool, pool.length + (pool.length > 1 ? ' vidéos' : ' vidéo'));
     } else {
       html += row('Reprendre', VIDEOS.filter(function (v) { return inProgress(v.id); }));
+      html += row('Exclusivités abonnés', VIDEOS.filter(function (v) { return v.exclusive; }), 'seulement sur Posthumain TV');
       html += row('Nouveautés', VIDEOS.slice(0, 12), '7 minutes pour comprendre', SOON);
       if (VIDEOS.length >= THEME_ROWS_FROM) {
         Object.keys(THEMES).forEach(function (t) {
@@ -514,7 +558,13 @@
     el.innerHTML = html;
   }
 
-  function renderAll() { renderHero(); renderChips(); renderRows(); }
+  function renderAll() {
+    renderHero(); renderChips(); renderRows();
+    var hero = $('#phc-hero', root);
+    if (hero) hero.hidden = view !== 'home';
+    var chips = $('#phc-chips', root);
+    if (chips && view === 'list') chips.hidden = true;
+  }
 
   // Images redimensionnées absentes → image d'origine
   root.addEventListener('error', function (e) {
@@ -542,8 +592,8 @@
       '<div class="phc-sheet-body"><h3>' + esc(v.title) + '</h3>' + metaLine(v) +
       (v.desc ? '<p>' + esc(v.desc) + '</p>' : '') +
       '<div class="phc-actions">' +
-      '<button type="button" class="phc-btn phc-play" data-play="' + v.id + '">' + svg('play') + (resume ? 'Reprendre à ' + mmss(prog(v.id).t) : 'Lecture') + '</button>' +
-      '<button type="button" class="phc-btn phc-ghost" data-list="' + v.id + '" aria-pressed="' + inList(v.id) + '">' + svg(inList(v.id) ? 'check' : 'plus') + 'Ma liste</button>' +
+      '<button type="button" class="phc-btn phc-play" data-play="' + esc(v.id) + '">' + svg('play') + (resume ? 'Reprendre à ' + mmss(prog(v.id).t) : 'Lecture') + '</button>' +
+      '<button type="button" class="phc-btn phc-ghost" data-list="' + esc(v.id) + '" aria-pressed="' + inList(v.id) + '">' + svg(inList(v.id) ? 'check' : 'plus') + 'Ma liste</button>' +
       '</div>' +
       '<div class="phc-tv">' + svg('tv') + '<div><b>Sur ta télé.</b> Lance la lecture sur ton téléphone, puis touche l\'icône Cast ou AirPlay du lecteur.</div></div>' +
       (v.url ? '<a class="phc-link" href="' + esc(v.url) + '">Chapitres et sources de ce documentaire</a>' : '') +
@@ -563,30 +613,53 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Lecteur YouTube (IFrame API) : reprise + épisode suivant
+  // Lecteurs : YouTube (IFrame API) ou Bunny Stream (player.js) — reprise + épisode suivant
+  // Les deux lecteurs alimentent la même position « pos » ; saveProgress() ne connaît qu'elle.
   var ytReady = null;
-  var player = null;
+  var pjReady = null;
+  var player = null;      // lecteur YouTube
+  var bunny = null;       // lecteur Bunny (player.js)
   var ticker = null;
   var current = null;
   var nextTimer = null;
+  var pos = { t: 0, d: 0 };
+  var lastSave = 0;
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('script ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
   function loadYT() {
     if (ytReady) return ytReady;
     ytReady = new Promise(function (resolve) {
       if (window.YT && window.YT.Player) return resolve();
       var prev = window.onYouTubeIframeAPIReady;
       window.onYouTubeIframeAPIReady = function () { if (typeof prev === 'function') prev(); resolve(); };
-      var s = document.createElement('script');
-      s.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(s);
+      loadScript('https://www.youtube.com/iframe_api').catch(function () {});
     });
     return ytReady;
   }
+  function loadPlayerJs() {
+    if (pjReady) return pjReady;
+    pjReady = window.playerjs ? Promise.resolve() : loadScript(BUNNY_PLAYERJS);
+    return pjReady;
+  }
+  function readPos() {
+    if (player && typeof player.getCurrentTime === 'function') {
+      try { pos = { t: player.getCurrentTime() || 0, d: player.getDuration() || pos.d }; } catch (e) {}
+    }
+    return pos;
+  }
   function saveProgress(done) {
-    if (!player || !current || typeof player.getCurrentTime !== 'function') return;
-    var t = player.getCurrentTime() || 0;
-    var d = player.getDuration() || (current.duration || 0);
-    if (!d) return;
-    progress[current.id] = { t: done ? d : Math.floor(t), d: Math.round(d), done: !!done || t / d >= 0.92, at: Date.now() };
+    if (!current) return;
+    var p = readPos();
+    var d = p.d || current.duration || 0;
+    if (!d || (!done && !p.t)) return;
+    progress[current.id] = { t: done ? Math.round(d) : Math.floor(p.t), d: Math.round(d), done: !!done || p.t / d >= 0.92, at: Date.now() };
     store('phc-progress', progress);
   }
   function nextAfter(v) {
@@ -602,7 +675,7 @@
     var box = document.createElement('div');
     box.className = 'phc-next';
     box.innerHTML = '<img src="' + esc(sized(nx.img, 600)) + '" alt="" data-full="' + esc(nx.img) + '"><div><small>À suivre dans <span>' + n + '</span> s</small><strong>' + esc(nx.title) + '</strong>' +
-      '<div class="phc-row-btns"><button type="button" class="phc-btn phc-play" data-play="' + nx.id + '">' + svg('play') + 'Lecture</button>' +
+      '<div class="phc-row-btns"><button type="button" class="phc-btn phc-play" data-play="' + esc(nx.id) + '">' + svg('play') + 'Lecture</button>' +
       '<button type="button" class="phc-btn phc-ghost" data-cancel-next>Annuler</button></div></div>';
     screen.appendChild(box);
     var span = box.querySelector('small span');
@@ -617,29 +690,19 @@
     var b = $('.phc-next', root);
     if (b) b.remove();
   }
-  function play(id, replace) {
-    var v = byId[id];
-    if (!v) return;
-    cancelNext();
-    if (player) saveProgress(false);
-    stopPlayer(true);
-    closeSheet();
-    current = v;
-    var start = inProgress(v.id) ? Math.max(0, prog(v.id).t - 3) : 0;
-    var pl = $('#phc-player', root);
-    pl.innerHTML = '<div class="phc-pbar"><button type="button" data-stop>' + svg('back') + 'Retour</button><span class="phc-pt">' + esc(v.title) + '</span></div>' +
-      '<div class="phc-stage"><div class="phc-screen"><div class="phc-yt"></div></div></div>';
-    if (pl.hidden && !replace) pushLayer('player');
-    pl.hidden = false;
-    var back = $('[data-stop]', pl);
-    if (back) back.focus({ preventScroll: true });
+  function onEnded(v) {
+    if (current !== v) return;
+    saveProgress(true);
+    showNext(v);
+  }
+  function startYouTube(v, start, pl) {
     loadYT().then(function () {
       if (current !== v) return;
       var slot = $('.phc-yt', pl);
       if (!slot) return;
       player = new window.YT.Player(slot, {
         host: 'https://www.youtube-nocookie.com',
-        videoId: v.id,
+        videoId: v.yt,
         playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1, start: Math.floor(start), origin: location.origin },
         events: {
           onReady: function (e) { try { e.target.playVideo(); } catch (err) {} },
@@ -649,21 +712,67 @@
             } else {
               if (ticker) { clearInterval(ticker); ticker = null; }
               if (e.data === 2) saveProgress(false); // pause
-              if (e.data === 0) { saveProgress(true); showNext(v); } // fin
+              if (e.data === 0) onEnded(v); // fin
             }
           }
         }
       });
     });
   }
+  function startBunny(v, start, pl) {
+    // Lecteur Bunny Stream (vidéos hébergées, ex. exclusivités abonnés). Bibliothèque/vidéo dans data-bunny="LIB/GUID".
+    var slot = $('.phc-yt', pl);
+    if (!slot) return;
+    var ifr = document.createElement('iframe');
+    ifr.src = 'https://iframe.mediadelivery.net/embed/' + v.bunnyLib + '/' + v.bunnyId + '?autoplay=true&preload=true&responsive=true';
+    ifr.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen');
+    ifr.setAttribute('allowfullscreen', '');
+    ifr.setAttribute('title', v.title);
+    slot.replaceWith(ifr);
+    loadPlayerJs().then(function () {
+      if (current !== v || !window.playerjs) return;
+      bunny = new window.playerjs.Player(ifr);
+      bunny.on('ready', function () {
+        if (start) { try { bunny.setCurrentTime(start); } catch (e) {} }
+        try { bunny.play(); } catch (e) {}
+        bunny.on('timeupdate', function (d) {
+          if (!d) return;
+          pos = { t: d.seconds || 0, d: d.duration || pos.d };
+          if (Date.now() - lastSave > 5000) { lastSave = Date.now(); saveProgress(false); }
+        });
+        bunny.on('pause', function () { saveProgress(false); });
+        bunny.on('ended', function () { onEnded(v); });
+      });
+    }).catch(function () { /* lecture sans reprise si player.js ne charge pas */ });
+  }
+  function play(id, replace) {
+    var v = byId[id];
+    if (!v) return;
+    cancelNext();
+    stopPlayer(true);
+    closeSheet();
+    current = v;
+    pos = { t: 0, d: v.duration || 0 };
+    var start = inProgress(v.id) ? Math.max(0, prog(v.id).t - 3) : 0;
+    var pl = $('#phc-player', root);
+    pl.innerHTML = '<div class="phc-pbar"><button type="button" data-stop>' + svg('back') + 'Retour</button><span class="phc-pt">' + esc(v.title) + '</span></div>' +
+      '<div class="phc-stage"><div class="phc-screen"><div class="phc-yt"></div></div></div>';
+    if (pl.hidden && !replace) pushLayer('player');
+    pl.hidden = false;
+    var back = $('[data-stop]', pl);
+    if (back) back.focus({ preventScroll: true });
+    if (v.source === 'bunny') startBunny(v, start, pl);
+    else startYouTube(v, start, pl);
+  }
   function stopPlayer(keepOpen) {
     if (ticker) { clearInterval(ticker); ticker = null; }
     cancelNext();
+    if (current) saveProgress(false);
     if (player) {
-      saveProgress(false);
       try { player.destroy(); } catch (e) {}
       player = null;
     }
+    bunny = null; // l'iframe disparaît avec le contenu du lecteur
     if (!keepOpen) {
       var pl = $('#phc-player', root);
       if (pl) { pl.hidden = true; pl.innerHTML = ''; }
@@ -718,19 +827,14 @@
       if (view === 'list') renderRows();
     } else if (t.hasAttribute('data-cat')) {
       filter = t.getAttribute('data-cat');
-      view = 'home';
-      setNav('home');
-      renderChips();
-      renderRows();
+      if (view !== 'all') { view = 'home'; setNav('home'); }
+      renderAll();
     } else if (t.hasAttribute('data-nav')) {
       view = t.getAttribute('data-nav');
       filter = 'all';
       setNav(view);
-      renderChips();
-      renderRows();
-      var chips = $('#phc-chips', root);
-      var target = chips && !chips.hidden ? chips : $('#phc-rows', root);
-      if (view !== 'home' && target) root.scrollTo({ top: target.offsetTop - 70, behavior: 'smooth' });
+      renderAll();
+      root.scrollTop = 0;
     } else if (t.hasAttribute('data-close') || t.hasAttribute('data-stop')) {
       closeTop();
     } else if (t.hasAttribute('data-cancel-next')) {
