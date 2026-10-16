@@ -105,7 +105,6 @@
     '#phc img{max-width:100%}',
     '#phc :focus-visible{outline:2px solid var(--accent);outline-offset:3px}',
     '#phc svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor}',
-    'html.phc-lock,html.phc-lock body{overflow:hidden!important}',
 
     /* En-tête */
     '#phc .phc-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:20px;padding-block:calc(12px + env(safe-area-inset-top,0px)) 12px;padding-left:var(--gl);padding-right:var(--gr);background:linear-gradient(to bottom,rgba(6,9,10,.95),rgba(6,9,10,0));transition:background .25s}',
@@ -241,10 +240,10 @@
     '#phc .phc-back{font-size:13px;color:var(--muted)}',
     '@media (prefers-reduced-motion:reduce){#phc *{animation:none!important;transition:none!important}}'
   ].join('\n');
-  var style = document.createElement('style');
-  style.id = 'phc-style';
-  style.textContent = css;
-  document.head.appendChild(style);
+  // Verrou de défilement de la page (seule règle posée dans le document)
+  var lock = document.createElement('style');
+  lock.textContent = 'html.phc-lock,html.phc-lock body{overflow:hidden!important}';
+  document.head.appendChild(lock);
 
   var ICONS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
     '<symbol id="phc-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="#3dff8f" stroke-width="4"/><line x1="24" y1="39" x2="24" y2="29" stroke="#3dff8f" stroke-width="4" stroke-linecap="round"/></symbol>' +
@@ -259,10 +258,20 @@
 
   // ---------------------------------------------------------------------------
   // Conteneur plein écran
+  // Shadow DOM : le CSS du site (boutons verts, police mono, !important…) ne déteint pas sur le catalogue
+  var hostEl = document.createElement('div');
+  hostEl.id = 'phc-host';
+  hostEl.style.cssText = 'position:fixed;inset:0;z-index:3999990;';
+  document.body.appendChild(hostEl);
+  var scope = hostEl.attachShadow ? hostEl.attachShadow({ mode: 'open' }) : hostEl;
+  var style = document.createElement('style');
+  style.textContent = ':host{all:initial}\n' + css;
+  scope.appendChild(style);
   var root = document.createElement('div');
   root.id = 'phc';
   root.innerHTML = ICONS + '<div class="phc-loading">Chargement du catalogue…</div>';
-  document.body.appendChild(root);
+  scope.appendChild(root);
+  function focused() { return (scope.activeElement !== undefined ? scope.activeElement : document.activeElement) || null; }
   document.documentElement.classList.add('phc-lock');
 
   // ---------------------------------------------------------------------------
@@ -618,14 +627,16 @@
     var start = inProgress(v.id) ? Math.max(0, prog(v.id).t - 3) : 0;
     var pl = $('#phc-player', root);
     pl.innerHTML = '<div class="phc-pbar"><button type="button" data-stop>' + svg('back') + 'Retour</button><span class="phc-pt">' + esc(v.title) + '</span></div>' +
-      '<div class="phc-stage"><div class="phc-screen"><div id="phc-yt"></div></div></div>';
+      '<div class="phc-stage"><div class="phc-screen"><div class="phc-yt"></div></div></div>';
     if (pl.hidden && !replace) pushLayer('player');
     pl.hidden = false;
     var back = $('[data-stop]', pl);
     if (back) back.focus({ preventScroll: true });
     loadYT().then(function () {
       if (current !== v) return;
-      player = new window.YT.Player('phc-yt', {
+      var slot = $('.phc-yt', pl);
+      if (!slot) return;
+      player = new window.YT.Player(slot, {
         host: 'https://www.youtube-nocookie.com',
         videoId: v.id,
         playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1, start: Math.floor(start), origin: location.origin },
@@ -731,11 +742,11 @@
 
   // Télécommande / clavier : flèches entre les cartes et les rangées, Échap pour fermer
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' || e.key === 'Backspace' && !/INPUT|TEXTAREA/.test((document.activeElement || {}).tagName || '')) {
+    if (e.key === 'Escape' || (e.key === 'Backspace' && !/INPUT|TEXTAREA/.test((focused() || {}).tagName || ''))) {
       if (!$('#phc-player', root).hidden || !$('#phc-scrim', root).hidden) { e.preventDefault(); closeTop(); }
       return;
     }
-    var c = document.activeElement;
+    var c = focused();
     if (!c || !c.classList || !c.classList.contains('phc-card')) return;
     var track = c.parentElement;
     var cards = Array.prototype.slice.call(track.querySelectorAll('.phc-card'));
