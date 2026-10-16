@@ -21,7 +21,9 @@
  *       <div class="ph-video-meta" data-youtube="ID" data-theme="ia" data-series="comment" data-duration="408" hidden></div>
  *     Sans cette carte (anciennes pages) : vidéo lue dans l'iframe YouTube, thème « ia » par défaut.
  *   - Lecteur YouTube intégré (youtube-nocookie) : reprise là où on s'est arrêté et épisode suivant,
- *     mémorisés sur l'appareil (localStorage), comme « Ma liste ».
+ *     mémorisés sur l'appareil (localStorage), comme « Ma liste », ET synchronisés entre appareils via la
+ *     fonction Supabase tv-state (projet PosthumanOS jfmzhndapfmvdhphuwfm, table tv_member_state), authentifiée
+ *     par le jeton d'identité Ghost (/members/api/session). Si la synchro échoue, tout reste local.
  *   - PRÊT POUR BUNNY STREAM (vidéos hébergées, exclusivités) : une page vidéo dont la fiche porte
  *       <div class="ph-video-meta" data-source="bunny" data-bunny="ID_BIBLIOTHEQUE/GUID_VIDEO" data-exclusive="1"
  *            data-theme="ia" data-series="comment" data-duration="420" hidden></div>
@@ -46,6 +48,7 @@
   var PORTAL_UPGRADE = '#/portal/account/plans';  // membre gratuit connecté
   var PORTAL_SIGNIN = '#/portal/signin';
   // Lecteur Bunny Stream : bibliothèque player.js documentée par Bunny (événements, reprise)
+  var SYNC_URL = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/tv-state';
   var BUNNY_PLAYERJS = 'https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js';
   var THEME_ROWS_FROM = 6;   // rangées par thème seulement à partir de N vidéos (sinon doublons)
   var SERIES_ROWS_FROM = 10; // rangées par série à partir de N vidéos
@@ -427,6 +430,76 @@
   var view = 'home';
   var progress = store('phc-progress') || {};
   var myList = store('phc-list') || [];
+  var listAt = store('phc-list-at') || 0;
+
+  // ---------------------------------------------------------------------------
+  // Synchro entre appareils (« Ma liste » + « Reprendre ») : fonction Supabase tv-state (projet PosthumanOS),
+  // authentifiée par le jeton d'identité Ghost du membre connecté. En cas d'échec : stockage local seul, sans blocage.
+  var tokenCache = null;
+  var pushTimer = null;
+  var lastPush = 0;
+  function ghostToken() {
+    if (tokenCache && tokenCache.exp > Date.now()) return Promise.resolve(tokenCache.t);
+    return fetch('/members/api/session', { credentials: 'same-origin' })
+      .then(function (r) { return r.status === 200 ? r.text() : ''; })
+      .then(function (tk) {
+        tk = String(tk || '').trim().replace(/^"|"$/g, '');
+        tokenCache = tk ? { t: tk, exp: Date.now() + 8 * 60000 } : null;
+        return tk;
+      })
+      .catch(function () { return ''; });
+  }
+  function syncCall(method, body, token, keepalive) {
+    var headers = { Authorization: 'Bearer ' + token };
+    if (body) headers['Content-Type'] = 'application/json';
+    return fetch(SYNC_URL, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined, keepalive: !!keepalive })
+      .then(function (r) { if (!r.ok) throw new Error('tv-state ' + r.status); return r.json(); });
+  }
+  function applyRemote(s) {
+    if (!s || typeof s !== 'object') return false;
+    var changed = false;
+    var rp = s.progress || {};
+    Object.keys(rp).forEach(function (k) {
+      var p = rp[k];
+      if (p && (!progress[k] || (p.at || 0) > (progress[k].at || 0))) { progress[k] = p; changed = true; }
+    });
+    if (changed) store('phc-progress', progress);
+    if ((s.list_at || 0) > listAt && Array.isArray(s.list)) {
+      myList = s.list.slice();
+      listAt = s.list_at;
+      store('phc-list', myList);
+      store('phc-list-at', listAt);
+      changed = true;
+    }
+    return changed;
+  }
+  function pushNow(keepalive) {
+    clearTimeout(pushTimer); pushTimer = null;
+    lastPush = Date.now();
+    var body = { list: myList, list_at: listAt, progress: progress };
+    if (keepalive) { // fermeture de page : pas le temps d'aller chercher un jeton
+      if (tokenCache && tokenCache.exp > Date.now()) syncCall('POST', body, tokenCache.t, true).catch(function () {});
+      return;
+    }
+    ghostToken().then(function (tk) { if (tk) return syncCall('POST', body, tk).then(applyRemote); }).catch(function () {});
+  }
+  // liste : envoi rapide ; progression : au plus toutes les 30 s pendant la lecture
+  function schedulePush(soon) {
+    var wait = soon ? 1500 : Math.max(0, 30000 - (Date.now() - lastPush));
+    if (pushTimer && !soon) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () { pushNow(false); }, wait);
+  }
+  function initialSync() {
+    ghostToken().then(function (tk) {
+      if (!tk) return;
+      return syncCall('GET', null, tk).then(function (s) {
+        var changed = applyRemote(s);
+        if (changed && $('#phc-player', root) && $('#phc-player', root).hidden) renderAll();
+        pushNow(false); // remonte ce que cet appareil avait de plus récent
+      });
+    }).catch(function () {});
+  }
 
   function prog(id) { return progress[id] || null; }
   function ratio(id) {
@@ -674,6 +747,7 @@
     if (!d || (!done && !p.t)) return;
     progress[current.id] = { t: done ? Math.round(d) : Math.floor(p.t), d: Math.round(d), done: !!done || p.t / d >= 0.92, at: Date.now() };
     store('phc-progress', progress);
+    schedulePush(!!done);
   }
   function nextAfter(v) {
     var i = VIDEOS.indexOf(v);
@@ -781,7 +855,7 @@
   function stopPlayer(keepOpen) {
     if (ticker) { clearInterval(ticker); ticker = null; }
     cancelNext();
-    if (current) saveProgress(false);
+    if (current) { saveProgress(false); if (!keepOpen) pushNow(false); }
     if (player) {
       try { player.destroy(); } catch (e) {}
       player = null;
@@ -832,7 +906,10 @@
       var id = t.getAttribute('data-list');
       if (inList(id)) myList = myList.filter(function (x) { return x !== id; });
       else myList.push(id);
+      listAt = Date.now();
       store('phc-list', myList);
+      store('phc-list-at', listAt);
+      schedulePush(true);
       var on = inList(id);
       root.querySelectorAll('[data-list="' + id + '"]').forEach(function (b) {
         b.setAttribute('aria-pressed', String(on));
@@ -884,7 +961,8 @@
       }
     }
   });
-  window.addEventListener('pagehide', function () { saveProgress(false); });
+  window.addEventListener('pagehide', function () { saveProgress(false); pushNow(true); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { saveProgress(false); pushNow(true); } });
 
   // ---------------------------------------------------------------------------
   // Démarrage
@@ -893,6 +971,7 @@
     VIDEOS.forEach(function (v) { byId[v.id] = v; });
     shell();
     renderAll();
+    initialSync();
   }).catch(function (err) {
     root.innerHTML = ICONS + '<div class="phc-loading">Posthumain TV n\'a pas pu se charger. Recharge la page dans un instant.</div>';
     if (window.console) console.warn('[posthumain-tv]', err);
