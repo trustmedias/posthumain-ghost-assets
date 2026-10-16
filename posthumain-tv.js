@@ -225,13 +225,14 @@
     '#phc .phc-link{font-size:13px;color:var(--muted)}',
 
     /* Lecteur */
-    '#phc .phc-player{position:fixed;inset:0;z-index:60;background:#000;display:grid;grid-template-rows:auto minmax(0,1fr);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}',
-    '#phc .phc-pbar{display:flex;align-items:center;gap:12px;padding-block:12px;padding-left:var(--gl);padding-right:var(--gr)}',
+    '#phc .phc-player{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;width:100%;max-width:100vw;overflow:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}',
+    '#phc .phc-pbar{flex:0 0 auto;display:flex;align-items:center;gap:12px;min-width:0;width:100%;padding-block:12px;padding-left:var(--gl);padding-right:var(--gr)}',
     '#phc .phc-pbar button{background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:600;padding:6px 0}',
     '#phc .phc-pbar svg{width:22px;height:22px}',
     '#phc .phc-pt{color:var(--muted);font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}',
-    '#phc .phc-stage{display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding-left:var(--gl);padding-right:var(--gr);padding-block:0 16px;min-height:0}',
-    '#phc .phc-screen{position:relative;width:min(100%,calc((100vh - 120px) * 16 / 9),calc((100dvh - 120px) * 16 / 9));aspect-ratio:16/9;background:#000;border-radius:4px;overflow:hidden}',
+    '#phc .phc-stage{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-width:0;width:100%;padding-left:var(--gl);padding-right:var(--gr);padding-block:0 16px;min-height:0}',
+    '#phc .phc-screen{position:relative;flex:0 1 auto;width:100%;max-width:calc((100vh - 120px) * 16 / 9);aspect-ratio:16/9;background:#000;border-radius:4px;overflow:hidden}',
+    '@supports (height:100dvh){#phc .phc-screen{max-width:calc((100dvh - 120px) * 16 / 9)}}',
     '#phc .phc-screen iframe,#phc .phc-screen > div{position:absolute;inset:0;width:100%;height:100%;border:0}',
     '#phc .phc-next{position:absolute;right:16px;bottom:16px;z-index:3;display:flex;gap:12px;align-items:center;background:rgba(6,9,10,.92);border:1px solid var(--line);border-radius:10px;padding:10px;max-width:calc(100% - 32px)}',
     '#phc .phc-next img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:4px}',
