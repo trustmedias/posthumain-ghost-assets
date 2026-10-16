@@ -29,6 +29,13 @@
  *    <em>« … »</em> » (format utilisé jusqu'au 15/10/2026) sont aussi convertis,
  *    sans retoucher les articles dans Ghost.
  *
+ * 4. ÉTIQUETTE « VIDÉO »  —  sur TOUTES les pages (accueil, catégories, « latest »,
+ *    articles liés…), chaque carte d'article qui mène à une page Vidéos
+ *    (lien /videos/…, versions longues YouTube) reçoit une pastille rouge
+ *    « ▶ VIDÉO » en haut à gauche de sa miniature, pour qu'on ne la prenne pas
+ *    pour un article. Pur CSS (pseudo-élément en position absolue) : aucun
+ *    décalage de mise en page, marche aussi pour les cartes chargées ensuite.
+ *
  * Copie : API Clipboard, sinon repli textarea + execCommand (iOS ancien,
  * navigateurs intégrés Facebook / Instagram), sinon le texte est sélectionné
  * et le bouton invite à copier à la main. Un évènement « ph:copy » est émis
@@ -319,6 +326,22 @@
     }
     p.parentNode.removeChild(p);
   }
+
+  /* --- 4. Étiquette « VIDÉO » sur les cartes (toutes les pages) ------------- */
+  var VIDEO_BADGE_CSS = [
+    "a.gh-card-link[href*=\"/videos/\"] .gh-card-image{position:relative}",
+    "a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{content:\"\\25B6\\FE0E\\00A0\\00A0VID\\00C9O\";position:absolute;top:8px;left:8px;z-index:2;padding:5px 8px 4px 7px;border-radius:4px;background:#ff0033;color:#fff;font:700 11px/1 \"Fira Mono\",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap}",
+    "@media(max-width:600px){a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{top:6px;left:6px;padding:4px 6px 3px 5px;font-size:10px}}",
+    "@media print{a.gh-card-link[href*=\"/videos/\"] .gh-card-image::after{display:none}}"
+  ].join("");
+  function injectVideoBadge() {
+    if (document.getElementById("ph-video-badge-style")) return;
+    var s = document.createElement("style");
+    s.id = "ph-video-badge-style";
+    s.textContent = VIDEO_BADGE_CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+  try { injectVideoBadge(); } catch (e) {}
 
   /* --- Lancement ------------------------------------------------------------ */
   function run() {
