@@ -233,6 +233,10 @@
     '#phc .phc-stage{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-width:0;width:100%;padding-left:var(--gl);padding-right:var(--gr);padding-block:0 16px;min-height:0}',
     '#phc .phc-screen{position:relative;flex:0 1 auto;width:100%;max-width:calc((100vh - 120px) * 16 / 9);aspect-ratio:16/9;background:#000;border-radius:4px;overflow:hidden}',
     '@supports (height:100dvh){#phc .phc-screen{max-width:calc((100dvh - 120px) * 16 / 9)}}',
+    '@media (max-width:720px){#phc .phc-stage{padding-left:0;padding-right:0}#phc .phc-screen{border-radius:0}}',
+    /* lecteur ou fiche ouverts : le catalogue derrière ne défile plus */
+    '#phc.phc-noscroll{overflow:hidden;touch-action:none}',
+    '#phc .phc-player,#phc .phc-scrim,#phc .phc-sheet{overscroll-behavior:contain;touch-action:auto}',
     '#phc .phc-screen iframe,#phc .phc-screen > div{position:absolute;inset:0;width:100%;height:100%;border:0}',
     '#phc .phc-next{position:absolute;right:16px;bottom:16px;z-index:3;display:flex;gap:12px;align-items:center;background:rgba(6,9,10,.92);border:1px solid var(--line);border-radius:10px;padding:10px;max-width:calc(100% - 32px)}',
     '#phc .phc-next img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:4px}',
@@ -582,6 +586,10 @@
     // on ne compte un calque que si l'historique l'a bien enregistré (sinon « retour » quitterait la page)
     try { history.pushState({ phc: name }, ''); layers.push(name); } catch (e) {}
   }
+  function syncScrollLock() {
+    var open = !$('#phc-player', root).hidden || !$('#phc-scrim', root).hidden;
+    root.classList.toggle('phc-noscroll', open);
+  }
   function openSheet(id) {
     var v = byId[id];
     if (!v) return;
@@ -605,6 +613,7 @@
       '</div>';
     if (sc.hidden) pushLayer('sheet');
     sc.hidden = false;
+    syncScrollLock();
     var b = $('.phc-play', sc);
     if (b) b.focus({ preventScroll: true });
   }
@@ -613,6 +622,7 @@
     if (!sc || sc.hidden) return;
     sc.hidden = true;
     sc.innerHTML = '';
+    syncScrollLock();
   }
 
   // ---------------------------------------------------------------------------
@@ -762,6 +772,7 @@
       '<div class="phc-stage"><div class="phc-screen"><div class="phc-yt"></div></div></div>';
     if (pl.hidden && !replace) pushLayer('player');
     pl.hidden = false;
+    syncScrollLock();
     var back = $('[data-stop]', pl);
     if (back) back.focus({ preventScroll: true });
     if (v.source === 'bunny') startBunny(v, start, pl);
@@ -780,6 +791,7 @@
       var pl = $('#phc-player', root);
       if (pl) { pl.hidden = true; pl.innerHTML = ''; }
       current = null;
+      syncScrollLock();
       renderAll(); // met à jour « Reprendre », barres de progression, hero
     }
   }
