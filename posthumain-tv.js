@@ -397,8 +397,8 @@
   document.head.appendChild(lock);
 
   var ICONS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
-    // Logo : anneau + barre verticale, proportions relevées sur le logo d'origine (barre jusqu'à ~43 % du rayon)
-    '<symbol id="phc-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="#3dff8f" stroke-width="3.6"/><line x1="24" y1="39" x2="24" y2="33.2" stroke="#3dff8f" stroke-width="3.6" stroke-linecap="round"/></symbol>' +
+    // Logo Posthumain, tracé exact relevé sur le logo d'origine (superposition 96 %) : anneau + barre à sommet plat
+    '<symbol id="phc-logo" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45.43" fill="none" stroke="#39FF71" stroke-width="9.14"/><rect x="45.86" y="69.31" width="8.28" height="22.5" fill="#39FF71" stroke="none"/></symbol>' +
     '<symbol id="phc-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" stroke-width="2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" stroke-width="2" stroke-linecap="round"/></symbol>' +
     '<symbol id="phc-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>' +
     '<symbol id="phc-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></symbol>' +
