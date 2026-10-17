@@ -55,8 +55,16 @@
   var SYNC_URL = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/tv-state';
   var PLAY_URL = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/tv-play'; // lien Bunny signé (abonnés)
   var BUNNY_PLAYERJS = 'https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js';
-  var THEME_ROWS_FROM = 6;   // rangées par thème seulement à partir de N vidéos (sinon doublons)
-  var SERIES_ROWS_FROM = 10; // rangées par série à partir de N vidéos
+  // Réglages modifiables depuis le menu Admin (injectés dans la page /tv : window.PH_TV_CONFIG)
+  var CFG = window.PH_TV_CONFIG || {};
+  var THEME_ROWS_FROM = +CFG.theme_rows_from || 6;   // rangées par thème seulement à partir de N vidéos (sinon doublons)
+  var SERIES_ROWS_FROM = +CFG.series_rows_from || 10; // rangées par série à partir de N vidéos
+  var HERO_PIN = String(CFG.hero_pin || '');          // vidéo forcée en grand format (sinon automatique)
+  var SOON_TITLE = String(CFG.soon_title || 'Prochain doc');
+  var SOON_TEXT = String(CFG.soon_text || 'Un nouveau documentaire tous les deux jours');
+  var ADMIN_URL = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/tv-admin';
+  var ADMIN_EMAILS = ['jonathan.paiano@outlook.com']; // affichage du menu seulement : le serveur revérifie
+  var GHOST_ADMIN = 'https://the-last-journal.ghost.io/ghost/#/editor/post/';
 
   var THEMES = {
     ia: 'Intelligence artificielle',
@@ -101,6 +109,12 @@
   }
   function minutes(sec) { return sec ? Math.max(1, Math.round(sec / 60)) + ' min' : ''; }
   function svg(id) { return '<svg aria-hidden="true" focusable="false"><use href="#phc-' + id + '"></use></svg>'; }
+  // Étiquette de source : « POSTHUMAIN TV » (exclusivité hébergée chez nous) ou « VIDÉO YT » (YouTube)
+  function srcBadge(v) {
+    return v.source === 'bunny'
+      ? '<span class="phc-src phc-src-tv" title="Exclusivité Posthumain TV"><svg aria-hidden="true"><use href="#phc-logo"></use></svg>Posthumain <b>TV</b></span>'
+      : '<span class="phc-src phc-src-yt" title="Vidéo publiée sur YouTube">Vidéo <i>YT</i></span>';
+  }
   function $(s, root) { return (root || document).querySelector(s); }
 
   // ---------------------------------------------------------------------------
@@ -199,6 +213,7 @@
     '#phc .phc-thumb img{display:block;width:100%;height:100%;object-fit:cover}',
     '#phc .phc-card:hover .phc-thumb,#phc .phc-card:focus-visible .phc-thumb{transform:scale(1.04);box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 0 2px var(--accent)}',
     '#phc .phc-card:focus-visible{outline:none}',
+    '#phc a.phc-card{text-decoration:none;color:inherit}',
     '#phc .phc-cap{display:grid;gap:2px;padding-inline:2px}',
     '#phc .phc-t{font-size:13px;font-weight:600;line-height:1.3;color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
     '#phc .phc-s{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}',
@@ -284,6 +299,96 @@
     '#phc .phc-login{font-size:14px;color:var(--muted)}',
     '#phc .phc-login a{color:var(--fg);font-weight:600}',
     '#phc .phc-back{font-size:13px;color:var(--muted)}',
+
+    /* Page d'accueil /tv/home */
+    '#phc .phl-hero{position:relative;min-height:min(92vh,760px);display:grid;grid-template-columns:minmax(0,1fr);align-items:end;overflow:hidden;padding-block:calc(110px + env(safe-area-inset-top,0px)) 56px;padding-left:var(--gl);padding-right:var(--gr)}',
+    '#phc .phl-mosaic{position:absolute;inset:-60px -40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;transform:rotate(-6deg) scale(1.12);filter:saturate(.85) brightness(.5);animation:phl-pan 60s linear infinite alternate;pointer-events:none}',
+    '#phc .phl-mosaic img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px}',
+    '@keyframes phl-pan{from{transform:rotate(-6deg) scale(1.12) translateY(0)}to{transform:rotate(-6deg) scale(1.12) translateY(-12%)}}',
+    '#phc .phl-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 8%,rgba(6,9,10,.82) 45%,rgba(6,9,10,.35)),radial-gradient(ellipse at 20% 80%,rgba(61,255,143,.16),transparent 60%)}',
+    '#phc .phl-copy{position:relative;z-index:2;display:grid;gap:18px;max-width:760px;min-width:0}',
+    '#phc .phl-copy .phc-eyebrow{flex-wrap:wrap;row-gap:6px}',
+    '#phc .phl-copy h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(36px,10vw,104px);line-height:.9;color:var(--fg);text-wrap:balance;hyphens:none}',
+    '#phc .phl-copy h1 em{font-style:normal;color:var(--accent);text-shadow:0 0 30px var(--glow)}',
+    '#phc .phl-lead{font-size:clamp(16px,2.2vw,19px);color:var(--soft);max-width:56ch}',
+    '#phc .phl-ctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center}',
+    '#phc .phl-ctas .phc-sub{width:auto;max-width:none}',
+    '#phc .phl-small{font-size:13px;color:var(--muted)}',
+    '#phc .phl-small a{color:var(--fg);font-weight:600}',
+    '#phc .phl-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border-block:1px solid var(--line)}',
+    '#phc .phl-stats div{background:var(--bg);padding:18px var(--gr) 18px var(--gl);display:grid;gap:2px}',
+    '#phc .phl-stats b{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,40px);line-height:1;color:var(--fg)}',
+    '#phc .phl-stats span{font-size:12.5px;color:var(--muted)}',
+    '#phc .phl-sec{padding-block:44px 0}',
+    '#phc .phl-sec > h2,#phc .phl-h{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(26px,4.4vw,40px);line-height:1;color:var(--fg);padding-left:var(--gl);padding-right:var(--gr);margin-bottom:6px}',
+    '#phc .phl-sub{color:var(--muted);font-size:14px;padding-left:var(--gl);padding-right:var(--gr);margin-bottom:14px}',
+    '#phc .phl-rank{position:relative;display:flex;align-items:flex-start;flex-shrink:0;scroll-snap-align:start;gap:0;cursor:pointer;border:0;background:none;padding:0;text-align:left}',
+    '#phc .phl-rank > b{font-family:var(--display);font-weight:900;font-size:clamp(92px,30vw,150px);line-height:.82;color:var(--bg);-webkit-text-stroke:2px var(--accent);margin-right:-12px;position:relative;z-index:1;letter-spacing:-.04em;min-width:.5em}',
+    '#phc .phl-rank .phc-card{width:clamp(200px,56vw,280px)}',
+    '#phc .phl-feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;padding-left:var(--gl);padding-right:var(--gr)}',
+    '#phc .phl-feat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:8px;align-content:start}',
+    '#phc .phl-feat svg{width:26px;height:26px;color:var(--accent)}',
+    '#phc .phl-feat b{color:var(--fg);font-size:16px}',
+    '#phc .phl-feat p{color:var(--muted);font-size:14px}',
+    '#phc .phl-themes{display:flex;flex-wrap:wrap;gap:8px;padding-left:var(--gl);padding-right:var(--gr)}',
+    '#phc .phl-themes a{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;color:var(--soft);text-decoration:none}',
+    '#phc .phl-themes a span{font-family:var(--mono);font-size:11px;color:var(--accent)}',
+    '#phc .phl-faq{display:grid;gap:8px;padding-left:var(--gl);padding-right:var(--gr);max-width:860px}',
+    '#phc .phl-faq details{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:0 16px}',
+    '#phc .phl-faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px 0;font-weight:600;color:var(--fg)}',
+    '#phc .phl-faq summary::-webkit-details-marker{display:none}',
+    '#phc .phl-faq details[open] summary svg{transform:rotate(180deg)}',
+    '#phc .phl-faq p{color:var(--soft);padding-bottom:16px;font-size:14.5px}',
+    '#phc .phl-final{margin:56px var(--gr) 0 var(--gl);border-radius:16px;padding:36px clamp(20px,5vw,48px);background:radial-gradient(ellipse at 15% 20%,rgba(61,255,143,.18),transparent 55%),var(--surface);border:1px solid var(--line);display:grid;gap:14px;justify-items:start}',
+    '#phc .phl-final h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(30px,6vw,56px);line-height:.92;color:var(--fg)}',
+    '#phc .phl-foot{padding:40px var(--gr) calc(40px + env(safe-area-inset-bottom,0px)) var(--gl);color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:14px}',
+    '#phc .phl-foot a{color:var(--soft)}',
+
+    /* Menu Admin */
+    '#phc .phc-adm-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:rgba(61,255,143,.08);color:var(--accent);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em}',
+    '#phc .phc-adm-btn svg{width:15px;height:15px}',
+    '#phc .phc-adm{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column;overscroll-behavior:contain}',
+    '#phc .phc-adm-top{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top,0px)) var(--gr) 10px var(--gl);border-bottom:1px solid var(--line)}',
+    '#phc .phc-adm-top b{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--accent)}',
+    '#phc .phc-adm-top button{margin-left:auto;background:none;border:0;cursor:pointer;color:var(--fg);display:flex}',
+    '#phc .phc-adm-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px var(--gr) 10px var(--gl);border-bottom:1px solid var(--line)}',
+    '#phc .phc-adm-tabs::-webkit-scrollbar{display:none}',
+    '#phc .phc-adm-tabs button{flex-shrink:0;border:1px solid var(--line);background:none;border-radius:999px;padding:7px 13px;font-size:13px;color:var(--muted);cursor:pointer}',
+    '#phc .phc-adm-tabs button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}',
+    '#phc .phc-adm-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px var(--gr) calc(40px + env(safe-area-inset-bottom,0px)) var(--gl);display:grid;gap:14px;align-content:start}',
+    '#phc .phc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}',
+    '#phc .phc-kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:4px}',
+    '#phc .phc-kpi b{font-family:var(--display);font-size:30px;font-weight:800;line-height:1;color:var(--fg);font-variant-numeric:tabular-nums}',
+    '#phc .phc-kpi span{font-size:12px;color:var(--muted)}',
+    '#phc .phc-kpi.ok b{color:var(--accent)}',
+    '#phc .phc-kpi.bad b{color:#ff6b6b}',
+    '#phc .phc-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px}',
+    '#phc .phc-box h3{font-size:15px;font-weight:700;color:var(--fg)}',
+    '#phc .phc-box p,#phc .phc-box li{font-size:13.5px;color:var(--soft)}',
+    '#phc .phc-box ul{list-style:none;display:grid;gap:6px}',
+    '#phc .phc-vrow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:start}',
+    '#phc .phc-vrow img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:4px;background:var(--surface-2)}',
+    '#phc .phc-vrow .t{font-weight:600;color:var(--fg);font-size:14px;line-height:1.3}',
+    '#phc .phc-vrow .m{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}',
+    '#phc .phc-score{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:999px;margin-right:6px}',
+    '#phc .phc-score.hi{background:rgba(61,255,143,.15);color:var(--accent)}',
+    '#phc .phc-score.mid{background:rgba(255,196,0,.15);color:#ffc400}',
+    '#phc .phc-score.lo{background:rgba(255,107,107,.15);color:#ff6b6b}',
+    '#phc .phc-issues li{font-size:12.5px;color:var(--soft);padding-left:14px;position:relative}',
+    '#phc .phc-issues li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:#ffc400}',
+    '#phc .phc-field{display:grid;gap:5px}',
+    '#phc .phc-field label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}',
+    '#phc .phc-field input,#phc .phc-field textarea,#phc .phc-field select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}',
+    '#phc .phc-field textarea{min-height:76px;resize:vertical}',
+    '#phc .phc-field .warn{color:#ffc400}',
+    '#phc .phc-row2{display:flex;flex-wrap:wrap;gap:8px;align-items:center}',
+    '#phc .phc-mini{font-size:13px;padding:8px 14px}',
+    '#phc .phc-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--fg);color:var(--bg);font-weight:600;font-size:14px;padding:10px 16px;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.5)}',
+    '#phc .phc-switch{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);cursor:pointer}',
+    '#phc .phc-switch input{width:20px;height:20px;accent-color:var(--accent)}',
+    '#phc .phc-tag-st{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;padding:2px 6px;border-radius:3px;background:var(--surface-2);color:var(--soft)}',
+    '#phc .phc-tag-st.live{background:rgba(61,255,143,.15);color:var(--accent)}',
+    '#phc .phc-tag-st.error{background:rgba(255,107,107,.15);color:#ff6b6b}',
     '@media (prefers-reduced-motion:reduce){#phc *{animation:none!important;transition:none!important}}'
   ].join('\n');
   // Verrou de défilement de la page (seule règle posée dans le document)
@@ -292,7 +397,10 @@
   document.head.appendChild(lock);
 
   var ICONS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
-    '<symbol id="phc-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="#3dff8f" stroke-width="4"/><line x1="24" y1="39" x2="24" y2="29" stroke="#3dff8f" stroke-width="4" stroke-linecap="round"/></symbol>' +
+    // Logo : anneau + barre verticale, proportions relevées sur le logo d'origine (barre jusqu'à ~43 % du rayon)
+    '<symbol id="phc-logo" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="#3dff8f" stroke-width="3.6"/><line x1="24" y1="39" x2="24" y2="33.2" stroke="#3dff8f" stroke-width="3.6" stroke-linecap="round"/></symbol>' +
+    '<symbol id="phc-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" stroke-width="2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" stroke-width="2" stroke-linecap="round"/></symbol>' +
+    '<symbol id="phc-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>' +
     '<symbol id="phc-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.4-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></symbol>' +
     '<symbol id="phc-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="2.2" stroke-linecap="round"/></symbol>' +
     '<symbol id="phc-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>' +
@@ -397,6 +505,135 @@
         return (amount % 1 ? amount.toFixed(2).replace('.', ',') : String(amount)) + ' ' + (cur === 'EUR' ? '€' : cur === 'CHF' ? 'CHF' : cur);
       })
       .catch(function () { return ''; });
+  }
+
+  var FAQ = [
+    ['Qu\'est-ce que Posthumain TV ?', 'Posthumain TV réunit tous les documentaires de Posthumain sur l\'intelligence artificielle, la tech, la science et le futur, rangés par thème et lisibles en plein écran sur téléphone, ordinateur ou télévision.'],
+    ['Qu\'est-ce qu\'une exclusivité Posthumain TV ?', 'Chaque semaine, un documentaire de 12 à 14 minutes sort d\'abord sur Posthumain TV, réservé aux abonnés, trois mois avant sa mise en ligne sur YouTube.'],
+    ['Peut-on regarder Posthumain TV sur sa télé ?', 'Oui. Lancez la lecture sur votre téléphone puis envoyez-la sur la télévision avec Chromecast ou AirPlay, ou ouvrez posthumain.com/tv directement sur le navigateur de la télé.'],
+    ['Combien coûte Posthumain TV ?', 'Posthumain TV est inclus dans l\'abonnement Posthumain, sans engagement, avec les enquêtes premium du site.'],
+    ['Est-ce que je retrouve où j\'en étais ?', 'Oui. La lecture reprend là où vous vous êtes arrêté et votre liste est synchronisée entre tous vos appareils.']
+  ];
+
+  function renderLanding() {
+    root.innerHTML = ICONS + '<div class="phc-loading">Posthumain TV…</div>';
+    var memberReq = fetch('/members/api/member/', { credentials: 'same-origin' })
+      .then(function (r) { return r.status === 200 ? r.json() : null; })
+      .catch(function () { return null; });
+    var topReq = fetch(ADMIN_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'top' }) })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (j) { return j.top || []; })
+      .catch(function () { return []; });
+    Promise.all([loadCatalogue().catch(function () { return []; }), loadPrice(), memberReq, topReq]).then(function (a) {
+      paintLanding(a[0], a[1], a[2], a[3]);
+    });
+  }
+
+  function paintLanding(videos, price, member, top) {
+    var status = member && member.status;
+    var paid = status === 'paid' || status === 'comped';
+    var byKey = {};
+    videos.forEach(function (v) { byKey[v.id] = v; if (v.was) byKey[v.was] = v; });
+    function href(v) { return paid ? '/tv/?v=' + encodeURIComponent(v.id) : (v.url || '/tv/'); }
+    function lcard(v) {
+      var sub = [v.duration ? minutes(v.duration) : '', THEMES[v.theme]].filter(Boolean).join(' · ');
+      return '<a class="phc-card" href="' + esc(href(v)) + '">' +
+        '<span class="phc-thumb"><img src="' + esc(sized(v.img, 600)) + '" alt="" loading="lazy" data-full="' + esc(v.img) + '">' +
+        '<span class="phc-badges">' + srcBadge(v) + '</span></span>' +
+        '<span class="phc-cap"><span class="phc-t">' + esc(v.title) + '</span><span class="phc-s">' + esc(sub) + '</span></span></a>';
+    }
+    function lrow(title, sub, items, id) {
+      if (!items.length) return '';
+      return '<section class="phl-sec"' + (id ? ' id="' + id + '"' : '') + '><h2>' + esc(title) + '</h2>' + (sub ? '<p class="phl-sub">' + esc(sub) + '</p>' : '') +
+        '<div class="phc-track">' + items.map(lcard).join('') + '</div></section>';
+    }
+    var cta = paid
+      ? '<a class="phc-btn phc-sub" href="/tv/">' + svg('play') + 'Ouvrir Posthumain TV</a>'
+      : status === 'free'
+        ? '<a class="phc-btn phc-sub" href="' + PORTAL_UPGRADE + '">Passer à l\'abonnement' + (price ? ' · ' + esc(price) + '/mois' : '') + '</a>'
+        : '<a class="phc-btn phc-sub" href="' + PORTAL_SIGNUP + '">S\'abonner' + (price ? ' · ' + esc(price) + '/mois' : '') + '</a>';
+    var under = paid ? '<span class="phl-small">Ton abonnement inclut tout le catalogue et les exclusivités.</span>'
+      : status === 'free' ? '<span class="phl-small">Tu es connecté avec un compte gratuit.</span>'
+      : '<span class="phl-small">Déjà abonné ? <a href="' + PORTAL_SIGNIN + '">Se connecter</a></span>';
+
+    // « Les plus regardés » : audience réelle de Posthumain TV, complétée par les nouveautés
+    var ranked = [];
+    top.forEach(function (t) { var v = byKey[t.id]; if (v && ranked.indexOf(v) === -1) ranked.push(v); });
+    var realTop = ranked.length >= 3;
+    videos.forEach(function (v) { if (ranked.length < 10 && ranked.indexOf(v) === -1) ranked.push(v); });
+    ranked = ranked.slice(0, 10);
+    var excl = videos.filter(function (v) { return v.source === 'bunny'; });
+    var themesPresent = Object.keys(THEMES).filter(function (t) { return videos.some(function (v) { return v.theme === t; }); });
+    var totalMin = Math.round(videos.reduce(function (s, v) { return s + (v.duration || 0); }, 0) / 60);
+    var mosaic = videos.slice(0, 18);
+    while (mosaic.length && mosaic.length < 18) mosaic = mosaic.concat(mosaic).slice(0, 18);
+
+    root.innerHTML = ICONS +
+      '<header class="phc-top" id="phc-top">' +
+      '<a class="phc-brand" href="/" aria-label="Posthumain, retour au site"><svg aria-hidden="true"><use href="#phc-logo"></use></svg><span><b>POSTHUMAIN</b><small>TV</small></span></a>' +
+      '<span class="phc-spacer"></span>' +
+      (paid ? '<a class="phc-btn phc-ghost phc-mini" href="/tv/">Ouvrir le catalogue</a>' : '<a class="phc-btn phc-ghost phc-mini" href="' + (status === 'free' ? PORTAL_UPGRADE : PORTAL_SIGNUP) + '">S\'abonner</a>') +
+      '</header>' +
+      '<section class="phl-hero">' +
+      (mosaic.length ? '<div class="phl-mosaic" aria-hidden="true">' + mosaic.map(function (v) { return '<img src="' + esc(sized(v.img, 600)) + '" alt="">'; }).join('') + '</div>' : '') +
+      '<div class="phl-copy">' +
+      '<div class="phc-eyebrow"><span class="phc-new">Posthumain TV</span><span>Documentaires · IA, tech, science</span></div>' +
+      '<h1>Le futur,<br><em>en documentaires.</em></h1>' +
+      '<p class="phl-lead">Tous nos documentaires sur l\'intelligence artificielle, la tech et la science, rangés par thème, en plein écran sur ton téléphone, ton ordinateur ou ta télé. Et chaque semaine, un docu exclusif, trois mois avant YouTube.</p>' +
+      '<div class="phl-ctas">' + cta + '<a class="phc-btn phc-ghost" href="#phl-top">Voir ce qu\'il y a dedans</a></div>' + under +
+      '</div></section>' +
+      '<div class="phl-stats">' +
+      '<div><b>' + videos.length + '</b><span>documentaires</span></div>' +
+      (totalMin ? '<div><b>' + (totalMin >= 120 ? Math.round(totalMin / 60) + ' h' : totalMin + ' min') + '</b><span>de vidéo</span></div>' : '') +
+      '<div><b>' + themesPresent.length + '</b><span>thèmes</span></div>' +
+      '<div><b>1/sem.</b><span>exclusivité, 3 mois avant YouTube</span></div>' +
+      '</div>' +
+      (ranked.length ? '<section class="phl-sec" id="phl-top"><h2>' + (realTop ? 'Les plus regardés' : 'À ne pas manquer') + '</h2>' +
+        '<p class="phl-sub">' + (realTop ? 'Ce que les abonnés regardent en ce moment' : 'Nos documentaires du moment') + '</p>' +
+        '<div class="phc-track">' + ranked.map(function (v, i) { return '<div class="phl-rank"><b aria-hidden="true">' + (i + 1) + '</b>' + lcard(v) + '</div>'; }).join('') + '</div></section>' : '') +
+      lrow('Exclusivités Posthumain TV', 'En avant-première pour les abonnés, trois mois avant YouTube', excl) +
+      lrow('Nouveautés', 'Un nouveau documentaire tous les deux jours', videos.slice(0, 12), 'phl-new') +
+      '<section class="phl-sec"><h2>Pensé pour regarder</h2><p class="phl-sub">Comme une plateforme de streaming, mais pour comprendre le monde qui vient</p><div class="phl-feats">' +
+      '<div class="phl-feat">' + svg('tv') + '<b>Sur ta télé</b><p>Chromecast ou AirPlay depuis ton téléphone, ou directement dans le navigateur de la télé.</p></div>' +
+      '<div class="phl-feat">' + svg('bookmark') + '<b>Ma liste, partout</b><p>Ta liste et ta progression te suivent sur tous tes appareils. Tu reprends là où tu t\'es arrêté.</p></div>' +
+      '<div class="phl-feat">' + svg('logo') + '<b>Exclusivités</b><p>Un documentaire de 12 à 14 minutes chaque semaine, réservé aux abonnés pendant trois mois.</p></div>' +
+      '<div class="phl-feat">' + svg('grid') + '<b>Rangé par thème</b><p>IA, énergie, santé, cerveau, espace, cyber : tout est classé, rien à chercher.</p></div>' +
+      '</div></section>' +
+      (themesPresent.length ? '<section class="phl-sec"><h2>Les thèmes</h2><div class="phl-themes">' + themesPresent.map(function (t) {
+        var n = videos.filter(function (v) { return v.theme === t; }).length;
+        return '<a href="' + (paid ? '/tv/' : '#phl-new') + '">' + esc(THEMES[t]) + '<span>' + n + '</span></a>';
+      }).join('') + '</div></section>' : '') +
+      '<section class="phl-sec"><h2>Questions fréquentes</h2><div class="phl-faq">' + FAQ.map(function (f) {
+        return '<details><summary>' + esc(f[0]) + svg('down') + '</summary><p>' + esc(f[1]) + '</p></details>';
+      }).join('') + '</div></section>' +
+      '<section class="phl-final"><h2>Prêt à regarder&nbsp;?</h2><p class="phl-lead">' +
+      (price ? 'Tout le catalogue, les exclusivités et les enquêtes premium pour ' + esc(price) + ' par mois, sans engagement.' : 'Tout le catalogue, les exclusivités et les enquêtes premium, sans engagement.') + '</p>' + cta + '</section>' +
+      '<footer class="phl-foot"><a href="/">Retour à Posthumain</a><a href="/videos/">Toutes les vidéos</a><span>© Posthumain</span></footer>';
+    root.addEventListener('scroll', function () {
+      var t = $('#phc-top', root);
+      if (t) t.classList.toggle('solid', root.scrollTop > 40);
+    }, { passive: true });
+    root.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href^="#phl-"]');
+      if (!a) return;
+      e.preventDefault();
+      var el = $(a.getAttribute('href'), root);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    root.addEventListener('error', function (e) {
+      var img = e.target;
+      if (img && img.tagName === 'IMG' && img.dataset.full && img.src !== img.dataset.full) img.src = img.dataset.full;
+    }, true);
+  }
+
+  // ===========================================================================
+  // PAGE D'ACCUEIL /tv/home (publique : présentation, plus regardés, exclusivités, FAQ)
+  // Page Ghost « tv-home » servie à /tv/home/ (routes.yaml), carte HTML <div id="ph-tv-landing"></div>
+  // précédée d'un texte statique (titre, présentation, FAQ) lisible par Google.
+  // ===========================================================================
+  if (document.getElementById('ph-tv-landing')) {
+    renderLanding();
+    return;
   }
 
   // ===========================================================================
@@ -539,6 +776,7 @@
       '<button type="button" data-nav="all">Tous les documentaires</button>' +
       '<button type="button" data-nav="list">Ma liste</button>' +
       '</nav><span class="phc-spacer"></span>' +
+      '<span id="phc-adm-slot"></span>' +
       '<a class="phc-site" href="/">Retour au site</a>' +
       '</header>' +
       '<main id="phc-main"><section class="phc-hero" id="phc-hero"></section>' +
@@ -550,7 +788,8 @@
       '<button type="button" data-nav="list">' + svg('bookmark') + 'Ma liste</button>' +
       '</nav>' +
       '<div class="phc-scrim" id="phc-scrim" hidden></div>' +
-      '<div class="phc-player" id="phc-player" hidden></div>';
+      '<div class="phc-player" id="phc-player" hidden></div>' +
+      '<div class="phc-adm" id="phc-adm" hidden></div>';
     root.addEventListener('scroll', function () {
       var top = $('#phc-top', root);
       if (top) top.classList.toggle('solid', root.scrollTop > 40);
@@ -566,18 +805,11 @@
     return '<div class="phc-meta">' + bits.join('') + '</div>';
   }
 
-  // Étiquette de source : « POSTHUMAIN TV » (exclusivité hébergée chez nous) ou « VIDÉO YT » (YouTube)
-  function srcBadge(v) {
-    return v.source === 'bunny'
-      ? '<span class="phc-src phc-src-tv" title="Exclusivité Posthumain TV"><svg aria-hidden="true"><use href="#phc-logo"></use></svg>Posthumain <b>TV</b></span>'
-      : '<span class="phc-src phc-src-yt" title="Vidéo publiée sur YouTube">Vidéo <i>YT</i></span>';
-  }
-
   function renderHero() {
     var el = $('#phc-hero', root);
     if (!VIDEOS.length) { el.innerHTML = ''; return; }
     // une exclusivité de moins de 7 jours pas encore vue ; sinon le plus récent pas encore vu ; sinon le plus récent
-    var v = VIDEOS.filter(function (x) { return x.source === 'bunny' && !isDone(x.id) && x.date && Date.now() - new Date(x.date).getTime() < 7 * 86400000; })[0] ||
+    var v = (HERO_PIN && byId[HERO_PIN]) || VIDEOS.filter(function (x) { return x.source === 'bunny' && !isDone(x.id) && x.date && Date.now() - new Date(x.date).getTime() < 7 * 86400000; })[0] ||
       VIDEOS.filter(function (x) { return !isDone(x.id); })[0] || VIDEOS[0];
     var resume = inProgress(v.id);
     el.innerHTML =
@@ -613,7 +845,7 @@
       (r > 0.03 && !isDone(v.id) ? '<span class="phc-bar"><i style="width:' + Math.round(r * 100) + '%"></i></span>' : '') +
       '</span><span class="phc-cap"><span class="phc-t">' + esc(v.title) + '</span><span class="phc-s">' + esc(sub) + '</span></span></button>';
   }
-  var SOON = '<div class="phc-soon" aria-hidden="true"><div><b>Prochain doc</b><span>Un nouveau documentaire tous les deux jours</span></div></div>';
+  var SOON = '<div class="phc-soon" aria-hidden="true"><div><b>' + esc(SOON_TITLE) + '</b><span>' + esc(SOON_TEXT) + '</span></div></div>';
 
   function row(title, items, note, extra) {
     if (!items.length && !extra) return '';
@@ -686,7 +918,8 @@
     try { history.pushState({ phc: name }, ''); layers.push(name); } catch (e) {}
   }
   function syncScrollLock() {
-    var open = !$('#phc-player', root).hidden || !$('#phc-scrim', root).hidden;
+    var adm = $('#phc-adm', root);
+    var open = !$('#phc-player', root).hidden || !$('#phc-scrim', root).hidden || (adm && !adm.hidden);
     root.classList.toggle('phc-noscroll', open);
   }
   function openSheet(id) {
@@ -935,12 +1168,217 @@
     var top = layers.pop();
     if (top === 'player') stopPlayer(false);
     else if (top === 'sheet') closeSheet();
+    else if (top === 'admin') closeAdmin();
   });
   function closeTop() {
     if (layers.length) { history.back(); return; }
-    if (!$('#phc-player', root).hidden) stopPlayer(false);
+    if (!$('#phc-adm', root).hidden) closeAdmin();
+    else if (!$('#phc-player', root).hidden) stopPlayer(false);
     else closeSheet();
   }
+
+  // ---------------------------------------------------------------------------
+  // Menu Admin (réservé à l'admin : le bouton n'apparaît que pour lui, et la fonction tv-admin
+  // revérifie son identité à chaque appel avec le jeton Ghost)
+  var ADM = null;
+  var admTab = 'apercu';
+  function adminCall(action, extra) {
+    return ghostToken().then(function (tk) {
+      if (!tk) throw new Error('Session expirée : recharge la page');
+      var body = { action: action };
+      Object.keys(extra || {}).forEach(function (k) { body[k] = extra[k]; });
+      return fetch(ADMIN_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (j) {
+            if (!r.ok || j.error) throw new Error(j.detail || j.error || 'HTTP ' + r.status);
+            return j;
+          });
+        });
+    });
+  }
+  function initAdmin() {
+    fetch('/members/api/member/', { credentials: 'same-origin' })
+      .then(function (r) { return r.status === 200 ? r.json() : null; })
+      .then(function (m) {
+        if (!m || ADMIN_EMAILS.indexOf(String(m.email || '').toLowerCase()) === -1) return;
+        var slot = $('#phc-adm-slot', root);
+        if (slot) slot.innerHTML = '<button type="button" class="phc-adm-btn" data-admin>' + svg('gear') + 'Admin</button>';
+      }).catch(function () {});
+  }
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.className = 'phc-toast';
+    t.textContent = msg;
+    root.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
+  }
+  function openAdmin() {
+    var el = $('#phc-adm', root);
+    if (el.hidden) pushLayer('admin');
+    el.hidden = false;
+    syncScrollLock();
+    paintAdmin('<p class="phc-empty">Chargement…</p>');
+    loadAdmin();
+  }
+  function closeAdmin() {
+    var el = $('#phc-adm', root);
+    if (!el || el.hidden) return;
+    el.hidden = true;
+    el.innerHTML = '';
+    syncScrollLock();
+  }
+  function loadAdmin() {
+    return adminCall('overview').then(function (j) { ADM = j; paintAdmin(); })
+      .catch(function (e) { paintAdmin('<div class="phc-box"><h3>Impossible de charger</h3><p>' + esc(e.message) + '</p></div>'); });
+  }
+  var ADM_TABS = [['apercu', 'Aperçu'], ['videos', 'Vidéos & SEO'], ['exclus', 'Exclusivités'], ['pages', 'Pages /tv'], ['reglages', 'Réglages']];
+  function paintAdmin(override) {
+    var el = $('#phc-adm', root);
+    if (!el || el.hidden) return;
+    el.innerHTML = '<div class="phc-adm-top"><svg aria-hidden="true" style="width:24px;height:24px;stroke:none"><use href="#phc-logo"></use></svg><b>ADMIN · POSTHUMAIN TV</b>' +
+      '<button type="button" data-adm-close aria-label="Fermer">' + svg('x') + '</button></div>' +
+      '<div class="phc-adm-tabs" role="tablist">' + ADM_TABS.map(function (t) {
+        return '<button type="button" data-adm-tab="' + t[0] + '" aria-current="' + (t[0] === admTab) + '">' + t[1] + '</button>';
+      }).join('') + '</div>' +
+      '<div class="phc-adm-body">' + (override || admView()) + '</div>';
+  }
+  function scoreTag(s) { return '<span class="phc-score ' + (s >= 85 ? 'hi' : s >= 55 ? 'mid' : 'lo') + '">SEO ' + s + '</span>'; }
+  function counter(id, val, min, max) {
+    var n = String(val || '').length;
+    return '<span data-count-for="' + id + '" data-min="' + min + '" data-max="' + max + '" class="' + (n && (n < min || n > max) ? 'warn' : '') + '">' + n + ' car.</span>';
+  }
+  function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } }
+  function admView() {
+    var a = ADM;
+    if (!a) return '';
+    var vids = a.videos || [];
+    var au = a.audience || { started: {}, finished: {}, listed: {} };
+    var hl = a.health || {};
+    if (admTab === 'apercu') {
+      var pub = vids.filter(function (v) { return v.status === 'published'; });
+      var ex = a.exclusives || [];
+      var avg = vids.length ? Math.round(vids.reduce(function (s, v) { return s + v.seo.score; }, 0) / vids.length) : 0;
+      var topIds = Object.keys(au.started || {}).sort(function (x, y) { return au.started[y] - au.started[x]; }).slice(0, 8);
+      var byVid = {};
+      vids.forEach(function (v) { byVid[v.video_id] = v; });
+      return '<div class="phc-kpis">' +
+        '<div class="phc-kpi"><b>' + pub.length + '</b><span>vidéos publiées (' + vids.length + ' au total)</span></div>' +
+        '<div class="phc-kpi"><b>' + ex.filter(function (x) { return x.status === 'live'; }).length + '</b><span>exclusivités en ligne · ' + ex.filter(function (x) { return x.status === 'encoding' || x.status === 'fetching'; }).length + ' en préparation</span></div>' +
+        '<div class="phc-kpi"><b>' + (au.members || 0) + '</b><span>abonnés ont utilisé Posthumain TV</span></div>' +
+        '<div class="phc-kpi ' + (avg >= 85 ? 'ok' : avg < 55 ? 'bad' : '') + '"><b>' + avg + '</b><span>score SEO moyen</span></div>' +
+        '<div class="phc-kpi ' + (hl.bunny && hl.bunny.ok ? 'ok' : 'bad') + '"><b>' + (hl.bunny && hl.bunny.ok ? 'OK' : '!') + '</b><span>Bunny Stream' + (hl.bunny && hl.bunny.ok ? ' · ' + hl.bunny.videos + ' vidéo(s) stockée(s)' : ' : ' + esc((hl.bunny && hl.bunny.error) || 'non configuré')) + '</span></div>' +
+        '<div class="phc-kpi ' + (a.indexable ? 'ok' : '') + '"><b>' + (a.indexable ? 'Oui' : 'Non') + '</b><span>/tv et /tv/home visibles dans Google</span></div>' +
+        '</div>' +
+        '<div class="phc-box"><h3>Les plus regardés sur Posthumain TV</h3>' + (topIds.length ? '<ul>' + topIds.map(function (id) {
+          var v = byVid[id] || byId[id];
+          return '<li>' + esc(v ? v.title : id) + ' — <b>' + au.started[id] + '</b> spectateur(s), ' + (au.finished[id] || 0) + ' jusqu\'au bout, ' + (au.listed[id] || 0) + ' en « Ma liste »</li>';
+        }).join('') + '</ul>' : '<p>Pas encore de données : elles apparaissent dès que des abonnés regardent.</p>') + '</div>' +
+        '<div class="phc-row2"><button type="button" class="phc-btn phc-ghost phc-mini" data-adm-refresh>Actualiser</button>' +
+        '<a class="phc-btn phc-ghost phc-mini" href="/tv/home/">Voir la page d\'accueil /tv/home</a></div>';
+    }
+    if (admTab === 'videos') {
+      if (!vids.length) return '<p class="phc-empty">Aucune vidéo.</p>';
+      return '<p class="phc-empty" style="padding:0">Titre et description affichés par Google. Les données structurées vidéo (durée, vignette, date) sont ajoutées automatiquement toutes les heures.</p>' +
+        vids.map(function (v) {
+          var tId = 'mt-' + v.id, dId = 'md-' + v.id;
+          return '<div class="phc-box"><div class="phc-vrow"><img src="' + esc(sized(v.feature_image || '', 600)) + '" alt=""><div>' +
+            '<div class="t">' + esc(v.title) + '</div>' +
+            '<div class="m">' + scoreTag(v.seo.score) + (v.source === 'bunny' ? 'POSTHUMAIN TV' : 'VIDÉO YT') + ' · ' + esc({ published: 'publiée', draft: 'brouillon', scheduled: 'programmée' }[v.status] || v.status) + (v.duration ? ' · ' + mmss(v.duration) : '') + ' · ' + esc(v.theme_label || '') +
+            ' · ' + (au.started[v.video_id] || 0) + ' spect.</div></div></div>' +
+            (v.seo.issues.length ? '<ul class="phc-issues">' + v.seo.issues.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join('') + '</ul>' : '<p>Rien à signaler.</p>') +
+            '<div class="phc-field"><label for="' + tId + '">Titre pour Google (vide = titre de la page) ' + counter(tId, v.meta_title || v.title, 30, 60) + '</label>' +
+            '<input id="' + tId + '" data-count="' + tId + '" value="' + esc(v.meta_title) + '" placeholder="' + esc(v.title) + '"></div>' +
+            '<div class="phc-field"><label for="' + dId + '">Description pour Google (vide = extrait) ' + counter(dId, v.meta_description || v.custom_excerpt, 120, 155) + '</label>' +
+            '<textarea id="' + dId + '" data-count="' + dId + '" placeholder="' + esc(v.custom_excerpt) + '">' + esc(v.meta_description) + '</textarea></div>' +
+            '<div class="phc-row2"><button type="button" class="phc-btn phc-play phc-mini" data-adm-save-video="' + esc(v.id) + '">Enregistrer</button>' +
+            (v.url ? '<a class="phc-btn phc-ghost phc-mini" href="' + esc(v.url) + '">Voir la page</a>' : '') +
+            '<a class="phc-btn phc-ghost phc-mini" href="' + GHOST_ADMIN + esc(v.id) + '">Ouvrir dans Ghost</a></div></div>';
+        }).join('');
+    }
+    if (admTab === 'exclus') {
+      var rows = a.exclusives || [];
+      return '<div class="phc-box"><h3>Exclusivités Bunny</h3><p>Bibliothèque ' + esc(hl.bunny_library || '?') + ' · clés ' + (hl.bunny_keys ? 'OK' : 'manquantes') + ' · signature webhook ' + (hl.webhook_signature ? 'vérifiée' : 'non vérifiée') + '</p>' +
+        '<div class="phc-row2"><button type="button" class="phc-btn phc-ghost phc-mini" data-adm-sync>Relancer la synchro</button></div></div>' +
+        (rows.length ? rows.map(function (r) {
+          return '<div class="phc-box"><div class="phc-row2"><span class="phc-tag-st ' + esc(r.status) + '">' + esc(r.status) + '</span><b style="color:var(--fg)">' + esc(r.title) + '</b></div>' +
+            '<p>' + (r.status === 'encoding' ? 'Encodage ' + (r.encode_progress || 0) + ' % · ' : '') +
+            (r.published_at ? 'Publié le ' + fmtDate(r.published_at) + ' · ' : 'Reçu le ' + fmtDate(r.created_at) + ' · ') +
+            (r.exclusive_until ? 'exclusif jusqu\'au ' + fmtDate(r.exclusive_until) : '') + (r.youtube_id ? ' · sur YouTube : ' + esc(r.youtube_id) : '') + '</p>' +
+            (r.error ? '<p style="color:#ff6b6b">' + esc(r.error) + '</p>' : '') +
+            (r.ghost_url ? '<div class="phc-row2"><a class="phc-btn phc-ghost phc-mini" href="' + esc(r.ghost_url) + '">Page</a>' + (r.bunny_guid ? '<a class="phc-btn phc-ghost phc-mini" href="/tv/?v=bn-' + esc(r.bunny_guid) + '">Dans /tv</a>' : '') + '</div>' : '') + '</div>';
+        }).join('') : '<p class="phc-empty" style="padding:0">Aucune exclusivité reçue pour l\'instant.</p>');
+    }
+    if (admTab === 'pages') {
+      var pg = a.pages || {};
+      var pageBox = function (key, label, p) {
+        if (!p) return '<div class="phc-box"><h3>' + label + '</h3><p>Page introuvable.</p></div>';
+        var tId = 'pt-' + key, dId = 'pd-' + key;
+        return '<div class="phc-box"><h3>' + label + '</h3><p>' + esc(p.url) + ' · ' + (p.seo_block ? 'données structurées OK' : 'données structurées à venir') + '</p>' +
+          '<div class="phc-field"><label for="' + tId + '">Titre pour Google ' + counter(tId, p.meta_title || p.title, 30, 60) + '</label><input id="' + tId + '" data-count="' + tId + '" value="' + esc(p.meta_title) + '" placeholder="' + esc(p.title) + '"></div>' +
+          '<div class="phc-field"><label for="' + dId + '">Description pour Google ' + counter(dId, p.meta_description, 120, 155) + '</label><textarea id="' + dId + '" data-count="' + dId + '">' + esc(p.meta_description) + '</textarea></div>' +
+          '<div class="phc-row2"><button type="button" class="phc-btn phc-play phc-mini" data-adm-save-page="' + key + '">Enregistrer</button><a class="phc-btn phc-ghost phc-mini" href="' + esc(p.url) + '">Voir</a></div></div>';
+      };
+      return '<div class="phc-box"><h3>Visibilité dans Google</h3>' +
+        '<label class="phc-switch"><input type="checkbox" data-adm-index' + (a.indexable ? ' checked' : '') + '> Indexer /tv et /tv/home dans Google</label>' +
+        '<p>Désactivé = les deux pages portent « noindex » : Google ne les affiche pas (Posthumain TV reste discret). Les pages vidéo, elles, restent toujours indexables.</p></div>' +
+        pageBox('landing', 'Page d\'accueil /tv/home', pg.landing) + pageBox('tv', 'Catalogue /tv', pg.tv) +
+        '<div class="phc-row2"><button type="button" class="phc-btn phc-ghost phc-mini" data-adm-seo>Recalculer les données structurées maintenant</button></div>';
+    }
+    if (admTab === 'reglages') {
+      var c = a.catalog || {};
+      return '<div class="phc-box"><h3>Catalogue /tv</h3>' +
+        '<div class="phc-field"><label for="st-hero">Vidéo en grand format (vide = automatique)</label><select id="st-hero"><option value="">Automatique (exclusivité récente, sinon la plus récente non vue)</option>' +
+        vids.filter(function (v) { return v.status === 'published' && v.video_id; }).map(function (v) {
+          return '<option value="' + esc(v.video_id) + '"' + (c.hero_pin === v.video_id ? ' selected' : '') + '>' + esc(v.title) + '</option>';
+        }).join('') + '</select></div>' +
+        '<div class="phc-field"><label for="st-theme">Rangées par thème à partir de N vidéos</label><input id="st-theme" type="number" min="1" max="50" value="' + esc(c.theme_rows_from) + '"></div>' +
+        '<div class="phc-field"><label for="st-series">Rangées par série à partir de N vidéos</label><input id="st-series" type="number" min="1" max="50" value="' + esc(c.series_rows_from) + '"></div>' +
+        '<div class="phc-field"><label for="st-soon-t">Carte « à venir » : titre</label><input id="st-soon-t" value="' + esc(c.soon_title) + '"></div>' +
+        '<div class="phc-field"><label for="st-soon">Carte « à venir » : texte</label><input id="st-soon" value="' + esc(c.soon_text) + '"></div>' +
+        '<div class="phc-row2"><button type="button" class="phc-btn phc-play phc-mini" data-adm-settings>Enregistrer</button></div>' +
+        '<p>Les réglages s\'appliquent au prochain chargement de /tv.</p></div>';
+    }
+    return '';
+  }
+  function admBusy(btn, p, okMsg) {
+    if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+    return p.then(function () { toast(okMsg); return loadAdmin(); })
+      .catch(function (e) { toast('Erreur : ' + e.message); if (btn) { btn.disabled = false; btn.style.opacity = ''; } });
+  }
+  function valOf(id) { var e = root.querySelector('#' + id); return e ? e.value : ''; }
+  root.addEventListener('input', function (e) {
+    var id = e.target && e.target.getAttribute && e.target.getAttribute('data-count');
+    if (!id) return;
+    var c = root.querySelector('[data-count-for="' + id + '"]');
+    if (!c) return;
+    var n = e.target.value.length;
+    c.textContent = n + ' car.';
+    c.className = n && (n < +c.getAttribute('data-min') || n > +c.getAttribute('data-max')) ? 'warn' : '';
+  });
+  root.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('[data-admin],[data-adm-close],[data-adm-tab],[data-adm-refresh],[data-adm-save-video],[data-adm-save-page],[data-adm-index],[data-adm-seo],[data-adm-sync],[data-adm-settings]');
+    if (!t) return;
+    if (t.hasAttribute('data-admin')) openAdmin();
+    else if (t.hasAttribute('data-adm-close')) closeTop();
+    else if (t.hasAttribute('data-adm-tab')) { admTab = t.getAttribute('data-adm-tab'); paintAdmin(); }
+    else if (t.hasAttribute('data-adm-refresh')) admBusy(t, Promise.resolve(), 'Actualisé');
+    else if (t.hasAttribute('data-adm-save-video')) {
+      var id = t.getAttribute('data-adm-save-video');
+      admBusy(t, adminCall('video_update', { post_id: id, meta_title: valOf('mt-' + id), meta_description: valOf('md-' + id) }), 'Vidéo enregistrée');
+    } else if (t.hasAttribute('data-adm-save-page')) {
+      var k = t.getAttribute('data-adm-save-page');
+      admBusy(t, adminCall('page_update', { page: k, meta_title: valOf('pt-' + k), meta_description: valOf('pd-' + k) }), 'Page enregistrée');
+    } else if (t.hasAttribute('data-adm-index')) {
+      admBusy(null, adminCall('indexing', { indexable: !!t.checked }), t.checked ? 'Pages visibles dans Google' : 'Pages masquées de Google');
+    } else if (t.hasAttribute('data-adm-seo')) admBusy(t, adminCall('seo_apply'), 'Données structurées à jour');
+    else if (t.hasAttribute('data-adm-sync')) admBusy(t, adminCall('exclusives_sync'), 'Synchro relancée');
+    else if (t.hasAttribute('data-adm-settings')) {
+      admBusy(t, adminCall('settings', { catalog: {
+        hero_pin: valOf('st-hero'), theme_rows_from: valOf('st-theme'), series_rows_from: valOf('st-series'),
+        soon_title: valOf('st-soon-t'), soon_text: valOf('st-soon')
+      } }), 'Réglages enregistrés');
+    }
+  });
 
   // ---------------------------------------------------------------------------
   // Événements
@@ -1000,7 +1438,7 @@
   // Télécommande / clavier : flèches entre les cartes et les rangées, Échap pour fermer
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' || (e.key === 'Backspace' && !/INPUT|TEXTAREA/.test((focused() || {}).tagName || ''))) {
-      if (!$('#phc-player', root).hidden || !$('#phc-scrim', root).hidden) { e.preventDefault(); closeTop(); }
+      if (!$('#phc-player', root).hidden || !$('#phc-scrim', root).hidden || !$('#phc-adm', root).hidden) { e.preventDefault(); closeTop(); }
       return;
     }
     var c = focused();
@@ -1070,6 +1508,7 @@
     renderAll();
     openFromUrl();
     initialSync();
+    initAdmin();
   }).catch(function (err) {
     root.innerHTML = ICONS + '<div class="phc-loading">Posthumain TV n\'a pas pu se charger. Recharge la page dans un instant.</div>';
     if (window.console) console.warn('[posthumain-tv]', err);
