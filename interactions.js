@@ -343,6 +343,20 @@
   }
   try { injectVideoBadge(); } catch (e) {}
 
+  /* --- 5. Encart vidéo dans les articles : moins large sur ordinateur ------- */
+  // 17/10/2026 (Jonathan) : sur ordinateur (≥ 768 px), l'encart vidéo (.ph-video, posé par n8n) ne prend plus toute
+  // la largeur du texte : 10 % de marge de chaque côté. Mobile et email inchangés (l'email n'exécute pas ce script).
+  // Pur CSS, la carte elle-même n'est pas modifiée : son padding:0 en ligne est seulement remplacé ici.
+  var VIDEO_CARD_CSS = "@media(min-width:768px){.gh-content .ph-video,.post-content .ph-video,.article-content .ph-video{padding:0 10%!important;box-sizing:border-box}}";
+  function injectVideoCardWidth() {
+    if (document.getElementById("ph-video-card-style")) return;
+    var s = document.createElement("style");
+    s.id = "ph-video-card-style";
+    s.textContent = VIDEO_CARD_CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+  try { injectVideoCardWidth(); } catch (e) {}
+
   /* --- Lancement ------------------------------------------------------------ */
   function run() {
     var roots = document.querySelectorAll(ROOT_SELECTOR);
