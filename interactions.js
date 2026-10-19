@@ -347,13 +347,11 @@
   // 17/10/2026 (Jonathan) : sur ordinateur (≥ 768 px), l'encart vidéo (.ph-video, posé par n8n) ne prend plus toute
   // la largeur du texte : 10 % de marge de chaque côté. Mobile et email inchangés (l'email n'exécute pas ce script).
   // Pur CSS, la carte elle-même n'est pas modifiée : son padding:0 en ligne est seulement remplacé ici.
-  // 19/10/2026 (Jonathan) : espacement au-dessus et en dessous de l'encart = celui des paragraphes du thème (28 px × facteur).
-  // Les lignes vides de la carte (<td height="8"> et <td height="28">) servent à l'email ; sur le site elles s'ajoutaient
-  // à la marge du paragraphe suivant (56 px en dessous). Ici on les aplatit et on rend à l'encart la marge du thème.
-  // Seuls les <td height> directs du tableau extérieur sont visés, jamais l'intérieur de la carte.
+  // 19/10/2026 (Jonathan) : la ligne vide du bas de la carte (<td height="28">) sert à l'email ; sur le site elle
+  // s'ajoutait à la marge du paragraphe suivant (56 px). On l'aplatit sur le site seulement : il reste la marge du
+  // paragraphe, comme partout. Le haut ne bouge pas. Seule la DERNIÈRE ligne du tableau extérieur est visée.
   var VIDEO_CARD_CSS = "@media(min-width:768px){.gh-content .ph-video,.post-content .ph-video,.article-content .ph-video{padding:0 10%!important;box-sizing:border-box}}"
-    + ".gh-content .ph-video,.post-content .ph-video,.article-content .ph-video{margin-top:calc(28px*var(--content-spacing-factor,1))!important}"
-    + ".ph-video>table>tbody>tr>td[height]{height:0!important;line-height:0!important;font-size:0!important;padding:0!important}";
+    + ".ph-video>table>tbody>tr:last-child>td[height]{height:0!important;line-height:0!important;font-size:0!important;padding:0!important}";
   function injectVideoCardWidth() {
     if (document.getElementById("ph-video-card-style")) return;
     var s = document.createElement("style");
