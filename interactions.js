@@ -349,9 +349,11 @@
   // Pur CSS, la carte elle-même n'est pas modifiée : son padding:0 en ligne est seulement remplacé ici.
   // 19/10/2026 (Jonathan) : la ligne vide du bas de la carte (<td height="28">) sert à l'email ; sur le site elle
   // s'ajoutait à la marge du paragraphe suivant (56 px). On l'aplatit sur le site seulement : il reste la marge du
-  // paragraphe, comme partout. Le haut ne bouge pas. Seule la DERNIÈRE ligne du tableau extérieur est visée.
+  // paragraphe, comme partout. Seules la première et la dernière ligne du tableau extérieur sont visées.
   var VIDEO_CARD_CSS = "@media(min-width:768px){.gh-content .ph-video,.post-content .ph-video,.article-content .ph-video{padding:0 10%!important;box-sizing:border-box}}"
-    + ".ph-video>table>tbody>tr:last-child>td[height]{height:0!important;line-height:0!important;font-size:0!important;padding:0!important}";
+    + ".ph-video>table>tbody>tr:last-child>td[height]{height:0!important;line-height:0!important;font-size:0!important;padding:0!important}"
+    // 19/10/2026 (Jonathan) : en haut, 20 px au lieu des 8 px de l'email : la carte reste proche de la phrase qui l'annonce.
+    + ".ph-video>table>tbody>tr:first-child>td[height]{height:20px!important;line-height:20px!important;font-size:0!important;padding:0!important}";
   function injectVideoCardWidth() {
     if (document.getElementById("ph-video-card-style")) return;
     var s = document.createElement("style");
