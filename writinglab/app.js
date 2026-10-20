@@ -78,7 +78,17 @@
   }
   function refresh(silent) {
     S.last = Date.now();
-    return api('etat').then(function (d) { S.data = d; render(); }, function (e) { if (!silent) toast('⚠️ ' + e.message, true); });
+    return api('etat').then(function (d) {
+      // nouveaux mails arrivés sur subs@ / redaction@ depuis la dernière fois : le Courrier les porte au bureau de Julien
+      if (S.data && S.data.courrier) {
+        var vus = {}; S.data.courrier.forEach(function (m) { vus[m.mail_id] = 1; });
+        var neufs = (d.courrier || []).filter(function (m) { return !vus[m.mail_id]; });
+        if (neufs.length) { S.arrivees = neufs.map(function (m) { return m.boite; }); S.busy.courrier = 'trie ' + neufs.length + ' mail' + pl(neufs.length);
+          setTimeout(function () { S.arrivees = null; delete S.busy.courrier; paintFloor(); }, 3600);
+          toast('📬 ' + neufs.length + ' nouveau' + (neufs.length > 1 ? 'x' : '') + ' mail' + pl(neufs.length) + ' pour Julien'); }
+      }
+      S.data = d; render();
+    }, function (e) { if (!silent) toast('⚠️ ' + e.message, true); });
   }
 
   // ---------- styles ----------
@@ -443,6 +453,15 @@
     s += cable(sec, cour, envoyes > 0 || !!S.busy.secretaire);
     J.forEach(function (j) { s += cable(cour, j, reps > 0); });
     s += cable(chef, mar, false);
+    var jsc = P('sc'), jmk = P('mk'), arr = S.arrivees || [];
+    if (jsc && jmk) {
+      var pth = function (to) { return 'M' + cour.x + ' ' + (cour.y + 70) + ' V1006 H' + to.x + ' V' + (to.y - 80); };
+      [[jsc, 'subs'], [jmk, 'redaction']].forEach(function (d) {
+        var live = arr.indexOf(d[1]) >= 0, path = pth(d[0]);
+        s += '<path class="cable" d="' + path + '" stroke="rgba(0,0,0,.6)" stroke-width="7" fill="none"/><path class="cable' + (live ? ' live' : '') + '" d="' + path + '" fill="none" stroke="' + (live ? '#00ff77' : 'rgba(255,190,90,.18)') + '" stroke-width="' + (live ? 3 : 2) + '"' + (live ? ' filter="url(#glow)"' : '') + '/>';
+        if (live) s += '<g filter="url(#glow)"><rect x="-16" y="-11" width="32" height="22" rx="3" fill="#e2ffef" stroke="#00ff77" stroke-width="2"/><path d="M-16 -11 l16 12 l16 -12" stroke="#1d6b45" stroke-width="2" fill="none"/><animateMotion dur="2.8s" fill="freeze" path="' + path + '"/></g>';
+      });
+    }
     pp.forEach(function (p) { s += p.device ? deviceSVG(p) : deskSVG(p); });
     s += pilesSVG() + bullesSVG() + '</svg>';
     return s;
@@ -986,6 +1005,7 @@
     r.addEventListener('change', onInput);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.doc) closeDoc(); else closePanel(); } });
     document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 90000) refresh(true); });
+    setInterval(function () { if (!document.hidden && S.data && S.data.me && S.data.me.chef && Date.now() - S.last > 55000) refresh(true); }, 60000);
     setInterval(function () { if (!document.hidden && S.data) { var tp = r.querySelector('.top'); if (tp) tp.innerHTML = header(); } }, 30000);
     refresh().then(function () {
       if (S.art && !art(S.art) && D().articles.length) { /* l'article en cours a été publié ou supprimé */ S.art = ''; LS.set('wl-article', null); render(); }
