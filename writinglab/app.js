@@ -43,7 +43,10 @@
     doc: null, cit: null, colle: false
   };
 
-  function D() { return S.data || { me: {}, equipe: [], articles: [], fiches: [], messages: [] }; }
+  function D() { return S.data || { me: {}, equipe: [], articles: [], fiches: [], messages: [], courrier: [] }; }
+  function mails(boite, tous) { return (D().courrier || []).filter(function (m) { return m.boite === boite && (tous || m.statut !== 'répondu'); }); }
+  function mail(id) { return (D().courrier || []).filter(function (m) { return m.mail_id === id; })[0] || null; }
+  var JULIEN = { sc: { boite: 'subs', nom: 'Julien · Service client', adr: 'subs@posthumain.com', emoji: '🎧' }, mk: { boite: 'redaction', nom: 'Julien · Marketing', adr: 'redaction@posthumain.com', emoji: '📣' } };
   function art(id) { return D().articles.filter(function (a) { return a.id === id; })[0] || null; }
   function fiche(id) { return D().fiches.filter(function (f) { return f.fiche_id === id; })[0] || null; }
   function by(st) { return D().fiches.filter(function (f) { return f.statut === st; }); }
@@ -245,6 +248,11 @@
     { key: 'courrier', name: 'Salle du courrier', x: 610, y: 500, w: 560, h: 470, floor: '#0c0f16' },
     { key: 'marbre', name: 'Le marbre · Ghost', x: 1190, y: 500, w: 380, h: 470, floor: '#0a0d0b' }
   ];
+  var ROOMS2 = [
+    { key: 'sc', name: 'Service client · subs@', x: 30, y: 1030, w: 760, h: 300, floor: '#0c1414' },
+    { key: 'mk', name: 'Marketing · redaction@', x: 810, y: 1030, w: 760, h: 300, floor: '#16100c' }
+  ];
+  function rooms() { return D().me && D().me.chef ? ROOMS.concat(ROOMS2) : ROOMS; }
   function people() {
     var eq = D().equipe || [];
     var js = eq.filter(function (w) { return w.role !== 'chef'; }).slice(0, 3);
@@ -258,6 +266,10 @@
     list.push({ key: 'chef', id: chef.id, kind: 'chef', nom: chef.nom, titre: chef.titre || 'Rédacteur en chef', emoji: '🧐', hue: 40, x: 310, y: 735 });
     list.push({ key: 'courrier', kind: 'courrier', nom: 'Le Courrier', titre: 'Suit les réponses', emoji: '📬', x: 890, y: 735, device: true });
     list.push({ key: 'marbre', kind: 'marbre', nom: 'Le Marbre', titre: 'Les brouillons Ghost', emoji: '📰', x: 1380, y: 735, device: true });
+    if (D().me && D().me.chef) {
+      list.push({ key: 'sc', kind: 'sc', nom: JULIEN.sc.nom, titre: JULIEN.sc.adr, emoji: JULIEN.sc.emoji, hue: 175, x: 410, y: 1160 });
+      list.push({ key: 'mk', kind: 'mk', nom: JULIEN.mk.nom, titre: JULIEN.mk.adr, emoji: JULIEN.mk.emoji, hue: 20, x: 1190, y: 1160 });
+    }
     return list;
   }
   function P(key) { return people().filter(function (p) { return p.key === key; })[0]; }
@@ -268,6 +280,10 @@
     if (p.kind === 'secretaire') { var n = by('brouillon').length; return n ? { s: 'slot', why: n + ' mail' + pl(n) + ' à valider' } : { s: 'off', why: 'prête à écrire' }; }
     if (p.kind === 'assistant') { var k = S.qs.filter(function (q) { return q.garde; }).length; return S.art ? (k ? { s: 'slot', why: k + ' question' + pl(k) + ' retenue' + pl(k) } : { s: 'off', why: 'prêt à aider' }) : { s: 'off', why: 'choisissez un article' }; }
     if (p.kind === 'courrier') { var r = by('a répondu').length, e = by('envoyé').length; return r ? { s: 'on', why: r + ' réponse' + pl(r) + ' à traiter' } : e ? { s: 'slot', why: e + ' en attente de réponse' } : { s: 'off', why: 'aucun courrier en cours' }; }
+    if (p.kind === 'sc' || p.kind === 'mk') {
+      var ms = mails(JULIEN[p.kind].boite), nd = ms.filter(function (m) { return m.categorie === 'demande' && !m.brouillon_corps; }).length, nb = ms.filter(function (m) { return m.brouillon_corps; }).length, nv = ms.filter(function (m) { return m.categorie === 'verifier'; }).length;
+      return nd ? { s: 'on', why: nd + ' demande' + pl(nd) + ' à traiter' } : nb ? { s: 'slot', why: nb + ' réponse' + pl(nb) + ' à valider' } : nv ? { s: 'slot', why: nv + ' mail' + pl(nv) + ' à vérifier' } : { s: 'off', why: 'boîte à jour' };
+    }
     if (p.kind === 'marbre') { var a = D().articles.length; return { s: a ? 'slot' : 'off', why: a + ' brouillon' + pl(a) + ' sur le marbre' }; }
     if (p.vide) return { s: 'off', why: 'poste à attribuer' };
     if (isMe(p)) return { s: 'on', why: 'vous êtes ici' };
@@ -344,6 +360,7 @@
     if (p.kind === 'assistant') return S.qs.filter(function (q) { return q.garde; }).map(function () { return 'n'; });
     if (p.kind === 'journaliste' && !p.vide) return D().fiches.filter(function (f) { return f.redacteur === p.id && f.statut === 'a répondu'; }).map(function () { return 'g'; });
     if (p.kind === 'chef' && me.chef) return by('inséré').map(function () { return 'w'; });
+    if (p.kind === 'sc' || p.kind === 'mk') return mails(JULIEN[p.kind].boite).map(function (m) { return m.brouillon_corps ? 'a' : m.categorie === 'demande' ? 'g' : 'n'; });
     if (p.kind === 'marbre') return D().articles.filter(function (a) { return a.id === S.art; }).map(function () { return 'w'; });
     return [];
   }
@@ -396,9 +413,11 @@
       '<pattern id="tiles" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="rgba(255,255,255,.035)"/></pattern>' +
       '<pattern id="parquet" width="60" height="20" patternUnits="userSpaceOnUse"><path d="M0 20H60M30 0V20" fill="none" stroke="rgba(255,190,90,.05)"/></pattern>' +
       '<linearGradient id="wood" x1="0" x2="1"><stop offset="0" stop-color="#3a2c1d"/><stop offset="1" stop-color="#2a2016"/></linearGradient></defs>';
-    var s = '<svg viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La rédaction de Posthumain vue de haut">' + defs + '<rect width="1600" height="1000" fill="#0a0806"/>';
+    var HH = D().me && D().me.chef ? 1350 : 1000;
+    var s = '<svg viewBox="0 0 1600 ' + HH + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La rédaction de Posthumain vue de haut">' + defs + '<rect width="1600" height="' + HH + '" fill="#0a0806"/>';
+    if (HH > 1000) s += '<rect x="20" y="982" width="1560" height="40" fill="#100d09"/><rect x="20" y="982" width="1560" height="40" fill="url(#tiles)"/><text class="roomname" x="40" y="1007" style="font-size:11px">couloir · les bureaux de Julien</text>';
     s += '<rect x="20" y="448" width="1560" height="44" fill="#100d09"/><rect x="20" y="448" width="1560" height="44" fill="url(#tiles)"/><text class="roomname" x="40" y="475" style="font-size:11px">couloir · le chemin du courrier</text>';
-    ROOMS.forEach(function (r) {
+    rooms().forEach(function (r) {
       s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="' + r.floor + '"/>';
       s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="url(#' + (r.key === 'redac' || r.key === 'chef' ? 'parquet' : 'tiles') + ')"/>';
       s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="none" stroke="rgba(243,236,224,.16)" stroke-width="5"/>';
@@ -516,8 +535,44 @@
     else if (k === 'courrier') h = panelCourrier();
     else if (k === 'marbre' || k === 'articles') h = panelArticles();
     else if (k === 'chef') h = panelChef();
+    else if (k === 'sc' || k === 'mk') h = panelJulien(k);
     else if (k.indexOf('j:') === 0) h = panelJournaliste(k.slice(2));
     el.innerHTML = h; el.scrollTop = keep;
+  }
+  function mcard(m) {
+    var t = m.statut === 'répondu' ? ['✅', 'répondu', 'g'] : m.brouillon_corps ? ['🟠', 'réponse à valider', 'a'] : m.categorie === 'demande' ? ['📩', 'demande', 'g'] : ['❔', 'à vérifier', ''];
+    return '<div class="dcard ' + t[2] + '" data-act="open-mail" data-id="' + esc(m.mail_id) + '"><div class="k">' + t[0] + ' ' + t[1] + (m.abonne === 'oui' ? ' · abonné' : m.abonne === 'gratuit' ? ' · membre gratuit' : '') + '</div>' +
+      '<div class="ti">' + esc(m.sujet || '(sans objet)') + '</div><div class="su">' + esc(m.de_nom) + ' · ' + esc(when(m.recu_le)) + '</div></div>';
+  }
+  function panelJulien(k) {
+    var J = JULIEN[k], ms = mails(J.boite), faits = mails(J.boite, true).filter(function (m) { return m.statut === 'répondu'; }).slice(0, 8);
+    var dem = ms.filter(function (m) { return m.categorie === 'demande'; }), ver = ms.filter(function (m) { return m.categorie !== 'demande'; });
+    var h = head(J.emoji, J.nom, J.adr + (S.busy[k] ? ' · ' + esc(S.busy[k]) + '…' : ''));
+    h += '<div class="pb"><p class="muted">Le Courrier trie seul les mails qui arrivent (sans IA) : notifications, newsletters et réponses automatiques sont écartées. Julien ne rédige une réponse que quand vous le lui demandez, et rien ne part sans votre validation.</p>';
+    h += '<h4>📩 Demandes (' + dem.length + ')</h4><div class="dos">' + (dem.map(mcard).join('') || '<div class="muted">Aucune demande en attente.</div>') + '</div>';
+    h += '<h4 style="margin-top:16px">❔ À vérifier (' + ver.length + ')</h4><div class="dos">' + (ver.map(mcard).join('') || '<div class="muted">Rien à vérifier.</div>') + '</div>';
+    if (faits.length) h += '<h4 style="margin-top:16px">✅ Répondu récemment</h4><div class="dos">' + faits.map(mcard).join('') + '</div>';
+    return h + '</div>';
+  }
+  function docMail(m) {
+    var J = m.boite === 'subs' ? JULIEN.sc : JULIEN.mk;
+    var ed = (S.mEdit && S.mEdit[m.mail_id]) || { sujet: m.brouillon_sujet || ('Re: ' + (m.sujet || '')), corps: m.brouillon_corps || '' };
+    var fait = m.statut === 'répondu', busy = !!S.busy[m.boite === 'subs' ? 'sc' : 'mk'];
+    var h = '<div class="dtop"><span class="em">' + J.emoji + '</span><div><div class="nm">' + esc(m.sujet || '(sans objet)') + '</div><div class="st">' + esc(J.nom) + ' · reçu ' + esc(when(m.recu_le)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
+    h += '<div class="paper"><div class="kick">' + (m.categorie === 'demande' ? 'Demande' : 'À vérifier') + ' · ' + esc(m.motif || '') + '</div>' +
+      '<div class="meta">De : <b>' + esc(m.de_nom) + '</b> &lt;' + esc(m.de_email) + '&gt;' + (m.abonne === 'oui' ? ' <span class="tag g">abonné payant</span>' : m.abonne === 'gratuit' ? ' <span class="tag">membre gratuit</span>' : '') + '</div>' +
+      '<div style="white-space:pre-wrap;border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px;max-height:340px;overflow:auto">' + esc(m.texte || '(message vide)') + '</div>';
+    if (fait) return h + '<div class="lead">✅ Réponse envoyée ' + esc(when(m.envoye_le)) + '.</div><label>Objet</label><div>' + esc(m.brouillon_sujet) + '</div><label>Message</label><div style="white-space:pre-wrap">' + esc(m.brouillon_corps) + '</div></div>';
+    h += '<label>Consigne pour Julien (facultatif)</label><input class="pin" id="wl-m-consigne" placeholder="ex. proposer de résilier pour lui, ton plus chaleureux…">' +
+      '<div class="acts"><button data-act="m-propose" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>🤖 ' + (ed.corps ? 'Autre proposition' : 'Proposer une réponse') + '</button></div>' +
+      '<label>Objet</label><input class="pin sub" id="wl-m-sujet" value="' + esc(ed.sujet) + '">' +
+      '<label>Réponse</label><textarea class="pin big" id="wl-m-corps" placeholder="Écrivez la réponse ou demandez une proposition à Julien.">' + esc(ed.corps) + '</textarea>' +
+      '<div class="acts"><button class="go" data-act="m-send" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>✅ Valider et envoyer</button>' +
+      '<button data-act="m-save" data-id="' + esc(m.mail_id) + '">💾 Garder</button>' +
+      (m.categorie !== 'demande' ? '<button data-act="m-demande" data-id="' + esc(m.mail_id) + '">📩 C’est une vraie demande</button>' : '') +
+      '<button class="red" data-act="m-archive" data-id="' + esc(m.mail_id) + '">🗄️ Archiver</button></div>' +
+      '<p class="lead">La réponse part de ' + esc(J.adr) + ', seulement quand vous cliquez sur « Valider et envoyer ».</p></div>';
+    return h;
   }
   function artBox() {
     var a = art(S.art);
@@ -582,7 +637,7 @@
   function panelCourrier() {
     var p = P('courrier'), o = stOf(p);
     var h = head('📬', 'Le Courrier', '<span class="led ' + o.s + '"></span>' + esc(o.why));
-    h += '<div class="pb"><p class="muted">Il relève les boîtes toutes les 30 minutes en semaine (7 h – 21 h) et range chaque réponse dans la bonne fiche.</p><button class="btn" data-act="relever"' + (S.busy.courrier ? ' disabled' : '') + '>📬 Relever maintenant</button>';
+    h += '<div class="pb"><p class="muted">Il surveille les quatre boîtes en continu et range chaque réponse dans la bonne fiche dès qu’elle arrive.</p><button class="btn" data-act="relever">↻ Actualiser</button>';
     var r = by('a répondu'), e = by('envoyé'), c = by('inséré');
     h += '<h3>Réponses à traiter (' + r.length + ')</h3><div class="dos">' + (r.map(function (f) { return dcard(f, '<div class="su">reçue ' + esc(when(f.reponse_le)) + '</div>'); }).join('') || '<div class="muted">Pas de nouvelle réponse.</div>') + '</div>';
     h += '<h3>En attente de réponse (' + e.length + ')</h3><div class="dos">' + (e.map(function (f) { return dcard(f, '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) ? ' · <b>relance possible</b>' : '') + '</div>'); }).join('') || '<div class="muted">Rien en attente.</div>') + '</div>';
@@ -637,6 +692,7 @@
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
     if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
+    if (S.doc.kind === 'mail') { var mm = mail(S.doc.id); el.innerHTML = mm ? docMail(mm) : '<div class="dtop"><span class="nm">Mail introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; return; }
     var f = fiche(S.doc.id);
     if (!f) { el.innerHTML = '<div class="dtop"><span class="nm">Fiche introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; return; }
     el.innerHTML = S.doc.kind === 'valid' && f.statut === 'brouillon' ? docValidation(f) : docFiche(f);
@@ -687,7 +743,7 @@
       if (f.article_id) h += citationBlock(f);
       else h += '<p class="lead">Cette fiche n’est liée à aucun article : rattachez-la depuis l’Assistant pour pouvoir insérer la réponse.</p>';
     } else if (f.statut === 'envoyé') {
-      h += '<h2>Réponse</h2><p class="lead">Pas encore de réponse (mail envoyé ' + esc(when(f.envoye_le)) + '). Le Courrier relève la boîte toutes les 30 minutes en semaine.</p>' +
+      h += '<h2>Réponse</h2><p class="lead">Pas encore de réponse (mail envoyé ' + esc(when(f.envoye_le)) + '). Le Courrier la rangera ici dès qu’elle arrive.</p>' +
         '<div class="acts">' + (relancable(f) ? '<button data-act="relance" data-id="' + esc(f.fiche_id) + '"' + (S.busy.secretaire ? ' disabled' : '') + '>🔁 Faire préparer une relance</button>' : '') +
         '<button data-act="colle" data-id="' + esc(f.fiche_id) + '">📝 Réponse reçue ailleurs (téléphone, autre adresse)</button></div>';
     }
@@ -749,6 +805,27 @@
       case 'open-valid': openDoc('valid', id); break;
       case 'open-fiche': openDoc('fiche', id); break;
       case 'open-aide': openDoc('aide', ''); break;
+      case 'open-mail': openDoc('mail', id); break;
+      case 'm-propose':
+        var mp = mail(id); if (!mp) break;
+        work(mp.boite === 'subs' ? 'sc' : 'mk', 'rédige une réponse', api('proposer', { mail_id: id, consigne: val('wl-m-consigne') })).then(function () { if (S.mEdit) delete S.mEdit[id]; if (document.activeElement) document.activeElement.blur(); return refresh(true); }).then(function () { paintDoc(); toast('🤖 Proposition prête : relisez-la.'); });
+        break;
+      case 'm-save':
+        api('classer', { mail_id: id, sujet: val('wl-m-sujet'), corps: val('wl-m-corps') }).then(function () { if (S.mEdit) delete S.mEdit[id]; toast('💾 Réponse gardée.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
+      case 'm-demande':
+        api('classer', { mail_id: id, categorie: 'demande' }).then(function () { toast('📩 Classé en demande.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
+      case 'm-archive':
+        if (!window.confirm('Archiver ce mail ? Il disparaîtra du bureau de Julien.')) break;
+        api('classer', { mail_id: id, statut: 'archivé' }).then(function () { closeDoc(); toast('🗄️ Archivé.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
+      case 'm-send':
+        var ms1 = mail(id), su = val('wl-m-sujet').trim(), co = val('wl-m-corps').trim();
+        if (!ms1 || !su || !co) { toast('Objet ou réponse vide.', true); break; }
+        if (!window.confirm('Envoyer cette réponse à ' + ms1.de_email + ' ?')) break;
+        work(ms1.boite === 'subs' ? 'sc' : 'mk', 'envoie la réponse', api('repondre', { mail_id: id, valide: '1', sujet: su, corps: co })).then(function () { if (S.mEdit) delete S.mEdit[id]; closeDoc(); toast('📨 Réponse envoyée.'); return refresh(true); });
+        break;
       // l'Assistant
       case 'find-contacts':
         work('assistant', 'cherche les chercheurs', api('contacts', { article_id: S.art })).then(function (r) { S.contacts = r.contacts || []; saveDraft(); paintPanel(); if (!S.contacts.length) toast('Personne de sûr trouvé : saisissez un contact.'); });
@@ -816,7 +893,7 @@
         break;
       // le Courrier
       case 'relever':
-        work('courrier', 'relève les boîtes', api('relever', {})).then(function () { toast('📬 Relève en cours…'); setTimeout(function () { refresh(true); }, 8000); });
+        refresh(true).then(function () { toast('📬 Les boîtes sont relevées en continu : tout nouveau mail arrive ici tout seul.'); });
         break;
       case 'relance':
         work('secretaire', 'prépare la relance', api('rediger', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '', type: 'relance' })).then(function () { return refresh(true); }).then(function () { openDoc('valid', id); toast('🔁 Relance prête : relisez-la.'); });
@@ -861,6 +938,7 @@
     else if ((k = t.getAttribute('data-s'))) { S[k] = t.value; saveDraft(); }
     else if (t.hasAttribute('data-qi')) { var q = S.qs[Number(t.getAttribute('data-qi'))]; if (q) { q.q = t.value; saveDraft(); } }
     else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.props) { var pp = k.split(':'), pr = S.cit.props[Number(pp[0])]; if (pr) pr[pp[1]] = t.value; }
+    else if ((t.id === 'wl-m-sujet' || t.id === 'wl-m-corps') && S.doc) { S.mEdit = S.mEdit || {}; S.mEdit[S.doc.id] = { sujet: val('wl-m-sujet'), corps: val('wl-m-corps') }; }
     else if ((t.id === 'wl-v-sujet' || t.id === 'wl-v-corps') && S.doc) {
       // corrections de la journaliste dans le mail à valider : gardées même si la page se rafraîchit
       S.vEdit = S.vEdit || {};
