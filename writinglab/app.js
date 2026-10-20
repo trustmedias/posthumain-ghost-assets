@@ -443,7 +443,8 @@
       (v ? '<span class="chip warn" data-act="open-ag" data-ag="secretaire">🟠 ' + v + ' à valider</span>' : '') +
       (r ? '<span class="chip hot" data-act="open-ag" data-ag="courrier">📬 ' + r + ' réponse' + pl(r) + '</span>' : '') +
       (e ? '<span class="chip" data-act="open-ag" data-ag="courrier">⏳ ' + e + ' en attente</span>' : '') +
-      '<span class="chip" data-act="refresh" title="Recharger">↻</span></div>' +
+      '<span class="chip" data-act="refresh" title="Recharger">↻</span>' +
+      '<span class="chip" data-act="open-aide" title="Configurer son adresse @posthumain.com dans Outlook" style="opacity:.6">✉︎ ?</span></div>' +
       '<div class="clock">' + fClock.format(new Date()) + '</div>';
   }
   function tabs() {
@@ -635,10 +636,24 @@
     if (!S.doc) return;
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
+    if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
     var f = fiche(S.doc.id);
     if (!f) { el.innerHTML = '<div class="dtop"><span class="nm">Fiche introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; return; }
     el.innerHTML = S.doc.kind === 'valid' && f.statut === 'brouillon' ? docValidation(f) : docFiche(f);
     el.scrollTop = keep;
+  }
+  function docAide() {
+    var row = function (a, b) { return '<tr><td style="padding:4px 12px 4px 0;opacity:.7">' + a + '</td><td style="padding:4px 0"><b>' + b + '</b></td></tr>'; };
+    return '<div class="dtop"><span class="em">✉︎</span><div><div class="nm">Votre adresse Posthumain dans Outlook</div><div class="st">notice · Infomaniak</div></div><span class="x" data-act="close-doc">✕</span></div>' +
+      '<div class="paper"><div class="kick">À faire une seule fois par appareil</div>' +
+      '<p>Votre adresse <b>prenom.nom@posthumain.com</b> est hébergée chez Infomaniak. Jonathan vous donne le mot de passe. Vous pouvez aussi lire vos mails sans rien installer sur <b>mail.infomaniak.com</b>.</p>' +
+      '<label>Réglages à saisir si Outlook les demande</label><table style="font-size:16px;border-collapse:collapse;margin:6px 0 14px">' +
+      row('Type de compte', 'IMAP') + row('Adresse e-mail et nom d’utilisateur', 'votre adresse complète') + row('Mot de passe', 'celui donné par Jonathan') +
+      row('Serveur entrant (IMAP)', 'mail.infomaniak.com · port 993 · SSL/TLS') + row('Serveur sortant (SMTP)', 'mail.infomaniak.com · port 465 · SSL/TLS') + row('Authentification SMTP', 'oui, mêmes identifiants') + '</table>' +
+      '<label>Outlook sur ordinateur (Windows ou Mac)</label><ol style="margin:6px 0 14px 20px;line-height:1.6"><li>Ouvrez Outlook, puis <b>Paramètres → Comptes → Ajouter un compte</b> (Mac : <b>Outlook → Paramètres → Comptes → +</b>).</li><li>Tapez votre adresse @posthumain.com, puis <b>Continuer</b>.</li><li>Si Outlook propose un fournisseur, choisissez <b>IMAP</b> (ou « Configuration avancée »).</li><li>Saisissez le mot de passe et les serveurs du tableau ci-dessus, puis <b>Continuer</b>.</li></ol>' +
+      '<label>Outlook sur iPhone ou Android</label><ol style="margin:6px 0 14px 20px;line-height:1.6"><li>Ouvrez l’app Outlook, touchez votre photo en haut à gauche, puis la roue <b>Paramètres → Ajouter un compte mail</b>.</li><li>Tapez votre adresse @posthumain.com.</li><li>Choisissez <b>IMAP</b>, activez <b>Paramètres avancés</b>, puis remplissez avec le tableau.</li><li>Touchez la coche ✓ en haut à droite.</li></ol>' +
+      '<label>Si ça ne marche pas</label><ul style="margin:6px 0 14px 20px;line-height:1.6"><li>« Mot de passe incorrect » : vérifiez les majuscules ; demandez-en un nouveau à Jonathan.</li><li>Les mails ne partent pas : vérifiez le port <b>465</b> et que l’authentification SMTP est activée.</li><li>Outlook.com (navigateur) ne gère pas bien ces adresses : utilisez mail.infomaniak.com ou l’app.</li></ul>' +
+      '<p class="lead">Le Writinglab envoie et relève vos mails de son côté : configurer Outlook sert seulement à lire et écrire vous-même hors du lab.</p></div>';
   }
   function docValidation(f) {
     var w = membre(f.redacteur), branchee = !!w.branchee;
@@ -733,6 +748,7 @@
       case 'close-doc': closeDoc(); break;
       case 'open-valid': openDoc('valid', id); break;
       case 'open-fiche': openDoc('fiche', id); break;
+      case 'open-aide': openDoc('aide', ''); break;
       // l'Assistant
       case 'find-contacts':
         work('assistant', 'cherche les chercheurs', api('contacts', { article_id: S.art })).then(function (r) { S.contacts = r.contacts || []; saveDraft(); paintPanel(); if (!S.contacts.length) toast('Personne de sûr trouvé : saisissez un contact.'); });
