@@ -28,13 +28,13 @@ le Videolab.
   `maj`, `ecrire`, `relever`.
 - Données : tables n8n « Writinglab fiches » (une fiche par contact) et « Writinglab messages » (interphone).
 
-## Ajouter quelqu'un, brancher une boîte mail
-1. Nœud **Accès** du workflow : ajouter une ligne dans `EQUIPE` (adresse du compte membre Ghost de la personne, son
-   nom, son titre, `role: 'redaction'`, `boite`, signature).
-2. Credential Microsoft Outlook de son adresse @posthumain.com dans n8n.
-3. Nœud **Boîte ?** : ajouter une sortie (valeur = la `boite`), et derrière un nœud HTTP copié sur « Outlook —
-   jonathan » avec la nouvelle credential, relié à « Graph — résultat ».
-4. Ajouter la `boite` dans `BOITES` (nœud Accès) : le bouton « Valider et envoyer » s'allume pour elle.
+## Boîtes mail (Infomaniak, oct. 2026)
+- 4 boîtes : jonathan.paiano@, valisoa.rasolofo@, subs@ (service client), redaction@ (marketing).
+- Envoi : nœuds « ✉️ Envoi — x » (credentials « SMTP — x », mail.infomaniak.com:465 SSL). Relève : déclencheurs « 📥 IMAP — x » (credentials « IMAP — x », port 993), en continu.
+- Tri des mails reçus par règles fixes dans « Courrier — trier » (aucun appel à Claude) : notifications, newsletters, réponses automatiques écartées ;
+  subs@/redaction@ → table « Writinglab courrier » (bureaux de Julien, visibles du rédacteur en chef seulement) ; jonathan/valisoa → fiche du chercheur qui répond.
+- Julien ne rédige (Claude Haiku) que sur clic « Proposer une réponse », à partir de `connaissances/*.md` ; rien ne part sans « Valider et envoyer ».
+- Ajouter quelqu'un : ligne dans `EQUIPE` (nœud Accès), boîte dans `BOITES`/`ADRESSES`, sortie dans « Boîte ? » + nœud d'envoi SMTP + déclencheur IMAP.
 
 ## Garde-fous
 - Insertion dans Ghost **en Lexical**, jamais en HTML (les encarts CTA et leur visibilité restent intacts),
