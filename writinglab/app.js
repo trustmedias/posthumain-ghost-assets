@@ -64,11 +64,31 @@
   }
 
   // ---------- appels au webhook (un seul : le champ « mode » dit ce qu'on demande) ----------
+  // chaque bouton cliqué montre qu'il travaille (roue + barre en haut) jusqu'à la réponse du webhook
+  S.pending = {}; S.nVisible = 0;
+  function markBusy() {
+    if (!S.root) return;
+    var w = S.root.id === 'wl' ? S.root : (S.root.querySelector('#wl') || S.root);
+    if (w) w.classList.toggle('wl-loading', S.nVisible > 0);
+    var bs = S.root.querySelectorAll('[data-act]');
+    for (var k = 0; k < bs.length; k++) {
+      var b = bs[k], key = b.getAttribute('data-act') + '|' + (b.getAttribute('data-id') || '');
+      if (S.pending[key]) { b.classList.add('ld'); if (b.tagName === 'BUTTON') b.disabled = true; b.setAttribute('aria-busy', 'true'); }
+      else if (b.classList.contains('ld')) { b.classList.remove('ld'); b.removeAttribute('aria-busy'); if (b.tagName === 'BUTTON' && !b.hasAttribute('data-off')) b.disabled = false; }
+    }
+  }
   function api(mode, data) {
+    var key = S.clicking || null, visible = !!key || mode !== 'etat';
+    S.clicking = null;
+    if (key) S.pending[key] = (S.pending[key] || 0) + 1;
+    if (visible) S.nVisible++;
+    markBusy();
+    var done = function () { if (key && !--S.pending[key]) delete S.pending[key]; if (visible) S.nVisible--; markBusy(); };
     return S.call({ mode: mode, data: JSON.stringify(data || {}) }).then(function (r) {
+      done();
       if (!r || r.ok === false) throw new Error((r && r.why) || 'le Writinglab ne répond pas');
       return r;
-    }, function (e) { throw new Error((e && (e.why || e.message)) || 'connexion perdue, réessayez'); });
+    }, function (e) { done(); throw new Error((e && (e.why || e.message)) || 'connexion perdue, réessayez'); });
   }
   // un employé au travail : sa lampe s'allume et une bulle dit ce qu'il fait
   function work(who, label, p) {
@@ -93,6 +113,12 @@
 
   // ---------- styles ----------
   var CSS = "\
+#wl .ld{position:relative!important;color:transparent!important;pointer-events:none!important;opacity:.85}\
+#wl .ld::after{content:'';position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2.5px solid rgba(0,255,119,.25);border-top-color:#00ff77;animation:wlspin .7s linear infinite}\
+#wl .paper .ld::after{border-color:rgba(0,0,0,.18);border-top-color:#1f6b45}\
+@keyframes wlspin{to{transform:rotate(360deg)}}\
+#wl.wl-loading .top::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,#00ff77,transparent);background-size:40% 100%;background-repeat:no-repeat;animation:wlbar 1.1s ease-in-out infinite}\
+@keyframes wlbar{from{background-position:-40% 0}to{background-position:140% 0}}\
 #wl{position:fixed;inset:0;z-index:2147483000;overflow:auto;-webkit-overflow-scrolling:touch;background:radial-gradient(1200px 700px at 25% -10%,#2a1d0f 0%,#0b0a08 55%) fixed,#0b0a08;color:#f3ece0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%;text-size-adjust:100%}\
 #wl *{box-sizing:border-box}#wl a{color:#3dffa0;text-decoration:none}#wl a:hover{text-decoration:underline}\
 #wl .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:12px 18px;background:rgba(11,10,8,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,190,90,.14)}\
@@ -556,7 +582,7 @@
     else if (k === 'chef') h = panelChef();
     else if (k === 'sc' || k === 'mk') h = panelJulien(k);
     else if (k.indexOf('j:') === 0) h = panelJournaliste(k.slice(2));
-    el.innerHTML = h; el.scrollTop = keep;
+    el.innerHTML = h; el.scrollTop = keep; markBusy();
   }
   function mcard(m) {
     var t = m.statut === 'répondu' ? ['✅', 'répondu', 'g'] : m.brouillon_corps ? ['🟠', 'réponse à valider', 'a'] : m.categorie === 'demande' ? ['📩', 'demande', 'g'] : ['❔', 'à vérifier', ''];
@@ -708,6 +734,7 @@
   function closeDoc() { S.doc = null; S.cit = null; S.colle = false; S.root.querySelector('.doc').classList.remove('open'); }
   function paintDoc() {
     if (!S.doc) return;
+    setTimeout(markBusy, 0);
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
     if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
@@ -813,6 +840,9 @@
   function val(id) { var e = S.root.querySelector('#' + id); return e ? e.value : ''; }
   function act(name, t) {
     var id = t.getAttribute('data-id'), i = Number(t.getAttribute('data-i'));
+    if (t.classList && t.classList.contains('ld')) return; // déjà en cours : pas de double clic
+    S.clicking = name + '|' + (id || '');
+    setTimeout(function () { S.clicking = null; }, 0);
     switch (name) {
       case 'refresh': refresh(); break;
       case 'tab': S.tab = t.getAttribute('data-tab'); LS.set('wl-tab', S.tab); closePanel(); render(); break;
@@ -976,7 +1006,7 @@
     var ae = document.activeElement, composing = ae && w.contains(ae) && ae.id === 'wl-msg';
     if (!composing) w.innerHTML = S.tab === 'articles' ? viewArticles() : S.tab === 'suivi' ? viewSuivi() : S.tab === 'interphone' ? viewInterphone() : viewBureau();
     if (S.tab === 'interphone') { var ms = D().messages; if (ms.length) LS.set('wl-vu', String(ms[ms.length - 1].le)); r.querySelector('.tabs').innerHTML = tabs(); }
-    paintPanel(); paintDoc();
+    paintPanel(); paintDoc(); markBusy();
   }
 
   window.WRITINGLAB_START = function (o) {
