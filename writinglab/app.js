@@ -177,6 +177,7 @@
 #wl .clsr-bg{position:fixed;inset:0;z-index:6;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s}#wl .clsr-bg.open{opacity:1;pointer-events:auto}\
 #wl .clsr{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);z-index:7;background:#0f0d0a;border-left:1px solid rgba(255,190,90,.25);box-shadow:-30px 0 60px rgba(0,0,0,.5);transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}\
 #wl .clsr.open{transform:none}\
+#wl textarea.wl-mef{opacity:.45;cursor:progress;background-image:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.07) 50%,rgba(255,255,255,0) 100%)!important;background-size:200% 100%!important;animation:wlmef 1.2s linear infinite}@keyframes wlmef{from{background-position:200% 0}to{background-position:-200% 0}}\
 #wl .btn.mic.on{border-color:rgba(255,80,80,.7)!important;color:#ffd0d0!important;animation:wlmic 1.2s ease-in-out infinite}@keyframes wlmic{0%,100%{box-shadow:0 0 0 0 rgba(255,80,80,.5)}50%{box-shadow:0 0 0 6px rgba(255,80,80,0)}}\
 #wl .clsr-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}#wl .clsr-top .x{cursor:pointer;font-size:18px;padding:4px 8px}\
 #wl .clsr-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 40px}\
@@ -619,7 +620,7 @@
     var a = art(S.art);
     return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne. Les fichiers échangés sont rangés dans le classeur, à droite.</p>' + classeurHTML(fichiers) +
       '<div class="chat">' + (list || '<div class="muted">Pas encore de message.</div>') + '</div>' +
-      '<div class="composer"><textarea class="in" id="wl-msg" placeholder="' + (S.dicte ? '🎙️ Je vous écoute…' : 'Votre message…') + '" rows="3">' + esc(S.msgDraft || '') + '</textarea>' +
+      '<div class="composer"><textarea class="in' + (S.miseEnForme ? ' wl-mef" disabled' : '"') + ' id="wl-msg" placeholder="' + (S.dicte ? '🎙️ Je vous écoute…' : 'Votre message…') + '" rows="3">' + esc(S.msgDraft || '') + '</textarea>' +
       '<div id="wl-pj-zone">' + pjZone() + '</div>' +
       '<div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><input type="file" id="wl-pj" style="display:none"><button class="btn" data-act="pj-choisir" type="button">📎 Joindre un fichier</button>' +
       (SR ? '<button class="btn mic' + (S.dicte ? ' on' : '') + '" data-act="dicter" type="button" title="Dicter le message (le texte s’écrit dans le champ, vous relisez puis envoyez)">' + (S.dicte ? '⏹️ Arrêter' : '🎙️ Dicter') + '</button>' : '') +
@@ -648,6 +649,7 @@
   }
   // Dictée (Interphone) : reconnaissance vocale du navigateur (Chrome, Edge, Safari macOS/iOS), en français.
   // Le texte s'écrit dans le champ au fil de la voix ; on relit, puis Entrée ou « Envoyer ». Rien ne part tout seul.
+  S.miseEnForme = false;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
   function majMic() {
     var b = S.root && S.root.querySelector('[data-act="dicter"]'); if (b) { b.classList.toggle('on', !!S.dicte); b.textContent = S.dicte ? '⏹️ Arrêter' : '🎙️ Dicter'; }
@@ -666,9 +668,33 @@
       S.msgDraft = (base + fini).replace(/^\s+/, '');
     };
     rec.onerror = function (ev) { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') toast('Autorisez le micro pour posthumain.com dans le navigateur.', true); else if (ev.error !== 'no-speech' && ev.error !== 'aborted') toast('Dictée interrompue (' + ev.error + ').', true); };
-    rec.onend = function () { S.rec = null; S.dicte = false; majMic(); var el = S.root.querySelector('#wl-msg'); if (el) { S.msgDraft = el.value; el.focus(); } };
+    rec.onend = function () {
+      S.rec = null; S.dicte = false; majMic();
+      var el = S.root.querySelector('#wl-msg'); if (el) S.msgDraft = el.value;
+      var dit = fini.trim();
+      if (dit) miseEnForme(base, dit); else if (el) el.focus();
+    };
     try { rec.start(); } catch (e) { toast('Impossible de lancer la dictée.', true); return; }
     S.rec = rec; S.dicte = true; majMic();
+  }
+  // Après la dictée : le texte dicté repasse par Claude Haiku (ponctuation, majuscules, mots mal reconnus).
+  // Pendant ce temps le champ est grisé et verrouillé ; en cas d'échec, le texte brut reste tel quel.
+  function verrou(on) {
+    S.miseEnForme = on;
+    var el = S.root && S.root.querySelector('#wl-msg'), b = S.root && S.root.querySelector('[data-act="send-msg"]'), m = S.root && S.root.querySelector('[data-act="dicter"]');
+    if (el) { el.disabled = on; el.classList.toggle('wl-mef', on); }
+    if (b) b.disabled = on; if (m) m.disabled = on;
+  }
+  function miseEnForme(base, dit) {
+    verrou(true);
+    var fin = function (txt) {
+      verrou(false);
+      var el = S.root.querySelector('#wl-msg'); if (!el) return;
+      if (txt) { el.value = (base + txt).replace(/^\s+/, ''); S.msgDraft = el.value; }
+      el.focus(); el.setSelectionRange(el.value.length, el.value.length);
+    };
+    var garde = setTimeout(function () { fin(''); }, 12000); // jamais plus de 12 s de champ bloqué
+    pushApi({ action: 'dictee', texte: dit }).then(function (r) { clearTimeout(garde); if (S.miseEnForme) fin(r && r.ok ? r.texte : ''); }, function () { clearTimeout(garde); if (S.miseEnForme) fin(''); });
   }
   function stopDictee() { S.dicte = false; if (S.rec) { try { S.rec.stop(); } catch (e) {} } majMic(); }
   function pjZone() {
@@ -1215,6 +1241,7 @@
       case 'push': reglerPush(true); break;
       case 'dicter': if (S.dicte) stopDictee(); else startDictee(); break;
       case 'send-msg':
+        if (S.miseEnForme) break;
         if (S.dicte) stopDictee();
         var m = val('wl-msg').trim(), pj = S.pj; if (!m && !pj) break;
         var lien = S.root.querySelector('#wl-msg-art'), a = art(S.art), cs = S.root.querySelector('#wl-pj-cat');
