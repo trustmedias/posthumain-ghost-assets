@@ -1971,7 +1971,12 @@
     var fs = R.factures || [], an = new Date().getFullYear();
     var h = '<div class="cz-t" id="wl-factures">🧾 Factures</div><p class="cz-s">Générées automatiquement le dernier jour du mois à 23 h : enquêtes premium et articles standards publiés dans le mois (autrice, co-autrice ou relecture d’un article de Julien), plus les interviews comptabilisées.</p>';
     if (me.chef) h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0 4px"><button class="btn small" data-act="fa-lancer">⚡ Générer la facture du mois en cours</button>' +
-      '<select class="in" id="wl-fa-an" style="width:auto;flex:0 0 auto">' + [an, an - 1].map(function (y) { return '<option>' + y + '</option>'; }).join('') + '</select><button class="btn small" data-act="fa-zip">⬇️ Télécharger l’année (ZIP)</button></div>';
+      (function () { // années réellement facturées uniquement (plus récente d'abord) ; rien à télécharger tant qu'il n'y a pas de facture
+        var ans = fs.map(function (f) { return Number(String(f.mois || '').slice(0, 4)); }).filter(function (y, i, t) { return y && t.indexOf(y) === i; }).sort(function (a, b) { return b - a; });
+        if (!ans.length) return '';
+        return (ans.length > 1 ? '<select class="in" id="wl-fa-an" style="width:auto;flex:0 0 auto">' + ans.map(function (y) { return '<option>' + y + '</option>'; }).join('') + '</select>' : '<input type="hidden" id="wl-fa-an" value="' + ans[0] + '">') +
+          '<button class="btn small" data-act="fa-zip">⬇️ Télécharger ' + (ans.length > 1 ? 'l’année' : ans[0]) + ' (ZIP)</button>';
+      })() + '</div>';
     if (!fs.length) return h + '<p class="muted">Aucune facture pour l’instant : la première sera générée à la fin du mois.</p>';
     return h + fs.map(function (f) {
       var paye = f.statut === 'payee', ed = S.faEdit === f.id, d = f.details || {};
