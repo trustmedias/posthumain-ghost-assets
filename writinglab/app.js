@@ -255,7 +255,8 @@
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .panel .dossier .dh{cursor:pointer}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
-#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
+#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed a{color:#1a5fd0}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
+#wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 #wl .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.62);backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}#wl .cfm-bg.on{opacity:1}#wl .cfm{width:min(440px,100%);background:#14110c;border:1px solid rgba(0,255,119,.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}#wl .cfm-bg.on .cfm{transform:none}#wl .cfm.danger{border-color:rgba(255,80,80,.45)}#wl .cfm-ic{font-size:26px;margin-bottom:8px}#wl .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}#wl .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(243,236,224,.7)}#wl .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
 #wl .box.iv{margin:14px 0 4px;border-color:rgba(0,255,119,.35);background:rgba(0,255,119,.05)}#wl .ivl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}#wl .ivl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
@@ -471,8 +472,11 @@
   }
   // Étagère du Secrétariat : une case par enquête (dossier), 4 cases par rayon. Survol = infobulle (titre + avancement), clic = le dossier.
   // Arrière-salle : sur la table du Comptable, une caisse par journaliste avec son solde de pièces ; animation quand il en distribue.
+  // Qui gagne des pièces : les rédactrices, plus le rédacteur en chef s'il a activé le « mode récompense (test) » dans ses Paramètres.
+  function testRec() { return !!(S.pieces && S.pieces.recompense_test); }
+  function gagnants() { return (D().equipe || []).filter(function (w) { return w.role !== 'chef' || testRec(); }); }
   function caissesSVG() {
-    var js = (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).slice(0, 3);
+    var js = gagnants().slice(0, 3);
     var so = (S.pieces && S.pieces.soldes) || {}, X0 = 2550, Y0 = 600;
     var s = '<g class="compta-deco"><rect x="2400" y="860" width="80" height="90" rx="6" fill="#262626" stroke="rgba(255,255,255,.18)" stroke-width="2"/><circle cx="2440" cy="905" r="16" fill="none" stroke="#9a8a6a" stroke-width="3"/><rect x="2437" y="889" width="6" height="12" fill="#9a8a6a"/><text class="lbl2" x="2440" y="965" text-anchor="middle">coffre</text></g>';
     s += '<rect x="' + (X0 - 150) + '" y="' + (Y0 - 50) + '" width="300" height="150" rx="10" fill="url(#wood)" stroke="rgba(255,255,255,.14)"/><text class="lbl2" x="' + X0 + '" y="' + (Y0 + 125) + '" text-anchor="middle">table des caisses</text>';
@@ -635,7 +639,7 @@
       (v ? '<span class="chip warn" data-act="open-ag" data-ag="secretaire">🟠 ' + v + ' à valider</span>' : '') +
       (r ? '<span class="chip hot" data-act="open-ag" data-ag="courrier">📬 ' + r + ' réponse' + pl(r) + '</span>' : '') +
       (e ? '<span class="chip" data-act="open-ag" data-ag="courrier">⏳ ' + e + ' en attente</span>' : '') +
-      '<span class="chip" data-act="push" title="Notifications du lab"' + (S.pushOk ? '' : ' style="opacity:.6"') + '>' + (S.pushOk ? '🔔' : '🔕') + '</span>' +
+      '<span class="chip" data-act="parametres" title="Paramètres (notifications, signature, dictée)">⚙️' + (S.pushOk ? '' : '<span class="dot-off"></span>') + '</span>' +
       '<span class="chip" data-act="refresh" title="Recharger">↻</span>' +
       '<span class="chip" data-act="open-aide" title="Configurer son adresse @posthumain.com dans Outlook" style="opacity:.6">✉︎ ?</span></div>' +
       '<div class="clock">' + fClock.format(new Date()) + '</div>';
@@ -770,7 +774,7 @@
     if (!SR) { toast('La dictée n’est pas disponible dans ce navigateur.', true); return; }
     var ta = S.root.querySelector('#wl-msg'); if (!ta) return;
     var base = ta.value ? ta.value.replace(/\s*$/, ' ') : '', fini = '', enCours = '', fait = false;
-    var rec = new SR(); rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true;
+    var rec = new SR(); rec.lang = LS.get('wl-dictee-lang') || 'fr-FR'; rec.continuous = true; rec.interimResults = true;
     rec.onresult = function (ev) {
       var interim = '';
       if (fait) return;
@@ -788,7 +792,7 @@
       var dit = (fini + ' ' + enCours).replace(/\s+/g, ' ').trim();
       var el = S.root.querySelector('#wl-msg');
       if (el) { el.value = (base + dit).replace(/^\s+/, ''); S.msgDraft = el.value; }
-      if (dit) miseEnForme(base, dit); else { verrou(false); if (el) el.focus(); }
+      if (dit && LS.get('wl-mef') !== '0') miseEnForme(base, dit); else { verrou(false); if (el) el.focus(); }
     };
     rec.onend = terminer;
     rec.terminer = terminer;
@@ -846,7 +850,7 @@
     if (!S.panel || !S.root) return;
     var el = S.root.querySelector('.panel');
     var keep = el.scrollTop, ae = document.activeElement;
-    if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // on ne repeint pas sous les doigts de la journaliste
+    if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.isContentEditable)) return; // on ne repeint pas sous les doigts de la journaliste
     var k = S.panel, h = '';
     if (k === 'secretaire') h = panelSecretaire();
     else if (k === 'assistant') h = panelAssistant();
@@ -855,6 +859,7 @@
     else if (k === 'chef') h = panelChef();
     else if (k === 'sc' || k === 'mk') h = panelJulien(k);
     else if (k === 'compta') h = panelCompta();
+    else if (k === 'parametres') h = panelParams();
     else if (k.indexOf('j:') === 0) h = panelJournaliste(k.slice(2));
     el.innerHTML = h; el.scrollTop = keep; markBusy();
   }
@@ -1131,7 +1136,7 @@
       '<div class="meta">À : <b>' + esc(f.contact.nom) + '</b> ' + (okMail ? '&lt;' + esc(f.contact.email) + '&gt;' : '<span class="tag a">adresse manquante</span>') + '<br>📰 ' + esc(f.article_titre || 'sans article') + ' · ' + (f.langue === 'en' ? 'en anglais' : 'en français') + '</div>';
     if (!okMail) h += '<div class="warn">Il manque l’adresse e-mail du contact.<label>Adresse e-mail</label><input class="pin" id="wl-v-email" type="email" inputmode="email" placeholder="prenom.nom@universite.edu"><div class="acts"><button data-act="v-email" data-id="' + esc(f.fiche_id) + '">Enregistrer l’adresse</button></div></div>';
     h += '<label>Objet</label><input class="pin sub" id="wl-v-sujet" value="' + esc(ed.sujet) + '">' +
-      '<label>Message</label><textarea class="pin big" id="wl-v-corps">' + esc(ed.corps) + '</textarea>' +
+      '<label>Message</label><textarea class="pin big" id="wl-v-corps">' + esc(ed.corps) + '</textarea>' + sigApercu(f) +
       pjWidget('v:' + f.fiche_id) +
       (branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : vous pouvez enregistrer, l’envoi viendra plus tard.</div>') +
       '<div class="acts"><button class="go" data-act="v-send" data-id="' + esc(f.fiche_id) + '"' + (okMail && branchee && !S.busy.secretaire ? '' : ' disabled') + '>✅ Valider et envoyer</button>' +
@@ -1171,28 +1176,40 @@
     h += '</div>';
     return h;
   }
+  // Citations (21/10/2026) : l'Assistant (Opus) propose 1 à 5 extraits, chacun à sa place dans l'article (après un paragraphe simple,
+  // jamais dans une carte, un encart HTML, une vidéo ou le paywall). Chaque proposition se montre en contexte : paragraphe d'avant (pâle),
+  // le bloc tel qu'il apparaîtra, paragraphe d'après (pâle). On insère une à une, ou tout d'un coup.
+  function sigApercu(f) {
+    var sg = S.sigs && S.sigs[f.redacteur]; if (!sg) return '';
+    var lg = f.langue === 'en' ? 'en' : 'fr';
+    return '<div class="sigprev"><div class="kd">Signature ajoutée à l’envoi · ' + (lg === 'en' ? 'English' : 'français') + '</div>' + (sg[lg] || '') + '</div>';
+  }
   function citationBlock(f) {
     var c = S.cit && S.cit.fid === f.fiche_id ? S.cit : null, busy = !!S.busy.assistant;
     var h = '<h2>Dans l’article</h2>';
-    if (!c || !c.props) return h + '<p class="lead">L’Assistant choisit le passage le plus fort, le met en forme (et le traduit si besoin), puis vous choisissez où l’insérer dans le brouillon.</p><div class="acts"><button class="go" data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>✨ Insérer la réponse mise en forme dans l’article</button></div>';
-    h += '<p class="lead">1 · Choisissez une proposition (vous pouvez la corriger).</p>';
-    h += c.props.map(function (p, i) {
-      return '<div class="prop' + (c.choix === i ? ' sel' : '') + '"><label>Phrase d’introduction (facultative)</label><textarea class="pin" style="min-height:60px" data-cp="' + i + ':intro">' + esc(p.intro || '') + '</textarea>' +
-        '<label>Citation</label><textarea class="pin" style="min-height:90px" data-cp="' + i + ':citation">' + esc(p.citation || '') + '</textarea>' +
-        '<label>Attribution</label><input class="pin" data-cp="' + i + ':attribution" value="' + esc(p.attribution || '') + '">' +
-        (p.note || p.ou ? '<div class="ou">' + esc([p.note, p.ou ? 'à placer : ' + p.ou : ''].filter(Boolean).join(' · ')) + '</div>' : '') +
-        '<div class="acts"><button class="' + (c.choix === i ? 'go' : '') + '" data-act="cit-choix" data-i="' + i + '">' + (c.choix === i ? '✓ Choisie' : 'Choisir celle-ci') + '</button></div></div>';
+    if (!c || !c.ins) return h + '<p class="lead">L’Assistant lit l’article, choisit les passages les plus forts de la réponse, corrige l’orthographe et la ponctuation sans toucher aux propos (et traduit si besoin), puis propose l’endroit idéal pour chacun.</p>' +
+      '<div class="acts"><button class="go" data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>✨ Proposer les emplacements dans l’article</button></div>';
+    var reste = c.ins.filter(function (x, k) { return !c.fait[k] && !c.skip[k]; }).length;
+    h += '<p class="lead">' + c.ins.length + ' extrait' + pl(c.ins.length) + ' proposé' + pl(c.ins.length) + ', chacun à sa place. Dépliez pour voir le passage tel qu’il apparaîtra, ajustez si besoin, puis insérez.</p>';
+    var cut = function (t, n, fin) { t = String(t || ''); return t.length <= n ? t : fin ? '… ' + t.slice(-n) : t.slice(0, n) + ' …'; };
+    h += c.ins.map(function (x, k) {
+      var ouvert = !!c.open[k], fait = !!c.fait[k], skip = !!c.skip[k];
+      var hd = '<div class="cit-h" data-act="cit-tog" data-i="' + k + '"><span class="cit-n">' + (k + 1) + '</span><span class="cit-t">' + esc(cut(x.citation.replace(/^«\s*|\s*»$/g, ''), 70)) + '<small>après « ' + esc(cut(x.avant, 60)) + ' »</small></span>' +
+        (fait ? '<span class="tag g">✅ insérée</span>' : skip ? '<span class="tag">écartée</span>' : '') + '<span class="cit-c">' + (ouvert ? '▾' : '▸') + '</span></div>';
+      if (!ouvert) return '<div class="cit' + (fait ? ' done' : '') + (skip ? ' skip' : '') + '">' + hd + '</div>';
+      var corps = '<div class="ctx">' + esc(cut(x.avant, 260, true)) + '</div>' +
+        '<div class="neo">' + (x.intro ? '<p>' + esc(x.intro) + '</p>' : '') + '<blockquote>' + esc(x.citation) + (x.attribution ? '<br><em>— ' + esc(x.attribution.replace(/^[—–-]\s*/, '')) + '</em>' : '') + '</blockquote></div>' +
+        (x.ensuite ? '<div class="ctx">' + (x.ensuite_type && x.ensuite_type !== 'paragraphe' ? '<span class="kd">' + esc(x.ensuite_type) + '</span> ' : '') + esc(cut(x.ensuite, 220)) + '</div>' : '<div class="ctx">— fin de l’article —</div>') +
+        '<div class="cit-meta">' + (x.note ? '✍️ ' + esc(x.note) : '✍️ texte repris tel quel') + (x.pourquoi ? '<br>📍 ' + esc(x.pourquoi) : '') + '</div>';
+      if (!fait) corps += '<details class="cit-ed"><summary>Modifier le texte</summary><label>Phrase d’introduction (facultative)</label><textarea class="pin" style="min-height:60px" data-cp="' + k + ':intro">' + esc(x.intro || '') + '</textarea>' +
+        '<label>Citation</label><textarea class="pin" style="min-height:90px" data-cp="' + k + ':citation">' + esc(x.citation || '') + '</textarea>' +
+        '<label>Attribution</label><input class="pin" data-cp="' + k + ':attribution" value="' + esc(x.attribution || '') + '"><div class="acts"><button data-act="cit-maj" data-i="' + k + '">Voir le résultat</button></div></details>' +
+        '<div class="acts"><button class="go" data-act="cit-one" data-id="' + esc(f.fiche_id) + '" data-i="' + k + '"' + (S.busy.marbre ? ' disabled' : '') + '>✅ Insérer celle-ci</button><button data-act="cit-skip" data-i="' + k + '">' + (skip ? '↺ Reprendre' : 'Écarter') + '</button></div>';
+      return '<div class="cit open' + (fait ? ' done' : '') + (skip ? ' skip' : '') + '">' + hd + '<div class="cit-b">' + corps + '</div></div>';
     }).join('');
-    h += '<div class="acts"><button data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>↻ D’autres propositions</button></div>';
-    if (c.choix == null) return h;
-    h += '<p class="lead">2 · Touchez le bloc de l’article <b>après</b> lequel la citation doit apparaître.</p>';
-    if (!c.plan) return h + '<div class="acts"><button class="go" data-act="plan" data-id="' + esc(f.fiche_id) + '"' + (S.busy.marbre ? ' disabled' : '') + '>📍 Afficher le plan de l’article</button></div>';
-    h += '<div class="blk' + (c.index === -1 ? ' sel' : '') + '" data-act="cit-at" data-i="-1"><span class="kd">début</span><span class="tx">Tout en haut de l’article</span></div>';
-    h += c.plan.blocs.map(function (b) {
-      return '<div class="blk' + (b.kind === 'titre' ? ' h' : '') + (c.index === b.i ? ' sel' : '') + '" data-act="cit-at" data-i="' + b.i + '"><span class="kd">' + esc(b.kind) + '</span><span class="tx">' + esc(b.texte || '—') + '</span></div>' + (c.index === b.i ? '<div class="ins">⤷ la citation viendra ici</div>' : '');
-    }).join('');
-    h += '<div class="acts"><button class="go" data-act="inserer" data-id="' + esc(f.fiche_id) + '"' + (c.index == null || S.busy.marbre ? ' disabled' : '') + '>✅ Insérer dans le brouillon</button></div>';
-    if (c.done) h += '<p class="lead">✅ Inséré. <a href="' + esc(c.done) + '" target="_blank" rel="noopener">Ouvrir le brouillon dans Ghost</a></p>';
+    h += '<div class="acts">' + (reste ? '<button class="go" data-act="cit-all" data-id="' + esc(f.fiche_id) + '"' + (S.busy.marbre ? ' disabled' : '') + '>✅ Tout insérer (' + reste + ')</button>' : '') +
+      '<button data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>↻ Autres propositions</button></div>';
+    if (c.done) h += '<p class="lead">✅ Inséré. <a href="' + esc(c.done) + '" target="_blank" rel="noopener">Ouvrir l’article dans Ghost</a></p>';
     return h;
   }
 
@@ -1236,12 +1253,45 @@
     S.root.appendChild(el); setTimeout(function () { el.classList.add('out'); }, 2600); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3200);
   }
   var PST2 = { acquis: ['🪙', 'acquises', 'g'], a_verifier: ['🔍', 'à vérifier par le rédacteur en chef', 'a'], annule: ['✖️', 'annulées', ''], manque: ['⏳', 'créneau manqué', ''] };
+  // ---------- Paramètres (21/10/2026) : notifications, signature des mails FR/EN (gras, italique, liens), dictée, mode récompense (chef) ----------
+  function majTop() { var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header(); }
+  function chargerParams() {
+    return pushApi({ action: 'parametres' }).then(function (r) {
+      if (!r || !r.ok) return;
+      S.params = r; S.sigDraft = S.sigDraft || { fr: r.signature.fr, en: r.signature.en };
+      return pushApi({ action: 'signatures' }).then(function (x) { if (x && x.ok) S.sigs = x.signatures; if (S.panel === 'parametres') paintPanel(); if (S.doc) paintDoc(); });
+    }).catch(function () {});
+  }
+  function sw(act, on, off) { return '<button type="button" class="sw' + (on ? ' on' : '') + '" data-act="' + act + '"' + (off ? ' disabled' : '') + ' aria-pressed="' + (on ? 'true' : 'false') + '"><i></i></button>'; }
+  function sigLire() { var e = S.root.querySelector('#wl-sig'); if (e && S.sigDraft) S.sigDraft[S.sigLang || 'fr'] = e.innerHTML; }
+  function panelParams() {
+    var me = D().me, P = S.params, lg = S.sigLang || 'fr';
+    var h = head('⚙️', 'Paramètres', esc(me.nom) + ' · ' + esc(me.titre || '')) + '<div class="pb">';
+    if (!P) { chargerParams(); return h + '<p class="muted">Chargement…</p></div>'; }
+    var push = !!S.pushOk, perm = (typeof Notification !== 'undefined') ? Notification.permission : 'default';
+    h += '<div class="set"><div class="set-h"><div><b>🔔 Notifications sur ce navigateur</b><div class="set-s">' + (push ? 'Actives : messages de l’Interphone, réponses des chercheurs, pièces.' : perm === 'denied' ? 'Bloquées par le navigateur : autorisez les notifications pour posthumain.com dans les réglages du site, puis réactivez ici.' : 'Désactivées.') + '</div></div>' + sw('set-push', push) + '</div>' +
+      (push ? '<button class="btn small" data-act="push">Envoyer une notification de test</button>' : '') + '</div>';
+    var d = S.sigDraft || { fr: '', en: '' };
+    h += '<div class="set"><div class="set-h"><div><b>✍️ Signature des mails</b><div class="set-s">Ajoutée automatiquement en bas de chaque mail, dans la langue du mail.</div></div></div>' +
+      '<div class="seg"><button class="' + (lg === 'fr' ? 'on' : '') + '" data-act="sig-lang" data-id="fr">Français</button><button class="' + (lg === 'en' ? 'on' : '') + '" data-act="sig-lang" data-id="en">English</button></div>' +
+      '<div class="tb"><button data-act="sig-cmd" data-id="bold" title="Gras"><b>B</b></button><button data-act="sig-cmd" data-id="italic" title="Italique"><i>I</i></button><button data-act="sig-cmd" data-id="underline" title="Souligné"><u>U</u></button><button data-act="sig-cmd" data-id="link" title="Lien">🔗</button><button data-act="sig-cmd" data-id="removeFormat" title="Effacer la mise en forme">⌫</button></div>' +
+      '<div class="sig-ed" id="wl-sig" contenteditable="true" spellcheck="true">' + (d[lg] || '') + '</div>' +
+      '<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn go" data-act="sig-save">Enregistrer les deux signatures</button><button class="btn small" data-act="sig-reset">Rétablir la signature par défaut</button></div></div>';
+    var dl = LS.get('wl-dictee-lang') || 'fr-FR', mef = LS.get('wl-mef') !== '0';
+    h += '<div class="set"><div class="set-h"><div><b>🎙️ Dictée</b><div class="set-s">Langue reconnue par le micro de l’Interphone.</div></div>' +
+      '<select class="in" id="wl-dl" style="width:auto"><option value="fr-FR"' + (dl === 'fr-FR' ? ' selected' : '') + '>Français</option><option value="en-US"' + (dl === 'en-US' ? ' selected' : '') + '>English</option></select></div>' +
+      '<div class="set-h" style="margin-top:12px"><div><b>Mise en forme automatique</b><div class="set-s">Ponctuation et majuscules corrigées après la dictée (le champ se grise une à deux secondes).</div></div>' + sw('set-mef', mef) + '</div></div>';
+    if (me.chef) h += '<div class="set' + (P.recompense ? ' hot' : '') + '"><div class="set-h"><div><b>🧪 Mode récompense (test)</b><div class="set-s">Vous gagnez des pièces comme une rédactrice (votre caisse apparaît chez le Comptable) : comptabiliser, demander le paiement, cocher la facture, tout fonctionne pour vous-même et les notifications vous arrivent.</div></div>' + sw('set-rec', !!P.recompense) + '</div></div>';
+    var adr = ({ jonathan: 'jonathan.paiano@posthumain.com', valisoa: 'valisoa.rasolofo@posthumain.com' })[me.id] || '';
+    h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div></div>';
+    return h + '</div>';
+  }
   function panelCompta() {
     var r = S.pieces || { pieces: [], totaux: {}, soldes: {}, conversions: [] }, me = D().me, tx = Number(r.taux || 0), o = stOf(P('compta'));
     var h = head('🧮', 'Le Comptable', '<span class="led ' + o.s + '"></span>' + esc(o.why)) + '<div class="pb">';
     if (!S.pieces) return h + '<p class="muted">Le Comptable ouvre ses registres…</p></div>';
     h += '<p class="muted">Chaque parcours complet (interview envoyée depuis le lab, réponse du chercheur, citation insérée dans l’article) rapporte des pièces, rangées dans la caisse de la journaliste.</p>';
-    (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).forEach(function (w) {
+    gagnants().forEach(function (w) {
       var so = (r.soldes || {})[w.id] || 0, mien = w.id === me.id, demande = (r.demandes || {})[w.id] === r.mois;
       var peutDemander = mien && so > 0 && Number(r.jour) >= 25 && !demande;
       h += '<div class="caisse"><div class="cz-h"><span>Caisse de <b>' + esc(w.nom) + '</b></span>' + (demande && so ? '<span class="tag a">💶 paiement demandé</span>' : '') + '</div>' +
@@ -1263,6 +1313,7 @@
         (me.chef && p.statut === 'a_verifier' ? '<div class="row" style="gap:6px;margin-top:6px"><button class="btn small go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button><button class="btn small red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button></div>' : '') + '</div>';
     }).join('');
     h += '<details class="cz-d"><summary>Barème</summary><p>Citation insérée avant la publication ou jusqu’à 2 jours après : <b>10 pièces</b><br>jusqu’à 4 jours : <b>5 pièces</b><br>jusqu’au 6e jour : <b>2 pièces</b><br>à partir du 7e jour : 0, ce sera pour la prochaine fois.</p></details>';
+    if (me.chef && testRec()) h += '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🧪 <b>Mode récompense (test) actif</b> : vous gagnez aussi des pièces, avec votre propre caisse. Désactivable dans ⚙️ Paramètres.</div>';
     if (me.chef) h += '<details class="cz-d"><summary>Réglages et contrôles (visible par vous seul)</summary><p>Une pièce n’est accordée que si le mail est parti du lab, que la réponse arrive dans le fil de ce mail depuis l’adresse du chercheur (en-têtes vérifiés côté serveur), et que la citation est insérée depuis le lab. Une seule récompense par fiche ; webmail gratuit, adresse de l’équipe ou réponse très courte → « à vérifier ».</p>' +
       '<div class="row" style="gap:8px;align-items:center">Valeur d’une pièce : <input class="in" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div></details>';
     var arch = (r.conversions || []).filter(function (c) { return c.statut !== 'a_facturer' && (me.chef || c.membre === me.id); });
@@ -1275,7 +1326,7 @@
     var r = S.pieces || { pieces: [], totaux: {} }, me = D().me;
     var h = '<div class="dtop"><span class="em">🪙</span><div><div class="nm">Les pièces de la rédaction</div><div class="st">1 parcours complet et prouvé = des pièces</div></div><span class="x" data-act="close-doc">✕</span></div><div class="paper">';
     var tx = Number(r.taux || 0), e2 = function (n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' €'; };
-    h += '<div class="kick">Les rédactrices</div><div class="lb">' + (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).map(function (w) {
+    h += '<div class="kick">Les rédactrices</div><div class="lb">' + gagnants().map(function (w) {
       var so = ((r.soldes || {})[w.id]) || 0;
       return '<div style="flex-wrap:wrap;gap:8px"><span><b>' + esc(w.nom) + '</b><br><span class="muted" style="font-size:13px">' + totalPieces(w.id) + ' pièces gagnées au total</span></span><span style="text-align:right"><b>🪙 ' + so + '</b> à convertir<br><span class="muted" style="font-size:13px">soit ' + e2(so * tx) + '</span></span>' +
         (me.chef && so ? '<span class="acts" style="width:100%;margin:6px 0 0"><button class="go" data-act="pc-conv" data-id="' + esc(w.id) + '">💶 Convertir en ' + e2(so * tx) + ' (prochaine facture)</button><button data-act="pc-raz" data-id="' + esc(w.id) + '">↺ Remettre à zéro</button></span>' : '') + '</div>';
@@ -1306,7 +1357,7 @@
     return h + '</div>';
   }
   function parcoursHTML(f) {
-    var w = membre(f.redacteur), chefFiche = w.role === 'chef', p = pieceDe(f.fiche_id), v = verifiee(f.fiche_id);
+    var w = membre(f.redacteur), chefFiche = w.role === 'chef' && !testRec(), p = pieceDe(f.fiche_id), v = verifiee(f.fiche_id);
     var et = function (on, txt) { return '<span class="pa' + (on ? ' on' : '') + '">' + txt + '</span>'; };
     return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, f.reponse ? (v || !D().me.chef ? '📬 réponse reçue' : '📝 réponse saisie à la main') : '📬 réponse') + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
       (chefFiche ? '' : '<i></i>' + et(p && p.statut === 'acquis', p ? (PST2[p.statut] || ['🪙'])[0] + ' ' + (p.montant || 0) + ' pièces' : '🪙 pièces')) + '</div>' +
@@ -1485,27 +1536,64 @@
         break;
       // la citation dans l'article
       case 'cit':
-        S.cit = { fid: id, props: null, choix: null, plan: null, index: null, done: '' }; paintDoc();
-        work('assistant', 'met la réponse en forme', api('citation', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '' })).then(function (r) {
-          if (S.cit && S.cit.fid === id) { S.cit.props = r.propositions || []; S.cit.choix = S.cit.props.length === 1 ? 0 : null; } paintDoc();
+        S.cit = { fid: id, ins: null, open: {}, fait: {}, skip: {}, done: '' }; paintDoc();
+        work('assistant', 'place les citations dans l’article', api('citation', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '' })).then(function (r) {
+          if (S.cit && S.cit.fid === id) { S.cit.ins = r.insertions || []; S.cit.open = { 0: true }; } paintDoc();
         }, function () { S.cit = null; paintDoc(); });
         break;
-      case 'cit-choix': if (S.cit) { S.cit.choix = i; paintDoc(); } break;
-      case 'plan':
-        work('marbre', 'ouvre le brouillon', api('paragraphes', { article_id: (fiche(id) || {}).article_id || '' })).then(function (r) { if (S.cit) { S.cit.plan = r; } paintDoc(); });
-        break;
-      case 'cit-at': if (S.cit) { S.cit.index = i; paintDoc(); } break;
-      case 'inserer':
-        var C = S.cit, pr = C && C.props[C.choix];
-        if (!pr || C.index == null) break;
-        var ck6 = S.clicking; confirmer('Insérer cette citation dans le brouillon Ghost ?').then(function (ok) { if (!ok) return; S.clicking = ck6; setTimeout(function () { S.clicking = null; }, 0);
-          work('marbre', 'insère la citation', api('inserer', { fiche_id: id, index: C.index, intro: pr.intro || '', citation: pr.citation || '', attribution: pr.attribution || '' })).then(function (r) {
-            if (S.cit) S.cit.done = r.editeur; toast('✅ Citation insérée dans l’article.'); return refresh(true);
+      case 'cit-tog': if (S.cit) { S.cit.open[i] = !S.cit.open[i]; paintDoc(); } break;
+      case 'cit-maj': paintDoc(); break;
+      case 'cit-skip': if (S.cit) { S.cit.skip[i] = !S.cit.skip[i]; if (S.cit.skip[i]) S.cit.open[i] = false; paintDoc(); } break;
+      case 'cit-one': case 'cit-all':
+        var C = S.cit; if (!C || !C.ins) break;
+        var ks = name === 'cit-one' ? [i] : C.ins.map(function (x, k) { return k; }).filter(function (k) { return !C.fait[k] && !C.skip[k]; });
+        if (!ks.length) break;
+        var items = ks.map(function (k) { var x = C.ins[k]; return { index: x.apres, ancre: x.ancre, intro: x.intro || '', citation: x.citation || '', attribution: x.attribution || '' }; });
+        var ckC = S.clicking; confirmer(ks.length > 1 ? 'Insérer les ' + ks.length + ' citations dans l’article ?\n\nChacune est placée après son paragraphe ; les encarts, cartes et le paywall ne sont pas touchés.' : 'Insérer cette citation dans l’article ?').then(function (ok) { if (!ok) return; S.clicking = ckC; setTimeout(function () { S.clicking = null; }, 0);
+          work('marbre', ks.length > 1 ? 'insère les citations' : 'insère la citation', api('inserer', { fiche_id: id, items: items })).then(function (r) {
+            ks.forEach(function (k) { C.fait[k] = true; C.open[k] = false; });
+            var suiv = C.ins.findIndex(function (x, k) { return !C.fait[k] && !C.skip[k]; }); if (suiv >= 0) C.open[suiv] = true;
+            C.done = r.editeur; toast(ks.length > 1 ? '✅ ' + ks.length + ' citations insérées.' : '✅ Citation insérée dans l’article.'); return refresh(true);
           }).then(function () { paintDoc(); });
         });
         break;
       // interphone
       case 'pieces': masquerTip(); closeDoc(); openPanel('compta'); break;
+      case 'parametres': closeDoc(); openPanel('parametres'); break;
+      case 'set-push':
+        if (S.pushOk) {
+          LS.set('wl-push-off', '1'); LS.set('wl-push-sid', ''); S.pushOk = false; paintPanel(); majTop();
+          pushApi({ action: 'unregister' }).then(function () { toast('🔕 Notifications désactivées sur ce navigateur.'); });
+        } else {
+          LS.set('wl-push-off', '');
+          var go = function () { reglerPush(true); setTimeout(function () { paintPanel(); majTop(); }, 2500); };
+          if (typeof Notification !== 'undefined' && Notification.permission === 'default' && Notification.requestPermission) Notification.requestPermission().then(go, go);
+          else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') toast('Le navigateur bloque les notifications de posthumain.com : autorisez-les dans les réglages du site (cadenas à gauche de l’adresse), puis réessayez.', true);
+          else go();
+        }
+        break;
+      case 'sig-lang': sigLire(); S.sigLang = id; paintPanel(); break;
+      case 'sig-cmd':
+        var ed = S.root.querySelector('#wl-sig'); if (!ed) break; ed.focus();
+        if (id === 'link') { var u = window.prompt('Adresse du lien (https://…)', 'https://'); if (u && /^(https?:\/\/|mailto:)/i.test(u)) document.execCommand('createLink', false, u); }
+        else document.execCommand(id, false, null);
+        sigLire(); break;
+      case 'sig-reset': if (S.params) { S.sigDraft[S.sigLang || 'fr'] = S.params.defaut[S.sigLang || 'fr']; paintPanel(); } break;
+      case 'sig-save':
+        sigLire();
+        pushApi({ action: 'parametres_set', fr: S.sigDraft.fr, en: S.sigDraft.en }).then(function (r) {
+          if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); return; }
+          S.sigDraft = { fr: r.signature.fr, en: r.signature.en }; S.params.signature = r.signature; toast('✍️ Signatures enregistrées.'); chargerParams();
+        });
+        break;
+      case 'set-mef': LS.set('wl-mef', LS.get('wl-mef') === '0' ? '1' : '0'); paintPanel(); break;
+      case 'set-rec':
+        var nv = !(S.params && S.params.recompense);
+        pushApi({ action: 'parametres_set', recompense: nv }).then(function (r) {
+          if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; }
+          S.params.recompense = nv; toast(nv ? '🧪 Mode récompense activé : vos citations rapportent des pièces.' : 'Mode récompense désactivé.'); chargerPieces(); paintPanel();
+        });
+        break;
       case 'pc-dem':
         var ck6 = S.clicking; confirmer('Demander le paiement de tes pièces ?\n\nJonathan reçoit ta demande et comptabilise le montant pour ta prochaine facture.').then(function (ok) { if (!ok) return; S.clicking = ck6;
           pushApi({ action: 'demande_paiement' }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('💶 Demande envoyée à Jonathan.'); chargerPieces(); });
@@ -1576,7 +1664,9 @@
     else if ((k = t.getAttribute('data-l'))) { S.libre[k] = t.value; }
     else if ((k = t.getAttribute('data-s'))) { S[k] = t.value; saveDraft(); }
     else if (t.hasAttribute('data-qi')) { var q = S.qs[Number(t.getAttribute('data-qi'))]; if (q) { q.q = t.value; saveDraft(); } }
-    else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.props) { var pp = k.split(':'), pr = S.cit.props[Number(pp[0])]; if (pr) pr[pp[1]] = t.value; }
+    else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.ins) { var pp = k.split(':'), pr = S.cit.ins[Number(pp[0])]; if (pr) pr[pp[1]] = t.value; }
+    else if (t.id === 'wl-dl') LS.set('wl-dictee-lang', t.value);
+    else if (t.id === 'wl-sig') sigLire();
     else if ((k = t.getAttribute('data-nc')) && S.newCamp) { S.newCamp[k] = t.value; }
     else if ((k = t.getAttribute('data-nco')) && S.newCamp) { var oo = S.newCamp.offres.filter(function (x) { return x !== k; }); if (t.checked) oo.push(k); S.newCamp.offres = oo; }
     else if (/^wl-p-(sujet|corps|email)$/.test(t.id) && S.doc) { S.pEdit = S.pEdit || {}; S.pEdit[S.doc.id] = { sujet: val('wl-p-sujet'), corps: val('wl-p-corps'), email: val('wl-p-email') }; }
@@ -1623,7 +1713,7 @@
     sidWebpushr(function (sid) {
       if (!sid) {
         S.pushOk = false; var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header();
-        if (clic) toast('🔕 Ce navigateur n’est pas abonné aux notifications Posthumain : acceptez la demande de notifications du site (ou la cloche Webpushr en bas de page), puis touchez à nouveau 🔕.', true);
+        if (clic) toast('🔕 Ce navigateur n’est pas abonné aux notifications Posthumain : acceptez la demande de notifications du site (ou la cloche Webpushr en bas de page), puis réactivez-les dans ⚙️ Paramètres.', true);
         return;
       }
       var deja = LS.get('wl-push-sid') === String(sid);
@@ -1681,6 +1771,7 @@
       var ag = t.closest('[data-ag]'); if (ag) { var k = ag.getAttribute('data-ag'); openPanel(k === 'j:vide' ? 'chef' : k); }
     });
     r.addEventListener('input', onInput);
+    r.addEventListener('mousedown', function (e) { if (e.target.closest && e.target.closest('[data-act="sig-cmd"]')) e.preventDefault(); }); // garder la sélection dans l'éditeur de signature
     r.addEventListener('mousemove', suivreTip); r.addEventListener('mouseleave', masquerTip);
     r.addEventListener('change', onInput);
     r.addEventListener('keydown', function (e) {
@@ -1732,7 +1823,7 @@
     setInterval(function () { if (!document.hidden && S.data) { var tp = r.querySelector('.top'); if (tp) tp.innerHTML = header(); } }, 30000);
     refresh().then(function () {
       if (S.art && !art(S.art) && D().articles.length) { /* l'article en cours a été publié ou supprimé */ S.art = ''; LS.set('wl-article', null); render(); }
-      suivreAncre(); reglerPush(false);
+      suivreAncre(); if (LS.get('wl-push-off') !== '1') reglerPush(false); chargerParams();
     });
     window.addEventListener('hashchange', suivreAncre);
   };
