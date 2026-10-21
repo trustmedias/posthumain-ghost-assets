@@ -311,8 +311,8 @@
 #wl .ag .ledsvg.on{animation:wlpulse 1.2s ease-in-out infinite}\
 #wl .cable{fill:none;stroke-linecap:round;stroke-linejoin:round}\
 #wl .cable.live{stroke-dasharray:10 14;animation:wlflow 1.1s linear infinite}@keyframes wlflow{to{stroke-dashoffset:-24}}\
-#wl .lbl{font-family:Inter,sans-serif;font-size:15px;font-weight:700;fill:#f3ece0}\
-#wl .lbl2{font-family:Inter,sans-serif;font-size:12px;fill:rgba(243,236,224,.55)}\
+#wl .lbl{font-family:Inter,sans-serif;font-size:17px;font-weight:700;fill:#f3ece0}\
+#wl .lbl2{font-family:Inter,sans-serif;font-size:13.5px;fill:rgba(243,236,224,.66)}\
 #wl .roomname{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.18em;fill:rgba(243,236,224,.32);text-transform:uppercase}\
 #wl .pile{cursor:pointer}#wl .pile .fl{animation:wlfloat 3.2s ease-in-out infinite}@keyframes wlfloat{50%{transform:translateY(-4px)}}\
 #wl .pile:hover .paperS{stroke:#00ff77;stroke-width:2}\
@@ -431,7 +431,7 @@
       '<circle class="ledsvg ' + st + '" cx="' + (w / 2 - 8) + '" cy="-24" r="5" fill="' + (st === 'off' ? '#3a4440' : scr) + '" ' + (st !== 'off' ? 'filter="url(#glow)"' : '') + '/>' +
       '<g transform="translate(' + (-w / 2 + 2) + ',-46)"><circle r="17" fill="#15110c" stroke="rgba(255,190,90,.4)"/><text x="0" y="6" text-anchor="middle" font-size="18">' + p.emoji + '</text></g>' +
       '<text class="lbl" x="0" y="96" text-anchor="middle">' + esc(p.nom) + '</text>' +
-      '<text class="lbl2" x="0" y="113" text-anchor="middle">' + esc(o.why) + '</text>' +
+      '<text class="lbl2" x="0" y="116" text-anchor="middle">' + esc(o.why) + '</text>' +
       (isMe(p) ? '<g class="here" transform="translate(0,140)"><rect x="-46" y="-12" width="92" height="22" rx="11" fill="#00ff77"/><text y="4" text-anchor="middle" font-size="11.5" font-weight="800" fill="#05170d">VOUS ÊTES ICI</text></g>' : '') +
       '</g>';
   }
@@ -458,7 +458,7 @@
       (st !== 'off' ? '<ellipse cx="0" cy="0" rx="130" ry="80" fill="url(#halo-' + st + ')"/>' : '') + s +
       '<circle class="ledsvg ' + st + '" cx="104" cy="-66" r="5" fill="' + (st === 'off' ? '#3a4440' : col) + '" ' + (st !== 'off' ? 'filter="url(#glow)"' : '') + '/>' +
       '<g transform="translate(-112,-72)"><circle r="17" fill="#15110c" stroke="rgba(255,190,90,.4)"/><text x="0" y="6" text-anchor="middle" font-size="18">' + p.emoji + '</text></g>' +
-      '<text class="lbl" x="0" y="80" text-anchor="middle">' + esc(p.nom) + '</text><text class="lbl2" x="0" y="97" text-anchor="middle">' + esc(o.why) + '</text></g>';
+      '<text class="lbl" x="0" y="80" text-anchor="middle">' + esc(p.nom) + '</text><text class="lbl2" x="0" y="100" text-anchor="middle">' + esc(o.why) + '</text></g>';
   }
   // fiches qui flottent au-dessus de chaque employé : ce qui l'attend (cliquer ouvre son bureau)
   function pileOf(p) {
