@@ -484,7 +484,7 @@
     people().forEach(function (p) {
       var cs = pileOf(p); if (!cs.length) return;
       var n = Math.min(cs.length, 3), y = p.device ? p.y - 118 : p.y - 82, vert = p.kind === 'secretaire';
-      var g = '<g class="pile" data-ag="' + esc(p.key) + '" transform="translate(' + (vert ? p.x + 112 : p.x) + ',' + (vert ? p.y - 10 : y) + ') scale(' + (vert ? 1.05 : 1.25) + ')"><g class="fl"><rect x="-62" y="-30" width="124" height="52" fill="transparent"/>';
+      var g = '<g class="pile" data-ag="' + esc(p.key) + '" transform="translate(' + (vert ? p.x - 100 : p.x) + ',' + (vert ? p.y - 10 : y) + ') scale(' + (vert ? 1.05 : 1.25) + ')"><g class="fl"><rect x="-62" y="-30" width="124" height="52" fill="transparent"/>';
       for (var k = 0; k < n; k++) {
         var c = cs[k], off = vert ? 0 : (k - (n - 1) / 2) * 30, rot = vert ? (k - (n - 1) / 2) * 4 : (k - (n - 1) / 2) * 11;
         if (vert) off = 'V' + ((k - (n - 1) / 2) * 34);
