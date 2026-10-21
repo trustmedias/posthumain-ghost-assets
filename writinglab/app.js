@@ -188,7 +188,7 @@
 #wl .tab .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:#00ff77;color:#05170d;font-size:11px;font-weight:800;text-align:center}\
 #wl .wrap{padding:0 18px 60px}\
 #wl .floor{position:relative;border:1px solid rgba(255,255,255,.09);border-radius:0 14px 14px 14px;background:rgba(255,255,255,.02);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}\
-#wl .floor svg{display:block;width:100%;min-width:1180px;height:auto}#wl .case,#wl .tableau{cursor:pointer}#wl .case:hover rect:first-child{fill:rgba(255,190,90,.12)}#wl .tip{position:fixed;z-index:65;pointer-events:none;max-width:300px;padding:10px 12px;border-radius:12px;background:#f8f4ea;color:#1f1a12;font-size:13px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}#wl .tip.on{opacity:1}#wl .tip b{display:block;font-size:13.5px;margin-bottom:3px}#wl .tip span{display:block;color:#5c5444}\
+#wl .floor svg{display:block;width:100%;min-width:1180px;height:auto}#wl .case,#wl .tableau{cursor:pointer}#wl .case:hover rect:first-child{fill:rgba(255,190,90,.12)}#wl .tip{position:fixed;z-index:65;pointer-events:none;max-width:300px;padding:10px 12px;border-radius:12px;background:#f8f4ea;color:#1f1a12;font-size:13px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}#wl .tip.on{opacity:1}#wl .tip b{display:block;font-size:13.5px;margin-bottom:3px;color:#1f1a12!important;font-weight:700}#wl .tip span{display:block;color:#5c5444!important}#wl .tip span.go{color:#1f6b45!important;font-weight:600}\
 #wl .hint{font-size:12.5px;color:rgba(243,236,224,.5);margin:8px 2px 0}\
 #wl .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:14px}\
 #wl .card{cursor:pointer;border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));border-radius:14px;padding:12px 13px;transition:border-color .2s,transform .2s}\
@@ -255,6 +255,7 @@
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .panel .dossier .dh{cursor:pointer}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
+#wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 #wl .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.62);backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}#wl .cfm-bg.on{opacity:1}#wl .cfm{width:min(440px,100%);background:#14110c;border:1px solid rgba(0,255,119,.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}#wl .cfm-bg.on .cfm{transform:none}#wl .cfm.danger{border-color:rgba(255,80,80,.45)}#wl .cfm-ic{font-size:26px;margin-bottom:8px}#wl .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}#wl .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(243,236,224,.7)}#wl .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
 #wl .box.iv{margin:14px 0 4px;border-color:rgba(0,255,119,.35);background:rgba(0,255,119,.05)}#wl .ivl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}#wl .ivl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
@@ -338,7 +339,7 @@
 
   // ---------- le plan de la rédaction (SVG, 1600 × 1000) ----------
   // Plan en largeur (21/10/2026) : 4 pièces par rangée, 2 rangées → beaucoup moins haut, tout le monde voit tous les bureaux.
-  var PLAN_W = 2380, PLAN_H = 1000;
+  var PLAN_W = 2760, PLAN_H = 1000;
   var ROOMS = [
     { key: 'redac', name: 'Salle de rédaction', x: 30, y: 30, w: 560, h: 410, floor: '#16110b' },
     { key: 'secr', name: 'Secrétariat', x: 610, y: 30, w: 760, h: 410, floor: '#0b1216' },
@@ -347,7 +348,8 @@
     { key: 'chef', name: 'Bureau du rédacteur en chef', x: 30, y: 500, w: 560, h: 470, floor: '#0f140c' },
     { key: 'courrier', name: 'Salle du courrier', x: 610, y: 500, w: 560, h: 470, floor: '#0c0f16' },
     { key: 'marbre', name: 'Le marbre · Ghost', x: 1190, y: 500, w: 580, h: 470, floor: '#0a0d0b' },
-    { key: 'mk', name: 'Marketing · redaction@', x: 1790, y: 500, w: 560, h: 470, floor: '#16100c' }
+    { key: 'mk', name: 'Marketing · redaction@', x: 1790, y: 500, w: 560, h: 470, floor: '#16100c' },
+    { key: 'compta', name: 'Arrière-salle · comptabilité', x: 2370, y: 30, w: 360, h: 940, floor: '#110d07' }
   ];
   function rooms() { return ROOMS; }
   function people() {
@@ -365,6 +367,7 @@
     list.push({ key: 'marbre', kind: 'marbre', nom: 'Le Marbre', titre: 'Les brouillons Ghost', emoji: '📰', x: 1480, y: 735, device: true });
     list.push({ key: 'sc', kind: 'sc', nom: JULIEN.sc.nom, titre: JULIEN.sc.adr, emoji: JULIEN.sc.emoji, hue: 175, x: 2070, y: 215 });
     list.push({ key: 'mk', kind: 'mk', nom: JULIEN.mk.nom, titre: JULIEN.mk.adr, emoji: JULIEN.mk.emoji, hue: 20, x: 2070, y: 735 });
+    list.push({ key: 'compta', kind: 'compta', nom: 'Le Comptable', titre: 'Les pièces de la rédaction', emoji: '🧮', hue: 45, x: 2550, y: 230 });
     return list;
   }
   function P(key) { return people().filter(function (p) { return p.key === key; })[0]; }
@@ -378,6 +381,12 @@
     if (p.kind === 'sc' || p.kind === 'mk') {
       var ms = mails(JULIEN[p.kind].boite), nd = ms.filter(function (m) { return m.categorie === 'demande' && !m.brouillon_corps; }).length, nb = ms.filter(function (m) { return m.brouillon_corps; }).length, nv = ms.filter(function (m) { return m.categorie === 'verifier'; }).length;
       return nd ? { s: 'on', why: nd + ' demande' + pl(nd) + ' à traiter' } : nb ? { s: 'slot', why: nb + ' réponse' + pl(nb) + ' à valider' } : nv ? { s: 'slot', why: nv + ' mail' + pl(nv) + ' à vérifier' } : { s: 'off', why: 'boîte à jour' };
+    }
+    if (p.kind === 'compta') {
+      var R = S.pieces || {}, me0 = D().me, af = (R.conversions || []).filter(function (c) { return c.statut === 'a_facturer' && (me0.chef || c.membre === me0.id); }).length;
+      var av = me0.chef ? (R.pieces || []).filter(function (x) { return x.statut === 'a_verifier'; }).length : 0;
+      var dm = me0.chef ? Object.keys(R.demandes || {}).filter(function (k) { return R.demandes[k] === R.mois && ((R.soldes || {})[k] || 0) > 0; }).length : 0;
+      return dm ? { s: 'on', why: dm + ' demande' + pl(dm) + ' de paiement' } : af ? { s: 'slot', why: af + ' montant' + pl(af) + ' à facturer' } : av ? { s: 'slot', why: av + ' à vérifier' } : { s: 'off', why: 'compte les pièces' };
     }
     if (p.kind === 'marbre') { var a = D().articles.length; return { s: a ? 'slot' : 'off', why: a + ' brouillon' + pl(a) + ' sur le marbre' }; }
     if (p.vide) return { s: 'off', why: 'poste à attribuer' };
@@ -403,6 +412,7 @@
     var w = big ? 170 : 132, h = big ? 64 : 54;
     var deco = '';
     if (p.kind === 'secretaire') deco = '<rect x="30" y="-20" width="26" height="18" rx="2" fill="#5a4a2e" stroke="rgba(255,255,255,.2)"/><rect x="33" y="-17" width="20" height="3" fill="#f3e6c6"/><rect x="33" y="-12" width="20" height="3" fill="#f3e6c6"/>';
+    else if (p.kind === 'compta') deco = '<rect x="-60" y="-22" width="22" height="28" rx="3" fill="#2d2a24" stroke="rgba(255,255,255,.25)"/><rect x="-57" y="-19" width="16" height="6" fill="#9fe8b4"/><rect x="-57" y="-10" width="4" height="4" fill="#ccc"/><rect x="-51" y="-10" width="4" height="4" fill="#ccc"/><rect x="-45" y="-10" width="4" height="4" fill="#ffb020"/><rect x="34" y="-20" width="24" height="18" rx="2" fill="#5b1f1f"/><rect x="37" y="-17" width="18" height="2" fill="#e8c27a"/>';
     else if (p.kind === 'assistant') deco = '<rect x="-58" y="-20" width="8" height="26" fill="#7a3b2a"/><rect x="-49" y="-20" width="7" height="26" fill="#2a5a7a"/><rect x="-41" y="-20" width="8" height="26" fill="#3b7a2a"/>';
     else if (p.kind === 'chef') deco = '<rect x="-70" y="-24" width="40" height="14" rx="3" fill="#b8913e"/><text x="-50" y="-13.5" text-anchor="middle" font-size="8.5" font-weight="800" fill="#1f1a12">CHEF</text><circle cx="62" cy="-8" r="7" fill="#4a3426"/><circle cx="62" cy="-8" r="4" fill="#2a1a10"/>';
     else deco = '<circle cx="46" cy="-6" r="6" fill="#4a3426"/><circle cx="46" cy="-6" r="3.5" fill="#2a1a10"/>';
@@ -460,6 +470,27 @@
     return [];
   }
   // Étagère du Secrétariat : une case par enquête (dossier), 4 cases par rayon. Survol = infobulle (titre + avancement), clic = le dossier.
+  // Arrière-salle : sur la table du Comptable, une caisse par journaliste avec son solde de pièces ; animation quand il en distribue.
+  function caissesSVG() {
+    var js = (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).slice(0, 3);
+    var so = (S.pieces && S.pieces.soldes) || {}, X0 = 2550, Y0 = 600;
+    var s = '<g class="compta-deco"><rect x="2400" y="860" width="80" height="90" rx="6" fill="#262626" stroke="rgba(255,255,255,.18)" stroke-width="2"/><circle cx="2440" cy="905" r="16" fill="none" stroke="#9a8a6a" stroke-width="3"/><rect x="2437" y="889" width="6" height="12" fill="#9a8a6a"/><text class="lbl2" x="2440" y="965" text-anchor="middle">coffre</text></g>';
+    s += '<rect x="' + (X0 - 150) + '" y="' + (Y0 - 50) + '" width="300" height="150" rx="10" fill="url(#wood)" stroke="rgba(255,255,255,.14)"/><text class="lbl2" x="' + X0 + '" y="' + (Y0 + 125) + '" text-anchor="middle">table des caisses</text>';
+    var xs = js.length === 3 ? [-95, 0, 95] : js.length === 2 ? [-60, 60] : [0];
+    js.forEach(function (w, i) {
+      var n = so[w.id] || 0, x = X0 + xs[i], anim = S.caisseAnim && S.caisseAnim[w.id];
+      var tas = '';
+      for (var k = 0; k < Math.min(6, Math.ceil(n / 5)); k++) tas += '<ellipse cx="' + (x - 14 + (k % 3) * 14) + '" cy="' + (Y0 + 2 - Math.floor(k / 3) * 7) + '" rx="8" ry="4" fill="#ffd25a" stroke="#a87a14"/>';
+      s += '<g class="case" data-act="pieces" data-tip="' + esc('Caisse de ' + w.nom + '|🪙 ' + n + ' pièces à convertir|' + (n ? '≈ ' + eurTxt(n * Number((S.pieces || {}).taux || 0)) : 'vide pour l’instant')) + '" data-tip-act="Cliquer pour voir le Comptable">' +
+        '<rect x="' + (x - 34) + '" y="' + (Y0 - 18) + '" width="68" height="44" rx="5" fill="#3d2b17" stroke="#c99a3a" stroke-width="2"/>' + tas +
+        '<rect x="' + (x - 34) + '" y="' + (Y0 + 8) + '" width="68" height="18" rx="3" fill="#2a1d10"/><text x="' + x + '" y="' + (Y0 + 21) + '" text-anchor="middle" font-size="12" font-weight="800" fill="#ffd77a">🪙 ' + n + '</text>' +
+        '<text class="lbl2" x="' + x + '" y="' + (Y0 + 44) + '" text-anchor="middle">' + esc(w.nom.split(' ')[0]) + '</text>';
+      if (anim) for (var c = 0; c < 5; c++) s += '<g><ellipse cx="0" cy="0" rx="8" ry="4" fill="#ffd25a" stroke="#a87a14"><animateMotion dur="' + (0.9 + c * 0.15) + 's" begin="' + (c * 0.18) + 's" fill="freeze" path="M' + 2550 + ' ' + 300 + ' Q' + ((2550 + x) / 2) + ' ' + 360 + ' ' + x + ' ' + (Y0 - 6) + '"/></ellipse></g>';
+      s += '</g>';
+    });
+    return s;
+  }
+  function eurTxt(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' €'; }
   function etagereSVG() {
     var actifs = vues().filter(function (f) { return f.statut !== 'inséré'; });
     var ds = dossiers(actifs), X = 720, Y = 64, CW = 62, CH = 78, cols = 4, rows = 4, max = cols * rows;
@@ -531,7 +562,7 @@
       '<linearGradient id="wood" x1="0" x2="1"><stop offset="0" stop-color="#3a2c1d"/><stop offset="1" stop-color="#2a2016"/></linearGradient></defs>';
     var HH = PLAN_H, WW = PLAN_W;
     var s = '<svg viewBox="0 0 ' + WW + ' ' + HH + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La rédaction de Posthumain vue de haut">' + defs + '<rect width="' + WW + '" height="' + HH + '" fill="#0a0806"/>';
-    s += '<rect x="20" y="448" width="' + (WW - 40) + '" height="44" fill="#100d09"/><rect x="20" y="448" width="' + (WW - 40) + '" height="44" fill="url(#tiles)"/><text class="roomname" x="40" y="475" style="font-size:11px">couloir · le chemin du courrier</text>';
+    s += '<rect x="20" y="448" width="2340" height="44" fill="#100d09"/><rect x="20" y="448" width="2340" height="44" fill="url(#tiles)"/><text class="roomname" x="40" y="475" style="font-size:11px">couloir · le chemin du courrier</text>';
     rooms().forEach(function (r) {
       s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="' + r.floor + '"/>';
       s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="url(#' + (r.key === 'redac' || r.key === 'chef' ? 'parquet' : 'tiles') + ')"/>';
@@ -539,6 +570,7 @@
       s += '<text class="roomname" x="' + (r.x + 16) + '" y="' + (r.y + 26) + '">' + esc(r.name) + '</text>';
     });
     [[310, 440], [1090, 440], [1580, 440], [2070, 440], [310, 500], [890, 500], [1480, 500], [2070, 500]].forEach(function (p) { s += '<rect x="' + (p[0] - 34) + '" y="' + (p[1] - 4) + '" width="68" height="8" fill="#0a0806"/>'; });
+    s += '<rect x="2364" y="452" width="12" height="36" fill="#0a0806"/>'; // porte dérobée de l'arrière-salle
     // décor : étagères de la bibliothèque, tableau de liège de la rédaction, fauteuils du chef
     s += '<g transform="translate(1410,60)">';
     for (var i = 0; i < 9; i++) s += '<rect x="' + (i * 38) + '" y="0" width="34" height="14" rx="2" fill="hsl(' + (i * 37) + ',35%,32%)"/>';
@@ -567,7 +599,7 @@
         if (live) s += '<g filter="url(#glow)"><rect x="-16" y="-11" width="32" height="22" rx="3" fill="#e2ffef" stroke="#00ff77" stroke-width="2"/><path d="M-16 -11 l16 12 l16 -12" stroke="#1d6b45" stroke-width="2" fill="none"/><animateMotion dur="2.8s" fill="freeze" path="' + path + '"/></g>';
       });
     }
-    s += etagereSVG();
+    s += etagereSVG() + caissesSVG();
     pp.forEach(function (p) { s += p.device ? deviceSVG(p) : deskSVG(p); });
     s += pilesSVG() + bullesSVG() + '</svg>';
     return s;
@@ -802,6 +834,7 @@
     else if (k === 'marbre' || k === 'articles') h = panelArticles();
     else if (k === 'chef') h = panelChef();
     else if (k === 'sc' || k === 'mk') h = panelJulien(k);
+    else if (k === 'compta') h = panelCompta();
     else if (k.indexOf('j:') === 0) h = panelJournaliste(k.slice(2));
     el.innerHTML = h; el.scrollTop = keep; markBusy();
   }
@@ -1165,6 +1198,10 @@
       var vus = (LS.get('wl-pieces-vues') || '').split(',');
       var neuves = (r.pieces || []).filter(function (p) { return p.membre === me && p.statut === 'acquis' && vus.indexOf(String(p.id)) < 0; });
       if (avant && neuves.length) neuves.forEach(function (p) { fete(p); });
+      var anc = {}; ((avant && avant.pieces) || []).forEach(function (p) { anc[p.id] = 1; });
+      var nv = avant ? (r.pieces || []).filter(function (p) { return !anc[p.id] && p.statut === 'acquis'; }) : [];
+      if (nv.length) { S.caisseAnim = {}; nv.forEach(function (p) { S.caisseAnim[p.membre] = 1; }); setTimeout(function () { S.caisseAnim = null; paintFloor(); }, 2600); }
+      paintFloor(); if (S.panel === 'compta') paintPanel();
       LS.set('wl-pieces-vues', (r.pieces || []).filter(function (p) { return p.membre === me; }).map(function (p) { return p.id; }).join(','));
       var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header();
       if (S.doc && (S.doc.kind === 'pieces' || S.doc.kind === 'fiche')) paintDoc();
@@ -1179,6 +1216,41 @@
     S.root.appendChild(el); setTimeout(function () { el.classList.add('out'); }, 2600); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3200);
   }
   var PST2 = { acquis: ['🪙', 'acquises', 'g'], a_verifier: ['🔍', 'à vérifier par le rédacteur en chef', 'a'], annule: ['✖️', 'annulées', ''], manque: ['⏳', 'créneau manqué', ''] };
+  function panelCompta() {
+    var r = S.pieces || { pieces: [], totaux: {}, soldes: {}, conversions: [] }, me = D().me, tx = Number(r.taux || 0), o = stOf(P('compta'));
+    var h = head('🧮', 'Le Comptable', '<span class="led ' + o.s + '"></span>' + esc(o.why)) + '<div class="pb">';
+    if (!S.pieces) return h + '<p class="muted">Le Comptable ouvre ses registres…</p></div>';
+    h += '<p class="muted">Chaque parcours complet (interview envoyée depuis le lab, réponse du chercheur, citation insérée dans l’article) rapporte des pièces, rangées dans la caisse de la journaliste.</p>';
+    (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).forEach(function (w) {
+      var so = (r.soldes || {})[w.id] || 0, mien = w.id === me.id, demande = (r.demandes || {})[w.id] === r.mois;
+      var peutDemander = mien && so > 0 && Number(r.jour) >= 25 && !demande;
+      h += '<div class="caisse"><div class="cz-h"><span>Caisse de <b>' + esc(w.nom) + '</b></span>' + (demande && so ? '<span class="tag a">💶 paiement demandé</span>' : '') + '</div>' +
+        '<div class="cz-n">🪙 ' + so + '<small>' + (so ? '≈ ' + eurTxt(so * tx) : 'vide') + '</small></div><div class="cz-s">' + totalPieces(w.id) + ' pièces gagnées depuis le début · ' + eurTxt(tx) + ' la pièce</div>' +
+        '<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">' +
+        (me.chef ? '<button class="btn go" data-act="pc-conv" data-id="' + esc(w.id) + '"' + (so ? '' : ' disabled data-off="1"') + '>📒 Comptabiliser' + (so ? ' ' + eurTxt(so * tx) : '') + '</button><button class="btn small" data-act="pc-raz" data-id="' + esc(w.id) + '"' + (so ? '' : ' disabled data-off="1"') + '>↺ Remettre à zéro</button>' : '') +
+        (mien ? '<button class="btn go" data-act="pc-dem"' + (peutDemander ? '' : ' disabled data-off="1"') + '>💶 Demander le paiement</button>' : '') + '</div>' +
+        (mien && !peutDemander ? '<div class="cz-s" style="margin-top:6px">' + (!so ? 'Ta caisse est vide pour l’instant.' : demande ? 'Demande envoyée ce mois-ci : Jonathan va comptabiliser.' : 'La demande de paiement s’ouvre le 25 de chaque mois.') + '</div>' : '') + '</div>';
+    });
+    var af = (r.conversions || []).filter(function (c) { return c.statut === 'a_facturer' && (me.chef || c.membre === me.id); });
+    h += '<h3>💶 À ajouter à la prochaine facture (' + af.length + ')</h3>' + (af.map(function (c) {
+      return '<div class="cz-l"><div><b>' + eurTxt(Number(c.montant)) + '</b> · ' + c.pieces + ' pièces · ' + esc(membre(c.membre).nom) + '<div class="cz-s">comptabilisé ' + esc(when(c.created_at)) + (c.note ? ' · ' + esc(c.note) : '') + '</div></div>' +
+        '<div class="row" style="gap:6px;margin-top:8px"><input class="in" id="wl-fact-' + c.id + '" placeholder="n° ou date de facture (facultatif)" style="flex:1;min-width:150px"><button class="btn small go" data-act="pc-fact" data-id="' + c.id + '">☑️ Ajouté à la facture</button></div></div>';
+    }).join('') || '<p class="muted">Rien à facturer.</p>') + (af.length ? '<p class="cz-s">Une fois cochée, la ligne est archivée et les pièces sont comptées définitivement.</p>' : '');
+    var der = (r.pieces || []).filter(function (p) { return me.chef || p.membre === me.id; }).slice(0, 12);
+    if (der.length) h += '<h3>🪙 Dernières pièces</h3>' + der.map(function (p) {
+      var st = PST2[p.statut] || ['·', p.statut, ''];
+      return '<div class="cz-l"><div><b>' + (p.montant ? '+' + p.montant : '0') + '</b> <span class="tag ' + st[2] + '">' + st[0] + ' ' + esc(st[1]) + '</span>' + (me.chef ? ' · ' + esc(membre(p.membre).nom) : '') + '<div class="cz-s">' + esc(p.contact || '') + ' — ' + esc(p.article_titre || '') + ' · ' + esc(when(p.created_at)) + (me.chef ? '<br>' + esc(p.motif || '') : '') + '</div></div>' +
+        (me.chef && p.statut === 'a_verifier' ? '<div class="row" style="gap:6px;margin-top:6px"><button class="btn small go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button><button class="btn small red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button></div>' : '') + '</div>';
+    }).join('');
+    h += '<details class="cz-d"><summary>Barème</summary><p>Citation insérée avant la publication ou jusqu’à 2 jours après : <b>10 pièces</b><br>jusqu’à 4 jours : <b>5 pièces</b><br>jusqu’au 6e jour : <b>2 pièces</b><br>à partir du 7e jour : 0, ce sera pour la prochaine fois.</p></details>';
+    if (me.chef) h += '<details class="cz-d"><summary>Réglages et contrôles (visible par vous seul)</summary><p>Une pièce n’est accordée que si le mail est parti du lab, que la réponse arrive dans le fil de ce mail depuis l’adresse du chercheur (en-têtes vérifiés côté serveur), et que la citation est insérée depuis le lab. Une seule récompense par fiche ; webmail gratuit, adresse de l’équipe ou réponse très courte → « à vérifier ».</p>' +
+      '<div class="row" style="gap:8px;align-items:center">Valeur d’une pièce : <input class="in" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div></details>';
+    var arch = (r.conversions || []).filter(function (c) { return c.statut !== 'a_facturer' && (me.chef || c.membre === me.id); });
+    if (arch.length) h += '<details class="cz-d"><summary>Archives (' + arch.length + ')</summary>' + arch.map(function (c) {
+      return '<div class="cz-l"><b>' + (c.type === 'conversion' ? eurTxt(Number(c.montant)) : '↺ remis à zéro') + '</b> · ' + c.pieces + ' pièces · ' + esc(membre(c.membre).nom) + '<div class="cz-s">' + (c.statut === 'facture' ? '✅ ajouté à la facture ' + esc(when(c.facture_le)) + (c.facture_note ? ' · ' + esc(c.facture_note) : '') : 'remis à zéro ' + esc(when(c.created_at))) + '</div></div>';
+    }).join('') + '</details>';
+    return h + '</div>';
+  }
   function docPieces() {
     var r = S.pieces || { pieces: [], totaux: {} }, me = D().me;
     var h = '<div class="dtop"><span class="em">🪙</span><div><div class="nm">Les pièces de la rédaction</div><div class="st">1 parcours complet et prouvé = des pièces</div></div><span class="x" data-act="close-doc">✕</span></div><div class="paper">';
@@ -1216,9 +1288,9 @@
   function parcoursHTML(f) {
     var w = membre(f.redacteur), chefFiche = w.role === 'chef', p = pieceDe(f.fiche_id), v = verifiee(f.fiche_id);
     var et = function (on, txt) { return '<span class="pa' + (on ? ' on' : '') + '">' + txt + '</span>'; };
-    return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, f.reponse ? (v ? '📬 réponse prouvée' : '📝 réponse saisie à la main') : '📬 réponse') + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
+    return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, f.reponse ? (v || !D().me.chef ? '📬 réponse reçue' : '📝 réponse saisie à la main') : '📬 réponse') + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
       (chefFiche ? '' : '<i></i>' + et(p && p.statut === 'acquis', p ? (PST2[p.statut] || ['🪙'])[0] + ' ' + (p.montant || 0) + ' pièces' : '🪙 pièces')) + '</div>' +
-      (!chefFiche && f.reponse && !v ? '<p class="muted" style="margin:4px 0 0;font-size:13px">Cette réponse n’a pas été reçue par le fil du mail envoyé depuis le lab : elle ne rapporte pas de pièces.</p>' : '');
+      (D().me.chef && !chefFiche && f.reponse && !v ? '<p class="muted" style="margin:4px 0 0;font-size:13px">Cette réponse n’a pas été reçue par le fil du mail envoyé depuis le lab : elle ne rapporte pas de pièces.</p>' : '');
   }
 
   // Fenêtre de confirmation au style du lab (remplace window.confirm) : titre = première ligne, détail = la suite.
@@ -1413,19 +1485,24 @@
         });
         break;
       // interphone
-      case 'pieces': openDoc('pieces', ''); break;
+      case 'pieces': masquerTip(); closeDoc(); openPanel('compta'); break;
+      case 'pc-dem':
+        var ck6 = S.clicking; confirmer('Demander le paiement de tes pièces ?\n\nJonathan reçoit ta demande et comptabilise le montant pour ta prochaine facture.').then(function (ok) { if (!ok) return; S.clicking = ck6;
+          pushApi({ action: 'demande_paiement' }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('💶 Demande envoyée à Jonathan.'); chargerPieces(); });
+        });
+        break;
       case 'pc-taux':
         pushApi({ action: 'taux', taux: val('wl-taux') }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'taux invalide'), true); return; } toast('Valeur d’une pièce : ' + String(r.taux).replace('.', ',') + ' €'); chargerPieces(); });
         break;
       case 'pc-conv': case 'pc-raz':
         var cm = id, conv = name === 'pc-conv', so2 = ((S.pieces && S.pieces.soldes) || {})[cm] || 0, eu = (Math.round(so2 * Number((S.pieces || {}).taux || 0) * 100) / 100).toFixed(2).replace('.', ',') + ' €';
-        var ck8 = S.clicking; confirmer(conv ? 'Convertir les ' + so2 + ' pièces de ' + membre(cm).nom + ' en ' + eu + ' ?\n\nElle reçoit un message dans l’Interphone pour ajouter ce montant à sa prochaine facture, puis le confirme dans « Mes pièces ».' : 'Remettre à zéro les ' + so2 + ' pièces de ' + membre(cm).nom + ' sans les convertir ?\n\nLes pièces restent dans l’historique, marquées « remises à zéro ».').then(function (ok) { if (!ok) return; S.clicking = ck8;
+        var ck8 = S.clicking; confirmer(conv ? 'Convertir les ' + so2 + ' pièces de ' + membre(cm).nom + ' en ' + eu + ' ?\n\nElle reçoit un message dans l’Interphone pour ajouter ce montant à sa prochaine facture, puis le coche chez le Comptable une fois ajouté.' : 'Remettre à zéro les ' + so2 + ' pièces de ' + membre(cm).nom + ' sans les convertir ?\n\nLes pièces restent dans l’historique, marquées « remises à zéro ».').then(function (ok) { if (!ok) return; S.clicking = ck8;
           pushApi({ action: conv ? 'convertir' : 'remise_a_zero', membre: cm }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast(conv ? '💶 Converti : ' + eu + ' à facturer.' : '↺ Solde remis à zéro.'); chargerPieces(); refresh(true); });
         });
         break;
       case 'pc-fact':
         var fid2 = id, fnote = val('wl-fact-' + id);
-        var ck7 = S.clicking; confirmer('Confirmer que ce montant est ajouté à la facture ?').then(function (ok) { if (!ok) return; S.clicking = ck7;
+        var ck7 = S.clicking; confirmer('Ce montant est bien ajouté à la facture ?\n\nUne fois coché, c’est définitif : la ligne est archivée et les pièces sont comptées pour de bon. Pas de retour en arrière.').then(function (ok) { if (!ok) return; S.clicking = ck7;
           pushApi({ action: 'facturee', id: fid2, note: fnote }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✅ Noté : ajouté à la facture.'); chargerPieces(); refresh(true); });
         });
         break;
@@ -1554,7 +1631,7 @@
     if (!el) { if (t) t.classList.remove('on'); return; }
     if (!t) { t = document.createElement('div'); t.className = 'tip'; S.root.appendChild(t); }
     var parts = String(el.getAttribute('data-tip')).split('|');
-    var html = '<b>' + esc(parts[0]) + '</b>' + parts.slice(1).filter(Boolean).map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '<span style="color:#1f8a52;margin-top:4px">Cliquer pour ouvrir le dossier</span>';
+    var html = '<b>' + esc(parts[0]) + '</b>' + parts.slice(1).filter(Boolean).map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '<span class="go" style="margin-top:4px">' + (el.getAttribute('data-tip-act') || 'Cliquer pour ouvrir le dossier') + '</span>';
     if (t.innerHTML !== html) t.innerHTML = html;
     var w = t.offsetWidth || 260, h = t.offsetHeight || 80, x = e.clientX + 16, y = e.clientY + 16;
     if (x + w > window.innerWidth - 8) x = e.clientX - w - 16;
