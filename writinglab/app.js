@@ -36,7 +36,7 @@
 
   // ---------- état ----------
   var S = {
-    data: null, call: null, root: null, tab: LS.get('wl-tab') || 'bureau', art: LS.get('wl-article') || '',
+    data: null, call: null, root: null, portee: LS.get('wl-portee') || 'tous', tab: LS.get('wl-tab') || 'bureau', art: LS.get('wl-article') || '',
     busy: {}, last: 0, panel: null,
     contact: null, contacts: null, qs: [], angle: '', echeance: '', consigneSec: '', reformule: null,
     libre: { nom: '', email: '', role: '', institution: '', langue: 'fr', consigne: '', echeance: '' },
@@ -56,7 +56,40 @@
   function aInterviewer() { return artsRecents().filter(function (a) { return premium(a) && !D().fiches.some(function (f) { return f.article_id === a.id; }); }); }
   function art(id) { return D().articles.filter(function (a) { return a.id === id; })[0] || null; }
   function fiche(id) { return D().fiches.filter(function (f) { return f.fiche_id === id; })[0] || null; }
-  function by(st) { return D().fiches.filter(function (f) { return f.statut === st; }); }
+  // Portée (rédacteur en chef) : « Mes fiches » ou « Toute la rédaction ». Valisoa ne reçoit de toute façon que les siennes.
+  function vues() { var me = D().me; return D().fiches.filter(function (f) { return !me.chef || S.portee !== 'moi' || f.redacteur === me.id; }); }
+  function by(st) { return vues().filter(function (f) { return f.statut === st; }); }
+  // Origine d'une fiche : préparation express, Assistant (questions choisies) ou message direct à la Secrétaire.
+  function origine(f) {
+    if ((f.historique || []).some(function (e) { return /^préparé en express/.test(String(e.e || '')); })) return ['⚡', 'Express'];
+    return f.questions && f.questions.length ? ['🧠', 'Assistant'] : ['✍️', 'Message direct'];
+  }
+  function qui(f) { return f.redacteur === D().me.id ? 'vous' : membre(f.redacteur).nom; }
+  // Questions telles qu'elles partent dans le mail (lignes numérotées « 1. … ») : traduites si le chercheur ne parle pas français.
+  function questionsEnvoyees(f) {
+    var out = [], n = 1;
+    String(f.mail_corps || '').split('\n').forEach(function (l) { var m = l.match(/^\s*(\d{1,2})[.)]\s+(.+)$/); if (m && Number(m[1]) === n) { out.push(m[2].trim()); n++; } });
+    return out;
+  }
+  // Dossiers : les fiches regroupées par article, du plus récemment touché au plus ancien.
+  function dossiers(list) {
+    var m = {}, ordre = [];
+    list.forEach(function (f) { var k = f.article_id || '—'; if (!m[k]) { m[k] = { id: f.article_id || '', titre: f.article_titre || 'Sans article', fiches: [], maj: '' }; ordre.push(k); } m[k].fiches.push(f); if (String(f.maj) > m[k].maj) m[k].maj = String(f.maj); });
+    return ordre.map(function (k) { return m[k]; }).sort(function (a, b) { return b.maj.localeCompare(a.maj); });
+  }
+  function avancement(fs) {
+    var c = function (st) { return fs.filter(function (f) { return f.statut === st; }).length; };
+    return '<span class="av"><b class="' + (c('brouillon') ? 'a' : '') + '">🟠 ' + c('brouillon') + ' à valider</b><b>📨 ' + c('envoyé') + ' envoyé' + pl(c('envoyé')) + '</b><b class="' + (c('a répondu') ? 'g' : '') + '">📬 ' + c('a répondu') + ' réponse' + pl(c('a répondu')) + '</b><b>✅ ' + c('inséré') + ' cité' + pl(c('inséré')) + '</b></span>';
+  }
+  function origines(fs) {
+    var x = fs.filter(function (f) { return origine(f)[1] === 'Express'; }).length, a = fs.length - x;
+    return [x ? x + ' ⚡ express' : '', a ? a + ' 🧠 assistant / direct' : ''].filter(Boolean).join(' · ');
+  }
+  function porteeHTML() {
+    if (!D().me.chef) return '';
+    var moi = S.portee === 'moi';
+    return '<div class="row" style="gap:6px;margin:4px 0 10px"><span class="chip' + (moi ? ' art' : '') + '" data-act="portee" data-id="moi">👤 Mes fiches</span><span class="chip' + (moi ? '' : ' art') + '" data-act="portee" data-id="tous">👥 Toute la rédaction</span></div>';
+  }
   function relancable(f) { return f.statut === 'envoyé' && f.envoye_le && Date.now() - new Date(f.envoye_le).getTime() > 3 * 864e5; }
   function membre(id) { return (D().equipe || []).filter(function (w) { return w.id === id; })[0] || { nom: id || '?' }; }
   var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'archivé': ['🗄️', 'archivé', ''] };
@@ -216,6 +249,7 @@
 #wl .chat{display:flex;flex-direction:column;gap:8px;max-width:760px}\
 #wl .bub{max-width:82%;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);white-space:pre-wrap;word-wrap:break-word}\
 #wl .bub.me{align-self:flex-end;background:rgba(0,255,119,.1);border-color:rgba(0,255,119,.3)}\
+#wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
 #wl .box.iv{margin:14px 0 4px;border-color:rgba(0,255,119,.35);background:rgba(0,255,119,.05)}#wl .ivl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}#wl .ivl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
 #wl .bub .who{font-size:11.5px;color:rgba(243,236,224,.55);margin-bottom:3px;white-space:normal}\
@@ -568,16 +602,21 @@
   }
   function dcard(f, extra) {
     var s = STATUTS[f.statut] || ['·', f.statut, ''];
-    return '<div class="dcard ' + s[2] + '" data-act="' + (f.statut === 'brouillon' ? 'open-valid' : 'open-fiche') + '" data-id="' + esc(f.fiche_id) + '"><div class="k">' + s[0] + ' ' + esc(s[1]) + (D().me.chef && f.redacteur !== D().me.id ? ' · ' + esc(membre(f.redacteur).nom) : '') + '</div>' +
+    var og = origine(f);
+    return '<div class="dcard ' + s[2] + '" data-act="' + (f.statut === 'brouillon' ? 'open-valid' : 'open-fiche') + '" data-id="' + esc(f.fiche_id) + '"><div class="k">' + s[0] + ' ' + esc(s[1]) + ' · ' + og[0] + ' ' + og[1] + (D().me.chef ? ' · ' + esc(qui(f)) : '') + '</div>' +
       '<div class="ti">' + esc(f.contact.nom || '(sans nom)') + '</div><div class="su">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + '</div>' +
       '<div class="su">📰 ' + esc(f.article_titre || 'sans article') + '</div>' + (extra || '') + '</div>';
   }
   function viewSuivi() {
     var cols = [['brouillon', '🟠 À valider'], ['envoyé', '📨 Envoyés'], ['a répondu', '📬 Réponses'], ['inséré', '✅ Cités']];
-    var vide = !D().fiches.length;
+    var vide = !vues().length;
     var intro = '<p class="muted" style="margin-top:14px">Le parcours des demandes d’interview' + (D().me.chef ? ' de toute la rédaction' : '') + ' : mail rédigé par la Secrétaire → envoyé → réponse reçue → citation insérée dans l’article. Les fiches archivées n’apparaissent plus ici.</p>' +
       (vide ? '<div class="box" style="margin-top:6px">Aucune demande en cours pour l’instant. Pour en lancer une : choisissez un article, puis demandez à l’Assistant qui interroger.<div class="row" style="margin-top:10px"><button class="btn" data-act="open-ag" data-ag="assistant">🧠 Préparer une interview</button><button class="btn small" data-act="open-ag" data-ag="secretaire">📮 Écrire à quelqu’un</button></div></div>' : '');
-    return intro + '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
+    var ds = dossiers(vues());
+    var dosHTML = ds.length ? '<h3 style="margin-top:14px">🗂️ Dossiers par enquête</h3>' + ds.map(function (d) {
+      return '<div class="dossier" id="dossier-' + esc(d.id || 'sans') + '"><div class="dh"><b>📰 ' + esc(d.titre) + '</b>' + avancement(d.fiches) + '</div><div class="muted" style="font-size:12.5px">' + esc(d.fiches.map(function (f) { return f.contact.nom; }).join(' · ')) + ' — ' + origines(d.fiches) + (d.id && art(d.id) ? ' · <a href="#" data-act="pick-art" data-id="' + esc(d.id) + '">en faire l’article en cours</a>' : '') + '</div></div>';
+    }).join('') + '<h3 style="margin-top:18px">Par étape</h3>' : '';
+    return intro + porteeHTML() + dosHTML + '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
       var fs = by(c[0]);
       return '<div class="col"><h4>' + c[1] + ' <span class="tag">' + fs.length + '</span></h4><div class="dos">' + (fs.map(function (f) {
         var x = c[0] === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) ? ' · <b>relance possible</b>' : '') + '</div>' : c[0] === 'a répondu' ? '<div class="su">réponse ' + esc(when(f.reponse_le)) + '</div>' : '';
@@ -858,6 +897,9 @@
     h += '<div class="pb"><p class="muted">Il lit l’article en cours, vous propose qui interroger et quelles questions poser. Vous gardez, faites reformuler ou retirez chaque question, puis il passe le tout à la Secrétaire.</p>' + artBox();
     if (!S.art) return h + '</div>';
     var busy = !!S.busy.assistant;
+    var deja = D().fiches.filter(function (f) { return f.article_id === S.art; });
+    if (deja.length) h += '<div class="box" style="border-color:rgba(255,190,90,.45)"><b>Déjà lancé pour cet article : ' + deja.length + ' demande' + pl(deja.length) + '</b> (' + origines(deja) + ')<div style="margin:6px 0">' + avancement(deja) + '</div><div class="muted">' + esc(deja.map(function (f) { return f.contact.nom + ' (' + qui(f) + ')'; }).join(' · ')) + '</div>' +
+      '<div class="row" style="margin-top:8px"><button class="btn small" data-act="dossier" data-id="' + esc(S.art) + '">🗂️ Voir le dossier</button></div><p class="muted" style="margin:8px 0 0">Vous pouvez quand même ajouter une personne ci-dessous.</p></div>';
     h += '<h3>1 · Qui interroger ?</h3>';
     if (S.contact) h += '<div class="box">' + contactForm('c', S.contact) + '<div class="row" style="margin-top:10px"><button class="btn small" data-act="contact-clear">Changer de personne</button></div></div>';
     else h += '<div class="row"><button class="btn" data-act="find-contacts"' + (busy ? ' disabled' : '') + '>🔎 Trouver les chercheurs de l’article</button><button class="btn small" data-act="contact-new">＋ Saisir un contact</button></div><p class="muted">La recherche prend une trentaine de secondes : l’Assistant vérifie sur le web qui a mené les travaux cités, et ne donne une adresse que si elle est publiée officiellement.</p>';
@@ -892,7 +934,10 @@
     h += '<div class="pb"><p class="muted">Elle rédige vos mails, vous les fait relire, puis les envoie depuis votre adresse Posthumain. Rien ne part sans votre validation.</p>';
     if (!me.branchee) h += '<div class="box warn">Votre boîte mail n’est pas encore branchée au Writinglab : vous pouvez préparer et relire vos mails, l’envoi sera possible dès qu’elle le sera.</div>';
     var v = by('brouillon');
-    h += '<h3>Mails à valider (' + v.length + ')</h3><div class="dos">' + (v.map(function (f) { return dcard(f, '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>'); }).join('') || '<div class="muted">Aucun mail en attente de validation.</div>') + '</div>';
+    h += '<h3>Mails à valider (' + v.length + ')</h3>' + porteeHTML() + (dossiers(v).map(function (d) {
+      return '<div class="dossier"><div class="dh"><b>📰 ' + esc(d.titre) + '</b>' + avancement(vues().filter(function (f) { return (f.article_id || '') === d.id; })) + '</div><div class="dos">' +
+        d.fiches.map(function (f) { return dcard(f, '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>'); }).join('') + '</div></div>';
+    }).join('') || '<div class="muted">Aucun mail en attente de validation.</div>');
     h += '<h3>Écrire à quelqu’un</h3><p class="muted">Pour une demande directe (sans passer par l’Assistant) : dites ce que vous voulez, elle rédige.</p>' + contactForm('l', S.libre) +
       '<label class="f">Ce que vous voulez lui dire ou lui demander</label><textarea class="in" data-l="consigne" rows="4" placeholder="ex. lui demander s’il accepterait un appel de 15 minutes cette semaine sur son étude">' + esc(S.libre.consigne) + '</textarea>' +
       '<label class="f">Échéance (facultatif)</label><input class="in" data-l="echeance" value="' + esc(S.libre.echeance) + '">' +
@@ -983,7 +1028,8 @@
     var w = membre(f.redacteur), branchee = !!w.branchee;
     var okMail = /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(f.contact.email || '');
     var ed = (S.vEdit && S.vEdit[f.fiche_id]) || { sujet: f.mail_sujet, corps: f.mail_corps };
-    var h = '<div class="dtop"><span class="em">📮</span><div><div class="nm">Mail à valider</div><div class="st">rédigé par la Secrétaire · ' + esc(when(f.maj)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
+    var og = origine(f);
+    var h = '<div class="dtop"><span class="em">📮</span><div><div class="nm">Mail à valider</div><div class="st">' + og[0] + ' ' + (og[1] === 'Express' ? 'préparé en express' : og[1] === 'Assistant' ? 'questions de l’Assistant, mail de la Secrétaire' : 'rédigé par la Secrétaire') + ' · lancé par ' + esc(qui(f)) + ' · ' + esc(when(f.maj)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     h += '<div class="paper"><div class="kick">Relisez, corrigez si besoin, puis validez</div>' +
       '<div class="meta">À : <b>' + esc(f.contact.nom) + '</b> ' + (okMail ? '&lt;' + esc(f.contact.email) + '&gt;' : '<span class="tag a">adresse manquante</span>') + '<br>📰 ' + esc(f.article_titre || 'sans article') + ' · ' + (f.langue === 'en' ? 'en anglais' : 'en français') + '</div>';
     if (!okMail) h += '<div class="warn">Il manque l’adresse e-mail du contact.<label>Adresse e-mail</label><input class="pin" id="wl-v-email" type="email" inputmode="email" placeholder="prenom.nom@universite.edu"><div class="acts"><button data-act="v-email" data-id="' + esc(f.fiche_id) + '">Enregistrer l’adresse</button></div></div>';
@@ -1002,7 +1048,7 @@
   function docFiche(f) {
     var w = membre(f.redacteur);
     var h = '<div class="dtop"><span class="em">🗂️</span><div><div class="nm">' + esc(f.contact.nom) + '</div><div class="st">' + esc((STATUTS[f.statut] || ['', f.statut])[1]) + ' · fiche de ' + esc(w.nom) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
-    h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + '</div><h1>' + esc(f.contact.nom) + '</h1>' +
+    h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + ' · ' + origine(f).join(' ') + ' · lancée par ' + esc(qui(f)) + '</div><h1>' + esc(f.contact.nom) + '</h1>' +
       '<div class="meta">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + (f.contact.email ? '<br>✉️ ' + esc(f.contact.email) : '') + '<br>📰 ' + esc(f.article_titre || 'sans article') + '</div>';
     if (f.statut === 'brouillon') h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
     // la réponse et son insertion dans l'article
@@ -1017,7 +1063,10 @@
         '<button data-act="colle" data-id="' + esc(f.fiche_id) + '">📝 Réponse reçue ailleurs (téléphone, autre adresse)</button></div>';
     }
     if (S.colle) h += '<label>Collez ou résumez la réponse</label><textarea class="pin" id="wl-colle"></textarea><div class="acts"><button class="go" data-act="colle-go" data-id="' + esc(f.fiche_id) + '">Enregistrer la réponse</button></div>';
-    if (f.questions && f.questions.length) h += '<h2>Questions posées</h2><ol>' + f.questions.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol>';
+    var qe = questionsEnvoyees(f), qo = f.questions || [];
+    var traduites = qe.length && qo.length && qe.join('|') !== qo.join('|');
+    if (qe.length || qo.length) h += '<h2>Questions ' + (f.statut === 'brouillon' ? 'prévues' : 'posées') + (traduites ? ' <span class="tag">' + (f.langue === 'en' ? 'en anglais, telles qu’envoyées' : 'telles qu’envoyées') + '</span>' : '') + '</h2><ol>' + (qe.length ? qe : qo).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol>' +
+      (traduites ? '<details><summary>Version choisie dans le lab</summary><ol>' + qo.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol></details>' : '');
     if (f.mail_corps && f.statut !== 'brouillon') h += '<details><summary>Le mail envoyé · ' + esc(f.mail_sujet) + '</summary><div class="txt" style="font-size:15px">' + esc(f.mail_corps) + '</div></details>';
     h += '<h2>Historique</h2><ul class="tl">' + (f.historique || []).slice().reverse().map(function (e) { return '<li>' + esc(day(e.t) + ' ' + hm(e.t)) + ' — ' + esc(e.e) + (e.par && e.par !== 'courrier' ? ' (' + esc(membre(e.par).nom) + ')' : '') + '</li>'; }).join('') + '</ul>';
     h += '<div class="acts"><button class="red" data-act="archive" data-id="' + esc(f.fiche_id) + '">🗄️ Archiver la fiche</button></div></div>';
@@ -1228,6 +1277,8 @@
         }).then(function () { paintDoc(); });
         break;
       // interphone
+      case 'portee': S.portee = id === 'moi' ? 'moi' : 'tous'; LS.set('wl-portee', S.portee); render(); break;
+      case 'dossier': S.tab = 'suivi'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var d = S.root.querySelector('#dossier-' + (id || 'sans')); if (d) { d.scrollIntoView({ behavior: 'smooth', block: 'center' }); d.classList.add('flash'); } }, 60); break;
       case 'a-interviewer': S.tab = 'articles'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var h = S.root.querySelector('#a-interviewer'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 60); break;
       case 'express':
         var ax = art(id); if (!ax) { toast('Enquête introuvable dans Ghost.', true); break; }
