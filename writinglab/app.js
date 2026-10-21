@@ -561,6 +561,20 @@
       (img ? '<img src="' + esc(f.url) + '" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:6px">' : '<span style="font-size:24px">📎</span>') +
       '<span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f3ece0">' + esc(f.nom) + '</b><span class="muted">' + esc(catNom(f.categorie)) + ' · ' + taille(f.taille) + (f.url ? '' : ' · lien expiré, ↻') + '</span></span></a>';
   }
+  function piecesHTML(list) {
+    if (!list || !list.length) return '';
+    return '<div style="margin:8px 0 14px">' + list.map(function (f) {
+      return '<a href="' + esc(f.url || '#') + '" target="_blank" rel="noopener" data-stop="1" style="display:inline-flex;gap:6px;align-items:center;margin:4px 6px 4px 0;padding:6px 10px;border-radius:999px;border:1px solid #cfc4ad;background:#f6f1e4;color:#1f1a12;text-decoration:none;font-size:15px">📎 ' + esc(f.nom) + ' <span style="opacity:.6">' + taille(f.taille || 0) + '</span></a>';
+    }).join('') + '</div>';
+  }
+  // pièces à joindre à un mail qui part (gardées par mail dans S.pjs, envoyées en base64 avec « Valider et envoyer »)
+  function pjWidget(key) {
+    var l = (S.pjs && S.pjs[key]) || [];
+    return '<div class="pjw" data-pjw="' + esc(key) + '" style="margin:6px 0 2px"><label>Pièces jointes</label>' +
+      l.map(function (f, k) { return '<span style="display:inline-flex;gap:6px;align-items:center;margin:4px 6px 4px 0;padding:6px 10px;border-radius:999px;border:1px solid #cfc4ad;background:#f6f1e4;font-size:15px">📎 ' + esc(f.nom) + ' <span style="opacity:.6">' + taille(f.taille) + '</span> <a href="#" data-act="pjs-del" data-id="' + esc(key) + '" data-i="' + k + '" style="color:#b0342b">✕</a></span>'; }).join('') +
+      '<button type="button" data-act="pjs-add" data-id="' + esc(key) + '">📎 Joindre un fichier</button></div>';
+  }
+  function pjsData(key) { return ((S.pjs && S.pjs[key]) || []).map(function (f) { return { nom: f.nom, type: f.type, data: f.data }; }); }
   function viewInterphone() {
     var me = D().me.id, ms = D().messages, fc = S.filtreCat || '';
     var fichiers = ms.filter(function (m) { return m.fichier; });
@@ -638,12 +652,13 @@
     var h = '<div class="dtop"><span class="em">' + J.emoji + '</span><div><div class="nm">' + esc(m.sujet || '(sans objet)') + '</div><div class="st">' + esc(J.nom) + ' · reçu ' + esc(when(m.recu_le)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     h += '<div class="paper"><div class="kick">' + (m.categorie === 'demande' ? 'Demande' : 'À vérifier') + ' · ' + esc(m.motif || '') + '</div>' +
       '<div class="meta">De : <b>' + esc(m.de_nom) + '</b> &lt;' + esc(m.de_email) + '&gt;' + (m.abonne === 'oui' ? ' <span class="tag g">abonné payant</span>' : m.abonne === 'gratuit' ? ' <span class="tag">membre gratuit</span>' : '') + '</div>' +
-      '<div style="white-space:pre-wrap;border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px;max-height:340px;overflow:auto">' + esc(m.texte || '(message vide)') + '</div>';
+      '<div style="white-space:pre-wrap;border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px;max-height:340px;overflow:auto">' + esc(m.texte || '(message vide)') + '</div>' + piecesHTML(m.pieces) +
+      (m.membre_id ? '<div class="acts" style="margin-top:0"><a class="btn" href="https://the-last-journal.ghost.io/ghost/#/members/' + esc(m.membre_id) + '" target="_blank" rel="noopener" data-stop="1" style="text-decoration:none">👤 Ouvrir le membre dans Ghost</a></div>' : '<p class="muted" style="margin:0 0 12px">Aucun compte Posthumain à cette adresse.</p>');
     if (fait) return h + '<div class="lead">✅ Réponse envoyée ' + esc(when(m.envoye_le)) + '.</div><label>Objet</label><div>' + esc(m.brouillon_sujet) + '</div><label>Message</label><div style="white-space:pre-wrap">' + esc(m.brouillon_corps) + '</div></div>';
     h += '<label>Consigne pour Julien (facultatif)</label><input class="pin" id="wl-m-consigne" placeholder="ex. proposer de résilier pour lui, ton plus chaleureux…">' +
       '<div class="acts"><button data-act="m-propose" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>🤖 ' + (ed.corps ? 'Autre proposition' : 'Proposer une réponse') + '</button></div>' +
       '<label>Objet</label><input class="pin sub" id="wl-m-sujet" value="' + esc(ed.sujet) + '">' +
-      '<label>Réponse</label><textarea class="pin big" id="wl-m-corps" placeholder="Écrivez la réponse ou demandez une proposition à Julien.">' + esc(ed.corps) + '</textarea>' +
+      '<label>Réponse</label><textarea class="pin big" id="wl-m-corps" placeholder="Écrivez la réponse ou demandez une proposition à Julien.">' + esc(ed.corps) + '</textarea>' + pjWidget('m:' + m.mail_id) +
       '<div class="acts"><button class="go" data-act="m-send" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>✅ Valider et envoyer</button>' +
       '<button data-act="m-save" data-id="' + esc(m.mail_id) + '">💾 Garder</button>' +
       (m.categorie !== 'demande' ? '<button data-act="m-demande" data-id="' + esc(m.mail_id) + '">📩 C’est une vraie demande</button>' : '') +
@@ -799,6 +814,7 @@
     if (!okMail) h += '<div class="warn">Il manque l’adresse e-mail du contact.<label>Adresse e-mail</label><input class="pin" id="wl-v-email" type="email" inputmode="email" placeholder="prenom.nom@universite.edu"><div class="acts"><button data-act="v-email" data-id="' + esc(f.fiche_id) + '">Enregistrer l’adresse</button></div></div>';
     h += '<label>Objet</label><input class="pin sub" id="wl-v-sujet" value="' + esc(ed.sujet) + '">' +
       '<label>Message</label><textarea class="pin big" id="wl-v-corps">' + esc(ed.corps) + '</textarea>' +
+      pjWidget('v:' + f.fiche_id) +
       (branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : vous pouvez enregistrer, l’envoi viendra plus tard.</div>') +
       '<div class="acts"><button class="go" data-act="v-send" data-id="' + esc(f.fiche_id) + '"' + (okMail && branchee && !S.busy.secretaire ? '' : ' disabled') + '>✅ Valider et envoyer</button>' +
       '<button data-act="v-save" data-id="' + esc(f.fiche_id) + '">💾 Garder mes corrections</button>' +
@@ -816,7 +832,7 @@
     if (f.statut === 'brouillon') h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
     // la réponse et son insertion dans l'article
     if (f.reponse) {
-      h += '<h2>Sa réponse' + (f.reponse_le ? ' · ' + esc(when(f.reponse_le)) : '') + '</h2><div class="txt">' + esc(f.reponse) + '</div>';
+      h += '<h2>Sa réponse' + (f.reponse_le ? ' · ' + esc(when(f.reponse_le)) : '') + '</h2><div class="txt">' + esc(f.reponse) + '</div>' + piecesHTML(f.pieces);
       if (f.statut === 'inséré') h += '<div class="lead">✅ Cité dans l’article :<br>' + nl(f.citation) + '</div>';
       if (f.article_id) h += citationBlock(f);
       else h += '<p class="lead">Cette fiche n’est liée à aucun article : rattachez-la depuis l’Assistant pour pouvoir insérer la réponse.</p>';
@@ -905,7 +921,7 @@
         var ms1 = mail(id), su = val('wl-m-sujet').trim(), co = val('wl-m-corps').trim();
         if (!ms1 || !su || !co) { toast('Objet ou réponse vide.', true); break; }
         if (!window.confirm('Envoyer cette réponse à ' + ms1.de_email + ' ?')) break;
-        work(ms1.boite === 'subs' ? 'sc' : 'mk', 'envoie la réponse', api('repondre', { mail_id: id, valide: '1', sujet: su, corps: co })).then(function () { if (S.mEdit) delete S.mEdit[id]; closeDoc(); toast('📨 Réponse envoyée.'); return refresh(true); });
+        work(ms1.boite === 'subs' ? 'sc' : 'mk', 'envoie la réponse', api('repondre', { mail_id: id, valide: '1', sujet: su, corps: co, pieces: pjsData('m:' + id) })).then(function () { if (S.mEdit) delete S.mEdit[id]; if (S.pjs) delete S.pjs['m:' + id]; closeDoc(); toast('📨 Réponse envoyée.'); return refresh(true); });
         break;
       // l'Assistant
       case 'find-contacts':
@@ -964,8 +980,8 @@
         var f1 = fiche(id), sujet = val('wl-v-sujet').trim(), corps = val('wl-v-corps').trim();
         if (!sujet || !corps) { toast('Objet ou message vide.', true); break; }
         if (!window.confirm('Envoyer ce mail à ' + f1.contact.nom + ' (' + f1.contact.email + ') ?')) break;
-        work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps })).then(function () {
-          forget(id); closeDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
+        work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps, pieces: pjsData('v:' + id) })).then(function () {
+          forget(id); if (S.pjs) delete S.pjs['v:' + id]; closeDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
         });
         break;
       case 'archive':
@@ -1014,6 +1030,8 @@
           var ta = S.root.querySelector('#wl-msg'); if (ta) { ta.value = ''; ta.blur(); } S.pj = null; majPj(); if (pj) toast('📎 Fichier rangé dans « ' + catNom(pj.categorie) + ' ».'); return refresh(true);
         }, function (e) { toast('⚠️ ' + e.message, true); });
         break;
+      case 'pjs-add': S.pjsKey = id; var pin = S.root.querySelector('#wl-pjs-input'); if (pin) pin.click(); break;
+      case 'pjs-del': if (S.pjs && S.pjs[id]) { S.pjs[id].splice(i, 1); paintDoc(); } break;
       case 'pj-choisir': var inp = S.root.querySelector('#wl-pj'); if (inp) inp.click(); break;
       case 'pj-retirer': S.pj = null; majPj(); break;
       case 'filtre-cat': S.filtreOuvert = !(S.filtreOuvert && (S.filtreCat || '') === (id || '')); S.filtreCat = id || ''; render(); break;
@@ -1074,6 +1092,19 @@
     r.addEventListener('change', onInput);
     r.addEventListener('keydown', function (e) {
       if (e.target && e.target.id === 'wl-msg' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var b = r.querySelector('[data-act="send-msg"]'); if (b) b.click(); }
+    });
+    var pjsIn = document.createElement('input'); pjsIn.type = 'file'; pjsIn.id = 'wl-pjs-input'; pjsIn.multiple = true; pjsIn.style.display = 'none'; r.appendChild(pjsIn);
+    pjsIn.addEventListener('change', function () {
+      var key = S.pjsKey, fs = Array.prototype.slice.call(pjsIn.files || []); pjsIn.value = '';
+      if (!key) return;
+      S.pjs = S.pjs || {}; S.pjs[key] = S.pjs[key] || [];
+      fs.forEach(function (f) {
+        if (S.pjs[key].length >= 5) { toast('5 pièces jointes au plus.', true); return; }
+        if (f.size > 8 * 1024 * 1024) { toast(f.name + ' : 8 Mo au plus.', true); return; }
+        var rd = new FileReader();
+        rd.onload = function () { S.pjs[key].push({ nom: f.name, type: f.type || 'application/octet-stream', taille: f.size, data: String(rd.result).split(',')[1] || '' }); paintDoc(); };
+        rd.readAsDataURL(f);
+      });
     });
     r.addEventListener('change', function (e) {
       if (!e.target || e.target.id !== 'wl-pj' || !e.target.files || !e.target.files[0]) return;
