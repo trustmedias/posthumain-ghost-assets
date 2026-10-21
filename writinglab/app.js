@@ -730,7 +730,7 @@
     var fichiers = ms.filter(function (m) { return m.fichier; });
     var list = ms.map(function (m) {
       var bot = !D().equipe.some(function (w) { return w.id === m.auteur; });
-      var btns = m.auteur === 'compta' ? '<div class="row" style="margin-top:8px"><button class="btn small" data-act="pieces">🪙 Ouvrir les pièces</button></div>' : bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
+      var btns = m.auteur === 'compta' ? '<div class="row" style="margin-top:8px">' + (/^\s*(🧾|💸)/.test(m.texte || '') || /facture/i.test((m.texte || '').slice(0, 40)) ? '<button class="btn small" data-act="voir-facture">🧾 Voir la facture</button>' : '<button class="btn small" data-act="pieces">🪙 Ouvrir les pièces</button>') + '</div>' : bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
         (art(m.article_id) && !D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<button class="btn small go" data-act="express" data-id="' + esc(m.article_id) + '">⚡ Préparer les interviews</button>' : (D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<span class="muted">✓ interviews lancées</span>' : '')) + '</div>' : '';
       return '<div class="bub' + (m.auteur === me ? ' me' : '') + (bot ? ' bot' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre && !bot ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + btns + '</div>';
     }).join('');
@@ -1612,6 +1612,7 @@
       // interphone
       case 'pieces': masquerTip(); closeDoc(); openPanel('compta'); break;
       case 'parametres': closeDoc(); openPanel('parametres'); break;
+      case 'voir-facture': closeDoc(); openPanel('compta'); chargerFactures().then(function () { var e = S.root.querySelector('#wl-factures'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); break;
       case 'fa-tarifs':
         factApi({ action: 'tarifs', premium: val('wl-tp'), standard: val('wl-ts') }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'tarifs invalides'), true); return; } toast('🧾 Tarifs enregistrés : ' + eurTxt(r.tarif_premium) + ' / ' + eurTxt(r.tarif_standard)); chargerFactures(); });
         break;
@@ -1795,7 +1796,7 @@
     var R = S.factures, me = D().me;
     if (!R) { chargerFactures(); return '<div class="cz-t">🧾 Factures</div><p class="muted">Chargement…</p>'; }
     var fs = R.factures || [], an = new Date().getFullYear();
-    var h = '<div class="cz-t">🧾 Factures</div><p class="cz-s">Générées automatiquement le dernier jour du mois à 23 h : enquêtes premium et articles standards publiés dans le mois (autrice, co-autrice ou relecture d’un article de Julien), plus les interviews comptabilisées.</p>';
+    var h = '<div class="cz-t" id="wl-factures">🧾 Factures</div><p class="cz-s">Générées automatiquement le dernier jour du mois à 23 h : enquêtes premium et articles standards publiés dans le mois (autrice, co-autrice ou relecture d’un article de Julien), plus les interviews comptabilisées.</p>';
     if (me.chef) h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0 4px"><button class="btn small" data-act="fa-lancer">⚡ Générer la facture du mois en cours</button>' +
       '<select class="in" id="wl-fa-an" style="width:auto;flex:0 0 auto">' + [an, an - 1].map(function (y) { return '<option>' + y + '</option>'; }).join('') + '</select><button class="btn small" data-act="fa-zip">⬇️ Télécharger l’année (ZIP)</button></div>';
     if (!fs.length) return h + '<p class="muted">Aucune facture pour l’instant : la première sera générée à la fin du mois.</p>';
