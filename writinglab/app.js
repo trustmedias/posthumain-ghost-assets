@@ -1035,7 +1035,23 @@
     r.addEventListener('change', onInput);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.doc) closeDoc(); else closePanel(); } });
     document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 90000) refresh(true); });
-    setInterval(function () { if (!document.hidden && S.data && S.data.me && S.data.me.chef && Date.now() - S.last > 55000) refresh(true); }, 60000);
+    // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
+    // la page relit alors l'état. Filet de sécurité : relecture toutes les 5 minutes si la connexion temps réel tombe.
+    setInterval(function () { if (!document.hidden && S.data && Date.now() - S.last > 290000) refresh(true); }, 300000);
+    (function sonnette() {
+      var sc = document.createElement('script');
+      sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+      sc.onload = function () {
+        try {
+          var sb = window.supabase.createClient('https://jfmzhndapfmvdhphuwfm.supabase.co', 'sb_publishable_3NOP0qHNmvDay5ak1P__XA_ALCUH7du', { auth: { persistSession: false } });
+          var t = null;
+          sb.channel('writinglab').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wl_signal' }, function () {
+            clearTimeout(t); t = setTimeout(function () { refresh(true); }, 400);
+          }).subscribe();
+        } catch (e) { /* pas de temps réel : la relecture toutes les 5 minutes prend le relais */ }
+      };
+      document.head.appendChild(sc);
+    })();
     setInterval(function () { if (!document.hidden && S.data) { var tp = r.querySelector('.top'); if (tp) tp.innerHTML = header(); } }, 30000);
     refresh().then(function () {
       if (S.art && !art(S.art) && D().articles.length) { /* l'article en cours a été publié ou supprimé */ S.art = ''; LS.set('wl-article', null); render(); }
