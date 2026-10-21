@@ -645,24 +645,24 @@
       var o = stOf(p), n = pileOf(p).length;
       return '<div class="card" data-act="open-ag" data-ag="' + esc(p.key) + '"><div class="h"><span class="em">' + p.emoji + '</span><span style="flex:1">' + esc(p.nom) + (n ? ' <span class="tag ' + (o.s === 'on' ? 'g' : 'a') + '">' + n + '</span>' : '') + '</span><span class="led ' + o.s + '"></span></div><div class="s">' + esc(o.why) + '</div></div>';
     }).join('');
-    return bandeauInterviews() + '<div class="floor">' + officeSVG() + '</div><div class="hint">Touchez un employé ou les fiches au-dessus de sa tête. Vert : au travail ou réponse arrivée · orange : quelque chose vous attend.</div><div class="grid">' + cards + '</div>';
+    return '<div class="floor">' + officeSVG() + '</div><div class="hint">Touchez un employé ou les fiches au-dessus de sa tête. Vert : au travail ou réponse arrivée · orange : quelque chose vous attend.</div><div class="grid">' + cards + '</div>';
   }
   function bandeauInterviews() {
     var l = aInterviewer(); if (!l.length) return '';
     return '<div class="box iv"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><b>🎙️ ' + l.length + ' enquête' + pl(l.length) + ' attend' + (l.length > 1 ? 'ent' : '') + ' ses interviews</b><button class="btn small" data-act="a-interviewer">Voir la file</button></div>' +
-      l.slice(0, 3).map(function (a) { return '<div class="ivl"><span>' + esc(a.titre) + '</span><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Lancer les interviews</button></div>'; }).join('') + '</div>';
+      l.slice(0, 3).map(function (a) { return '<div class="ivl"><span>' + esc(a.titre) + '</span><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button></div>'; }).join('') + '</div>';
   }
   function artCard(a) {
     var n = D().fiches.filter(function (f) { return f.article_id === a.id; }).length;
     return '<div class="ar' + (a.id === S.art ? ' sel' : '') + '" data-act="pick-art" data-id="' + esc(a.id) + '"><div class="ph">' + (a.image ? '<img loading="lazy" alt="" src="' + esc(a.image) + '">' : '📰') + '</div><div class="b"><div class="ti">' + esc(a.titre) + '</div><div class="me">' +
       (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
-      '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) && !n ? '<div style="margin-top:8px"><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Lancer les interviews</button></div>' : '') + '</div></div></div>';
+      '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) && !n ? '<div style="margin-top:8px"><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button></div>' : '') + '</div></div></div>';
   }
   function viewArticles() {
     var as = artsRecents();
     if (D().ghost && D().ghost !== 'ok') return '<div class="box warn" style="margin-top:14px">⚠️ ' + esc(D().ghost) + '</div>';
     var iv = aInterviewer();
-    return (iv.length ? '<h3 id="a-interviewer" style="margin-top:16px">🎙️ À interviewer (' + iv.length + ')</h3><p class="muted">Enquêtes premium sans aucune demande d’interview. « Lancer les interviews » : l’Assistant trouve 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Vous n’avez plus qu’à les relire et les valider (1 à 2 minutes de préparation).</p><div class="arts">' + iv.map(artCard).join('') + '</div><h3 style="margin-top:22px">📰 Tous les brouillons</h3>' : '') +
+    return (iv.length ? '<h3 id="a-interviewer" style="margin-top:16px">🎙️ À interviewer (' + iv.length + ')</h3><p class="muted">Enquêtes premium sans aucune demande d’interview. « Préparer les interviews » : l’Assistant trouve 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Vous n’avez plus qu’à les relire et les valider (1 à 2 minutes de préparation).</p><div class="arts">' + iv.map(artCard).join('') + '</div><h3 style="margin-top:22px">📰 Tous les brouillons</h3>' : '') +
       '<p class="muted" style="margin-top:14px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations. Brouillons et articles programmés de Ghost :</p><div class="arts">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon dans Ghost.</div>') + '</div>';
   }
   function dcard(f, extra) {
@@ -718,7 +718,7 @@
     var list = ms.map(function (m) {
       var bot = !D().equipe.some(function (w) { return w.id === m.auteur; });
       var btns = m.auteur === 'compta' ? '<div class="row" style="margin-top:8px"><button class="btn small" data-act="pieces">🪙 Ouvrir les pièces</button></div>' : bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
-        (art(m.article_id) && !D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<button class="btn small go" data-act="express" data-id="' + esc(m.article_id) + '">⚡ Lancer les interviews</button>' : (D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<span class="muted">✓ interviews lancées</span>' : '')) + '</div>' : '';
+        (art(m.article_id) && !D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<button class="btn small go" data-act="express" data-id="' + esc(m.article_id) + '">⚡ Préparer les interviews</button>' : (D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<span class="muted">✓ interviews lancées</span>' : '')) + '</div>' : '';
       return '<div class="bub' + (m.auteur === me ? ' me' : '') + (bot ? ' bot' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre && !bot ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + btns + '</div>';
     }).join('');
     var a = art(S.art);
@@ -1299,7 +1299,7 @@
     return new Promise(function (resolve) {
       var parts = String(msg).split('\n\n'), titre = parts.shift(), detail = parts.join('\n\n');
       var danger = /archiv|abandon|ne plus|supprim/i.test(titre);
-      var ok = /^Envoyer/i.test(titre) ? 'Envoyer' : /^Insérer/i.test(titre) ? 'Insérer' : /^Lancer/i.test(titre) ? 'Lancer' : /archiv/i.test(titre) ? 'Archiver' : danger ? 'Confirmer' : 'Confirmer';
+      var ok = /^Envoyer/i.test(titre) ? 'Envoyer' : /^Insérer/i.test(titre) ? 'Insérer' : /^Lancer/i.test(titre) ? 'Lancer' : /^Préparer/i.test(titre) ? 'Préparer' : /archiv/i.test(titre) ? 'Archiver' : danger ? 'Confirmer' : 'Confirmer';
       var bg = document.createElement('div'); bg.className = 'cfm-bg';
       bg.innerHTML = '<div class="cfm' + (danger ? ' danger' : '') + '" role="dialog" aria-modal="true"><div class="cfm-ic">' + (danger ? '⚠️' : '✅') + '</div><div class="cfm-t">' + esc(titre) + '</div>' + (detail ? '<div class="cfm-d">' + esc(detail).replace(/\n/g, '<br>') + '</div>' : '') +
         '<div class="cfm-a"><button type="button" class="btn" data-cfm="0">Annuler</button><button type="button" class="btn ' + (danger ? 'red' : 'go') + '" data-cfm="1">' + ok + '</button></div></div>';
@@ -1520,7 +1520,7 @@
       case 'a-interviewer': S.tab = 'articles'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var h = S.root.querySelector('#a-interviewer'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 60); break;
       case 'express':
         var ax = art(id); if (!ax) { toast('Enquête introuvable dans Ghost.', true); break; }
-        var ck7 = S.clicking; confirmer('Lancer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.').then(function (ok) { if (!ok) return; S.clicking = ck7; setTimeout(function () { S.clicking = null; }, 0);
+        var ck7 = S.clicking; confirmer('Préparer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.').then(function (ok) { if (!ok) return; S.clicking = ck7; setTimeout(function () { S.clicking = null; }, 0);
           S.art = id; LS.set('wl-article', id);
           work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true })).then(function (r) {
             toast('⚡ ' + (r.n || 0) + ' mail' + pl(r.n || 0) + ' prêt' + pl(r.n || 0) + ' : relisez-les chez la Secrétaire.');
