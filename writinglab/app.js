@@ -36,7 +36,7 @@
 
   // ---------- état ----------
   var S = {
-    data: null, call: null, root: null, portee: LS.get('wl-portee') || 'tous', tab: LS.get('wl-tab') || 'bureau', art: LS.get('wl-article') || '',
+    data: null, call: null, root: null, portee: LS.get('wl-portee') || '', tab: LS.get('wl-tab') || 'bureau', art: LS.get('wl-article') || '',
     busy: {}, last: 0, panel: null,
     contact: null, contacts: null, qs: [], angle: '', echeance: '', consigneSec: '', reformule: null,
     libre: { nom: '', email: '', role: '', institution: '', langue: 'fr', consigne: '', echeance: '' },
@@ -57,7 +57,11 @@
   function art(id) { return D().articles.filter(function (a) { return a.id === id; })[0] || null; }
   function fiche(id) { return D().fiches.filter(function (f) { return f.fiche_id === id; })[0] || null; }
   // Portée (rédacteur en chef) : « Mes fiches » ou « Toute la rédaction ». Valisoa ne reçoit de toute façon que les siennes.
-  function vues() { var me = D().me; return D().fiches.filter(function (f) { return !me.chef || S.portee !== 'moi' || f.redacteur === me.id; }); }
+  function portee() { return S.portee || (D().me.chef ? 'tous' : 'moi'); }
+  function vues() { var me = D().me; return D().fiches.filter(function (f) { return portee() !== 'moi' || f.redacteur === me.id; }); }
+  // Lecture pour tous, actions pour le propriétaire de la fiche (ou le rédacteur en chef) : le serveur applique la même règle.
+  function peut(f) { var me = D().me; return !!(me.chef || (f && f.redacteur === me.id)); }
+  function lectureSeule(qui) { return '<div class="box" style="margin:10px 0;border-color:rgba(120,170,255,.35)">👁️ Lecture seule' + (qui ? ' : ' + esc(qui) : '') + '. Vous pouvez tout consulter ; seules les actions vous sont réservées selon votre rôle.</div>'; }
   function by(st) { return vues().filter(function (f) { return f.statut === st; }); }
   // Origine d'une fiche : préparation express, Assistant (questions choisies) ou message direct à la Secrétaire.
   function origine(f) {
@@ -86,8 +90,7 @@
     return [x ? x + ' ⚡ express' : '', a ? a + ' 🧠 assistant / direct' : ''].filter(Boolean).join(' · ');
   }
   function porteeHTML() {
-    if (!D().me.chef) return '';
-    var moi = S.portee === 'moi';
+    var moi = portee() === 'moi';
     return '<div class="row" style="gap:6px;margin:4px 0 10px"><span class="chip' + (moi ? ' art' : '') + '" data-act="portee" data-id="moi">👤 Mes fiches</span><span class="chip' + (moi ? '' : ' art') + '" data-act="portee" data-id="tous">👥 Toute la rédaction</span></div>';
   }
   function relancable(f) { return f.statut === 'envoyé' && f.envoye_le && Date.now() - new Date(f.envoye_le).getTime() > 3 * 864e5; }
@@ -147,7 +150,7 @@
           setTimeout(function () { S.arrivees = null; delete S.busy.courrier; paintFloor(); }, 3600);
           toast('📬 ' + neufs.length + ' nouveau' + (neufs.length > 1 ? 'x' : '') + ' mail' + pl(neufs.length) + ' pour Julien'); }
       }
-      S.data = d; render();
+      S.data = d; render(); chargerPieces();
     }, function (e) { if (!silent) toast('⚠️ ' + e.message, true); });
   }
 
@@ -250,6 +253,9 @@
 #wl .bub{max-width:82%;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);white-space:pre-wrap;word-wrap:break-word}\
 #wl .bub.me{align-self:flex-end;background:rgba(0,255,119,.1);border-color:rgba(0,255,119,.3)}\
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
+#wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
+#wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
+#wl .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.62);backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}#wl .cfm-bg.on{opacity:1}#wl .cfm{width:min(440px,100%);background:#14110c;border:1px solid rgba(0,255,119,.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}#wl .cfm-bg.on .cfm{transform:none}#wl .cfm.danger{border-color:rgba(255,80,80,.45)}#wl .cfm-ic{font-size:26px;margin-bottom:8px}#wl .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}#wl .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(243,236,224,.7)}#wl .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
 #wl .box.iv{margin:14px 0 4px;border-color:rgba(0,255,119,.35);background:rgba(0,255,119,.05)}#wl .ivl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}#wl .ivl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
 #wl .bub .who{font-size:11.5px;color:rgba(243,236,224,.55);margin-bottom:3px;white-space:normal}\
@@ -554,11 +560,17 @@
     var seen = LS.get('wl-vu') || '', me = D().me.id;
     return D().messages.filter(function (m) { return m.auteur !== me && String(m.le) > seen; }).length;
   }
+  function pieceChip() {
+    var me = D().me, av = ((S.pieces && S.pieces.pieces) || []).filter(function (p) { return p.statut === 'a_verifier'; }).length;
+    if (!S.pieces) return '';
+    return '<span class="chip' + (av && me.chef ? ' warn' : '') + '" data-act="pieces" title="Les pièces de la rédaction">🪙 ' + (me.chef ? (av ? av + ' à vérifier' : 'pièces') : totalPieces(me.id)) + '</span>';
+  }
   function header() {
     var a = art(S.art), v = by('brouillon').length, r = by('a répondu').length, e = by('envoyé').length;
     return '<div class="logo">WRITINGLAB<small>La rédaction de Posthumain</small></div>' +
       '<div class="chips">' +
       '<span class="chip art" data-act="articles" title="Changer d’article">📰 ' + (a ? esc(a.titre) : 'Choisir l’article en cours') + '</span>' +
+      pieceChip() +
       (aInterviewer().length ? '<span class="chip hot" data-act="a-interviewer">🎙️ ' + aInterviewer().length + ' à interviewer</span>' : '') +
       (v ? '<span class="chip warn" data-act="open-ag" data-ag="secretaire">🟠 ' + v + ' à valider</span>' : '') +
       (r ? '<span class="chip hot" data-act="open-ag" data-ag="courrier">📬 ' + r + ' réponse' + pl(r) + '</span>' : '') +
@@ -590,7 +602,7 @@
   function artCard(a) {
     var n = D().fiches.filter(function (f) { return f.article_id === a.id; }).length;
     return '<div class="ar' + (a.id === S.art ? ' sel' : '') + '" data-act="pick-art" data-id="' + esc(a.id) + '"><div class="ph">' + (a.image ? '<img loading="lazy" alt="" src="' + esc(a.image) + '">' : '📰') + '</div><div class="b"><div class="ti">' + esc(a.titre) + '</div><div class="me">' +
-      '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>' + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
+      (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
       '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) && !n ? '<div style="margin-top:8px"><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Lancer les interviews</button></div>' : '') + '</div></div></div>';
   }
   function viewArticles() {
@@ -781,7 +793,7 @@
     var J = JULIEN[k], ms = mails(J.boite), faits = mails(J.boite, true).filter(function (m) { return m.statut === 'répondu'; }).slice(0, 8);
     var dem = ms.filter(function (m) { return m.categorie === 'demande'; }), ver = ms.filter(function (m) { return m.categorie !== 'demande'; });
     var h = head(J.emoji, J.nom, J.adr + (S.busy[k] ? ' · ' + esc(S.busy[k]) + '…' : ''));
-    h += '<div class="pb"><p class="muted">Le Courrier trie seul les mails qui arrivent (sans IA) : notifications, newsletters et réponses automatiques sont écartées. Julien ne rédige une réponse que quand vous le lui demandez, et rien ne part sans votre validation.</p>';
+    h += '<div class="pb">' + (D().me.chef ? '' : lectureSeule('les bureaux de Julien sont pilotés par le rédacteur en chef')) + '<p class="muted">Le Courrier trie seul les mails qui arrivent (sans IA) : notifications, newsletters et réponses automatiques sont écartées. Julien ne rédige une réponse que quand vous le lui demandez, et rien ne part sans votre validation.</p>';
     h += '<h4>📩 Demandes (' + dem.length + ')</h4><div class="dos">' + (dem.map(mcard).join('') || '<div class="muted">Aucune demande en attente.</div>') + '</div>';
     h += '<h4 style="margin-top:16px">❔ À vérifier (' + ver.length + ')</h4><div class="dos">' + (ver.map(mcard).join('') || '<div class="muted">Rien à vérifier.</div>') + '</div>';
     if (faits.length) h += '<h4 style="margin-top:16px">✅ Répondu récemment</h4><div class="dos">' + faits.map(mcard).join('') + '</div>';
@@ -800,7 +812,8 @@
   function prospection() {
     var cs = D().campagnes || [], ps = D().prospects || [], busy = !!S.busy.mk;
     var h = '<h3 style="margin-top:22px">🎯 Prospection</h3><p class="muted">Julien cherche des entreprises qui ont une vraie raison d’acheter l’une de nos offres, trouve la bonne personne et une adresse publiée officiellement (jamais devinée), puis rédige un mail court et personnalisé. Rien ne part sans votre « Valider et envoyer » ; une seule relance au plus, et un STOP retire l’adresse pour toujours.</p>';
-    if (S.newCamp) {
+    if (!D().me.chef) {}
+    else if (S.newCamp) {
       var nc = S.newCamp;
       h += '<div class="box"><label class="f">Nom de la campagne</label><input class="in" data-nc="nom" value="' + esc(nc.nom) + '" placeholder="ex. Start-up IA romandes — automne">' +
         '<label class="f">Offres à vendre</label><div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin:4px 0 6px">' + OFFRES.map(function (o) {
@@ -818,7 +831,7 @@
         '<div class="muted" style="white-space:nowrap">' + l.length + ' prospect' + pl(l.length) + (n('repondu') ? ' · 💬 ' + n('repondu') : '') + (n('client') ? ' · 🤝 ' + n('client') : '') + '</div></div>';
       if (open) {
         if (c.cible) h += '<div class="muted" style="margin-top:6px">Cible : ' + esc(c.cible) + '</div>';
-        h += '<div class="row" style="margin-top:10px"><button class="btn" data-act="p-chercher" data-id="' + esc(c.campagne_id) + '"' + (busy ? ' disabled' : '') + '>🔎 Chercher des prospects</button></div><p class="muted">La recherche prend une à deux minutes : Julien vérifie chaque entreprise sur le web.</p>';
+        if (D().me.chef) h += '<div class="row" style="margin-top:10px"><button class="btn" data-act="p-chercher" data-id="' + esc(c.campagne_id) + '"' + (busy ? ' disabled' : '') + '>🔎 Chercher des prospects</button></div><p class="muted">La recherche prend une à deux minutes : Julien vérifie chaque entreprise sur le web.</p>';
         ['repondu', 'brouillon', 'a_contacter', 'contacte', 'relance', 'client', 'refus'].forEach(function (st) {
           var g = l.filter(function (x) { return x.statut === st; }); if (!g.length) return;
           h += '<h4 style="margin-top:12px">' + PST[st][0] + ' ' + esc(PST[st][1]) + ' (' + g.length + ')</h4><div class="dos">' + g.map(pcard).join('') + '</div>';
@@ -839,6 +852,7 @@
       (x.pourquoi ? '<div style="border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 14px"><b>Pourquoi maintenant :</b> ' + esc(x.pourquoi) + '</div>' : '');
     if (x.envoye_le) h += '<p class="muted">Premier mail envoyé ' + esc(when(x.envoye_le)) + (x.relance_le ? ' · relancé ' + esc(when(x.relance_le)) : '') + '.</p>';
     if (x.statut === 'refus') return h + '<div class="lead">⛔ Ce prospect ne sera plus contacté.</div></div>';
+    if (!D().me.chef) return h + (x.mail_corps ? '<label>Mail</label><div><b>' + esc(x.mail_sujet) + '</b></div><div style="white-space:pre-wrap">' + esc(x.mail_corps) + '</div>' : '') + lectureSeule('') + '</div>';
     var fini = x.statut === 'client' || x.statut === 'relance' || x.statut === 'repondu';
     var relance = x.statut === 'contacte';
     if (!fini) {
@@ -868,6 +882,7 @@
       '<div style="white-space:pre-wrap;border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px;max-height:340px;overflow:auto">' + esc(m.texte || '(message vide)') + '</div>' + piecesHTML(m.pieces) +
       (m.membre_id ? '<div class="acts" style="margin-top:0"><a class="btn" href="https://the-last-journal.ghost.io/ghost/#/members/' + esc(m.membre_id) + '" target="_blank" rel="noopener" data-stop="1" style="text-decoration:none">👤 Ouvrir le membre dans Ghost</a></div>' : '<p class="muted" style="margin:0 0 12px">Aucun compte Posthumain à cette adresse.</p>');
     if (fait) return h + '<div class="lead">✅ Réponse envoyée ' + esc(when(m.envoye_le)) + '.</div><label>Objet</label><div>' + esc(m.brouillon_sujet) + '</div><label>Message</label><div style="white-space:pre-wrap">' + esc(m.brouillon_corps) + '</div></div>';
+    if (!D().me.chef) return h + lectureSeule('') + '</div>';
     h += '<label>Consigne pour Julien (facultatif)</label><input class="pin" id="wl-m-consigne" placeholder="ex. proposer de résilier pour lui, ton plus chaleureux…">' +
       '<div class="acts"><button data-act="m-propose" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>🤖 ' + (ed.corps ? 'Autre proposition' : 'Proposer une réponse') + '</button></div>' +
       '<label>Objet</label><input class="pin sub" id="wl-m-sujet" value="' + esc(ed.sujet) + '">' +
@@ -1004,6 +1019,7 @@
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
     if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
+    if (S.doc.kind === 'pieces') { el.innerHTML = docPieces(); el.scrollTop = keep; markBusy(); return; }
     if (S.doc.kind === 'prospect') { var px = prospect(S.doc.id); el.innerHTML = px ? docProspect(px) : '<div class="dtop"><span class="nm">Prospect introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; markBusy(); return; }
     if (S.doc.kind === 'mail') { var mm = mail(S.doc.id); el.innerHTML = mm ? docMail(mm) : '<div class="dtop"><span class="nm">Mail introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; return; }
     var f = fiche(S.doc.id);
@@ -1025,6 +1041,7 @@
       '<p class="lead">Le Writinglab envoie et relève vos mails de son côté : configurer Outlook sert seulement à lire et écrire vous-même hors du lab.</p></div>';
   }
   function docValidation(f) {
+    if (!peut(f)) return docFiche(f);
     var w = membre(f.redacteur), branchee = !!w.branchee;
     var okMail = /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(f.contact.email || '');
     var ed = (S.vEdit && S.vEdit[f.fiche_id]) || { sujet: f.mail_sujet, corps: f.mail_corps };
@@ -1048,16 +1065,17 @@
   function docFiche(f) {
     var w = membre(f.redacteur);
     var h = '<div class="dtop"><span class="em">🗂️</span><div><div class="nm">' + esc(f.contact.nom) + '</div><div class="st">' + esc((STATUTS[f.statut] || ['', f.statut])[1]) + ' · fiche de ' + esc(w.nom) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
-    h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + ' · ' + origine(f).join(' ') + ' · lancée par ' + esc(qui(f)) + '</div><h1>' + esc(f.contact.nom) + '</h1>' +
+    var rw = peut(f);
+    h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + ' · ' + origine(f).join(' ') + ' · lancée par ' + esc(qui(f)) + '</div><h1>' + esc(f.contact.nom) + '</h1>' + parcoursHTML(f) + (rw ? '' : lectureSeule('fiche de ' + membre(f.redacteur).nom)) +
       '<div class="meta">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + (f.contact.email ? '<br>✉️ ' + esc(f.contact.email) : '') + '<br>📰 ' + esc(f.article_titre || 'sans article') + '</div>';
-    if (f.statut === 'brouillon') h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
+    if (f.statut === 'brouillon' && rw) h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
     // la réponse et son insertion dans l'article
     if (f.reponse) {
       h += '<h2>Sa réponse' + (f.reponse_le ? ' · ' + esc(when(f.reponse_le)) : '') + '</h2><div class="txt">' + esc(f.reponse) + '</div>' + piecesHTML(f.pieces);
       if (f.statut === 'inséré') h += '<div class="lead">✅ Cité dans l’article :<br>' + nl(f.citation) + '</div>';
-      if (f.article_id) h += citationBlock(f);
+      if (f.article_id && rw) h += citationBlock(f);
       else h += '<p class="lead">Cette fiche n’est liée à aucun article : rattachez-la depuis l’Assistant pour pouvoir insérer la réponse.</p>';
-    } else if (f.statut === 'envoyé') {
+    } else if (f.statut === 'envoyé' && rw) {
       h += '<h2>Réponse</h2><p class="lead">Pas encore de réponse (mail envoyé ' + esc(when(f.envoye_le)) + '). Le Courrier la rangera ici dès qu’elle arrive.</p>' +
         '<div class="acts">' + (relancable(f) ? '<button data-act="relance" data-id="' + esc(f.fiche_id) + '"' + (S.busy.secretaire ? ' disabled' : '') + '>🔁 Faire préparer une relance</button>' : '') +
         '<button data-act="colle" data-id="' + esc(f.fiche_id) + '">📝 Réponse reçue ailleurs (téléphone, autre adresse)</button></div>';
@@ -1069,7 +1087,8 @@
       (traduites ? '<details><summary>Version choisie dans le lab</summary><ol>' + qo.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol></details>' : '');
     if (f.mail_corps && f.statut !== 'brouillon') h += '<details><summary>Le mail envoyé · ' + esc(f.mail_sujet) + '</summary><div class="txt" style="font-size:15px">' + esc(f.mail_corps) + '</div></details>';
     h += '<h2>Historique</h2><ul class="tl">' + (f.historique || []).slice().reverse().map(function (e) { return '<li>' + esc(day(e.t) + ' ' + hm(e.t)) + ' — ' + esc(e.e) + (e.par && e.par !== 'courrier' ? ' (' + esc(membre(e.par).nom) + ')' : '') + '</li>'; }).join('') + '</ul>';
-    h += '<div class="acts"><button class="red" data-act="archive" data-id="' + esc(f.fiche_id) + '">🗄️ Archiver la fiche</button></div></div>';
+    if (rw) h += '<div class="acts"><button class="red" data-act="archive" data-id="' + esc(f.fiche_id) + '">🗄️ Archiver la fiche</button></div>';
+    h += '</div>';
     return h;
   }
   function citationBlock(f) {
@@ -1108,6 +1127,73 @@
     var a = art(id); toast('📰 Article en cours : ' + (a ? a.titre : ''));
     render();
     if (S.panel === 'articles' || S.panel === 'marbre') openPanel('assistant');
+  }
+  // ---------- Pièces (récompenses des rédactrices, calculées côté Supabase sur preuves) ----------
+  function chargerPieces() {
+    if (typeof pushApi !== 'function') return;
+    pushApi({ action: 'pieces' }).then(function (r) {
+      if (!r || !r.ok) return;
+      var avant = S.pieces, me = D().me.id;
+      S.pieces = r;
+      var vus = (LS.get('wl-pieces-vues') || '').split(',');
+      var neuves = (r.pieces || []).filter(function (p) { return p.membre === me && p.statut === 'acquis' && vus.indexOf(String(p.id)) < 0; });
+      if (avant && neuves.length) neuves.forEach(function (p) { fete(p); });
+      LS.set('wl-pieces-vues', (r.pieces || []).filter(function (p) { return p.membre === me; }).map(function (p) { return p.id; }).join(','));
+      var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header();
+      if (S.doc && (S.doc.kind === 'pieces' || S.doc.kind === 'fiche')) paintDoc();
+    }).catch(function () {});
+  }
+  function totalPieces(id) { return ((S.pieces && S.pieces.totaux) || {})[id] || 0; }
+  function pieceDe(fid) { return ((S.pieces && S.pieces.pieces) || []).filter(function (p) { return p.fiche_id === fid; })[0] || null; }
+  function verifiee(fid) { return ((S.pieces && S.pieces.verifiees) || []).indexOf(fid) >= 0; }
+  function fete(p) {
+    var el = document.createElement('div'); el.className = 'fete';
+    el.innerHTML = '<div class="fete-c">🪙</div><div class="fete-t">+' + p.montant + ' pièces</div><div class="fete-s">Parcours complet avec ' + esc(p.contact || 'votre contact') + '</div>';
+    S.root.appendChild(el); setTimeout(function () { el.classList.add('out'); }, 2600); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3200);
+  }
+  var PST2 = { acquis: ['🪙', 'acquises', 'g'], a_verifier: ['🔍', 'à vérifier par le rédacteur en chef', 'a'], annule: ['✖️', 'annulées', ''], manque: ['⏳', 'créneau manqué', ''] };
+  function docPieces() {
+    var r = S.pieces || { pieces: [], totaux: {} }, me = D().me;
+    var h = '<div class="dtop"><span class="em">🪙</span><div><div class="nm">Les pièces de la rédaction</div><div class="st">1 parcours complet et prouvé = des pièces</div></div><span class="x" data-act="close-doc">✕</span></div><div class="paper">';
+    h += '<div class="kick">Le classement</div><div class="lb">' + (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).map(function (w) { return '<div><b>' + esc(w.nom) + '</b><span>🪙 ' + totalPieces(w.id) + '</span></div>'; }).join('') + '</div>';
+    h += '<details' + ((r.pieces || []).length ? '' : ' open') + '><summary>Comment on gagne des pièces</summary><ol style="font-size:15px">' +
+      '<li>La demande d’interview part <b>depuis le lab</b> (pas d’un autre logiciel).</li>' +
+      '<li>Le chercheur <b>répond à ce mail</b> : le Courrier le reconnaît grâce aux en-têtes techniques du fil, impossibles à imiter. Une réponse collée à la main ne compte pas.</li>' +
+      '<li>Sa citation est <b>insérée dans l’article depuis le lab</b>, et Ghost l’accepte.</li></ol>' +
+      '<p style="font-size:15px"><b>Barème :</b> avant publication ou jusqu’à 2 jours après → <b>10 pièces</b> · jusqu’à 4 jours → <b>5</b> · jusqu’au 6e jour → <b>2</b> · à partir du 7e jour → 0 (la semaine est passée, ce sera pour la prochaine).</p>' +
+      '<p class="muted" style="font-size:13.5px">Contrôles : une seule récompense par fiche ; une adresse de messagerie gratuite (gmail…), une adresse de l’équipe ou une réponse très courte passent en « à vérifier » par le rédacteur en chef.</p></details>';
+    h += '<h2>Historique</h2>' + ((r.pieces || []).map(function (p) {
+      var st = PST2[p.statut] || ['·', p.statut, ''];
+      return '<div class="pc"><div><b>' + (p.montant ? '+' + p.montant : '0') + '</b> <span class="tag ' + st[2] + '">' + st[0] + ' ' + esc(st[1]) + '</span> · ' + esc(membre(p.membre).nom) + '</div>' +
+        '<div class="muted" style="font-size:13.5px">' + esc(p.contact || '') + ' — ' + esc(p.article_titre || '') + '<br>' + esc(p.motif || '') + ' · ' + esc(when(p.created_at)) + '</div>' +
+        (me.chef && (p.statut === 'a_verifier' || p.statut === 'acquis') ? '<div class="acts" style="margin-top:6px">' + (p.statut === 'a_verifier' ? '<button class="go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button>' : '') + '<button class="red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button></div>' : '') + '</div>';
+    }).join('') || '<p class="muted">Pas encore de pièces : le premier parcours complet arrive bientôt.</p>');
+    return h + '</div>';
+  }
+  function parcoursHTML(f) {
+    var w = membre(f.redacteur), chefFiche = w.role === 'chef', p = pieceDe(f.fiche_id), v = verifiee(f.fiche_id);
+    var et = function (on, txt) { return '<span class="pa' + (on ? ' on' : '') + '">' + txt + '</span>'; };
+    return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, f.reponse ? (v ? '📬 réponse prouvée' : '📝 réponse saisie à la main') : '📬 réponse') + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
+      (chefFiche ? '' : '<i></i>' + et(p && p.statut === 'acquis', p ? (PST2[p.statut] || ['🪙'])[0] + ' ' + (p.montant || 0) + ' pièces' : '🪙 pièces')) + '</div>' +
+      (!chefFiche && f.reponse && !v ? '<p class="muted" style="margin:4px 0 0;font-size:13px">Cette réponse n’a pas été reçue par le fil du mail envoyé depuis le lab : elle ne rapporte pas de pièces.</p>' : '');
+  }
+
+  // Fenêtre de confirmation au style du lab (remplace window.confirm) : titre = première ligne, détail = la suite.
+  // Rouge si l'action supprime / archive / abandonne. Entrée = confirmer, Échap ou clic à côté = annuler.
+  function confirmer(msg) {
+    return new Promise(function (resolve) {
+      var parts = String(msg).split('\n\n'), titre = parts.shift(), detail = parts.join('\n\n');
+      var danger = /archiv|abandon|ne plus|supprim/i.test(titre);
+      var ok = /^Envoyer/i.test(titre) ? 'Envoyer' : /^Insérer/i.test(titre) ? 'Insérer' : /^Lancer/i.test(titre) ? 'Lancer' : /archiv/i.test(titre) ? 'Archiver' : danger ? 'Confirmer' : 'Confirmer';
+      var bg = document.createElement('div'); bg.className = 'cfm-bg';
+      bg.innerHTML = '<div class="cfm' + (danger ? ' danger' : '') + '" role="dialog" aria-modal="true"><div class="cfm-ic">' + (danger ? '⚠️' : '✅') + '</div><div class="cfm-t">' + esc(titre) + '</div>' + (detail ? '<div class="cfm-d">' + esc(detail).replace(/\n/g, '<br>') + '</div>' : '') +
+        '<div class="cfm-a"><button type="button" class="btn" data-cfm="0">Annuler</button><button type="button" class="btn ' + (danger ? 'red' : 'go') + '" data-cfm="1">' + ok + '</button></div></div>';
+      var fin = function (v) { document.removeEventListener('keydown', kd, true); bg.classList.remove('on'); setTimeout(function () { if (bg.parentNode) bg.parentNode.removeChild(bg); }, 180); resolve(v); };
+      var kd = function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fin(false); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); fin(true); } };
+      bg.addEventListener('click', function (e) { var b = e.target.closest('[data-cfm]'); if (b) { e.stopPropagation(); fin(b.getAttribute('data-cfm') === '1'); } else if (e.target === bg) fin(false); });
+      document.addEventListener('keydown', kd, true);
+      S.root.appendChild(bg); requestAnimationFrame(function () { bg.classList.add('on'); var b = bg.querySelector('[data-cfm="1"]'); if (b) b.focus(); });
+    });
   }
   function val(id) { var e = S.root.querySelector('#' + id); return e ? e.value : ''; }
   function act(name, t) {
@@ -1149,15 +1235,17 @@
       case 'p-envoyer':
         var px1 = prospect(id), pe = val('wl-p-email').trim(), ps1 = val('wl-p-sujet').trim(), pc = val('wl-p-corps').trim();
         if (!px1 || !pe || !ps1 || !pc) { toast('Adresse, objet ou message vide.', true); break; }
-        if (!window.confirm('Envoyer ce mail à ' + pe + ' (' + px1.entreprise + ') depuis redaction@posthumain.com ?')) break;
-        work('mk', 'envoie le mail', api('prospect', { op: 'envoyer', prospect_id: id, valide: '1', email: pe, sujet: ps1, corps: pc })).then(function () { if (S.pEdit) delete S.pEdit[id]; toast('📨 Mail envoyé.'); return refresh(true); }).then(function () { paintDoc(); });
+        var ck0 = S.clicking; confirmer('Envoyer ce mail à ' + pe + ' (' + px1.entreprise + ') depuis redaction@posthumain.com ?').then(function (ok) { if (!ok) return; S.clicking = ck0; setTimeout(function () { S.clicking = null; }, 0);
+          work('mk', 'envoie le mail', api('prospect', { op: 'envoyer', prospect_id: id, valide: '1', email: pe, sujet: ps1, corps: pc })).then(function () { if (S.pEdit) delete S.pEdit[id]; toast('📨 Mail envoyé.'); return refresh(true); }).then(function () { paintDoc(); });
+        });
         break;
       case 'p-statut':
         api('prospect', { op: 'maj', prospect_id: id, statut: t.getAttribute('data-st') }).then(function () { toast('✓ Mis à jour.'); return refresh(true); }).then(function () { paintDoc(); }, function (e) { toast('⚠️ ' + e.message, true); });
         break;
       case 'p-stop':
-        if (!window.confirm('Ne plus jamais contacter cette entreprise (et cette adresse) ?')) break;
-        api('prospect', { op: 'stop', prospect_id: id }).then(function () { toast('⛔ Retiré.'); return refresh(true); }).then(function () { paintDoc(); }, function (e) { toast('⚠️ ' + e.message, true); });
+        var ck1 = S.clicking; confirmer('Ne plus jamais contacter cette entreprise (et cette adresse) ?').then(function (ok) { if (!ok) return; S.clicking = ck1; setTimeout(function () { S.clicking = null; }, 0);
+          api('prospect', { op: 'stop', prospect_id: id }).then(function () { toast('⛔ Retiré.'); return refresh(true); }).then(function () { paintDoc(); }, function (e) { toast('⚠️ ' + e.message, true); });
+        });
         break;
       case 'm-propose':
         var mp = mail(id); if (!mp) break;
@@ -1170,14 +1258,16 @@
         api('classer', { mail_id: id, categorie: 'demande' }).then(function () { toast('📩 Classé en demande.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
         break;
       case 'm-archive':
-        if (!window.confirm('Archiver ce mail ? Il disparaîtra du bureau de Julien.')) break;
-        api('classer', { mail_id: id, statut: 'archivé' }).then(function () { closeDoc(); toast('🗄️ Archivé.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        var ck2 = S.clicking; confirmer('Archiver ce mail ? Il disparaîtra du bureau de Julien.').then(function (ok) { if (!ok) return; S.clicking = ck2; setTimeout(function () { S.clicking = null; }, 0);
+          api('classer', { mail_id: id, statut: 'archivé' }).then(function () { closeDoc(); toast('🗄️ Archivé.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        });
         break;
       case 'm-send':
         var ms1 = mail(id), su = val('wl-m-sujet').trim(), co = val('wl-m-corps').trim();
         if (!ms1 || !su || !co) { toast('Objet ou réponse vide.', true); break; }
-        if (!window.confirm('Envoyer cette réponse à ' + ms1.de_email + ' ?')) break;
-        work(ms1.boite === 'subs' ? 'sc' : 'mk', 'envoie la réponse', api('repondre', { mail_id: id, valide: '1', sujet: su, corps: co, pieces: pjsData('m:' + id) })).then(function () { if (S.mEdit) delete S.mEdit[id]; if (S.pjs) delete S.pjs['m:' + id]; closeDoc(); toast('📨 Réponse envoyée.'); return refresh(true); });
+        var ck3 = S.clicking; confirmer('Envoyer cette réponse à ' + ms1.de_email + ' ?').then(function (ok) { if (!ok) return; S.clicking = ck3; setTimeout(function () { S.clicking = null; }, 0);
+          work(ms1.boite === 'subs' ? 'sc' : 'mk', 'envoie la réponse', api('repondre', { mail_id: id, valide: '1', sujet: su, corps: co, pieces: pjsData('m:' + id) })).then(function () { if (S.mEdit) delete S.mEdit[id]; if (S.pjs) delete S.pjs['m:' + id]; closeDoc(); toast('📨 Réponse envoyée.'); return refresh(true); });
+        });
         break;
       // l'Assistant
       case 'find-contacts':
@@ -1235,14 +1325,16 @@
       case 'v-send':
         var f1 = fiche(id), sujet = val('wl-v-sujet').trim(), corps = val('wl-v-corps').trim();
         if (!sujet || !corps) { toast('Objet ou message vide.', true); break; }
-        if (!window.confirm('Envoyer ce mail à ' + f1.contact.nom + ' (' + f1.contact.email + ') ?')) break;
-        work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps, pieces: pjsData('v:' + id) })).then(function () {
-          forget(id); if (S.pjs) delete S.pjs['v:' + id]; closeDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
+        var ck4 = S.clicking; confirmer('Envoyer ce mail à ' + f1.contact.nom + ' (' + f1.contact.email + ') ?').then(function (ok) { if (!ok) return; S.clicking = ck4; setTimeout(function () { S.clicking = null; }, 0);
+          work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps, pieces: pjsData('v:' + id) })).then(function () {
+            forget(id); if (S.pjs) delete S.pjs['v:' + id]; closeDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
+          });
         });
         break;
       case 'archive':
-        if (!window.confirm('Archiver cette fiche ? Elle disparaîtra du lab.')) break;
-        api('maj', { fiche_id: id, statut: 'archivé' }).then(function () { closeDoc(); toast('🗄️ Fiche archivée.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        var ck5 = S.clicking; confirmer('Archiver cette fiche ? Elle disparaîtra du lab.').then(function (ok) { if (!ok) return; S.clicking = ck5; setTimeout(function () { S.clicking = null; }, 0);
+          api('maj', { fiche_id: id, statut: 'archivé' }).then(function () { closeDoc(); toast('🗄️ Fiche archivée.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        });
         break;
       // le Courrier
       case 'relever':
@@ -1271,23 +1363,32 @@
       case 'inserer':
         var C = S.cit, pr = C && C.props[C.choix];
         if (!pr || C.index == null) break;
-        if (!window.confirm('Insérer cette citation dans le brouillon Ghost ?')) break;
-        work('marbre', 'insère la citation', api('inserer', { fiche_id: id, index: C.index, intro: pr.intro || '', citation: pr.citation || '', attribution: pr.attribution || '' })).then(function (r) {
-          if (S.cit) S.cit.done = r.editeur; toast('✅ Citation insérée dans l’article.'); return refresh(true);
-        }).then(function () { paintDoc(); });
+        var ck6 = S.clicking; confirmer('Insérer cette citation dans le brouillon Ghost ?').then(function (ok) { if (!ok) return; S.clicking = ck6; setTimeout(function () { S.clicking = null; }, 0);
+          work('marbre', 'insère la citation', api('inserer', { fiche_id: id, index: C.index, intro: pr.intro || '', citation: pr.citation || '', attribution: pr.attribution || '' })).then(function (r) {
+            if (S.cit) S.cit.done = r.editeur; toast('✅ Citation insérée dans l’article.'); return refresh(true);
+          }).then(function () { paintDoc(); });
+        });
         break;
       // interphone
+      case 'pieces': openDoc('pieces', ''); break;
+      case 'pc-ok': case 'pc-annule':
+        var pcSt = name === 'pc-ok' ? 'acquis' : 'annule', pcId = id;
+        var ck9 = S.clicking; confirmer(pcSt === 'acquis' ? 'Valider ces pièces ?' : 'Annuler ces pièces ?').then(function (ok) { if (!ok) return; S.clicking = ck9;
+          pushApi({ action: 'pieces_decision', id: pcId, statut: pcSt }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast(pcSt === 'acquis' ? '🪙 Pièces validées.' : '✖️ Pièces annulées.'); chargerPieces(); });
+        });
+        break;
       case 'portee': S.portee = id === 'moi' ? 'moi' : 'tous'; LS.set('wl-portee', S.portee); render(); break;
       case 'dossier': S.tab = 'suivi'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var d = S.root.querySelector('#dossier-' + (id || 'sans')); if (d) { d.scrollIntoView({ behavior: 'smooth', block: 'center' }); d.classList.add('flash'); } }, 60); break;
       case 'a-interviewer': S.tab = 'articles'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var h = S.root.querySelector('#a-interviewer'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 60); break;
       case 'express':
         var ax = art(id); if (!ax) { toast('Enquête introuvable dans Ghost.', true); break; }
-        if (!window.confirm('Lancer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.')) break;
-        S.art = id; LS.set('wl-article', id);
-        work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true })).then(function (r) {
-          toast('⚡ ' + (r.n || 0) + ' mail' + pl(r.n || 0) + ' prêt' + pl(r.n || 0) + ' : relisez-les chez la Secrétaire.');
-          return refresh(true);
-        }).then(function () { openPanel('secretaire'); });
+        var ck7 = S.clicking; confirmer('Lancer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.').then(function (ok) { if (!ok) return; S.clicking = ck7; setTimeout(function () { S.clicking = null; }, 0);
+          S.art = id; LS.set('wl-article', id);
+          work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true })).then(function (r) {
+            toast('⚡ ' + (r.n || 0) + ' mail' + pl(r.n || 0) + ' prêt' + pl(r.n || 0) + ' : relisez-les chez la Secrétaire.');
+            return refresh(true);
+          }).then(function () { openPanel('secretaire'); });
+        });
         break;
       case 'push': reglerPush(true); break;
       case 'dicter': if (S.dicte) stopDictee(); else startDictee(); break;
