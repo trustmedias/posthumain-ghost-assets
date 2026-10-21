@@ -43,7 +43,9 @@
     doc: null, cit: null, colle: false
   };
 
-  function D() { return S.data || { me: {}, equipe: [], articles: [], fiches: [], messages: [], courrier: [] }; }
+  function D() { return S.data || { me: {}, equipe: [], articles: [], fiches: [], messages: [], courrier: [], campagnes: [], prospects: [] }; }
+  function prospect(id) { return (D().prospects || []).filter(function (x) { return x.prospect_id === id; })[0] || null; }
+  function campagne(id) { return (D().campagnes || []).filter(function (x) { return x.campagne_id === id; })[0] || null; }
   function mails(boite, tous) { return (D().courrier || []).filter(function (m) { return m.boite === boite && (tous || m.statut !== 'répondu'); }); }
   function mail(id) { return (D().courrier || []).filter(function (m) { return m.mail_id === id; })[0] || null; }
   var JULIEN = { sc: { boite: 'subs', nom: 'Julien · Service client', adr: 'subs@posthumain.com', emoji: '🎧' }, mk: { boite: 'redaction', nom: 'Julien · Marketing', adr: 'redaction@posthumain.com', emoji: '📣' } };
@@ -643,6 +645,77 @@
     h += '<h4>📩 Demandes (' + dem.length + ')</h4><div class="dos">' + (dem.map(mcard).join('') || '<div class="muted">Aucune demande en attente.</div>') + '</div>';
     h += '<h4 style="margin-top:16px">❔ À vérifier (' + ver.length + ')</h4><div class="dos">' + (ver.map(mcard).join('') || '<div class="muted">Rien à vérifier.</div>') + '</div>';
     if (faits.length) h += '<h4 style="margin-top:16px">✅ Répondu récemment</h4><div class="dos">' + faits.map(mcard).join('') + '</div>';
+    if (k === 'mk') h += prospection();
+    return h + '</div>';
+  }
+  // ---------- Prospection (bureau Marketing) ----------
+  var OFFRES = [['article', '📰 Article de partenariat'], ['newsletter', '✉️ Encart newsletter'], ['video', '🎬 Vidéo'], ['pack', '📦 Pack visibilité'], ['abonnements', '👥 Abonnements équipes'], ['tv', '📺 Posthumain TV']];
+  var PST = { a_contacter: ['🔎', 'à contacter', ''], brouillon: ['🟠', 'mail à valider', 'a'], contacte: ['📨', 'contacté', ''], relance: ['🔁', 'relancé', ''], repondu: ['💬', 'a répondu', 'g'], client: ['🤝', 'client', 'g'], refus: ['⛔', 'ne plus contacter', ''] };
+  function offreNom(o) { var f = OFFRES.filter(function (x) { return x[0] === o; })[0]; return f ? f[1] : o; }
+  function pcard(x) {
+    var t = PST[x.statut] || ['•', x.statut, ''];
+    return '<div class="dcard ' + t[2] + '" data-act="open-prospect" data-id="' + esc(x.prospect_id) + '"><div class="k">' + t[0] + ' ' + esc(t[1]) + (x.email ? '' : ' · adresse à trouver') + '</div>' +
+      '<div class="ti">' + esc(x.entreprise) + '</div><div class="su">' + esc([x.contact_nom, x.secteur, x.pays].filter(Boolean).join(' · ')) + '</div></div>';
+  }
+  function prospection() {
+    var cs = D().campagnes || [], ps = D().prospects || [], busy = !!S.busy.mk;
+    var h = '<h3 style="margin-top:22px">🎯 Prospection</h3><p class="muted">Julien cherche des entreprises qui ont une vraie raison d’acheter l’une de nos offres, trouve la bonne personne et une adresse publiée officiellement (jamais devinée), puis rédige un mail court et personnalisé. Rien ne part sans votre « Valider et envoyer » ; une seule relance au plus, et un STOP retire l’adresse pour toujours.</p>';
+    if (S.newCamp) {
+      var nc = S.newCamp;
+      h += '<div class="box"><label class="f">Nom de la campagne</label><input class="in" data-nc="nom" value="' + esc(nc.nom) + '" placeholder="ex. Start-up IA romandes — automne">' +
+        '<label class="f">Offres à vendre</label><div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin:4px 0 6px">' + OFFRES.map(function (o) {
+          return '<label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-nco="' + o[0] + '"' + (nc.offres.indexOf(o[0]) >= 0 ? ' checked' : '') + '> ' + o[1] + '</label>'; }).join('') + '</div>' +
+        '<label class="f">Cible</label><textarea class="in" data-nc="cible" rows="3" placeholder="ex. start-up et PME tech qui lancent un produit IA grand public, écoles d’ingénieurs, agences de communication…">' + esc(nc.cible) + '</textarea>' +
+        '<label class="f">Zone</label><input class="in" data-nc="zone" value="' + esc(nc.zone) + '" placeholder="Suisse romande, France, Belgique">' +
+        '<div class="row" style="margin-top:10px"><button class="btn go" data-act="camp-create">✅ Créer la campagne</button><button class="btn small" data-act="camp-cancel">Annuler</button></div></div>';
+    } else h += '<div class="row"><button class="btn" data-act="camp-new">＋ Nouvelle campagne</button></div>';
+    if (!cs.length && !S.newCamp) h += '<p class="muted">Aucune campagne pour l’instant.</p>';
+    cs.forEach(function (c) {
+      var l = ps.filter(function (x) { return x.campagne_id === c.campagne_id; });
+      var n = function (st) { return l.filter(function (x) { return x.statut === st; }).length; };
+      var open = S.campOpen === c.campagne_id || cs.length === 1;
+      h += '<div class="box" style="margin-top:12px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;cursor:pointer" data-act="camp-toggle" data-id="' + esc(c.campagne_id) + '"><div><b>' + esc(c.nom) + '</b><div class="muted">' + c.offres.map(offreNom).map(esc).join(' · ') + (c.zone ? ' — ' + esc(c.zone) : '') + '</div></div>' +
+        '<div class="muted" style="white-space:nowrap">' + l.length + ' prospect' + pl(l.length) + (n('repondu') ? ' · 💬 ' + n('repondu') : '') + (n('client') ? ' · 🤝 ' + n('client') : '') + '</div></div>';
+      if (open) {
+        if (c.cible) h += '<div class="muted" style="margin-top:6px">Cible : ' + esc(c.cible) + '</div>';
+        h += '<div class="row" style="margin-top:10px"><button class="btn" data-act="p-chercher" data-id="' + esc(c.campagne_id) + '"' + (busy ? ' disabled' : '') + '>🔎 Chercher des prospects</button></div><p class="muted">La recherche prend une à deux minutes : Julien vérifie chaque entreprise sur le web.</p>';
+        ['repondu', 'brouillon', 'a_contacter', 'contacte', 'relance', 'client', 'refus'].forEach(function (st) {
+          var g = l.filter(function (x) { return x.statut === st; }); if (!g.length) return;
+          h += '<h4 style="margin-top:12px">' + PST[st][0] + ' ' + esc(PST[st][1]) + ' (' + g.length + ')</h4><div class="dos">' + g.map(pcard).join('') + '</div>';
+        });
+      }
+      h += '</div>';
+    });
+    return h;
+  }
+  function docProspect(x) {
+    var c = campagne(x.campagne_id), busy = !!S.busy.mk, t = PST[x.statut] || ['•', x.statut];
+    var ed = (S.pEdit && S.pEdit[x.prospect_id]) || { sujet: x.mail_sujet || '', corps: x.mail_corps || '', email: x.email || '' };
+    var h = '<div class="dtop"><span class="em">🎯</span><div><div class="nm">' + esc(x.entreprise) + '</div><div class="st">' + t[0] + ' ' + esc(t[1]) + (c ? ' · ' + esc(c.nom) : '') + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
+    h += '<div class="paper"><div class="kick">Prospect · ' + esc([x.secteur, x.pays].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="meta">' + (x.site ? '🌐 <a href="' + esc(/^https?:/.test(x.site) ? x.site : 'https://' + x.site) + '" target="_blank" rel="noopener" data-stop="1">' + esc(x.site) + '</a><br>' : '') +
+      '👤 ' + esc([x.contact_nom, x.contact_role].filter(Boolean).join(', ') || 'contact à préciser') + '<br>' +
+      '✉️ ' + (x.email ? esc(x.email) + (x.source_email ? ' · <a href="' + esc(x.source_email) + '" target="_blank" rel="noopener" data-stop="1">où elle est publiée</a>' : '') : 'aucune adresse publiée trouvée : saisissez-en une si vous la connaissez') + '</div>' +
+      (x.pourquoi ? '<div style="border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 14px"><b>Pourquoi maintenant :</b> ' + esc(x.pourquoi) + '</div>' : '');
+    if (x.envoye_le) h += '<p class="muted">Premier mail envoyé ' + esc(when(x.envoye_le)) + (x.relance_le ? ' · relancé ' + esc(when(x.relance_le)) : '') + '.</p>';
+    if (x.statut === 'refus') return h + '<div class="lead">⛔ Ce prospect ne sera plus contacté.</div></div>';
+    var fini = x.statut === 'client' || x.statut === 'relance' || x.statut === 'repondu';
+    var relance = x.statut === 'contacte';
+    if (!fini) {
+      h += '<label>Consigne pour Julien (facultatif)</label><input class="pin" id="wl-p-consigne" placeholder="ex. insister sur la vidéo, mentionner leur levée de fonds, ton plus formel…">' +
+        '<div class="acts"><button data-act="p-rediger" data-id="' + esc(x.prospect_id) + '"' + (busy ? ' disabled' : '') + '>🤖 ' + (relance ? 'Rédiger la relance' : ed.corps ? 'Autre proposition' : 'Rédiger le mail') + '</button></div>' +
+        '<label>Adresse</label><input class="pin" id="wl-p-email" value="' + esc(ed.email) + '" inputmode="email" autocomplete="off">' +
+        '<label>Objet</label><input class="pin sub" id="wl-p-sujet" value="' + esc(ed.sujet) + '">' +
+        '<label>Message</label><textarea class="pin big" id="wl-p-corps" placeholder="Demandez une proposition à Julien ou écrivez le mail.">' + esc(ed.corps) + '</textarea>' +
+        '<div class="acts"><button class="go" data-act="p-envoyer" data-id="' + esc(x.prospect_id) + '"' + (busy ? ' disabled' : '') + '>✅ Valider et envoyer' + (relance ? ' la relance' : '') + '</button>' +
+        '<button data-act="p-garder" data-id="' + esc(x.prospect_id) + '">💾 Garder</button></div>';
+    } else if (x.mail_corps) h += '<label>Dernier mail</label><div><b>' + esc(x.mail_sujet) + '</b></div><div style="white-space:pre-wrap">' + esc(x.mail_corps) + '</div>';
+    h += '<div class="acts">' + (x.statut !== 'client' ? '<button data-act="p-statut" data-st="client" data-id="' + esc(x.prospect_id) + '">🤝 Devenu client</button>' : '') +
+      (x.statut === 'contacte' || x.statut === 'relance' ? '<button data-act="p-statut" data-st="repondu" data-id="' + esc(x.prospect_id) + '">💬 A répondu</button>' : '') +
+      '<button class="red" data-act="p-stop" data-id="' + esc(x.prospect_id) + '">⛔ Ne plus contacter</button></div>' +
+      '<p class="lead">Le mail part de redaction@posthumain.com, signé Julien, avec la ligne « répondez STOP ». Les réponses arrivent dans ce bureau et ce prospect passe tout seul en « a répondu ».</p>';
+    var hi = (x.historique || []).slice().reverse().slice(0, 8);
+    if (hi.length) h += '<label>Historique</label><div class="muted">' + hi.map(function (e) { return esc(when(e.t)) + ' — ' + esc(e.e); }).join('<br>') + '</div>';
     return h + '</div>';
   }
   function docMail(m) {
@@ -785,6 +858,7 @@
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
     if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
+    if (S.doc.kind === 'prospect') { var px = prospect(S.doc.id); el.innerHTML = px ? docProspect(px) : '<div class="dtop"><span class="nm">Prospect introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; markBusy(); return; }
     if (S.doc.kind === 'mail') { var mm = mail(S.doc.id); el.innerHTML = mm ? docMail(mm) : '<div class="dtop"><span class="nm">Mail introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; return; }
     var f = fiche(S.doc.id);
     if (!f) { el.innerHTML = '<div class="dtop"><span class="nm">Fiche introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; return; }
@@ -903,6 +977,38 @@
       case 'open-fiche': openDoc('fiche', id); break;
       case 'open-aide': openDoc('aide', ''); break;
       case 'open-mail': openDoc('mail', id); break;
+      case 'open-prospect': openDoc('prospect', id); break;
+      case 'camp-new': S.newCamp = { nom: '', offres: [], cible: '', zone: 'Suisse romande, France, Belgique' }; paintPanel(); break;
+      case 'camp-cancel': S.newCamp = null; paintPanel(); break;
+      case 'camp-toggle': S.campOpen = S.campOpen === id ? null : id; paintPanel(); break;
+      case 'camp-create':
+        var nc = S.newCamp; if (!nc) break;
+        if (!String(nc.nom).trim() || !nc.offres.length) { toast('Donnez un nom et cochez au moins une offre.', true); break; }
+        work('mk', 'ouvre la campagne', api('prospect', { op: 'campagne', nom: nc.nom, offres: nc.offres, cible: nc.cible, zone: nc.zone })).then(function () { S.newCamp = null; toast('🎯 Campagne créée.'); return refresh(true); });
+        break;
+      case 'p-chercher':
+        S.campOpen = id;
+        work('mk', 'cherche des prospects', api('prospect', { op: 'chercher', campagne_id: id })).then(function (r) { toast('🔎 ' + (r.resume || 'recherche terminée')); return refresh(true); });
+        break;
+      case 'p-rediger':
+        work('mk', 'rédige le mail', api('prospect', { op: 'rediger', prospect_id: id, consigne: val('wl-p-consigne') })).then(function () { if (S.pEdit) delete S.pEdit[id]; if (document.activeElement) document.activeElement.blur(); return refresh(true); }).then(function () { paintDoc(); toast('🤖 Mail prêt : relisez-le.'); });
+        break;
+      case 'p-garder':
+        api('prospect', { op: 'maj', prospect_id: id, sujet: val('wl-p-sujet'), corps: val('wl-p-corps'), email: val('wl-p-email').trim() }).then(function () { if (S.pEdit) delete S.pEdit[id]; toast('💾 Gardé.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
+      case 'p-envoyer':
+        var px1 = prospect(id), pe = val('wl-p-email').trim(), ps1 = val('wl-p-sujet').trim(), pc = val('wl-p-corps').trim();
+        if (!px1 || !pe || !ps1 || !pc) { toast('Adresse, objet ou message vide.', true); break; }
+        if (!window.confirm('Envoyer ce mail à ' + pe + ' (' + px1.entreprise + ') depuis redaction@posthumain.com ?')) break;
+        work('mk', 'envoie le mail', api('prospect', { op: 'envoyer', prospect_id: id, valide: '1', email: pe, sujet: ps1, corps: pc })).then(function () { if (S.pEdit) delete S.pEdit[id]; toast('📨 Mail envoyé.'); return refresh(true); }).then(function () { paintDoc(); });
+        break;
+      case 'p-statut':
+        api('prospect', { op: 'maj', prospect_id: id, statut: t.getAttribute('data-st') }).then(function () { toast('✓ Mis à jour.'); return refresh(true); }).then(function () { paintDoc(); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
+      case 'p-stop':
+        if (!window.confirm('Ne plus jamais contacter cette entreprise (et cette adresse) ?')) break;
+        api('prospect', { op: 'stop', prospect_id: id }).then(function () { toast('⛔ Retiré.'); return refresh(true); }).then(function () { paintDoc(); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
       case 'm-propose':
         var mp = mail(id); if (!mp) break;
         work(mp.boite === 'subs' ? 'sc' : 'mk', 'rédige une réponse', api('proposer', { mail_id: id, consigne: val('wl-m-consigne') })).then(function () { if (S.mEdit) delete S.mEdit[id]; if (document.activeElement) document.activeElement.blur(); return refresh(true); }).then(function () { paintDoc(); toast('🤖 Proposition prête : relisez-la.'); });
@@ -1044,6 +1150,9 @@
     else if ((k = t.getAttribute('data-s'))) { S[k] = t.value; saveDraft(); }
     else if (t.hasAttribute('data-qi')) { var q = S.qs[Number(t.getAttribute('data-qi'))]; if (q) { q.q = t.value; saveDraft(); } }
     else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.props) { var pp = k.split(':'), pr = S.cit.props[Number(pp[0])]; if (pr) pr[pp[1]] = t.value; }
+    else if ((k = t.getAttribute('data-nc')) && S.newCamp) { S.newCamp[k] = t.value; }
+    else if ((k = t.getAttribute('data-nco')) && S.newCamp) { var oo = S.newCamp.offres.filter(function (x) { return x !== k; }); if (t.checked) oo.push(k); S.newCamp.offres = oo; }
+    else if (/^wl-p-(sujet|corps|email)$/.test(t.id) && S.doc) { S.pEdit = S.pEdit || {}; S.pEdit[S.doc.id] = { sujet: val('wl-p-sujet'), corps: val('wl-p-corps'), email: val('wl-p-email') }; }
     else if ((t.id === 'wl-m-sujet' || t.id === 'wl-m-corps') && S.doc) { S.mEdit = S.mEdit || {}; S.mEdit[S.doc.id] = { sujet: val('wl-m-sujet'), corps: val('wl-m-corps') }; }
     else if ((t.id === 'wl-v-sujet' || t.id === 'wl-v-corps') && S.doc) {
       // corrections de la journaliste dans le mail à valider : gardées même si la page se rafraîchit
