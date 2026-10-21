@@ -97,7 +97,7 @@
   }
   function relancable(f) { return f.statut === 'envoyé' && f.envoye_le && Date.now() - new Date(f.envoye_le).getTime() > 3 * 864e5; }
   function membre(id) { return (D().equipe || []).filter(function (w) { return w.id === id; })[0] || { nom: id || '?' }; }
-  var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'rebond': ['✉️', 'adresse invalide', 'r'], 'archivé': ['🗄️', 'archivé', ''] };
+  var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'rebond': ['✉️', 'adresse invalide', 'r'], 'envoi_en_cours': ['⏳', 'envoi en cours…', 'a'], 'relance_en_cours': ['⏳', 'relance en cours…', 'b'], 'archivé': ['🗄️', 'archivé', ''] };
   // Relances : quand un chercheur ne répond pas, les coulisses préparent une relance (dans le même fil) à valider ici.
   // Rebond : le serveur du chercheur a refusé le mail (adresse invalide) → la fiche passe en « adresse invalide ».
   function estRebond(f) { return !!f && (f.statut === 'rebond' || !!f.rebond); }
