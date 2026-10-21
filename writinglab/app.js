@@ -150,8 +150,10 @@
           setTimeout(function () { S.arrivees = null; delete S.busy.courrier; paintFloor(); }, 3600);
           toast('📬 ' + neufs.length + ' nouveau' + (neufs.length > 1 ? 'x' : '') + ' mail' + pl(neufs.length) + ' pour Julien'); }
       }
+      var premier = !S.data;
       S.data = d; render(); chargerPieces();
-    }, function (e) { if (!silent) toast('⚠️ ' + e.message, true); });
+      if (premier && window.WL_LOADER) setTimeout(window.WL_LOADER.fin, 250); // l'écran de chargement s'efface quand la rédaction est en place
+    }, function (e) { if (window.WL_LOADER) window.WL_LOADER.fin(); if (!silent) toast('⚠️ ' + e.message, true); });
   }
 
   // ---------- styles ----------
@@ -1873,7 +1875,7 @@
     document.head.appendChild(font);
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     var r = document.createElement('div'); r.id = 'wl';
-    r.innerHTML = '<div class="top"></div><div class="tabs"></div><div class="wrap"><div class="boot muted" style="padding:80px 0;text-align:center">📰 La rédaction arrive…</div></div><div class="panelbg"></div><div class="panel"></div><div class="doc"></div><div class="toast"></div>';
+    r.innerHTML = '<div class="top"></div><div class="tabs"></div><div class="wrap"></div><div class="panelbg"></div><div class="panel"></div><div class="doc"></div><div class="toast"></div>';
     document.body.appendChild(r);
     document.documentElement.style.overflow = 'hidden';
     S.root = r;
