@@ -85,7 +85,7 @@
   }
   function avancement(fs) {
     var c = function (st) { return fs.filter(function (f) { return f.statut === st; }).length; };
-    return '<span class="av"><b class="' + (c('brouillon') ? 'a' : '') + '">🟠 ' + c('brouillon') + ' à valider</b><b>📨 ' + c('envoyé') + ' envoyé' + pl(c('envoyé')) + '</b><b class="' + (c('a répondu') ? 'g' : '') + '">📬 ' + c('a répondu') + ' réponse' + pl(c('a répondu')) + '</b><b>✅ ' + c('inséré') + ' cité' + pl(c('inséré')) + '</b></span>';
+    return '<span class="av"><b class="' + (c('brouillon') ? 'a' : '') + '">🟠 ' + c('brouillon') + ' à valider</b><b>📨 ' + c('envoyé') + ' envoyé' + pl(c('envoyé')) + '</b><b class="' + (c('a répondu') ? 'g' : '') + '">📬 ' + c('a répondu') + ' réponse' + pl(c('a répondu')) + '</b><b>✅ ' + c('inséré') + ' cité' + pl(c('inséré')) + '</b>' + (c('rebond') ? '<b class="r">✉️ ' + c('rebond') + ' adresse' + pl(c('rebond')) + ' invalide' + pl(c('rebond')) + '</b>' : '') + '</span>';
   }
   function origines(fs) {
     var x = fs.filter(function (f) { return origine(f)[1] === 'Express'; }).length, a = fs.length - x;
@@ -97,7 +97,34 @@
   }
   function relancable(f) { return f.statut === 'envoyé' && f.envoye_le && Date.now() - new Date(f.envoye_le).getTime() > 3 * 864e5; }
   function membre(id) { return (D().equipe || []).filter(function (w) { return w.id === id; })[0] || { nom: id || '?' }; }
-  var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'archivé': ['🗄️', 'archivé', ''] };
+  var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'rebond': ['✉️', 'adresse invalide', 'r'], 'archivé': ['🗄️', 'archivé', ''] };
+  // Relances : quand un chercheur ne répond pas, les coulisses préparent une relance (dans le même fil) à valider ici.
+  // Rebond : le serveur du chercheur a refusé le mail (adresse invalide) → la fiche passe en « adresse invalide ».
+  function estRebond(f) { return !!f && (f.statut === 'rebond' || !!f.rebond); }
+  function relancePrete(f) {
+    return !!(f && String(f.relance_corps || '').trim() && f.statut === 'envoyé' && !estRebond(f) && !f.reponse &&
+      (!f.relance_envoyee_le || new Date(f.relance_prete_le || 0) > new Date(f.relance_envoyee_le)));
+  }
+  function relancesPretes() { return vues().filter(relancePrete); }
+  function relanceInfo(f) { var n = Number(f.relances) || 0; return n ? 'relancé ' + n + ' fois' + (f.relance_envoyee_le ? ' · dernière relance ' + when(f.relance_envoyee_le) : '') : ''; }
+  // Anti-doublon : les autres fiches (toute la rédaction) adressées au même e-mail.
+  function dejaContacte(email, sauf) {
+    var e = String(email || '').trim().toLowerCase(); if (!e) return [];
+    return (D().fiches || []).filter(function (x) { return x.fiche_id !== sauf && String((x.contact && x.contact.email) || '').trim().toLowerCase() === e; });
+  }
+  function dejaHTML(list, panneau) {
+    if (!list.length) return '';
+    return '<div class="' + (panneau ? 'box warn' : 'warn') + '" style="margin:8px 0">⚠️ <b>Déjà contacté</b> par la rédaction :<br>' + list.slice(0, 4).map(function (x) {
+      return (x.envoye_le ? 'le ' + esc(day(x.envoye_le)) : 'mail pas encore envoyé') + ' pour « ' + esc(x.article_titre || 'sans article') + ' » (' + esc((STATUTS[x.statut] || ['', x.statut])[1]) + ', ' + esc(qui(x)) + ')';
+    }).join('<br>') + '<br><span style="opacity:.8">Vous pouvez continuer, mais évitez de le solliciter deux fois pour le même sujet.</span></div>';
+  }
+  // Recherche (Suivi, Courrier) : nom, e-mail, fonction, institution, article, objet du mail.
+  function norm(x) { return String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function cherche(f, q) {
+    q = norm(q).trim(); if (!q) return true;
+    var c = f.contact || {}, hay = norm([c.nom, c.email, c.role, c.institution, f.article_titre, f.mail_sujet, f.relance_sujet].join(' '));
+    return q.split(/\s+/).every(function (m) { return hay.indexOf(m) >= 0; });
+  }
   function tagStatut(f) { var s = STATUTS[f.statut] || ['·', f.statut, '']; return '<span class="tag ' + s[2] + '">' + s[0] + ' ' + esc(s[1]) + '</span>'; }
 
   // brouillon de l'assistant, gardé par article dans ce navigateur (on ne perd rien en fermant la page)
@@ -259,7 +286,7 @@
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .panel .dossier .dh{cursor:pointer}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
-#wl .ctabs{display:flex;margin:4px 0 14px}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
+#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
 #wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .fa-ed{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18)}#wl .fa-ed label{display:block;font-size:12.5px;color:rgba(243,236,224,.6);margin:8px 0 4px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 #wl .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.62);backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}#wl .cfm-bg.on{opacity:1}#wl .cfm{width:min(440px,100%);background:#14110c;border:1px solid rgba(0,255,119,.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}#wl .cfm-bg.on .cfm{transform:none}#wl .cfm.danger{border-color:rgba(255,80,80,.45)}#wl .cfm-ic{font-size:26px;margin-bottom:8px}#wl .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}#wl .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(243,236,224,.7)}#wl .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
@@ -380,7 +407,7 @@
   function stOf(p) {
     var b = S.busy[p.kind];
     if (b) return { s: 'on', why: b };
-    if (p.kind === 'secretaire') { var n = by('brouillon').length; return n ? { s: 'slot', why: n + ' mail' + pl(n) + ' à valider' } : { s: 'off', why: 'prête à écrire' }; }
+    if (p.kind === 'secretaire') { var n = by('brouillon').length, nr = relancesPretes().length; return n || nr ? { s: 'slot', why: [n ? n + ' mail' + pl(n) + ' à valider' : '', nr ? nr + ' relance' + pl(nr) + ' prête' + pl(nr) : ''].filter(Boolean).join(' · ') } : { s: 'off', why: 'prête à écrire' }; }
     if (p.kind === 'assistant') { var k = S.qs.filter(function (q) { return q.garde; }).length; return S.art ? (k ? { s: 'slot', why: k + ' question' + pl(k) + ' retenue' + pl(k) } : { s: 'off', why: 'prêt à aider' }) : { s: 'off', why: 'choisissez un article' }; }
     if (p.kind === 'courrier') { var r = by('a répondu').length, e = by('envoyé').length; return r ? { s: 'on', why: r + ' réponse' + pl(r) + ' à traiter' } : e ? { s: 'slot', why: e + ' en attente de réponse' } : { s: 'off', why: 'aucun courrier en cours' }; }
     if (p.kind === 'sc' || p.kind === 'mk') {
@@ -465,7 +492,7 @@
   // fiches qui flottent au-dessus de chaque employé : ce qui l'attend (cliquer ouvre son bureau)
   function pileOf(p) {
     var me = D().me;
-    if (p.kind === 'secretaire') return by('brouillon').map(function () { return 'a'; });
+    if (p.kind === 'secretaire') return by('brouillon').concat(relancesPretes()).map(function () { return 'a'; });
     if (p.kind === 'courrier') return by('a répondu').map(function () { return 'g'; }).concat(by('envoyé').map(function () { return 'b'; }));
     if (p.kind === 'assistant') return S.qs.filter(function (q) { return q.garde; }).map(function () { return 'n'; });
     if (p.kind === 'journaliste' && !p.vide) return D().fiches.filter(function (f) { return f.redacteur === p.id && f.statut === 'a répondu'; }).map(function () { return 'g'; });
@@ -515,13 +542,15 @@
         return;
       }
       var c = function (st) { return d.fiches.filter(function (f) { return f.statut === st; }).length; };
-      var col = c('a répondu') ? '#3fd88a' : c('brouillon') ? '#ffb020' : '#7fb2ff';
-      var tip = d.titre + '|' + [c('brouillon') ? c('brouillon') + ' à valider' : '', c('envoyé') ? c('envoyé') + ' envoyé' + pl(c('envoyé')) : '', c('a répondu') ? c('a répondu') + ' réponse' + pl(c('a répondu')) : ''].filter(Boolean).join(' · ') + '|' + d.fiches.map(function (f) { return f.contact.nom; }).join(', ');
+      var nrel = d.fiches.filter(relancePrete).length, nreb = d.fiches.filter(estRebond).length;
+      var col = c('a répondu') ? '#3fd88a' : c('brouillon') || nrel ? '#ffb020' : nreb ? '#ff6b7f' : '#7fb2ff';
+      var tip = d.titre + '|' + [c('brouillon') ? c('brouillon') + ' à valider' : '', nrel ? '⏰ ' + nrel + ' relance' + pl(nrel) + ' prête' + pl(nrel) : '', c('envoyé') ? c('envoyé') + ' envoyé' + pl(c('envoyé')) : '', c('a répondu') ? c('a répondu') + ' réponse' + pl(c('a répondu')) : '', nreb ? '✉️ ' + nreb + ' adresse' + pl(nreb) + ' invalide' + pl(nreb) : ''].filter(Boolean).join(' · ') + '|' + d.fiches.map(function (f) { return f.contact.nom; }).join(', ');
       if (i === max - 1 && ds.length > max) { s += '<g class="case" data-act="open-ag" data-ag="secretaire" data-tip="' + esc('+' + (ds.length - max + 1) + ' autres dossiers|ouvrir la Secrétaire|') + '" transform="translate(' + cx + ',' + cy + ')"><rect x="4" y="8" width="' + (CW - 8) + '" height="' + (CH - 18) + '" rx="4" fill="#3a2c1d"/><text x="' + (CW / 2) + '" y="' + (CH / 2 + 4) + '" text-anchor="middle" font-size="16" font-weight="800" fill="#ffcf8a">+' + (ds.length - max + 1) + '</text></g>'; return; }
       s += '<g class="case" data-act="dossier-sec" data-id="' + esc(d.id || 'sans') + '" data-tip="' + esc(tip) + '" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="transparent"/>';
       var n = Math.min(d.fiches.length, 4);
       for (var k = 0; k < n; k++) s += '<rect x="' + (10 + k * 9) + '" y="' + (16 + (k % 2) * 3) + '" width="16" height="' + (CH - 34) + '" rx="2" fill="' + ['#e8d9b8', '#d9c8a2', '#efe3c8', '#cdbb94'][k] + '" stroke="rgba(0,0,0,.35)"/>';
-      s += '<g transform="translate(' + (CW - 14) + ',14)"><circle r="10" fill="' + col + '" filter="url(#glow)"/><text y="4" text-anchor="middle" font-size="11.5" font-weight="800" fill="#05170d">' + d.fiches.length + '</text></g></g>';
+      s += '<g transform="translate(' + (CW - 14) + ',14)"><circle r="10" fill="' + col + '" filter="url(#glow)"/><text y="4" text-anchor="middle" font-size="11.5" font-weight="800" fill="#05170d">' + d.fiches.length + '</text></g>' +
+        (nrel ? '<text x="12" y="' + (CH - 12) + '" font-size="15">⏰</text>' : '') + '</g>';
     });
     return s + '</g>';
   }
@@ -641,6 +670,8 @@
       pieceChip() +
       (aInterviewer().length ? '<span class="chip hot" data-act="a-interviewer">🎙️ ' + aInterviewer().length + ' à interviewer</span>' : '') +
       (v ? '<span class="chip warn" data-act="open-ag" data-ag="secretaire">🟠 ' + v + ' à valider</span>' : '') +
+      (relancesPretes().length ? '<span class="chip warn" data-act="open-ag" data-ag="secretaire">⏰ ' + relancesPretes().length + ' relance' + pl(relancesPretes().length) + '</span>' : '') +
+      (by('rebond').length ? '<span class="chip warn" data-act="open-ag" data-ag="courrier">✉️ ' + by('rebond').length + ' adresse' + pl(by('rebond').length) + ' invalide' + pl(by('rebond').length) + '</span>' : '') +
       (r ? '<span class="chip hot" data-act="open-ag" data-ag="courrier">📬 ' + r + ' réponse' + pl(r) + '</span>' : '') +
       (e ? '<span class="chip" data-act="open-ag" data-ag="courrier">⏳ ' + e + ' en attente</span>' : '') +
       '<span class="chip" data-act="parametres" title="Paramètres (notifications, signature, dictée)">⚙️' + (S.pushOk ? '' : '<span class="dot-off"></span>') + '</span>' +
@@ -685,21 +716,31 @@
     var og = origine(f);
     return '<div class="dcard ' + s[2] + '" data-act="' + (f.statut === 'brouillon' ? 'open-valid' : 'open-fiche') + '" data-id="' + esc(f.fiche_id) + '"><div class="k">' + s[0] + ' ' + esc(s[1]) + ' · ' + og[0] + ' ' + og[1] + (D().me.chef ? ' · ' + esc(qui(f)) : '') + '</div>' +
       '<div class="ti">' + esc(f.contact.nom || '(sans nom)') + '</div><div class="su">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + '</div>' +
-      '<div class="su">📰 ' + esc(f.article_titre || 'sans article') + '</div>' + (extra || '') + '</div>';
+      '<div class="su">📰 ' + esc(f.article_titre || 'sans article') + '</div>' + (extra || '') +
+      (relancePrete(f) ? '<div class="su">⏰ <b>relance prête à valider</b></div>' : '') + (relanceInfo(f) ? '<div class="su">🔁 ' + esc(relanceInfo(f)) + '</div>' : '') +
+      (estRebond(f) && f.statut !== 'rebond' ? '<div class="su"><b>✉️ adresse invalide</b></div>' : '') + '</div>';
   }
+  function vuesQ() { return vues().filter(function (f) { return cherche(f, S.qSuivi); }); }
   function viewSuivi() {
-    var cols = [['brouillon', '🟠 À valider'], ['envoyé', '📨 Envoyés'], ['a répondu', '📬 Réponses'], ['inséré', '✅ Cités']];
     var vide = !vues().length;
     var intro = '<p class="muted" style="margin-top:14px">Le parcours des demandes d’interview' + (D().me.chef ? ' de toute la rédaction' : '') + ' : mail rédigé par la Secrétaire → envoyé → réponse reçue → citation insérée dans l’article. Les fiches archivées n’apparaissent plus ici.</p>' +
       (vide ? '<div class="box" style="margin-top:6px">Aucune demande en cours pour l’instant. Pour en lancer une : choisissez un article, puis demandez à l’Assistant qui interroger.<div class="row" style="margin-top:10px"><button class="btn" data-act="open-ag" data-ag="assistant">🧠 Préparer une interview</button><button class="btn small" data-act="open-ag" data-ag="secretaire">📮 Écrire à quelqu’un</button></div></div>' : '');
-    var ds = dossiers(vues());
-    var dosHTML = ds.length ? '<h3 style="margin-top:14px">🗂️ Dossiers par enquête</h3>' + ds.map(function (d) {
+    var q = vide ? '' : '<div class="qbox"><input class="in" id="wl-q" type="search" value="' + esc(S.qSuivi || '') + '" placeholder="Chercher un chercheur, une institution, un article, un objet de mail…" autocomplete="off" enterkeyhint="search"></div>';
+    return intro + porteeHTML() + q + '<div id="wl-suivi-res">' + suiviRes() + '</div>';
+  }
+  function suiviRes() {
+    var cols = [['brouillon', '🟠 À valider'], ['envoyé', '📨 Envoyés'], ['a répondu', '📬 Réponses'], ['inséré', '✅ Cités']];
+    var list = vuesQ(), qq = String(S.qSuivi || '').trim();
+    if (list.some(estRebond)) cols.push(['rebond', '✉️ Adresses invalides']);
+    var bySt = function (st) { return list.filter(function (f) { return f.statut === st; }); };
+    var ds = dossiers(list);
+    var dosHTML = (qq ? '<p class="muted">' + list.length + ' fiche' + pl(list.length) + ' trouvée' + pl(list.length) + ' pour « ' + esc(qq) + ' »</p>' : '') + (ds.length ? '<h3 style="margin-top:14px">🗂️ Dossiers par enquête</h3>' + ds.map(function (d) {
       return '<div class="dossier" id="dossier-' + esc(d.id || 'sans') + '"><div class="dh"><b>📰 ' + esc(d.titre) + '</b>' + avancement(d.fiches) + '</div><div class="muted" style="font-size:12.5px">' + esc(d.fiches.map(function (f) { return f.contact.nom; }).join(' · ')) + ' — ' + origines(d.fiches) + (d.id && art(d.id) ? ' · <a href="#" data-act="pick-art" data-id="' + esc(d.id) + '">en faire l’article en cours</a>' : '') + '</div></div>';
-    }).join('') + '<h3 style="margin-top:18px">Par étape</h3>' : '';
-    return intro + porteeHTML() + dosHTML + '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
-      var fs = by(c[0]);
+    }).join('') + '<h3 style="margin-top:18px">Par étape</h3>' : '');
+    return dosHTML + '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
+      var fs = bySt(c[0]);
       return '<div class="col"><h4>' + c[1] + ' <span class="tag">' + fs.length + '</span></h4><div class="dos">' + (fs.map(function (f) {
-        var x = c[0] === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) ? ' · <b>relance possible</b>' : '') + '</div>' : c[0] === 'a répondu' ? '<div class="su">réponse ' + esc(when(f.reponse_le)) + '</div>' : '';
+        var x = c[0] === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) && !relancePrete(f) ? ' · <b>relance possible</b>' : '') + '</div>' : c[0] === 'a répondu' ? '<div class="su">réponse ' + esc(when(f.reponse_le)) + '</div>' : c[0] === 'rebond' ? '<div class="su">' + esc(f.rebond_motif || 'le serveur du destinataire a refusé le mail') + '</div>' : '';
         return dcard(f, x);
       }).join('') || '<div class="muted">Rien ici.</div>') + '</div></div>';
     }).join('') + '</div>';
@@ -999,13 +1040,14 @@
     if (deja.length) h += '<div class="box" style="border-color:rgba(255,190,90,.45)"><b>Déjà lancé pour cet article : ' + deja.length + ' demande' + pl(deja.length) + '</b> (' + origines(deja) + ')<div style="margin:6px 0">' + avancement(deja) + '</div><div class="muted">' + esc(deja.map(function (f) { return f.contact.nom + ' (' + qui(f) + ')'; }).join(' · ')) + '</div>' +
       '<div class="row" style="margin-top:8px"><button class="btn small" data-act="dossier" data-id="' + esc(S.art) + '">🗂️ Voir le dossier</button></div><p class="muted" style="margin:8px 0 0">Vous pouvez quand même ajouter une personne ci-dessous.</p></div>';
     h += '<h3>1 · Qui interroger ?</h3>';
-    if (S.contact) h += '<div class="box">' + contactForm('c', S.contact) + '<div class="row" style="margin-top:10px"><button class="btn small" data-act="contact-clear">Changer de personne</button></div></div>';
+    if (S.contact) h += dejaHTML(dejaContacte(S.contact.email), true) + '<div class="box">' + contactForm('c', S.contact) + '<div class="row" style="margin-top:10px"><button class="btn small" data-act="contact-clear">Changer de personne</button></div></div>';
     else h += '<div class="row"><button class="btn" data-act="find-contacts"' + (busy ? ' disabled' : '') + '>🔎 Trouver les chercheurs de l’article</button><button class="btn small" data-act="contact-new">＋ Saisir un contact</button></div><p class="muted">La recherche prend une trentaine de secondes : l’Assistant vérifie sur le web qui a mené les travaux cités, et ne donne une adresse que si elle est publiée officiellement.</p>';
     if (S.contacts && S.contacts.length && !S.contact) {
       h += S.contacts.map(function (c, i) {
         return '<div class="ct"><b>' + esc(c.nom) + '</b> <span class="tag">' + esc(c.langue === 'en' ? 'anglais' : 'français') + '</span><div class="w">' + esc([c.role, c.institution].filter(Boolean).join(', ')) + '</div>' +
           '<div class="w">' + esc(c.pourquoi || '') + '</div>' +
           '<div class="w">' + (c.email ? '✉️ ' + esc(c.email) + (c.source_email ? ' · <a href="' + url(c.source_email) + '" target="_blank" rel="noopener">source</a>' : '') : '✉️ adresse non publiée · ' + esc(c.ou_trouver || '')) + '</div>' +
+          (function (dj) { return dj.length ? '<div class="w" style="color:#ffd27a">⚠️ Déjà contacté ' + (dj[0].envoye_le ? 'le ' + esc(day(dj[0].envoye_le)) : '(mail non envoyé)') + ' pour « ' + esc(dj[0].article_titre || 'sans article') + ' »' + (dj.length > 1 ? ' et ' + (dj.length - 1) + ' autre' + pl(dj.length - 1) : '') + '</div>' : ''; })(dejaContacte(c.email)) +
           '<div class="row" style="margin-top:8px"><button class="btn small go" data-act="contact-pick" data-i="' + i + '">Choisir</button></div></div>';
       }).join('');
     }
@@ -1031,7 +1073,8 @@
     var h = head('📮', 'La Secrétaire', '<span class="led ' + o.s + '"></span>' + esc(o.why));
     h += '<div class="pb"><p class="muted">Elle rédige vos mails, vous les fait relire, puis les envoie depuis votre adresse Posthumain. Rien ne part sans votre validation.</p>';
     if (!me.branchee) h += '<div class="box warn">Votre boîte mail n’est pas encore branchée au Writinglab : vous pouvez préparer et relire vos mails, l’envoi sera possible dès qu’elle le sera.</div>';
-    var v = by('brouillon'), actifs = vues().filter(function (f) { return f.statut !== 'inséré'; }), ds = dossiers(actifs);
+    var v = by('brouillon'), actifs = vues().filter(function (f) { return f.statut !== 'inséré'; }), ds = dossiers(actifs), rp = relancesPretes();
+    if (rp.length) h += '<h3>⏰ Relances prêtes (' + rp.length + ')</h3><p class="muted">Ces chercheurs n’ont pas répondu : une relance est prête, dans le même fil que le premier mail. Ouvrez la fiche pour la relire et l’envoyer.</p><div class="dos">' + rp.map(function (f) { return dcard(f, '<div class="su">envoyé ' + esc(when(f.envoye_le)) + '</div>'); }).join('') + '</div>';
     S.dosOuvert = S.dosOuvert || {};
     h += '<h3>Dossiers en cours (' + ds.length + ') · ' + v.length + ' mail' + pl(v.length) + ' à valider</h3>' + porteeHTML() +
       (ds.length > 1 ? '<div class="row" style="gap:6px;margin:-4px 0 8px"><span class="chip" data-act="dos-tout" data-id="1">▾ Tout déplier</span><span class="chip" data-act="dos-tout" data-id="0">▸ Tout replier</span></div>' : '') +
@@ -1042,7 +1085,7 @@
         return '<div class="dossier' + (ouvert ? ' open' : '') + (S.dosFocus === k ? ' flash' : '') + '" id="sdos-' + esc(k) + '"><div class="dh" data-act="dos-toggle" data-id="' + esc(k) + '"><b>' + (ouvert ? '▾' : '▸') + ' 📰 ' + esc(d.titre) + '</b>' + avancement(d.fiches) + '</div>' +
           (ouvert ? '<div class="dos">' + tri.map(function (f) { return dcard(f, f.statut === 'brouillon' ? '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>' : ''); }).join('') + '</div>' + (d.id && art(d.id) ? '<div class="row" style="margin-top:6px"><button class="btn small" data-act="pick-art" data-id="' + esc(d.id) + '">📰 En faire l’article en cours</button></div>' : '') : '') + '</div>';
       }).join('') || '<div class="muted">Aucun dossier en cours.</div>');
-    h += '<h3>Écrire à quelqu’un</h3><p class="muted">Pour une demande directe (sans passer par l’Assistant) : dites ce que vous voulez, elle rédige.</p>' + contactForm('l', S.libre) +
+    h += '<h3>Écrire à quelqu’un</h3><p class="muted">Pour une demande directe (sans passer par l’Assistant) : dites ce que vous voulez, elle rédige.</p>' + contactForm('l', S.libre) + '<div id="wl-deja-l">' + dejaHTML(dejaContacte(S.libre && S.libre.email), true) + '</div>' +
       '<label class="f">Ce que vous voulez lui dire ou lui demander</label><textarea class="in" data-l="consigne" rows="4" placeholder="ex. lui demander s’il accepterait un appel de 15 minutes cette semaine sur son étude">' + esc(S.libre.consigne) + '</textarea>' +
       '<label class="f">Échéance (facultatif)</label><input class="in" data-l="echeance" value="' + esc(S.libre.echeance) + '">' +
       '<label class="muted" style="display:flex;gap:6px;align-items:center;margin-top:10px"><input type="checkbox" id="wl-libre-art"' + (S.art ? ' checked' : ' disabled') + '> lier à l’article en cours</label>' +
@@ -1052,12 +1095,19 @@
   function panelCourrier() {
     var p = P('courrier'), o = stOf(p);
     var h = head('📬', 'Le Courrier', '<span class="led ' + o.s + '"></span>' + esc(o.why));
-    h += '<div class="pb"><p class="muted">Il surveille les quatre boîtes en continu et range chaque réponse dans la bonne fiche dès qu’elle arrive.</p><button class="btn" data-act="relever">↻ Actualiser</button>';
-    var r = by('a répondu'), e = by('envoyé'), c = by('inséré');
+    h += '<div class="pb"><p class="muted">Il surveille les quatre boîtes en continu et range chaque réponse dans la bonne fiche dès qu’elle arrive. Il repère aussi les adresses refusées.</p><button class="btn" data-act="relever">↻ Actualiser</button>' +
+      '<div class="qbox"><input class="in" id="wl-qc" type="search" value="' + esc(S.qCour || '') + '" placeholder="Chercher un chercheur, une institution, un article…" autocomplete="off" enterkeyhint="search"></div>';
+    return h + '<div id="wl-cour-res">' + courrierRes() + '</div></div>';
+  }
+  function courrierRes() {
+    var l = vues().filter(function (f) { return cherche(f, S.qCour); }), st = function (x) { return l.filter(function (f) { return f.statut === x; }); };
+    var r = st('a répondu'), e = st('envoyé'), c = st('inséré'), rb = l.filter(estRebond), h = '';
+    if (String(S.qCour || '').trim()) h += '<p class="muted">' + l.length + ' fiche' + pl(l.length) + ' trouvée' + pl(l.length) + '</p>';
     h += '<h3>Réponses à traiter (' + r.length + ')</h3><div class="dos">' + (r.map(function (f) { return dcard(f, '<div class="su">reçue ' + esc(when(f.reponse_le)) + '</div>'); }).join('') || '<div class="muted">Pas de nouvelle réponse.</div>') + '</div>';
-    h += '<h3>En attente de réponse (' + e.length + ')</h3><div class="dos">' + (e.map(function (f) { return dcard(f, '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) ? ' · <b>relance possible</b>' : '') + '</div>'); }).join('') || '<div class="muted">Rien en attente.</div>') + '</div>';
+    if (rb.length) h += '<h3>✉️ Adresses invalides (' + rb.length + ')</h3><div class="dos">' + rb.map(function (f) { return dcard(f, '<div class="su">' + esc(f.rebond_motif || 'mail refusé par le serveur du destinataire') + (f.rebond_le ? ' · ' + esc(when(f.rebond_le)) : '') + '</div>'); }).join('') + '</div>';
+    h += '<h3>En attente de réponse (' + e.length + ')</h3><div class="dos">' + (e.map(function (f) { return dcard(f, '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) && !relancePrete(f) ? ' · <b>relance possible</b>' : '') + '</div>'); }).join('') || '<div class="muted">Rien en attente.</div>') + '</div>';
     if (c.length) h += '<h3>Déjà cités (' + c.length + ')</h3><div class="dos">' + c.slice(0, 8).map(function (f) { return dcard(f); }).join('') + '</div>';
-    return h + '</div>';
+    return h;
   }
   function panelArticles() {
     var h = head('📰', 'Le Marbre', 'Les brouillons et articles programmés de Ghost');
@@ -1084,7 +1134,7 @@
   function panelChef() {
     var me = D().me, h = head('🧐', 'Bureau du rédacteur en chef', me.chef ? 'Votre bureau' : esc(P('chef').nom));
     if (!me.chef) return h + '<div class="pb"><p class="muted">Pour lui écrire, passez par l’interphone.</p><button class="btn" data-act="tab" data-tab="interphone">📞 Interphone</button></div>';
-    h += '<div class="pb"><p class="muted">Toute la rédaction d’un coup d’œil : qui a écrit à qui, ce qui attend une validation, ce qui a été cité.</p>';
+    h += '<div class="pb"><p class="muted">Toute la rédaction d’un coup d’œil : qui a écrit à qui, ce qui attend une validation, ce qui a été cité.</p><div class="row" style="margin:0 0 6px"><button class="btn go" data-act="bord">📊 Tableau de bord</button></div>';
     var eq = (D().equipe || []).filter(function (w) { return w.role !== 'chef'; });
     h += '<h3>L’équipe</h3>' + ((eq.length ? eq : []).map(function (w) {
       var fs = D().fiches.filter(function (f) { return f.redacteur === w.id; });
@@ -1138,6 +1188,7 @@
     var h = '<div class="dtop"><span class="em">📮</span><div><div class="nm">Mail à valider</div><div class="st">' + og[0] + ' ' + (og[1] === 'Express' ? 'préparé en express' : og[1] === 'Assistant' ? 'questions de l’Assistant, mail de la Secrétaire' : 'rédigé par la Secrétaire') + ' · lancé par ' + esc(qui(f)) + ' · ' + esc(when(f.maj)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     h += '<div class="paper"><div class="kick">Relisez, corrigez si besoin, puis validez</div>' +
       '<div class="meta">À : <b>' + esc(f.contact.nom) + '</b> ' + (okMail ? '&lt;' + esc(f.contact.email) + '&gt;' : '<span class="tag a">adresse manquante</span>') + '<br>📰 ' + esc(f.article_titre || 'sans article') + ' · ' + (f.langue === 'en' ? 'en anglais' : 'en français') + '</div>';
+    h += dejaHTML(dejaContacte(f.contact.email, f.fiche_id));
     if (!okMail) h += '<div class="warn">Il manque l’adresse e-mail du contact.<label>Adresse e-mail</label><input class="pin" id="wl-v-email" type="email" inputmode="email" placeholder="prenom.nom@universite.edu"><div class="acts"><button data-act="v-email" data-id="' + esc(f.fiche_id) + '">Enregistrer l’adresse</button></div></div>';
     h += '<label>Objet</label><input class="pin sub" id="wl-v-sujet" value="' + esc(ed.sujet) + '">' +
       '<label>Message</label><textarea class="pin big" id="wl-v-corps">' + esc(ed.corps) + '</textarea>' + sigApercu(f) +
@@ -1156,7 +1207,11 @@
     var h = '<div class="dtop"><span class="em">🗂️</span><div><div class="nm">' + esc(f.contact.nom) + '</div><div class="st">' + esc((STATUTS[f.statut] || ['', f.statut])[1]) + ' · fiche de ' + esc(w.nom) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     var rw = peut(f);
     h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + ' · ' + origine(f).join(' ') + ' · lancée par ' + esc(qui(f)) + '</div><h1>' + esc(f.contact.nom) + '</h1>' + parcoursHTML(f) + (rw ? '' : lectureSeule('fiche de ' + membre(f.redacteur).nom)) +
-      '<div class="meta">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + (f.contact.email ? '<br>✉️ ' + esc(f.contact.email) : '') + '<br>📰 ' + esc(f.article_titre || 'sans article') + '</div>';
+      '<div class="meta">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + (f.contact.email ? '<br>✉️ ' + esc(f.contact.email) : '') + '<br>📰 ' + esc(f.article_titre || 'sans article') + (relanceInfo(f) ? '<br>🔁 ' + esc(relanceInfo(f)) : '') + '</div>';
+    if (estRebond(f)) h += '<div class="rebond">✉️ <b>Adresse invalide</b> : le mail n’a pas été distribué' + (f.rebond_le ? ' (' + esc(when(f.rebond_le)) + ')' : '') + '.' + (f.rebond_motif ? '<br><span style="opacity:.85">Motif : ' + esc(f.rebond_motif) + '</span>' : '') +
+      '<br>Vérifiez l’adresse (page de l’institution, dernière publication), puis écrivez-lui à nouveau depuis la Secrétaire (« Écrire à quelqu’un ») avec la bonne adresse.</div>';
+    h += dejaHTML(dejaContacte(f.contact.email, f.fiche_id));
+    if (relancePrete(f) && rw) h += relanceBlock(f);
     if (f.statut === 'brouillon' && rw) h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
     // la réponse et son insertion dans l'article
     if (f.reponse) {
@@ -1166,7 +1221,7 @@
       else h += '<p class="lead">Cette fiche n’est liée à aucun article : rattachez-la depuis l’Assistant pour pouvoir insérer la réponse.</p>';
     } else if (f.statut === 'envoyé' && rw) {
       h += '<h2>Réponse</h2><p class="lead">Pas encore de réponse (mail envoyé ' + esc(when(f.envoye_le)) + '). Le Courrier la rangera ici dès qu’elle arrive.</p>' +
-        '<div class="acts">' + (relancable(f) ? '<button data-act="relance" data-id="' + esc(f.fiche_id) + '"' + (S.busy.secretaire ? ' disabled' : '') + '>🔁 Faire préparer une relance</button>' : '') +
+        '<div class="acts">' + (relancable(f) && !relancePrete(f) ? '<button data-act="relance" data-id="' + esc(f.fiche_id) + '"' + (S.busy.secretaire ? ' disabled' : '') + '>🔁 Faire préparer une relance</button>' : '') +
         '<button data-act="colle" data-id="' + esc(f.fiche_id) + '">📝 Réponse reçue ailleurs (téléphone, autre adresse)</button></div>';
     }
     if (S.colle) h += '<label>Collez ou résumez la réponse</label><textarea class="pin" id="wl-colle"></textarea><div class="acts"><button class="go" data-act="colle-go" data-id="' + esc(f.fiche_id) + '">Enregistrer la réponse</button></div>';
@@ -1183,6 +1238,14 @@
   // Citations (21/10/2026) : l'Assistant (Opus) propose 1 à 5 extraits, chacun à sa place dans l'article (après un paragraphe simple,
   // jamais dans une carte, un encart HTML, une vidéo ou le paywall). Chaque proposition se montre en contexte : paragraphe d'avant (pâle),
   // le bloc tel qu'il apparaîtra, paragraphe d'après (pâle). On insère une à une, ou tout d'un coup.
+  // Relance préparée par les coulisses : relue, corrigée si besoin, puis envoyée dans le fil du premier mail.
+  function relanceBlock(f) {
+    var w = membre(f.redacteur), ed = (S.rEdit && S.rEdit[f.fiche_id]) || { sujet: f.relance_sujet || (/^re\s*:/i.test(f.mail_sujet || '') ? f.mail_sujet : 'Re: ' + (f.mail_sujet || '')), corps: f.relance_corps || '' };
+    return '<div class="relance"><h2>⏰ Relance prête</h2><p class="lead" style="margin-top:0">Pas de réponse depuis l’envoi (' + esc(when(f.envoye_le)) + '). La Secrétaire a préparé une relance courte, qui partira <b>dans le même fil</b> que le premier mail. Relisez, corrigez si besoin.</p>' +
+      '<label>Objet</label><input class="pin sub" id="wl-r-sujet" value="' + esc(ed.sujet) + '"><label>Message</label><textarea class="pin big" id="wl-r-corps">' + esc(ed.corps) + '</textarea>' + sigApercu(f) +
+      (w.branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : l’envoi n’est pas possible pour l’instant.</div>') +
+      '<div class="acts"><button class="go" data-act="r-send" data-id="' + esc(f.fiche_id) + '"' + (w.branchee && !S.busy.secretaire ? '' : ' disabled') + '>📨 Envoyer la relance</button><button data-act="r-skip" data-id="' + esc(f.fiche_id) + '">Pas maintenant</button></div></div>';
+  }
   function sigApercu(f) {
     var sg = S.sigs && S.sigs[f.redacteur]; if (!sg) return '';
     var lg = f.langue === 'en' ? 'en' : 'fr';
@@ -1327,14 +1390,76 @@
     h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div></div>';
     return h + '</div>';
   }
+  // Tableau de bord du rédacteur en chef : tout est calculé ici depuis les fiches, sauf le coût IA (compté par les coulisses).
+  var MOISC = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  function moisDe(d) { var p = new Intl.DateTimeFormat('fr-CA', { timeZone: TZ, year: 'numeric', month: '2-digit' }).format(new Date(d)); return p.slice(0, 7); }
+  function moisNom(m) { var x = String(m || '').split('-'); return x.length === 2 ? MOISC[Number(x[1]) - 1] + ' ' + x[0].slice(2) : m; }
+  function derniersMois(n) { var out = [], d = new Date(); for (var i = n - 1; i >= 0; i--) { var x = new Date(d.getFullYear(), d.getMonth() - i, 15); out.push(x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0')); } return out; }
+  function dateCitation(f) {
+    var e = (f.historique || []).filter(function (x) { return /cit|insér/i.test(String(x.e || '')); }).pop();
+    return e ? e.t : f.maj;
+  }
+  function chargerCouts() {
+    if (S.coutsP) return S.coutsP;
+    var fin = function (r) { S.coutsP = null; S.couts = r && r.ok ? r : { ok: false, why: (r && r.why) || 'indisponible' }; if (S.panel === 'compta') paintPanel(); };
+    S.coutsP = S.call({ mode: 'couts', data: '{}' }).then(function (r) { if (r && r.ok) return r; return pushApi({ action: 'couts' }); }, function () { return pushApi({ action: 'couts' }); }).then(fin, function () { fin(null); });
+    return S.coutsP;
+  }
+  function barres(rows, fmt) {
+    var mx = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([0.0001]));
+    return '<div class="bars">' + rows.map(function (r) { return '<div class="bar"><span class="lb">' + esc(r[0]) + '</span><span><i style="width:' + Math.round(100 * r[1] / mx) + '%"></i></span><em>' + esc(fmt(r[1])) + '</em></div>'; }).join('') + '</div>';
+  }
+  function bordHTML() {
+    var fs = D().fiches || [], mc = moisDe(Date.now());
+    var env = fs.filter(function (f) { return f.envoye_le; }), envM = env.filter(function (f) { return moisDe(f.envoye_le) === mc; });
+    var rep = env.filter(function (f) { return f.reponse_le; });
+    var delais = rep.map(function (f) { return new Date(f.reponse_le) - new Date(f.envoye_le); }).filter(function (x) { return x > 0; });
+    var moy = delais.length ? delais.reduce(function (a, b) { return a + b; }, 0) / delais.length : 0;
+    var delaiTxt = !delais.length ? '—' : moy < 864e5 ? Math.max(1, Math.round(moy / 36e5)) + ' h' : (moy / 864e5).toFixed(1).replace('.', ',') + ' j';
+    var cites = fs.filter(function (f) { return f.statut === 'inséré'; });
+    var nRel = fs.reduce(function (a, f) { return a + (Number(f.relances) || 0); }, 0), nReb = fs.filter(estRebond).length;
+    var kpi = function (v, l) { return '<div class="kpi"><b>' + v + '</b><span>' + l + '</span></div>'; };
+    var h = '<p class="muted">Vue d’ensemble des demandes d’interview de toute la rédaction (fiches non archivées).</p><div class="kpis">' +
+      kpi(envM.length, 'demandes envoyées en ' + moisNom(mc) + ' · ' + env.length + ' au total') +
+      kpi(env.length ? Math.round(100 * rep.length / env.length) + ' %' : '—', 'taux de réponse (' + rep.length + '/' + env.length + ')') +
+      kpi(delaiTxt, 'délai moyen de réponse') +
+      kpi(cites.length, 'citations insérées') +
+      kpi(nRel, 'relance' + pl(nRel) + ' envoyée' + pl(nRel)) +
+      kpi(nReb, 'adresse' + pl(nReb) + ' invalide' + pl(nReb)) + '</div>';
+    var ms = derniersMois(6);
+    h += '<div class="cz-t">✅ Citations insérées par mois</div>' + barres(ms.map(function (m) { return [moisNom(m), cites.filter(function (f) { return moisDe(dateCitation(f)) === m; }).length]; }), function (v) { return String(v); });
+    var parArt = {}; cites.forEach(function (f) { var k = f.article_titre || 'Sans article'; parArt[k] = (parArt[k] || 0) + 1; });
+    var ta = Object.keys(parArt).map(function (k) { return [k, parArt[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
+    if (ta.length) h += '<div class="cz-t">📰 Citations par article</div>' + barres(ta, function (v) { return String(v); });
+    var parW = {}; env.forEach(function (f) { var k = membre(f.redacteur).nom; parW[k] = parW[k] || [0, 0]; parW[k][0]++; if (f.reponse_le) parW[k][1]++; });
+    var tw = Object.keys(parW);
+    if (tw.length > 1) h += '<div class="cz-t">👥 Par journaliste</div><div class="bars">' + tw.map(function (k) { return '<div class="bar"><span class="lb">' + esc(k) + '</span><span class="muted" style="font-size:13px">' + parW[k][0] + ' envoyée' + pl(parW[k][0]) + ' · ' + parW[k][1] + ' réponse' + pl(parW[k][1]) + '</span><em>' + Math.round(100 * parW[k][1] / parW[k][0]) + ' %</em></div>'; }).join('') + '</div>';
+    // coût IA
+    var C = S.couts;
+    h += '<div class="cz-t">🤖 Coût IA</div>';
+    if (!C) { chargerCouts(); h += '<p class="muted">Calcul en cours…</p>'; }
+    else if (!C.ok) h += '<p class="muted">Le compteur de coût n’est pas encore disponible (' + esc(C.why || 'indisponible') + ').</p>';
+    else {
+      var eu = function (v) { return (Math.round(Number(v || 0) * 100) / 100).toFixed(2).replace('.', ',') + ' €'; };
+      var U = C.par_usage || {}, noms = { preparation: '🧠 Préparation', dictee: '🎙️ Dictée', citations: '✅ Citations', prospection: '🔎 Prospection', autre: '· Autre' };
+      h += '<div class="kpis">' + kpi(eu(C.total_eur), 'ce mois-ci' + (C.mois ? ' (' + esc(moisNom(C.mois)) + ')' : '')) + '</div>';
+      var ru = Object.keys(noms).filter(function (k) { return Number(U[k]) > 0; }).map(function (k) { return [noms[k], Number(U[k])]; });
+      if (ru.length) h += barres(ru, eu);
+      var pm = (C.par_mois || []).slice(-6);
+      if (pm.length) h += '<div class="cz-s" style="margin-top:10px">6 derniers mois</div>' + barres(pm.map(function (x) { return [moisNom(x.mois), Number(x.total_eur) || 0]; }), eu);
+    }
+    return h;
+  }
   function panelCompta() {
     var r = S.pieces || { pieces: [], totaux: {}, soldes: {}, conversions: [] }, me = D().me, tx = Number(r.taux || 0), o = stOf(P('compta'));
     var h = head('🧮', 'Le Comptable', '<span class="led ' + o.s + '"></span>' + esc(o.why)) + '<div class="pb">';
     // Deux onglets : les pièces (caisses, à facturer, barème) et les factures mensuelles.
-    var ct = S.ctab === 'factures' ? 'factures' : 'pieces';
+    var ct = S.ctab === 'factures' ? 'factures' : S.ctab === 'bord' && me.chef ? 'bord' : 'pieces';
     var nf = ((S.factures || {}).factures || []).filter(function (f) { return f.statut !== 'payee'; }).length;
-    h += '<div class="seg ctabs"><button data-act="ct-tab" data-id="pieces" class="' + (ct === 'pieces' ? 'on' : '') + '">🪙 Pièces</button><button data-act="ct-tab" data-id="factures" class="' + (ct === 'factures' ? 'on' : '') + '">🧾 Factures' + (nf ? ' · ' + nf + ' à régler' : '') + '</button></div>';
+    h += '<div class="seg ctabs"><button data-act="ct-tab" data-id="pieces" class="' + (ct === 'pieces' ? 'on' : '') + '">🪙 Pièces</button><button data-act="ct-tab" data-id="factures" class="' + (ct === 'factures' ? 'on' : '') + '">🧾 Factures' + (nf ? ' · ' + nf : '') + '</button>' +
+      (me.chef ? '<button data-act="ct-tab" data-id="bord" class="' + (ct === 'bord' ? 'on' : '') + '">📊 Tableau de bord</button>' : '') + '</div>';
     if (ct === 'factures') return h + facturesHTML() + '</div>';
+    if (ct === 'bord') return h + bordHTML() + '</div>';
     if (!S.pieces) return h + '<p class="muted">Le Comptable ouvre ses registres…</p></div>';
     h += '<p class="muted">Chaque parcours complet (interview envoyée depuis le lab, réponse du chercheur, citation insérée dans l’article) rapporte des pièces, rangées dans la caisse de la journaliste.</p>';
     gagnants().forEach(function (w) {
@@ -1575,6 +1700,19 @@
       case 'relance':
         work('secretaire', 'prépare la relance', api('rediger', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '', type: 'relance' })).then(function () { return refresh(true); }).then(function () { openDoc('valid', id); toast('🔁 Relance prête : relisez-la.'); });
         break;
+      case 'r-send':
+        var fr = fiche(id), rs = val('wl-r-sujet').trim(), rc = val('wl-r-corps').trim();
+        if (!fr) break;
+        if (!rs || !rc) { toast('Objet ou message vide.', true); break; }
+        var ckr = S.clicking; confirmer('Envoyer la relance à ' + fr.contact.nom + ' (' + fr.contact.email + ') ?\nElle part dans le même fil que le premier mail.').then(function (ok) { if (!ok) return; S.clicking = ckr; setTimeout(function () { S.clicking = null; }, 0);
+          work('secretaire', 'envoie la relance', api('relance_envoyer', { fiche_id: id, sujet: rs, corps: rc })).then(function () {
+            if (S.rEdit) delete S.rEdit[id]; toast('📨 Relance envoyée à ' + fr.contact.nom + '.'); return refresh(true);
+          }).catch(function () {});
+        });
+        break;
+      case 'r-skip':
+        api('relance_ignorer', { fiche_id: id }).then(function () { if (S.rEdit) delete S.rEdit[id]; return refresh(true); }).then(function () { toast('⏰ Relance mise de côté.'); }, function (e) { toast('⚠️ ' + e.message, true); });
+        break;
       case 'colle': S.colle = !S.colle; paintDoc(); break;
       case 'colle-go':
         var txt = val('wl-colle').trim(); if (!txt) break;
@@ -1620,7 +1758,8 @@
         break;
       // interphone
       case 'pieces': masquerTip(); closeDoc(); S.ctab = 'pieces'; openPanel('compta'); break;
-      case 'ct-tab': S.ctab = t.getAttribute('data-id') === 'factures' ? 'factures' : 'pieces'; if (S.ctab === 'factures') chargerFactures(); paintPanel(); break;
+      case 'bord': masquerTip(); closeDoc(); S.ctab = 'bord'; openPanel('compta'); chargerCouts(); break;
+      case 'ct-tab': var ctv = t.getAttribute('data-id'); S.ctab = ctv === 'factures' || ctv === 'bord' ? ctv : 'pieces'; if (S.ctab === 'factures') chargerFactures(); if (S.ctab === 'bord') chargerCouts(); paintPanel(); break;
       case 'parametres': closeDoc(); openPanel('parametres'); break;
       case 'voir-facture': masquerTip(); closeDoc(); S.ctab = 'factures'; openPanel('compta'); chargerFactures(); break;
       case 'fa-tarifs':
@@ -1747,8 +1886,11 @@
   function onInput(e) {
     var t = e.target, k;
     if (t.id === 'wl-msg') { S.msgDraft = t.value; return; }
+    if (t.id === 'wl-q') { S.qSuivi = t.value; var rq = S.root.querySelector('#wl-suivi-res'); if (rq) { rq.innerHTML = suiviRes(); markBusy(); } return; }
+    if (t.id === 'wl-qc') { S.qCour = t.value; var rc2 = S.root.querySelector('#wl-cour-res'); if (rc2) { rc2.innerHTML = courrierRes(); markBusy(); } return; }
+    if ((t.id === 'wl-r-sujet' || t.id === 'wl-r-corps') && S.doc) { S.rEdit = S.rEdit || {}; S.rEdit[S.doc.id] = { sujet: val('wl-r-sujet'), corps: val('wl-r-corps') }; return; }
     if ((k = t.getAttribute('data-c')) && S.contact) { S.contact[k] = t.value; saveDraft(); }
-    else if ((k = t.getAttribute('data-l'))) { S.libre[k] = t.value; }
+    else if ((k = t.getAttribute('data-l'))) { S.libre[k] = t.value; if (k === 'email') { var dl = S.root.querySelector('#wl-deja-l'); if (dl) dl.innerHTML = dejaHTML(dejaContacte(t.value), true); } }
     else if ((k = t.getAttribute('data-s'))) { S[k] = t.value; saveDraft(); }
     else if (t.hasAttribute('data-qi')) { var q = S.qs[Number(t.getAttribute('data-qi'))]; if (q) { q.q = t.value; saveDraft(); } }
     else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.ins) { var pp = k.split(':'), pr = S.cit.ins[Number(pp[0])]; if (pr) pr[pp[1]] = t.value; }
@@ -1780,7 +1922,9 @@
     var w = r.querySelector('.wrap');
     var ae = document.activeElement, composing = ae && w.contains(ae) && ae.id === 'wl-msg';
     var gx = {}; ['.floor', '.kan'].forEach(function (q) { var e = w.querySelector(q); if (e) gx[q] = e.scrollLeft; });
+    var qf = ae && w.contains(ae) && ae.id === 'wl-q' ? { a: ae.selectionStart, b: ae.selectionEnd } : null;
     if (!composing) w.innerHTML = S.tab === 'articles' ? viewArticles() : S.tab === 'suivi' ? viewSuivi() : S.tab === 'interphone' ? viewInterphone() : viewBureau();
+    if (qf) { var nq = w.querySelector('#wl-q'); if (nq) { nq.focus({ preventScroll: true }); try { nq.setSelectionRange(qf.a, qf.b); } catch (e) {} } }
     Object.keys(gx).forEach(function (q) { var e = w.querySelector(q); if (e && gx[q]) e.scrollLeft = gx[q]; });
     if (S.tab === 'interphone') { var ms = D().messages; if (ms.length) LS.set('wl-vu', String(ms[ms.length - 1].le)); r.querySelector('.tabs').innerHTML = tabs(); }
     paintPanel(); paintDoc(); markBusy();
@@ -1878,7 +2022,7 @@
     if (h === 'interphone' || h === 'suivi' || h === 'articles') { S.tab = h; render(); }
     else if (h === 'a-interviewer') act('a-interviewer', document.body);
     else if (h === 'sc' || h === 'mk') { S.tab = 'bureau'; render(); openPanel(h); }
-    else if (h === 'factures' || h === 'pieces') { S.tab = 'bureau'; S.ctab = h; render(); openPanel('compta'); }
+    else if (h === 'factures' || h === 'pieces' || h === 'tableau') { S.tab = 'bureau'; S.ctab = h === 'tableau' ? 'bord' : h; render(); openPanel('compta'); }
     else return;
     try { history.replaceState(null, '', location.pathname); } catch (e) {}
   }
