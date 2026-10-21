@@ -552,18 +552,50 @@
       }).join('') || '<div class="muted">Rien ici.</div>') + '</div></div>';
     }).join('') + '</div>';
   }
+  var CATS = [['factures', '🧾 Factures'], ['documents', '📄 Documents'], ['images', '🖼️ Images'], ['contrats', '✍️ Contrats'], ['articles', '📰 Articles'], ['autres', '📦 Autres']];
+  function catNom(c) { var x = CATS.filter(function (k) { return k[0] === c; })[0]; return x ? x[1] : '📦 Autres'; }
+  function taille(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(n / 1024)) + ' Ko'; }
+  function fichierHTML(f) {
+    var img = /^image\//.test(f.type) && f.url;
+    return '<a class="pj" href="' + esc(f.url || '#') + '" target="_blank" rel="noopener" data-stop="1" style="display:flex;gap:10px;align-items:center;margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,190,90,.2);text-decoration:none">' +
+      (img ? '<img src="' + esc(f.url) + '" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:6px">' : '<span style="font-size:24px">📎</span>') +
+      '<span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f3ece0">' + esc(f.nom) + '</b><span class="muted">' + esc(catNom(f.categorie)) + ' · ' + taille(f.taille) + (f.url ? '' : ' · lien expiré, ↻') + '</span></span></a>';
+  }
   function viewInterphone() {
-    var me = D().me.id, ms = D().messages;
+    var me = D().me.id, ms = D().messages, fc = S.filtreCat || '';
+    var fichiers = ms.filter(function (m) { return m.fichier; });
     var list = ms.map(function (m) {
-      return '<div class="bub' + (m.auteur === me ? ' me' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + esc(m.texte) + '</div>';
+      return '<div class="bub' + (m.auteur === me ? ' me' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + '</div>';
     }).join('');
     var a = art(S.art);
-    return '<p class="muted" style="margin-top:14px">Les messages entre la rédaction et le rédacteur en chef. Ils s’affichent à l’ouverture du lab et quand vous revenez sur l’onglet (↻ pour forcer).</p>' +
+    var classeur = fichiers.length ? '<div class="box" style="margin-top:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b style="margin-right:6px">🗂️ Classeur</b>' +
+      '<span class="chip' + (fc ? '' : ' art') + '" data-act="filtre-cat" data-id="">Tout (' + fichiers.length + ')</span>' +
+      CATS.map(function (c) { var n = fichiers.filter(function (m) { return m.fichier.categorie === c[0]; }).length; return n ? '<span class="chip' + (fc === c[0] ? ' art' : '') + '" data-act="filtre-cat" data-id="' + c[0] + '">' + c[1] + ' (' + n + ')</span>' : ''; }).join('') + '</div>' +
+      (fc !== null && S.filtreOuvert ? '<div style="margin-top:8px">' + fichiers.filter(function (m) { return !fc || m.fichier.categorie === fc; }).slice().reverse().map(function (m) { return '<div><span class="muted">' + esc(m.nom) + ' · ' + esc(when(m.le)) + '</span>' + fichierHTML(m.fichier) + '</div>'; }).join('') + '</div>' : '') + '</div>' : '';
+    return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne.</p>' + classeur +
       '<div class="chat">' + (list || '<div class="muted">Pas encore de message.</div>') + '</div>' +
       '<div class="composer"><textarea class="in" id="wl-msg" placeholder="Votre message…" rows="3"></textarea>' +
-      '<div class="row" style="margin-top:8px">' + (a ? '<label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="wl-msg-art"> lié à « ' + esc(a.titre.slice(0, 60)) + ' »</label>' : '') +
+      '<div id="wl-pj-zone">' + pjZone() + '</div>' +
+      '<div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><input type="file" id="wl-pj" style="display:none"><button class="btn" data-act="pj-choisir" type="button">📎 Joindre un fichier</button>' +
+      (a ? '<label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="wl-msg-art"> lié à « ' + esc(a.titre.slice(0, 60)) + ' »</label>' : '') +
       '<span style="flex:1"></span><button class="btn go" data-act="send-msg">Envoyer</button></div></div>';
   }
+  function pjZone() {
+    if (!S.pj) return '';
+    return '<div class="box" style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>📎 <b>' + esc(S.pj.nom) + '</b> <span class="muted">' + taille(S.pj.taille) + '</span></span>' +
+      '<select class="in" id="wl-pj-cat" style="width:auto;flex:0 0 auto">' + CATS.map(function (c) { return '<option value="' + c[0] + '"' + (S.pj.categorie === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select>' +
+      '<button class="btn small" data-act="pj-retirer" type="button">✕ Retirer</button></div>';
+  }
+  function devinerCat(f) {
+    var n = (f.name || '').toLowerCase();
+    if (/factur|invoice|re[cç]u|receipt|note.?de.?frais/.test(n)) return 'factures';
+    if (/contrat|contract|devis/.test(n)) return 'contrats';
+    if (/^image\//.test(f.type)) return 'images';
+    if (/pdf|word|document|text/.test(f.type)) return 'documents';
+    return 'autres';
+  }
+  function majPj() { var z = S.root.querySelector('#wl-pj-zone'); if (z) z.innerHTML = pjZone(); }
+
 
   // ---------- panneaux (le bureau de chaque employé) ----------
   function openPanel(key) { S.panel = key; paintPanel(); var r = S.root; r.querySelector('.panel').classList.add('open'); r.querySelector('.panelbg').classList.add('open'); r.querySelector('.panel').scrollTop = 0; }
@@ -974,10 +1006,17 @@
         break;
       // interphone
       case 'send-msg':
-        var m = val('wl-msg').trim(); if (!m) break;
-        var lien = S.root.querySelector('#wl-msg-art'), a = art(S.art);
-        api('ecrire', { texte: m, article_id: lien && lien.checked && a ? a.id : '', article_titre: lien && lien.checked && a ? a.titre : '' }).then(function () { var ta = S.root.querySelector('#wl-msg'); if (ta) ta.value = ''; return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+        var m = val('wl-msg').trim(), pj = S.pj; if (!m && !pj) break;
+        var lien = S.root.querySelector('#wl-msg-art'), a = art(S.art), cs = S.root.querySelector('#wl-pj-cat');
+        if (pj && cs) pj.categorie = cs.value;
+        api('ecrire', { texte: m, article_id: lien && lien.checked && a ? a.id : '', article_titre: lien && lien.checked && a ? a.titre : '',
+          fichier: pj ? { nom: pj.nom, type: pj.type, data: pj.data } : null, categorie: pj ? pj.categorie : '' }).then(function () {
+          var ta = S.root.querySelector('#wl-msg'); if (ta) { ta.value = ''; ta.blur(); } S.pj = null; majPj(); if (pj) toast('📎 Fichier rangé dans « ' + catNom(pj.categorie) + ' ».'); return refresh(true);
+        }, function (e) { toast('⚠️ ' + e.message, true); });
         break;
+      case 'pj-choisir': var inp = S.root.querySelector('#wl-pj'); if (inp) inp.click(); break;
+      case 'pj-retirer': S.pj = null; majPj(); break;
+      case 'filtre-cat': S.filtreOuvert = !(S.filtreOuvert && (S.filtreCat || '') === (id || '')); S.filtreCat = id || ''; render(); break;
     }
   }
   function onInput(e) {
@@ -1033,6 +1072,17 @@
     });
     r.addEventListener('input', onInput);
     r.addEventListener('change', onInput);
+    r.addEventListener('keydown', function (e) {
+      if (e.target && e.target.id === 'wl-msg' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var b = r.querySelector('[data-act="send-msg"]'); if (b) b.click(); }
+    });
+    r.addEventListener('change', function (e) {
+      if (!e.target || e.target.id !== 'wl-pj' || !e.target.files || !e.target.files[0]) return;
+      var f = e.target.files[0]; e.target.value = '';
+      if (f.size > 10 * 1024 * 1024) { toast('Fichier trop lourd : 10 Mo au plus.', true); return; }
+      var rd = new FileReader();
+      rd.onload = function () { S.pj = { nom: f.name, type: f.type || 'application/octet-stream', taille: f.size, categorie: devinerCat(f), data: String(rd.result).split(',')[1] || '' }; majPj(); };
+      rd.readAsDataURL(f);
+    });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.doc) closeDoc(); else closePanel(); } });
     document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 90000) refresh(true); });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
