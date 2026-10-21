@@ -1224,10 +1224,13 @@
       rd.readAsDataURL(f);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.doc) closeDoc(); else closePanel(); } });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 90000) refresh(true); });
+    // Retour sur l'onglet : une seule relecture si la page n'a rien reçu depuis 5 minutes.
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 300000) refresh(true); });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
-    // la page relit alors l'état. Filet de sécurité : relecture toutes les 5 minutes si la connexion temps réel tombe.
-    setInterval(function () { if (!document.hidden && S.data && Date.now() - S.last > 290000) refresh(true); }, 300000);
+    // la page relit alors l'état. Plus de relecture périodique quand le temps réel est branché (chaque relecture = une exécution n8n) ;
+    // filet de sécurité seulement s'il est coupé : une relecture toutes les 10 minutes.
+    S.rtOk = false;
+    setInterval(function () { if (!S.rtOk && !document.hidden && S.data && Date.now() - S.last > 590000) refresh(true); }, 600000);
     (function sonnette() {
       var sc = document.createElement('script');
       sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
@@ -1236,9 +1239,9 @@
           var sb = window.supabase.createClient('https://jfmzhndapfmvdhphuwfm.supabase.co', 'sb_publishable_3NOP0qHNmvDay5ak1P__XA_ALCUH7du', { auth: { persistSession: false } });
           var t = null;
           sb.channel('writinglab').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wl_signal' }, function () {
-            clearTimeout(t); t = setTimeout(function () { refresh(true); }, 400);
-          }).subscribe();
-        } catch (e) { /* pas de temps réel : la relecture toutes les 5 minutes prend le relais */ }
+            clearTimeout(t); t = setTimeout(function () { refresh(true); }, 1500); // plusieurs changements d'affilée = une seule relecture
+          }).subscribe(function (st) { S.rtOk = st === 'SUBSCRIBED'; });
+        } catch (e) { /* pas de temps réel : la relecture toutes les 10 minutes prend le relais */ }
       };
       document.head.appendChild(sc);
     })();
