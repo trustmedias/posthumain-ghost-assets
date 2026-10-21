@@ -51,6 +51,9 @@
   var JULIEN = { sc: { boite: 'subs', nom: 'Julien · Service client', adr: 'subs@posthumain.com', emoji: '🎧' }, mk: { boite: 'redaction', nom: 'Julien · Marketing', adr: 'redaction@posthumain.com', emoji: '📣' } };
   // Articles du plus récent (dernière modification dans Ghost) au plus ancien : en haut du Marbre, à gauche dans l'onglet Articles.
   function artsRecents() { return D().articles.slice().sort(function (x, y) { return String(y.maj || '').localeCompare(String(x.maj || '')); }); }
+  // Enquêtes premium (brouillons payants) sans aucune fiche de contact : la rédaction doit lancer les interviews.
+  function premium(a) { return ['paid', 'tiers', 'members'].indexOf(String(a.visibilite || '')) >= 0; }
+  function aInterviewer() { return artsRecents().filter(function (a) { return premium(a) && !D().fiches.some(function (f) { return f.article_id === a.id; }); }); }
   function art(id) { return D().articles.filter(function (a) { return a.id === id; })[0] || null; }
   function fiche(id) { return D().fiches.filter(function (f) { return f.fiche_id === id; })[0] || null; }
   function by(st) { return D().fiches.filter(function (f) { return f.statut === st; }); }
@@ -212,6 +215,8 @@
 #wl .chat{display:flex;flex-direction:column;gap:8px;max-width:760px}\
 #wl .bub{max-width:82%;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);white-space:pre-wrap;word-wrap:break-word}\
 #wl .bub.me{align-self:flex-end;background:rgba(0,255,119,.1);border-color:rgba(0,255,119,.3)}\
+#wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
+#wl .box.iv{margin:14px 0 4px;border-color:rgba(0,255,119,.35);background:rgba(0,255,119,.05)}#wl .ivl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}#wl .ivl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
 #wl .bub .who{font-size:11.5px;color:rgba(243,236,224,.55);margin-bottom:3px;white-space:normal}\
 #wl .composer{position:sticky;bottom:0;padding:12px 0;background:linear-gradient(0deg,#0b0a08 70%,rgba(11,10,8,0));max-width:760px}\
 #wl .feed .it{display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13.5px}\
@@ -519,9 +524,11 @@
     return '<div class="logo">WRITINGLAB<small>La rédaction de Posthumain</small></div>' +
       '<div class="chips">' +
       '<span class="chip art" data-act="articles" title="Changer d’article">📰 ' + (a ? esc(a.titre) : 'Choisir l’article en cours') + '</span>' +
+      (aInterviewer().length ? '<span class="chip hot" data-act="a-interviewer">🎙️ ' + aInterviewer().length + ' à interviewer</span>' : '') +
       (v ? '<span class="chip warn" data-act="open-ag" data-ag="secretaire">🟠 ' + v + ' à valider</span>' : '') +
       (r ? '<span class="chip hot" data-act="open-ag" data-ag="courrier">📬 ' + r + ' réponse' + pl(r) + '</span>' : '') +
       (e ? '<span class="chip" data-act="open-ag" data-ag="courrier">⏳ ' + e + ' en attente</span>' : '') +
+      '<span class="chip" data-act="push" title="Notifications du lab"' + (S.pushOk ? '' : ' style="opacity:.6"') + '>' + (S.pushOk ? '🔔' : '🔕') + '</span>' +
       '<span class="chip" data-act="refresh" title="Recharger">↻</span>' +
       '<span class="chip" data-act="open-aide" title="Configurer son adresse @posthumain.com dans Outlook" style="opacity:.6">✉︎ ?</span></div>' +
       '<div class="clock">' + fClock.format(new Date()) + '</div>';
@@ -538,18 +545,25 @@
       var o = stOf(p), n = pileOf(p).length;
       return '<div class="card" data-act="open-ag" data-ag="' + esc(p.key) + '"><div class="h"><span class="em">' + p.emoji + '</span><span style="flex:1">' + esc(p.nom) + (n ? ' <span class="tag ' + (o.s === 'on' ? 'g' : 'a') + '">' + n + '</span>' : '') + '</span><span class="led ' + o.s + '"></span></div><div class="s">' + esc(o.why) + '</div></div>';
     }).join('');
-    return '<div class="floor">' + officeSVG() + '</div><div class="hint">Touchez un employé ou les fiches au-dessus de sa tête. Vert : au travail ou réponse arrivée · orange : quelque chose vous attend.</div><div class="grid">' + cards + '</div>';
+    return bandeauInterviews() + '<div class="floor">' + officeSVG() + '</div><div class="hint">Touchez un employé ou les fiches au-dessus de sa tête. Vert : au travail ou réponse arrivée · orange : quelque chose vous attend.</div><div class="grid">' + cards + '</div>';
+  }
+  function bandeauInterviews() {
+    var l = aInterviewer(); if (!l.length) return '';
+    return '<div class="box iv"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><b>🎙️ ' + l.length + ' enquête' + pl(l.length) + ' attend' + (l.length > 1 ? 'ent' : '') + ' ses interviews</b><button class="btn small" data-act="a-interviewer">Voir la file</button></div>' +
+      l.slice(0, 3).map(function (a) { return '<div class="ivl"><span>' + esc(a.titre) + '</span><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Lancer les interviews</button></div>'; }).join('') + '</div>';
   }
   function artCard(a) {
     var n = D().fiches.filter(function (f) { return f.article_id === a.id; }).length;
     return '<div class="ar' + (a.id === S.art ? ' sel' : '') + '" data-act="pick-art" data-id="' + esc(a.id) + '"><div class="ph">' + (a.image ? '<img loading="lazy" alt="" src="' + esc(a.image) + '">' : '📰') + '</div><div class="b"><div class="ti">' + esc(a.titre) + '</div><div class="me">' +
-      '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>' + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
-      '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a></div></div></div>';
+      '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>' + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
+      '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) && !n ? '<div style="margin-top:8px"><button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Lancer les interviews</button></div>' : '') + '</div></div></div>';
   }
   function viewArticles() {
     var as = artsRecents();
     if (D().ghost && D().ghost !== 'ok') return '<div class="box warn" style="margin-top:14px">⚠️ ' + esc(D().ghost) + '</div>';
-    return '<p class="muted" style="margin-top:14px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations. Brouillons et articles programmés de Ghost :</p><div class="arts">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon dans Ghost.</div>') + '</div>';
+    var iv = aInterviewer();
+    return (iv.length ? '<h3 id="a-interviewer" style="margin-top:16px">🎙️ À interviewer (' + iv.length + ')</h3><p class="muted">Enquêtes premium sans aucune demande d’interview. « Lancer les interviews » : l’Assistant trouve 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Vous n’avez plus qu’à les relire et les valider (1 à 2 minutes de préparation).</p><div class="arts">' + iv.map(artCard).join('') + '</div><h3 style="margin-top:22px">📰 Tous les brouillons</h3>' : '') +
+      '<p class="muted" style="margin-top:14px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations. Brouillons et articles programmés de Ghost :</p><div class="arts">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon dans Ghost.</div>') + '</div>';
   }
   function dcard(f, extra) {
     var s = STATUTS[f.statut] || ['·', f.statut, ''];
@@ -597,7 +611,10 @@
     var me = D().me.id, ms = D().messages, fc = S.filtreCat || '';
     var fichiers = ms.filter(function (m) { return m.fichier; });
     var list = ms.map(function (m) {
-      return '<div class="bub' + (m.auteur === me ? ' me' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + '</div>';
+      var bot = !D().equipe.some(function (w) { return w.id === m.auteur; });
+      var btns = bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
+        (art(m.article_id) && !D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<button class="btn small go" data-act="express" data-id="' + esc(m.article_id) + '">⚡ Lancer les interviews</button>' : (D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<span class="muted">✓ interviews lancées</span>' : '')) + '</div>' : '';
+      return '<div class="bub' + (m.auteur === me ? ' me' : '') + (bot ? ' bot' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre && !bot ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + btns + '</div>';
     }).join('');
     var a = art(S.art);
     return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne. Les fichiers échangés sont rangés dans le classeur, à droite.</p>' + classeurHTML(fichiers) +
@@ -1185,6 +1202,17 @@
         }).then(function () { paintDoc(); });
         break;
       // interphone
+      case 'a-interviewer': S.tab = 'articles'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var h = S.root.querySelector('#a-interviewer'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 60); break;
+      case 'express':
+        var ax = art(id); if (!ax) { toast('Enquête introuvable dans Ghost.', true); break; }
+        if (!window.confirm('Lancer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.')) break;
+        S.art = id; LS.set('wl-article', id);
+        work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true })).then(function (r) {
+          toast('⚡ ' + (r.n || 0) + ' mail' + pl(r.n || 0) + ' prêt' + pl(r.n || 0) + ' : relisez-les chez la Secrétaire.');
+          return refresh(true);
+        }).then(function () { openPanel('secretaire'); });
+        break;
+      case 'push': reglerPush(true); break;
       case 'dicter': if (S.dicte) stopDictee(); else startDictee(); break;
       case 'send-msg':
         if (S.dicte) stopDictee();
@@ -1237,6 +1265,48 @@
     paintPanel(); paintDoc(); markBusy();
   }
 
+  // Notifications push (Webpushr, déjà installé sur posthumain.com) : le lab enregistre l'identifiant d'abonné de ce navigateur
+  // auprès de Supabase (fonction wl-push, contrôle du jeton membre Ghost). Les pushs ne visent que l'équipe, jamais les lecteurs.
+  var PUSH = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-push';
+  function pushApi(body) {
+    return fetch('/members/api/session', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+      body.token = t;
+      return fetch(PUSH, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
+    });
+  }
+  function sidWebpushr(cb) {
+    var n = 0;
+    (function essai() {
+      if (typeof window.webpushr === 'function') { try { window.webpushr('fetch_id', function (sid) { cb(sid || null); }); } catch (e) { cb(null); } return; }
+      if (++n > 20) { cb(null); return; }
+      setTimeout(essai, 500);
+    })();
+  }
+  function reglerPush(clic) {
+    sidWebpushr(function (sid) {
+      if (!sid) {
+        S.pushOk = false; var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header();
+        if (clic) toast('🔕 Ce navigateur n’est pas abonné aux notifications Posthumain : acceptez la demande de notifications du site (ou la cloche Webpushr en bas de page), puis touchez à nouveau 🔕.', true);
+        return;
+      }
+      var deja = LS.get('wl-push-sid') === String(sid);
+      (deja && !clic ? Promise.resolve({ ok: true }) : pushApi({ action: 'register', sid: String(sid) })).then(function (r) {
+        if (!r || !r.ok) { if (clic) toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); return; }
+        LS.set('wl-push-sid', String(sid)); S.pushOk = true;
+        var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header();
+        if (clic) pushApi({ action: 'test' }).then(function (t) { toast(t && t.ok ? '🔔 Notifications actives : une notification de test arrive.' : '⚠️ ' + ((t && t.why) || 'test impossible'), !(t && t.ok)); });
+      }).catch(function () { if (clic) toast('⚠️ Réseau indisponible.', true); });
+    });
+  }
+  // Clic sur une notification : la page s'ouvre sur la bonne pièce (#interphone, #suivi, #a-interviewer, #sc, #mk).
+  function suivreAncre() {
+    var h = (location.hash || '').slice(1); if (!h || !S.root) return;
+    if (h === 'interphone' || h === 'suivi' || h === 'articles') { S.tab = h; render(); }
+    else if (h === 'a-interviewer') act('a-interviewer', document.body);
+    else if (h === 'sc' || h === 'mk') { S.tab = 'bureau'; render(); openPanel(h); }
+    else return;
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  }
   window.WRITINGLAB_START = function (o) {
     S.call = o.call;
     var host = o.root;
@@ -1310,6 +1380,8 @@
     setInterval(function () { if (!document.hidden && S.data) { var tp = r.querySelector('.top'); if (tp) tp.innerHTML = header(); } }, 30000);
     refresh().then(function () {
       if (S.art && !art(S.art) && D().articles.length) { /* l'article en cours a été publié ou supprimé */ S.art = ''; LS.set('wl-article', null); render(); }
+      suivreAncre(); reglerPush(false);
     });
+    window.addEventListener('hashchange', suivreAncre);
   };
 })();
