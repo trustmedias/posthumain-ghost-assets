@@ -582,7 +582,9 @@
   function pieceChip() {
     var me = D().me, av = ((S.pieces && S.pieces.pieces) || []).filter(function (p) { return p.statut === 'a_verifier'; }).length;
     if (!S.pieces) return '';
-    return '<span class="chip' + (av && me.chef ? ' warn' : '') + '" data-act="pieces" title="Les pièces de la rédaction">🪙 ' + (me.chef ? (av ? av + ' à vérifier' : 'pièces') : totalPieces(me.id)) + '</span>';
+    var af = ((S.pieces && S.pieces.conversions) || []).filter(function (c) { return c.statut === 'a_facturer' && (me.chef || c.membre === me.id); }).length;
+    var so = ((S.pieces && S.pieces.soldes) || {})[me.id] || 0;
+    return '<span class="chip' + ((av && me.chef) || (af && !me.chef) ? ' warn' : '') + '" data-act="pieces" title="Les pièces de la rédaction">🪙 ' + (me.chef ? (av ? av + ' à vérifier' : af ? af + ' à facturer' : 'pièces') : so + (af ? ' · 💶 à facturer' : '')) + '</span>';
   }
   function header() {
     var a = art(S.art), v = by('brouillon').length, r = by('a répondu').length, e = by('envoyé').length;
@@ -683,7 +685,7 @@
     var fichiers = ms.filter(function (m) { return m.fichier; });
     var list = ms.map(function (m) {
       var bot = !D().equipe.some(function (w) { return w.id === m.auteur; });
-      var btns = bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
+      var btns = m.auteur === 'compta' ? '<div class="row" style="margin-top:8px"><button class="btn small" data-act="pieces">🪙 Ouvrir les pièces</button></div>' : bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
         (art(m.article_id) && !D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<button class="btn small go" data-act="express" data-id="' + esc(m.article_id) + '">⚡ Lancer les interviews</button>' : (D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<span class="muted">✓ interviews lancées</span>' : '')) + '</div>' : '';
       return '<div class="bub' + (m.auteur === me ? ' me' : '') + (bot ? ' bot' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre && !bot ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + btns + '</div>';
     }).join('');
@@ -1180,7 +1182,23 @@
   function docPieces() {
     var r = S.pieces || { pieces: [], totaux: {} }, me = D().me;
     var h = '<div class="dtop"><span class="em">🪙</span><div><div class="nm">Les pièces de la rédaction</div><div class="st">1 parcours complet et prouvé = des pièces</div></div><span class="x" data-act="close-doc">✕</span></div><div class="paper">';
-    h += '<div class="kick">Le classement</div><div class="lb">' + (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).map(function (w) { return '<div><b>' + esc(w.nom) + '</b><span>🪙 ' + totalPieces(w.id) + '</span></div>'; }).join('') + '</div>';
+    var tx = Number(r.taux || 0), e2 = function (n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' €'; };
+    h += '<div class="kick">Les rédactrices</div><div class="lb">' + (D().equipe || []).filter(function (w) { return w.role !== 'chef'; }).map(function (w) {
+      var so = ((r.soldes || {})[w.id]) || 0;
+      return '<div style="flex-wrap:wrap;gap:8px"><span><b>' + esc(w.nom) + '</b><br><span class="muted" style="font-size:13px">' + totalPieces(w.id) + ' pièces gagnées au total</span></span><span style="text-align:right"><b>🪙 ' + so + '</b> à convertir<br><span class="muted" style="font-size:13px">soit ' + e2(so * tx) + '</span></span>' +
+        (me.chef && so ? '<span class="acts" style="width:100%;margin:6px 0 0"><button class="go" data-act="pc-conv" data-id="' + esc(w.id) + '">💶 Convertir en ' + e2(so * tx) + ' (prochaine facture)</button><button data-act="pc-raz" data-id="' + esc(w.id) + '">↺ Remettre à zéro</button></span>' : '') + '</div>';
+    }).join('') + '</div>';
+    if (me.chef) h += '<div class="row" style="gap:8px;align-items:center;margin:-4px 0 14px;font-size:14px">Valeur d’une pièce : <input class="pin" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px;margin:0" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div>';
+    var cs = r.conversions || [];
+    if (cs.length) {
+      var conf = cs.filter(function (c) { return c.statut === 'facture'; }).reduce(function (a, c) { return a + Number(c.montant); }, 0), att = cs.filter(function (c) { return c.statut === 'a_facturer'; }).reduce(function (a, c) { return a + Number(c.montant); }, 0);
+      h += '<h2>Comptabilité</h2><p class="muted" style="font-size:14px">' + e2(att) + ' à ajouter à une facture · ' + e2(conf) + ' déjà ajoutés aux factures</p>' + cs.map(function (c) {
+        var mine = c.membre === me.id;
+        var st = c.statut === 'a_facturer' ? '<span class="tag a">💶 à ajouter à la prochaine facture</span>' : c.statut === 'facture' ? '<span class="tag g">✅ ajouté à la facture ' + esc(when(c.facture_le)) + (c.facture_note ? ' · ' + esc(c.facture_note) : '') + '</span>' : '<span class="tag">↺ remis à zéro</span>';
+        return '<div class="pc"><div><b>' + (c.type === 'conversion' ? e2(Number(c.montant)) : '—') + '</b> · ' + c.pieces + ' pièces' + (c.type === 'conversion' ? ' à ' + e2(Number(c.taux)) : '') + ' · ' + esc(membre(c.membre).nom) + ' · ' + esc(when(c.created_at)) + '</div><div style="margin-top:4px">' + st + '</div>' + (c.note ? '<div class="muted" style="font-size:13px">Note : ' + esc(c.note) + '</div>' : '') +
+          (c.statut === 'a_facturer' && (mine || me.chef) ? '<div class="row" style="gap:6px;margin-top:8px;align-items:center"><input class="pin" id="wl-fact-' + c.id + '" placeholder="n° ou date de la facture (facultatif)" style="flex:1;min-width:160px;margin:0"><button class="btn small go" data-act="pc-fact" data-id="' + c.id + '">✅ ' + (mine ? 'Je l’ai ajouté à ma facture' : 'Marquer comme facturé') + '</button></div>' : '') + '</div>';
+      }).join('');
+    }
     h += '<details' + ((r.pieces || []).length ? '' : ' open') + '><summary>Comment on gagne des pièces</summary><ol style="font-size:15px">' +
       '<li>La demande d’interview part <b>depuis le lab</b> (pas d’un autre logiciel).</li>' +
       '<li>Le chercheur <b>répond à ce mail</b> : le Courrier le reconnaît grâce aux en-têtes techniques du fil, impossibles à imiter. Une réponse collée à la main ne compte pas.</li>' +
@@ -1396,6 +1414,21 @@
         break;
       // interphone
       case 'pieces': openDoc('pieces', ''); break;
+      case 'pc-taux':
+        pushApi({ action: 'taux', taux: val('wl-taux') }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'taux invalide'), true); return; } toast('Valeur d’une pièce : ' + String(r.taux).replace('.', ',') + ' €'); chargerPieces(); });
+        break;
+      case 'pc-conv': case 'pc-raz':
+        var cm = id, conv = name === 'pc-conv', so2 = ((S.pieces && S.pieces.soldes) || {})[cm] || 0, eu = (Math.round(so2 * Number((S.pieces || {}).taux || 0) * 100) / 100).toFixed(2).replace('.', ',') + ' €';
+        var ck8 = S.clicking; confirmer(conv ? 'Convertir les ' + so2 + ' pièces de ' + membre(cm).nom + ' en ' + eu + ' ?\n\nElle reçoit un message dans l’Interphone pour ajouter ce montant à sa prochaine facture, puis le confirme dans « Mes pièces ».' : 'Remettre à zéro les ' + so2 + ' pièces de ' + membre(cm).nom + ' sans les convertir ?\n\nLes pièces restent dans l’historique, marquées « remises à zéro ».').then(function (ok) { if (!ok) return; S.clicking = ck8;
+          pushApi({ action: conv ? 'convertir' : 'remise_a_zero', membre: cm }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast(conv ? '💶 Converti : ' + eu + ' à facturer.' : '↺ Solde remis à zéro.'); chargerPieces(); refresh(true); });
+        });
+        break;
+      case 'pc-fact':
+        var fid2 = id, fnote = val('wl-fact-' + id);
+        var ck7 = S.clicking; confirmer('Confirmer que ce montant est ajouté à la facture ?').then(function (ok) { if (!ok) return; S.clicking = ck7;
+          pushApi({ action: 'facturee', id: fid2, note: fnote }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✅ Noté : ajouté à la facture.'); chargerPieces(); refresh(true); });
+        });
+        break;
       case 'pc-ok': case 'pc-annule':
         var pcSt = name === 'pc-ok' ? 'acquis' : 'annule', pcId = id;
         var ck9 = S.clicking; confirmer(pcSt === 'acquis' ? 'Valider ces pièces ?' : 'Annuler ces pièces ?').then(function (ok) { if (!ok) return; S.clicking = ck9;
