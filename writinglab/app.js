@@ -462,7 +462,7 @@
   // Étagère du Secrétariat : une case par enquête (dossier), 4 cases par rayon. Survol = infobulle (titre + avancement), clic = le dossier.
   function etagereSVG() {
     var actifs = vues().filter(function (f) { return f.statut !== 'inséré'; });
-    var ds = dossiers(actifs), X = 646, Y = 64, CW = 96, CH = 78, cols = 4, rows = 4, max = cols * rows;
+    var ds = dossiers(actifs), X = 720, Y = 64, CW = 62, CH = 78, cols = 4, rows = 4, max = cols * rows;
     var s = '<g class="etagere"><rect x="' + (X - 8) + '" y="' + (Y - 8) + '" width="' + (cols * CW + 16) + '" height="' + (rows * CH + 16) + '" rx="6" fill="#2b2015" stroke="rgba(255,190,90,.25)" stroke-width="2"/>';
     for (var r = 0; r < rows; r++) s += '<rect x="' + (X - 8) + '" y="' + (Y + r * CH + CH - 6) + '" width="' + (cols * CW + 16) + '" height="6" fill="#4a3624"/>';
     s += '<text class="lbl2" x="' + (X + cols * CW / 2) + '" y="' + (Y + rows * CH + 30) + '" text-anchor="middle">étagère des dossiers' + (ds.length ? ' · ' + ds.length + ' enquête' + pl(ds.length) : ' · vide') + '</text>';
