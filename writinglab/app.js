@@ -49,6 +49,8 @@
   function mails(boite, tous) { return (D().courrier || []).filter(function (m) { return m.boite === boite && (tous || m.statut !== 'répondu'); }); }
   function mail(id) { return (D().courrier || []).filter(function (m) { return m.mail_id === id; })[0] || null; }
   var JULIEN = { sc: { boite: 'subs', nom: 'Julien · Service client', adr: 'subs@posthumain.com', emoji: '🎧' }, mk: { boite: 'redaction', nom: 'Julien · Marketing', adr: 'redaction@posthumain.com', emoji: '📣' } };
+  // Articles du plus récent (dernière modification dans Ghost) au plus ancien : en haut du Marbre, à gauche dans l'onglet Articles.
+  function artsRecents() { return D().articles.slice().sort(function (x, y) { return String(y.maj || '').localeCompare(String(x.maj || '')); }); }
   function art(id) { return D().articles.filter(function (a) { return a.id === id; })[0] || null; }
   function fiche(id) { return D().fiches.filter(function (f) { return f.fiche_id === id; })[0] || null; }
   function by(st) { return D().fiches.filter(function (f) { return f.statut === st; }); }
@@ -165,6 +167,16 @@
 #wl .panelbg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8;opacity:0;pointer-events:none;transition:opacity .25s}#wl .panelbg.open{opacity:1;pointer-events:auto}\
 #wl .panel{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);z-index:9;background:#0f0d0a;border-left:1px solid rgba(255,190,90,.2);box-shadow:-30px 0 60px rgba(0,0,0,.5);transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);overflow-y:auto;-webkit-overflow-scrolling:touch}\
 #wl .panel.open{transform:none}\
+#wl .clsr-h{position:fixed;right:0;top:42%;z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 7px;border:1px solid rgba(255,190,90,.35);border-right:none;border-radius:12px 0 0 12px;background:#17130e;color:#f3ece0;cursor:pointer;box-shadow:-8px 0 24px rgba(0,0,0,.4);font:inherit}\
+#wl .clsr-h .lb{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12.5px;letter-spacing:.06em}#wl .clsr-h .ic{font-size:18px}\
+#wl .clsr-h .n{min-width:20px;padding:1px 6px;border-radius:999px;background:rgba(255,190,90,.18);font-size:11.5px;text-align:center}\
+#wl .clsr-h.open{opacity:0;pointer-events:none}\
+#wl .clsr-bg{position:fixed;inset:0;z-index:6;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s}#wl .clsr-bg.open{opacity:1;pointer-events:auto}\
+#wl .clsr{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);z-index:7;background:#0f0d0a;border-left:1px solid rgba(255,190,90,.25);box-shadow:-30px 0 60px rgba(0,0,0,.5);transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}\
+#wl .clsr.open{transform:none}\
+#wl .clsr-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}#wl .clsr-top .x{cursor:pointer;font-size:18px;padding:4px 8px}\
+#wl .clsr-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 40px}\
+#wl .clsr-cats{display:flex;flex-wrap:wrap;gap:6px}\
 #wl .ph2{position:sticky;top:0;background:linear-gradient(180deg,#17120c 75%,rgba(23,18,12,0));padding:18px 18px 14px;display:flex;gap:12px;align-items:center;z-index:2}\
 #wl .ph2 .em{font-size:30px;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:rgba(255,190,90,.08);border:1px solid rgba(255,190,90,.25);flex:none}\
 #wl .ph2 .nm{font-size:19px;font-weight:800;line-height:1.2}#wl .ph2 .st{font-size:12.5px;color:rgba(243,236,224,.65);display:flex;align-items:center;gap:7px;margin-top:4px}\
@@ -274,7 +286,7 @@
 #wl .btn.amber{background:rgba(255,176,32,.12)!important;color:#ffe0a3!important;-webkit-text-fill-color:#ffe0a3!important;border-color:rgba(255,176,32,.5)!important}\
 #wl .btn.red{background:rgba(255,61,90,.1)!important;color:#ffb3c0!important;-webkit-text-fill-color:#ffb3c0!important;border-color:rgba(255,61,90,.45)!important}\
 #wl .btn.small{padding:5px 9px!important;font-size:12.5px!important;border-radius:8px!important}\
-@media (max-width:720px){#wl{font-size:14.5px}#wl .top{flex-wrap:wrap;gap:8px;padding:10px 12px}#wl .chips{order:3;justify-content:flex-start;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#wl .chips::-webkit-scrollbar{display:none}#wl .clock{order:2;font-size:17px;margin-left:auto}#wl .wrap{padding:0 10px 60px}#wl .tabs{padding:8px 10px 0}#wl .panel{width:100vw;top:6vh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid rgba(255,190,90,.3);transform:translateY(105%)}#wl .panel.open{transform:none}#wl .floor svg{min-width:900px}#wl .paper{margin:10px 8px 60px;padding:22px 16px 28px;font-size:16.5px}#wl .paper h1{font-size:22px}#wl .two{grid-template-columns:1fr}#wl .kan{grid-template-columns:repeat(4,82vw)}}\
+@media (max-width:720px){#wl{font-size:14.5px}#wl .top{flex-wrap:wrap;gap:8px;padding:10px 12px}#wl .chips{order:3;justify-content:flex-start;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#wl .chips::-webkit-scrollbar{display:none}#wl .clock{order:2;font-size:17px;margin-left:auto}#wl .wrap{padding:0 10px 60px}#wl .tabs{padding:8px 10px 0}#wl .panel{width:100vw;top:6vh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid rgba(255,190,90,.3);transform:translateY(105%)}#wl .panel.open{transform:none}#wl .floor svg{min-width:900px}#wl .paper{margin:10px 8px 60px;padding:22px 16px 28px;font-size:16.5px}#wl .paper h1{font-size:22px}#wl .two{grid-template-columns:1fr}#wl .kan{grid-template-columns:repeat(4,82vw)}#wl .clsr-h{top:auto;bottom:150px;padding:10px 6px}#wl .clsr-h .lb{display:none}#wl .clsr{width:100vw;top:8vh;border-left:none;border-top:1px solid rgba(255,190,90,.3);border-radius:18px 18px 0 0;transform:translateY(105%)}#wl .clsr.open{transform:none}}\
 ";
 
   // ---------- le plan de la rédaction (SVG, 1600 × 1000) ----------
@@ -466,7 +478,7 @@
     s += '<g transform="translate(1210,60)">';
     for (var i = 0; i < 9; i++) s += '<rect x="' + (i * 38) + '" y="0" width="34" height="14" rx="2" fill="hsl(' + (i * 37) + ',35%,32%)"/>';
     s += '</g><g transform="translate(60,62)"><rect width="200" height="60" rx="6" fill="#5a4426" stroke="rgba(0,0,0,.4)"/>';
-    var arts = D().articles.slice(0, 5);
+    var arts = artsRecents().slice(0, 5);
     arts.forEach(function (a, j) { s += '<rect x="' + (8 + j * 38) + '" y="' + (8 + (j % 2) * 6) + '" width="32" height="38" fill="' + (a.id === S.art ? '#fff7b0' : '#f3ead6') + '" transform="rotate(' + ((j % 3) - 1) * 4 + ' ' + (24 + j * 38) + ' 27)"/><circle cx="' + (24 + j * 38) + '" cy="' + (11 + (j % 2) * 6) + '" r="2.5" fill="#d42a44"/>'; });
     s += '<text x="100" y="76" text-anchor="middle" class="lbl2">tableau des sujets</text></g>';
     s += '<g transform="translate(120,880)"><rect width="70" height="56" rx="18" fill="#3a2a1c"/><rect x="250" width="70" height="56" rx="18" fill="#3a2a1c"/><text x="160" y="40" text-anchor="middle" font-size="26">🪴</text></g>';
@@ -534,7 +546,7 @@
       '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a></div></div></div>';
   }
   function viewArticles() {
-    var as = D().articles.slice().sort(function (x, y) { return (y.mien ? 1 : 0) - (x.mien ? 1 : 0); });
+    var as = artsRecents();
     if (D().ghost && D().ghost !== 'ok') return '<div class="box warn" style="margin-top:14px">⚠️ ' + esc(D().ghost) + '</div>';
     return '<p class="muted" style="margin-top:14px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations. Brouillons et articles programmés de Ghost :</p><div class="arts">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon dans Ghost.</div>') + '</div>';
   }
@@ -546,7 +558,10 @@
   }
   function viewSuivi() {
     var cols = [['brouillon', '🟠 À valider'], ['envoyé', '📨 Envoyés'], ['a répondu', '📬 Réponses'], ['inséré', '✅ Cités']];
-    return '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
+    var vide = !D().fiches.length;
+    var intro = '<p class="muted" style="margin-top:14px">Le parcours des demandes d’interview' + (D().me.chef ? ' de toute la rédaction' : '') + ' : mail rédigé par la Secrétaire → envoyé → réponse reçue → citation insérée dans l’article. Les fiches archivées n’apparaissent plus ici.</p>' +
+      (vide ? '<div class="box" style="margin-top:6px">Aucune demande en cours pour l’instant. Pour en lancer une : choisissez un article, puis demandez à l’Assistant qui interroger.<div class="row" style="margin-top:10px"><button class="btn" data-act="open-ag" data-ag="assistant">🧠 Préparer une interview</button><button class="btn small" data-act="open-ag" data-ag="secretaire">📮 Écrire à quelqu’un</button></div></div>' : '');
+    return intro + '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
       var fs = by(c[0]);
       return '<div class="col"><h4>' + c[1] + ' <span class="tag">' + fs.length + '</span></h4><div class="dos">' + (fs.map(function (f) {
         var x = c[0] === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) ? ' · <b>relance possible</b>' : '') + '</div>' : c[0] === 'a répondu' ? '<div class="su">réponse ' + esc(when(f.reponse_le)) + '</div>' : '';
@@ -584,17 +599,33 @@
       return '<div class="bub' + (m.auteur === me ? ' me' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + '</div>';
     }).join('');
     var a = art(S.art);
-    var classeur = fichiers.length ? '<div class="box" style="margin-top:14px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b style="margin-right:6px">🗂️ Classeur</b>' +
-      '<span class="chip' + (fc ? '' : ' art') + '" data-act="filtre-cat" data-id="">Tout (' + fichiers.length + ')</span>' +
-      CATS.map(function (c) { var n = fichiers.filter(function (m) { return m.fichier.categorie === c[0]; }).length; return n ? '<span class="chip' + (fc === c[0] ? ' art' : '') + '" data-act="filtre-cat" data-id="' + c[0] + '">' + c[1] + ' (' + n + ')</span>' : ''; }).join('') + '</div>' +
-      (fc !== null && S.filtreOuvert ? '<div style="margin-top:8px">' + fichiers.filter(function (m) { return !fc || m.fichier.categorie === fc; }).slice().reverse().map(function (m) { return '<div><span class="muted">' + esc(m.nom) + ' · ' + esc(when(m.le)) + '</span>' + fichierHTML(m.fichier) + '</div>'; }).join('') + '</div>' : '') + '</div>' : '';
-    return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne.</p>' + classeur +
+    return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne. Les fichiers échangés sont rangés dans le classeur, à droite.</p>' + classeurHTML(fichiers) +
       '<div class="chat">' + (list || '<div class="muted">Pas encore de message.</div>') + '</div>' +
       '<div class="composer"><textarea class="in" id="wl-msg" placeholder="Votre message…" rows="3"></textarea>' +
       '<div id="wl-pj-zone">' + pjZone() + '</div>' +
       '<div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><input type="file" id="wl-pj" style="display:none"><button class="btn" data-act="pj-choisir" type="button">📎 Joindre un fichier</button>' +
       (a ? '<label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="wl-msg-art"> lié à « ' + esc(a.titre.slice(0, 60)) + ' »</label>' : '') +
       '<span style="flex:1"></span><button class="btn go" data-act="send-msg">Envoyer</button></div></div>';
+  }
+  // Classeur : tiroir replié sur le bord droit (poignée), ouvert par-dessus le fil sans rien pousser ; plein écran sur mobile.
+  function classeurBody(fichiers) {
+    fichiers = fichiers || D().messages.filter(function (m) { return m.fichier; });
+    var fc = S.filtreCat || '';
+    if (!fichiers.length) return '<p class="muted">Aucun fichier pour l’instant. Les pièces jointes envoyées dans l’interphone (factures, documents, images…) se rangent ici par catégorie.</p>';
+    var l = fichiers.filter(function (m) { return !fc || m.fichier.categorie === fc; }).slice().reverse();
+    return '<div class="clsr-cats"><span class="chip' + (fc ? '' : ' art') + '" data-act="filtre-cat" data-id="">Tout (' + fichiers.length + ')</span>' +
+      CATS.map(function (c) { var n = fichiers.filter(function (m) { return m.fichier.categorie === c[0]; }).length; return n ? '<span class="chip' + (fc === c[0] ? ' art' : '') + '" data-act="filtre-cat" data-id="' + c[0] + '">' + c[1] + ' (' + n + ')</span>' : ''; }).join('') + '</div>' +
+      (l.map(function (m) { return '<div style="margin-top:12px"><span class="muted">' + esc(m.nom) + ' · ' + esc(when(m.le)) + '</span>' + fichierHTML(m.fichier) + '</div>'; }).join('') || '<p class="muted">Rien dans cette catégorie.</p>');
+  }
+  function classeurHTML(fichiers) {
+    var o = S.clsr ? ' open' : '';
+    return '<button type="button" class="clsr-h' + o + '" data-act="clsr" aria-label="Ouvrir le classeur"><span class="ic">🗂️</span><span class="lb">Classeur</span>' + (fichiers.length ? '<span class="n">' + fichiers.length + '</span>' : '') + '</button>' +
+      '<div class="clsr-bg' + o + '" data-act="clsr"></div><aside class="clsr' + o + '" aria-label="Classeur"><div class="clsr-top"><b>🗂️ Classeur</b><span class="x" data-act="clsr" role="button" aria-label="Fermer">✕</span></div><div class="clsr-body">' + classeurBody(fichiers) + '</div></aside>';
+  }
+  function majClasseur() {
+    var r = S.root; if (!r) return;
+    ['.clsr', '.clsr-bg', '.clsr-h'].forEach(function (q) { var e = r.querySelector(q); if (e) e.classList.toggle('open', !!S.clsr); });
+    var b = r.querySelector('.clsr-body'); if (b) b.innerHTML = classeurBody();
   }
   function pjZone() {
     if (!S.pj) return '';
@@ -811,7 +842,7 @@
   }
   function panelArticles() {
     var h = head('📰', 'Le Marbre', 'Les brouillons et articles programmés de Ghost');
-    var as = D().articles.slice().sort(function (x, y) { return (y.mien ? 1 : 0) - (x.mien ? 1 : 0); });
+    var as = artsRecents();
     return h + '<div class="pb"><p class="muted">Choisissez l’article sur lequel vous travaillez : l’Assistant s’en sert et les citations y seront insérées.</p><div class="arts" style="grid-template-columns:1fr">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon.</div>') + '</div></div>';
   }
   function events() {
@@ -967,7 +998,7 @@
     setTimeout(function () { S.clicking = null; }, 0);
     switch (name) {
       case 'refresh': refresh(); break;
-      case 'tab': S.tab = t.getAttribute('data-tab'); LS.set('wl-tab', S.tab); closePanel(); render(); break;
+      case 'tab': S.tab = t.getAttribute('data-tab'); S.clsr = false; LS.set('wl-tab', S.tab); closePanel(); render(); break;
       case 'articles': openPanel('articles'); break;
       case 'pick-art': pickArt(id); break;
       case 'open-ag': openPanel(t.getAttribute('data-ag').replace(/^j:vide$/, 'chef')); break;
@@ -1140,7 +1171,8 @@
       case 'pjs-del': if (S.pjs && S.pjs[id]) { S.pjs[id].splice(i, 1); paintDoc(); } break;
       case 'pj-choisir': var inp = S.root.querySelector('#wl-pj'); if (inp) inp.click(); break;
       case 'pj-retirer': S.pj = null; majPj(); break;
-      case 'filtre-cat': S.filtreOuvert = !(S.filtreOuvert && (S.filtreCat || '') === (id || '')); S.filtreCat = id || ''; render(); break;
+      case 'filtre-cat': S.filtreCat = id || ''; majClasseur(); break;
+      case 'clsr': S.clsr = !S.clsr; majClasseur(); break;
     }
   }
   function onInput(e) {
@@ -1223,7 +1255,7 @@
       rd.onload = function () { S.pj = { nom: f.name, type: f.type || 'application/octet-stream', taille: f.size, categorie: devinerCat(f), data: String(rd.result).split(',')[1] || '' }; majPj(); };
       rd.readAsDataURL(f);
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.doc) closeDoc(); else closePanel(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) closeDoc(); else closePanel(); } });
     // Retour sur l'onglet : une seule relecture si la page n'a rien reçu depuis 5 minutes.
     document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 300000) refresh(true); });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
