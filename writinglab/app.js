@@ -12,6 +12,8 @@
   // ---------- outils ----------
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function nl(s) { return esc(s).replace(/\n/g, '<br>'); }
+  // Liens venus de l'extérieur (sources trouvées par l'IA sur le web) : seulement http(s), jamais « javascript: ».
+  function url(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? esc(u) : '#'; }
   function pl(n) { return n > 1 ? 's' : ''; }
   var fTime = new Intl.DateTimeFormat('fr-CH', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
   var fDay = new Intl.DateTimeFormat('fr-CH', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' });
@@ -516,7 +518,7 @@
       var col = c('a répondu') ? '#3fd88a' : c('brouillon') ? '#ffb020' : '#7fb2ff';
       var tip = d.titre + '|' + [c('brouillon') ? c('brouillon') + ' à valider' : '', c('envoyé') ? c('envoyé') + ' envoyé' + pl(c('envoyé')) : '', c('a répondu') ? c('a répondu') + ' réponse' + pl(c('a répondu')) : ''].filter(Boolean).join(' · ') + '|' + d.fiches.map(function (f) { return f.contact.nom; }).join(', ');
       if (i === max - 1 && ds.length > max) { s += '<g class="case" data-act="open-ag" data-ag="secretaire" data-tip="' + esc('+' + (ds.length - max + 1) + ' autres dossiers|ouvrir la Secrétaire|') + '" transform="translate(' + cx + ',' + cy + ')"><rect x="4" y="8" width="' + (CW - 8) + '" height="' + (CH - 18) + '" rx="4" fill="#3a2c1d"/><text x="' + (CW / 2) + '" y="' + (CH / 2 + 4) + '" text-anchor="middle" font-size="16" font-weight="800" fill="#ffcf8a">+' + (ds.length - max + 1) + '</text></g>'; return; }
-      s += '<g class="case" data-act="dossier-sec" data-id=""' + esc(d.id || 'sans') + '" data-tip="' + esc(tip) + '" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="transparent"/>';
+      s += '<g class="case" data-act="dossier-sec" data-id="' + esc(d.id || 'sans') + '" data-tip="' + esc(tip) + '" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="transparent"/>';
       var n = Math.min(d.fiches.length, 4);
       for (var k = 0; k < n; k++) s += '<rect x="' + (10 + k * 9) + '" y="' + (16 + (k % 2) * 3) + '" width="16" height="' + (CH - 34) + '" rx="2" fill="' + ['#e8d9b8', '#d9c8a2', '#efe3c8', '#cdbb94'][k] + '" stroke="rgba(0,0,0,.35)"/>';
       s += '<g transform="translate(' + (CW - 14) + ',14)"><circle r="10" fill="' + col + '" filter="url(#glow)"/><text y="4" text-anchor="middle" font-size="11.5" font-weight="800" fill="#05170d">' + d.fiches.length + '</text></g></g>';
@@ -929,7 +931,7 @@
     h += '<div class="paper"><div class="kick">Prospect · ' + esc([x.secteur, x.pays].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="meta">' + (x.site ? '🌐 <a href="' + esc(/^https?:/.test(x.site) ? x.site : 'https://' + x.site) + '" target="_blank" rel="noopener" data-stop="1">' + esc(x.site) + '</a><br>' : '') +
       '👤 ' + esc([x.contact_nom, x.contact_role].filter(Boolean).join(', ') || 'contact à préciser') + '<br>' +
-      '✉️ ' + (x.email ? esc(x.email) + (x.source_email ? ' · <a href="' + esc(x.source_email) + '" target="_blank" rel="noopener" data-stop="1">où elle est publiée</a>' : '') : 'aucune adresse publiée trouvée : saisissez-en une si vous la connaissez') + '</div>' +
+      '✉️ ' + (x.email ? esc(x.email) + (x.source_email ? ' · <a href="' + url(x.source_email) + '" target="_blank" rel="noopener" data-stop="1">où elle est publiée</a>' : '') : 'aucune adresse publiée trouvée : saisissez-en une si vous la connaissez') + '</div>' +
       (x.pourquoi ? '<div style="border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 14px"><b>Pourquoi maintenant :</b> ' + esc(x.pourquoi) + '</div>' : '');
     if (x.envoye_le) h += '<p class="muted">Premier mail envoyé ' + esc(when(x.envoye_le)) + (x.relance_le ? ' · relancé ' + esc(when(x.relance_le)) : '') + '.</p>';
     if (x.statut === 'refus') return h + '<div class="lead">⛔ Ce prospect ne sera plus contacté.</div></div>';
@@ -1003,7 +1005,7 @@
       h += S.contacts.map(function (c, i) {
         return '<div class="ct"><b>' + esc(c.nom) + '</b> <span class="tag">' + esc(c.langue === 'en' ? 'anglais' : 'français') + '</span><div class="w">' + esc([c.role, c.institution].filter(Boolean).join(', ')) + '</div>' +
           '<div class="w">' + esc(c.pourquoi || '') + '</div>' +
-          '<div class="w">' + (c.email ? '✉️ ' + esc(c.email) + (c.source_email ? ' · <a href="' + esc(c.source_email) + '" target="_blank" rel="noopener">source</a>' : '') : '✉️ adresse non publiée · ' + esc(c.ou_trouver || '')) + '</div>' +
+          '<div class="w">' + (c.email ? '✉️ ' + esc(c.email) + (c.source_email ? ' · <a href="' + url(c.source_email) + '" target="_blank" rel="noopener">source</a>' : '') : '✉️ adresse non publiée · ' + esc(c.ou_trouver || '')) + '</div>' +
           '<div class="row" style="margin-top:8px"><button class="btn small go" data-act="contact-pick" data-i="' + i + '">Choisir</button></div></div>';
       }).join('');
     }
@@ -1281,11 +1283,14 @@
     ['Bluewin (Suisse)', ['bluewin.ch']], ['Autres (AOL, Mail.com, Yandex, Tutanota, Zoho)', ['aol.com', 'mail.com', 'yandex.com', 'tutanota.com', 'zoho.com']]];
   function majTop() { var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header(); }
   function chargerParams() {
-    return pushApi({ action: 'parametres' }).then(function (r) {
+    if (S.paramP) return S.paramP;
+    S.paramP = pushApi({ action: 'parametres' }).then(function (r) {
+      S.paramP = null;
       if (!r || !r.ok) return;
       S.params = r; S.sigDraft = S.sigDraft || { fr: r.signature.fr, en: r.signature.en };
       return pushApi({ action: 'signatures' }).then(function (x) { if (x && x.ok) S.sigs = x.signatures; if (S.panel === 'parametres') paintPanel(); if (S.doc) paintDoc(); });
-    }).catch(function () {});
+    }).catch(function () { S.paramP = null; });
+    return S.paramP;
   }
   function sw(act, on, off) { return '<button type="button" class="sw' + (on ? ' on' : '') + '" data-act="' + act + '"' + (off ? ' disabled' : '') + ' aria-pressed="' + (on ? 'true' : 'false') + '"><i></i></button>'; }
   function sigLire() { var e = S.root.querySelector('#wl-sig'); if (e && S.sigDraft) S.sigDraft[S.sigLang || 'fr'] = e.innerHTML; }
@@ -1774,7 +1779,9 @@
     r.querySelector('.tabs').innerHTML = tabs();
     var w = r.querySelector('.wrap');
     var ae = document.activeElement, composing = ae && w.contains(ae) && ae.id === 'wl-msg';
+    var gx = {}; ['.floor', '.kan'].forEach(function (q) { var e = w.querySelector(q); if (e) gx[q] = e.scrollLeft; });
     if (!composing) w.innerHTML = S.tab === 'articles' ? viewArticles() : S.tab === 'suivi' ? viewSuivi() : S.tab === 'interphone' ? viewInterphone() : viewBureau();
+    Object.keys(gx).forEach(function (q) { var e = w.querySelector(q); if (e && gx[q]) e.scrollLeft = gx[q]; });
     if (S.tab === 'interphone') { var ms = D().messages; if (ms.length) LS.set('wl-vu', String(ms[ms.length - 1].le)); r.querySelector('.tabs').innerHTML = tabs(); }
     paintPanel(); paintDoc(); markBusy();
   }
@@ -1782,19 +1789,36 @@
   // Notifications push (Webpushr, déjà installé sur posthumain.com) : le lab enregistre l'identifiant d'abonné de ce navigateur
   // auprès de Supabase (fonction wl-push, contrôle du jeton membre Ghost). Les pushs ne visent que l'équipe, jamais les lecteurs.
   var PUSH = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-push';
-  function pushApi(body) {
-    return fetch('/members/api/session', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+  // Jeton du membre Ghost partagé 2 minutes entre les appels Supabase (il vit ~10 min) : une requête de moins par appel.
+  var JETON = { t: '', at: 0, p: null };
+  function jeton() {
+    if (JETON.t && Date.now() - JETON.at < 120000) return Promise.resolve(JETON.t);
+    if (JETON.p) return JETON.p;
+    JETON.p = fetch('/members/api/session', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) { JETON.p = null; if (t) { JETON.t = t; JETON.at = Date.now(); } return t; }, function () { JETON.p = null; return ''; });
+    return JETON.p;
+  }
+  // Appel d'une fonction Supabase. Le bouton cliqué (S.clicking) montre qu'il travaille et ne peut pas être recliqué avant la réponse ;
+  // une coupure réseau revient comme { ok:false } (chaque appelant affiche alors son message d'erreur au lieu de rester muet).
+  function supa(url, body) {
+    var key = S.clicking || null; S.clicking = null;
+    if (key) { S.pending[key] = (S.pending[key] || 0) + 1; markBusy(); }
+    var done = function () { if (key && !--S.pending[key]) delete S.pending[key]; if (key) markBusy(); };
+    return jeton().then(function (t) {
       body.token = t;
-      return fetch(PUSH, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
-    });
+      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) {
+        if (r.status === 401) JETON.at = 0; // jeton expiré : on en redemande un au prochain appel
+        return r.json().catch(function () { return { ok: false, why: 'réponse illisible (' + r.status + ')' }; });
+      });
+    }).then(function (r) { done(); return r; }, function () { done(); return { ok: false, why: 'connexion perdue, réessayez' }; });
   }
+  function pushApi(body) { return supa(PUSH, body); }
   var FACT = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-facture';
-  function factApi(body) {
-    return fetch('/members/api/session', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
-      body.token = t; return fetch(FACT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
-    });
+  function factApi(body) { return supa(FACT, body); }
+  function chargerFactures() {
+    if (S.factP) return S.factP;
+    S.factP = factApi({ action: 'liste' }).then(function (r) { S.factP = null; if (r && r.ok) { S.factures = r; if (S.panel === 'compta' || S.panel === 'parametres') paintPanel(); } }, function () { S.factP = null; });
+    return S.factP;
   }
-  function chargerFactures() { return factApi({ action: 'liste' }).then(function (r) { if (r && r.ok) { S.factures = r; if (S.panel === 'compta' || S.panel === 'parametres') paintPanel(); } }).catch(function () {}); }
   var MOISN = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   function moisTxt(m) { var p = String(m).split('-'); return (MOISN[Number(p[1]) - 1] || '') + ' ' + p[0]; }
   function facturesHTML() {
@@ -1924,7 +1948,7 @@
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) closeDoc(); else closePanel(); } });
     // Retour sur l'onglet : une seule relecture si la page n'a rien reçu depuis 5 minutes.
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.last > 300000) refresh(true); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && (S.rtAttente || Date.now() - S.last > 300000)) { S.rtAttente = false; refresh(true); } });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
     // la page relit alors l'état. Plus de relecture périodique quand le temps réel est branché (chaque relecture = une exécution n8n) ;
     // filet de sécurité seulement s'il est coupé : une relecture toutes les 10 minutes.
@@ -1938,6 +1962,7 @@
           var sb = window.supabase.createClient('https://jfmzhndapfmvdhphuwfm.supabase.co', 'sb_publishable_3NOP0qHNmvDay5ak1P__XA_ALCUH7du', { auth: { persistSession: false } });
           var t = null;
           sb.channel('writinglab').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wl_signal' }, function () {
+            if (document.hidden) { S.rtAttente = true; return; } // onglet caché : relecture au retour sur l'onglet
             clearTimeout(t); t = setTimeout(function () { refresh(true); }, 1500); // plusieurs changements d'affilée = une seule relecture
           }).subscribe(function (st) { S.rtOk = st === 'SUBSCRIBED'; });
         } catch (e) { /* pas de temps réel : la relecture toutes les 10 minutes prend le relais */ }
