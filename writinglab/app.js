@@ -340,8 +340,8 @@
   // Plan en largeur (21/10/2026) : 4 pièces par rangée, 2 rangées → beaucoup moins haut, tout le monde voit tous les bureaux.
   var PLAN_W = 2380, PLAN_H = 1000;
   var ROOMS = [
-    { key: 'redac', name: 'Salle de rédaction', x: 30, y: 30, w: 760, h: 410, floor: '#16110b' },
-    { key: 'secr', name: 'Secrétariat', x: 810, y: 30, w: 560, h: 410, floor: '#0b1216' },
+    { key: 'redac', name: 'Salle de rédaction', x: 30, y: 30, w: 560, h: 410, floor: '#16110b' },
+    { key: 'secr', name: 'Secrétariat', x: 610, y: 30, w: 760, h: 410, floor: '#0b1216' },
     { key: 'biblio', name: 'Bibliothèque', x: 1390, y: 30, w: 380, h: 410, floor: '#120e19' },
     { key: 'sc', name: 'Service client · subs@', x: 1790, y: 30, w: 560, h: 410, floor: '#0c1414' },
     { key: 'chef', name: 'Bureau du rédacteur en chef', x: 30, y: 500, w: 560, h: 470, floor: '#0f140c' },
@@ -354,9 +354,9 @@
     var eq = D().equipe || [];
     var js = eq.filter(function (w) { return w.role !== 'chef'; }).slice(0, 3);
     var chef = eq.filter(function (w) { return w.role === 'chef'; })[0] || { id: 'chef', nom: 'Le rédacteur en chef', titre: 'Rédacteur en chef' };
-    var xs = js.length === 3 ? [170, 410, 650] : js.length === 2 ? [260, 560] : [410];
+    var xs = js.length === 3 ? [130, 310, 490] : js.length === 2 ? [190, 430] : [310];
     var list = [];
-    if (!js.length) list.push({ key: 'j:vide', kind: 'journaliste', vide: true, nom: 'Poste de la journaliste', titre: 'à attribuer', emoji: '✍️', hue: 330, x: 410, y: 215 });
+    if (!js.length) list.push({ key: 'j:vide', kind: 'journaliste', vide: true, nom: 'Poste de la journaliste', titre: 'à attribuer', emoji: '✍️', hue: 330, x: 310, y: 215 });
     js.forEach(function (w, i) { list.push({ key: 'j:' + w.id, id: w.id, kind: 'journaliste', nom: w.nom, titre: w.titre, emoji: '✍️', hue: [330, 300, 15][i], x: xs[i], y: 215 }); });
     list.push({ key: 'secretaire', kind: 'secretaire', nom: 'La Secrétaire', titre: 'Rédige, fait valider, envoie', emoji: '📮', hue: 200, x: 1255, y: 215 });
     list.push({ key: 'assistant', kind: 'assistant', nom: 'L’Assistant', titre: 'Questions et contacts', emoji: '🧠', hue: 265, x: 1580, y: 215 });
@@ -462,7 +462,7 @@
   // Étagère du Secrétariat : une case par enquête (dossier), 4 cases par rayon. Survol = infobulle (titre + avancement), clic = le dossier.
   function etagereSVG() {
     var actifs = vues().filter(function (f) { return f.statut !== 'inséré'; });
-    var ds = dossiers(actifs), X = 832, Y = 64, CW = 72, CH = 78, cols = 4, rows = 4, max = cols * rows;
+    var ds = dossiers(actifs), X = 646, Y = 64, CW = 96, CH = 78, cols = 4, rows = 4, max = cols * rows;
     var s = '<g class="etagere"><rect x="' + (X - 8) + '" y="' + (Y - 8) + '" width="' + (cols * CW + 16) + '" height="' + (rows * CH + 16) + '" rx="6" fill="#2b2015" stroke="rgba(255,190,90,.25)" stroke-width="2"/>';
     for (var r = 0; r < rows; r++) s += '<rect x="' + (X - 8) + '" y="' + (Y + r * CH + CH - 6) + '" width="' + (cols * CW + 16) + '" height="6" fill="#4a3624"/>';
     s += '<text class="lbl2" x="' + (X + cols * CW / 2) + '" y="' + (Y + rows * CH + 30) + '" text-anchor="middle">étagère des dossiers' + (ds.length ? ' · ' + ds.length + ' enquête' + pl(ds.length) : ' · vide') + '</text>';
@@ -538,7 +538,7 @@
       s += '<rect x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" rx="10" fill="none" stroke="rgba(243,236,224,.16)" stroke-width="5"/>';
       s += '<text class="roomname" x="' + (r.x + 16) + '" y="' + (r.y + 26) + '">' + esc(r.name) + '</text>';
     });
-    [[410, 440], [1090, 440], [1580, 440], [2070, 440], [310, 500], [890, 500], [1480, 500], [2070, 500]].forEach(function (p) { s += '<rect x="' + (p[0] - 34) + '" y="' + (p[1] - 4) + '" width="68" height="8" fill="#0a0806"/>'; });
+    [[310, 440], [1090, 440], [1580, 440], [2070, 440], [310, 500], [890, 500], [1480, 500], [2070, 500]].forEach(function (p) { s += '<rect x="' + (p[0] - 34) + '" y="' + (p[1] - 4) + '" width="68" height="8" fill="#0a0806"/>'; });
     // décor : étagères de la bibliothèque, tableau de liège de la rédaction, fauteuils du chef
     s += '<g transform="translate(1410,60)">';
     for (var i = 0; i < 9; i++) s += '<rect x="' + (i * 38) + '" y="0" width="34" height="14" rx="2" fill="hsl(' + (i * 37) + ',35%,32%)"/>';
