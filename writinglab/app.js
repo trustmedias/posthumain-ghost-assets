@@ -174,6 +174,7 @@
 #wl .clsr-bg{position:fixed;inset:0;z-index:6;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s}#wl .clsr-bg.open{opacity:1;pointer-events:auto}\
 #wl .clsr{position:fixed;top:0;right:0;bottom:0;width:min(400px,92vw);z-index:7;background:#0f0d0a;border-left:1px solid rgba(255,190,90,.25);box-shadow:-30px 0 60px rgba(0,0,0,.5);transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}\
 #wl .clsr.open{transform:none}\
+#wl .btn.mic.on{border-color:rgba(255,80,80,.7)!important;color:#ffd0d0!important;animation:wlmic 1.2s ease-in-out infinite}@keyframes wlmic{0%,100%{box-shadow:0 0 0 0 rgba(255,80,80,.5)}50%{box-shadow:0 0 0 6px rgba(255,80,80,0)}}\
 #wl .clsr-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}#wl .clsr-top .x{cursor:pointer;font-size:18px;padding:4px 8px}\
 #wl .clsr-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 40px}\
 #wl .clsr-cats{display:flex;flex-wrap:wrap;gap:6px}\
@@ -601,9 +602,10 @@
     var a = art(S.art);
     return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne. Les fichiers échangés sont rangés dans le classeur, à droite.</p>' + classeurHTML(fichiers) +
       '<div class="chat">' + (list || '<div class="muted">Pas encore de message.</div>') + '</div>' +
-      '<div class="composer"><textarea class="in" id="wl-msg" placeholder="Votre message…" rows="3"></textarea>' +
+      '<div class="composer"><textarea class="in" id="wl-msg" placeholder="' + (S.dicte ? '🎙️ Je vous écoute…' : 'Votre message…') + '" rows="3">' + esc(S.msgDraft || '') + '</textarea>' +
       '<div id="wl-pj-zone">' + pjZone() + '</div>' +
       '<div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><input type="file" id="wl-pj" style="display:none"><button class="btn" data-act="pj-choisir" type="button">📎 Joindre un fichier</button>' +
+      (SR ? '<button class="btn mic' + (S.dicte ? ' on' : '') + '" data-act="dicter" type="button" title="Dicter le message (le texte s’écrit dans le champ, vous relisez puis envoyez)">' + (S.dicte ? '⏹️ Arrêter' : '🎙️ Dicter') + '</button>' : '') +
       (a ? '<label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="wl-msg-art"> lié à « ' + esc(a.titre.slice(0, 60)) + ' »</label>' : '') +
       '<span style="flex:1"></span><button class="btn go" data-act="send-msg">Envoyer</button></div></div>';
   }
@@ -627,6 +629,31 @@
     ['.clsr', '.clsr-bg', '.clsr-h'].forEach(function (q) { var e = r.querySelector(q); if (e) e.classList.toggle('open', !!S.clsr); });
     var b = r.querySelector('.clsr-body'); if (b) b.innerHTML = classeurBody();
   }
+  // Dictée (Interphone) : reconnaissance vocale du navigateur (Chrome, Edge, Safari macOS/iOS), en français.
+  // Le texte s'écrit dans le champ au fil de la voix ; on relit, puis Entrée ou « Envoyer ». Rien ne part tout seul.
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  function majMic() {
+    var b = S.root && S.root.querySelector('[data-act="dicter"]'); if (b) { b.classList.toggle('on', !!S.dicte); b.textContent = S.dicte ? '⏹️ Arrêter' : '🎙️ Dicter'; }
+    var ta = S.root && S.root.querySelector('#wl-msg'); if (ta) ta.placeholder = S.dicte ? '🎙️ Je vous écoute…' : 'Votre message…';
+  }
+  function startDictee() {
+    if (!SR) { toast('La dictée n’est pas disponible dans ce navigateur.', true); return; }
+    var ta = S.root.querySelector('#wl-msg'); if (!ta) return;
+    var base = ta.value ? ta.value.replace(/\s*$/, ' ') : '', fini = '';
+    var rec = new SR(); rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true;
+    rec.onresult = function (ev) {
+      var interim = '';
+      for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fini += t; else interim += t; }
+      var txt = (base + fini + interim).replace(/^\s+/, '');
+      var el = S.root.querySelector('#wl-msg'); if (el) { el.value = txt; el.scrollTop = el.scrollHeight; }
+      S.msgDraft = (base + fini).replace(/^\s+/, '');
+    };
+    rec.onerror = function (ev) { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') toast('Autorisez le micro pour posthumain.com dans le navigateur.', true); else if (ev.error !== 'no-speech' && ev.error !== 'aborted') toast('Dictée interrompue (' + ev.error + ').', true); };
+    rec.onend = function () { S.rec = null; S.dicte = false; majMic(); var el = S.root.querySelector('#wl-msg'); if (el) { S.msgDraft = el.value; el.focus(); } };
+    try { rec.start(); } catch (e) { toast('Impossible de lancer la dictée.', true); return; }
+    S.rec = rec; S.dicte = true; majMic();
+  }
+  function stopDictee() { S.dicte = false; if (S.rec) { try { S.rec.stop(); } catch (e) {} } majMic(); }
   function pjZone() {
     if (!S.pj) return '';
     return '<div class="box" style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>📎 <b>' + esc(S.pj.nom) + '</b> <span class="muted">' + taille(S.pj.taille) + '</span></span>' +
@@ -1158,13 +1185,15 @@
         }).then(function () { paintDoc(); });
         break;
       // interphone
+      case 'dicter': if (S.dicte) stopDictee(); else startDictee(); break;
       case 'send-msg':
+        if (S.dicte) stopDictee();
         var m = val('wl-msg').trim(), pj = S.pj; if (!m && !pj) break;
         var lien = S.root.querySelector('#wl-msg-art'), a = art(S.art), cs = S.root.querySelector('#wl-pj-cat');
         if (pj && cs) pj.categorie = cs.value;
         api('ecrire', { texte: m, article_id: lien && lien.checked && a ? a.id : '', article_titre: lien && lien.checked && a ? a.titre : '',
           fichier: pj ? { nom: pj.nom, type: pj.type, data: pj.data } : null, categorie: pj ? pj.categorie : '' }).then(function () {
-          var ta = S.root.querySelector('#wl-msg'); if (ta) { ta.value = ''; ta.blur(); } S.pj = null; majPj(); if (pj) toast('📎 Fichier rangé dans « ' + catNom(pj.categorie) + ' ».'); return refresh(true);
+          var ta = S.root.querySelector('#wl-msg'); if (ta) { ta.value = ''; ta.blur(); } S.msgDraft = ''; S.pj = null; majPj(); if (pj) toast('📎 Fichier rangé dans « ' + catNom(pj.categorie) + ' ».'); return refresh(true);
         }, function (e) { toast('⚠️ ' + e.message, true); });
         break;
       case 'pjs-add': S.pjsKey = id; var pin = S.root.querySelector('#wl-pjs-input'); if (pin) pin.click(); break;
@@ -1177,6 +1206,7 @@
   }
   function onInput(e) {
     var t = e.target, k;
+    if (t.id === 'wl-msg') { S.msgDraft = t.value; return; }
     if ((k = t.getAttribute('data-c')) && S.contact) { S.contact[k] = t.value; saveDraft(); }
     else if ((k = t.getAttribute('data-l'))) { S.libre[k] = t.value; }
     else if ((k = t.getAttribute('data-s'))) { S[k] = t.value; saveDraft(); }
