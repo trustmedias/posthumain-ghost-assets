@@ -1188,7 +1188,7 @@
     var c = S.cit && S.cit.fid === f.fiche_id ? S.cit : null, busy = !!S.busy.assistant;
     var h = '<h2>Dans l’article</h2>';
     if (!c || !c.ins) return h + '<p class="lead">L’Assistant lit l’article, choisit les passages les plus forts de la réponse, corrige l’orthographe et la ponctuation sans toucher aux propos (et traduit si besoin), puis propose l’endroit idéal pour chacun.</p>' +
-      '<div class="acts"><button class="go" data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>✨ Proposer les emplacements dans l’article</button></div>';
+      '<div class="acts"><button class="go" data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>✨ Proposer les emplacements dans l’article</button></div>' + chapoBlock(f);
     var reste = c.ins.filter(function (x, k) { return !c.fait[k] && !c.skip[k]; }).length;
     h += '<p class="lead">' + c.ins.length + ' extrait' + pl(c.ins.length) + ' proposé' + pl(c.ins.length) + ', chacun à sa place. Dépliez pour voir le passage tel qu’il apparaîtra, ajustez si besoin, puis insérez.</p>';
     var cut = function (t, n, fin) { t = String(t || ''); return t.length <= n ? t : fin ? '… ' + t.slice(-n) : t.slice(0, n) + ' …'; };
