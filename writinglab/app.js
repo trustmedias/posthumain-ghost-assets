@@ -256,7 +256,7 @@
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
 #wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
-#wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
+#wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .fa-ed{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18)}#wl .fa-ed label{display:block;font-size:12.5px;color:rgba(243,236,224,.6);margin:8px 0 4px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 #wl .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.62);backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}#wl .cfm-bg.on{opacity:1}#wl .cfm{width:min(440px,100%);background:#14110c;border:1px solid rgba(0,255,119,.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}#wl .cfm-bg.on .cfm{transform:none}#wl .cfm.danger{border-color:rgba(255,80,80,.45)}#wl .cfm-ic{font-size:26px;margin-bottom:8px}#wl .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}#wl .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(243,236,224,.7)}#wl .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
 #wl .box.iv{margin:14px 0 4px;border-color:rgba(0,255,119,.35);background:rgba(0,255,119,.05)}#wl .ivl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}#wl .ivl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
@@ -1305,6 +1305,12 @@
       '<select class="in" id="wl-dl" style="width:auto"><option value="fr-FR"' + (dl === 'fr-FR' ? ' selected' : '') + '>Français</option><option value="en-US"' + (dl === 'en-US' ? ' selected' : '') + '>English</option></select></div>' +
       '<div class="set-h" style="margin-top:12px"><div><b>Mise en forme automatique</b><div class="set-s">Ponctuation et majuscules corrigées après la dictée (le champ se grise une à deux secondes).</div></div>' + sw('set-mef', mef) + '</div></div>';
     if (me.chef) {
+      var FR = S.factures || {};
+      h += '<div class="set"><b>🧾 Tarifs des factures</b><div class="set-s" style="margin:4px 0 10px">Appliqués à la prochaine facture générée (les factures déjà émises gardent leur tarif, sauf ajustement).</div>' +
+        '<div class="row" style="gap:10px;flex-wrap:wrap;align-items:center">Enquête premium <input class="in" id="wl-tp" value="' + String(FR.tarif_premium != null ? FR.tarif_premium : '').replace('.', ',') + '" inputmode="decimal" style="width:80px"> € · Article standard <input class="in" id="wl-ts" value="' + String(FR.tarif_standard != null ? FR.tarif_standard : '').replace('.', ',') + '" inputmode="decimal" style="width:80px"> € <button class="btn small" data-act="fa-tarifs">Enregistrer</button></div></div>';
+      if (!S.factures) chargerFactures();
+    }
+    if (me.chef) {
       var wm = P.webmails || [];
       h += '<div class="set"><b>🛡️ Contrôle des pièces</b><div class="set-s" style="margin:4px 0 10px">Réponses venant de ces messageries gratuites : pièces mises « à vérifier » (vous validez). Tout est décoché par défaut, car beaucoup de gens sérieux ont une adresse Gmail ou Outlook.</div>' +
         WEBMAILS.map(function (g, k) { var on = g[1].every(function (d) { return wm.indexOf(d) >= 0; }); return '<label class="chk"><input type="checkbox" data-wm="' + k + '"' + (on ? ' checked' : '') + '> ' + esc(g[0]) + ' <span class="set-s">' + esc(g[1].join(', ')) + '</span></label>'; }).join('') + '</div>';
@@ -1319,6 +1325,7 @@
     var h = head('🧮', 'Le Comptable', '<span class="led ' + o.s + '"></span>' + esc(o.why)) + '<div class="pb">';
     if (!S.pieces) return h + '<p class="muted">Le Comptable ouvre ses registres…</p></div>';
     h += '<p class="muted">Chaque parcours complet (interview envoyée depuis le lab, réponse du chercheur, citation insérée dans l’article) rapporte des pièces, rangées dans la caisse de la journaliste.</p>';
+    h += facturesHTML();
     gagnants().forEach(function (w) {
       var so = (r.soldes || {})[w.id] || 0, mien = w.id === me.id, demande = (r.demandes || {})[w.id] === r.mois;
       var peutDemander = mien && so > 0 && Number(r.jour) >= 25 && !demande;
@@ -1603,6 +1610,30 @@
       // interphone
       case 'pieces': masquerTip(); closeDoc(); openPanel('compta'); break;
       case 'parametres': closeDoc(); openPanel('parametres'); break;
+      case 'fa-tarifs':
+        factApi({ action: 'tarifs', premium: val('wl-tp'), standard: val('wl-ts') }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'tarifs invalides'), true); return; } toast('🧾 Tarifs enregistrés : ' + eurTxt(r.tarif_premium) + ' / ' + eurTxt(r.tarif_standard)); chargerFactures(); });
+        break;
+      case 'fa-edit': S.faEdit = Number(id) || null; paintPanel(); break;
+      case 'fa-regen':
+        var fid3 = Number(id), corps3 = { action: 'ajuster', id: fid3, premium_qte: val('fa-pq'), tarif_premium: val('fa-pp'), standard_qte: val('fa-sq'), tarif_standard: val('fa-sp'), interview: val('fa-iv') };
+        var ck3 = S.clicking; confirmer('Régénérer la facture avec ces valeurs ?\n\nLe PDF est refait et la rédactrice est prévenue.').then(function (ok) { if (!ok) return; S.clicking = ck3;
+          factApi(corps3).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } S.faEdit = null; toast('🧾 Facture régénérée : ' + eurTxt(Number(r.facture.total))); chargerFactures(); });
+        });
+        break;
+      case 'fa-payer':
+        var fid4 = Number(id), f4 = ((S.factures || {}).factures || []).filter(function (x) { return x.id === fid4; })[0];
+        var ck4 = S.clicking; confirmer('Marquer cette facture comme payée ?\n\n' + (f4 ? moisTxt(f4.mois) + ' : ' + eurTxt(Number(f4.total)) + '. ' : '') + 'La rédactrice est prévenue du paiement. Une facture payée ne se modifie plus.').then(function (ok) { if (!ok) return; S.clicking = ck4;
+          factApi({ action: 'payer', id: fid4 }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('💸 Facture marquée payée.'); chargerFactures(); });
+        });
+        break;
+      case 'fa-lancer':
+        toast('⚡ Comptage des articles du mois dans Ghost…');
+        factApi({ action: 'lancer' }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('🧾 Facture du mois générée.'); chargerFactures(); });
+        break;
+      case 'fa-zip':
+        var an5 = val('wl-fa-an'); toast('⬇️ Préparation du ZIP ' + an5 + '…');
+        factApi({ action: 'zip', annee: an5 }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('⬇️ ' + r.nombre + ' facture' + pl(r.nombre) + ' dans le ZIP.'); window.open(r.url, '_blank'); });
+        break;
       case 'set-push':
         if (S.pushOk) {
           LS.set('wl-push-off', '1'); LS.set('wl-push-sid', ''); S.pushOk = false; paintPanel(); majTop();
@@ -1749,6 +1780,42 @@
       return fetch(PUSH, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
     });
   }
+  var FACT = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-facture';
+  function factApi(body) {
+    return fetch('/members/api/session', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+      body.token = t; return fetch(FACT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
+    });
+  }
+  function chargerFactures() { return factApi({ action: 'liste' }).then(function (r) { if (r && r.ok) { S.factures = r; if (S.panel === 'compta' || S.panel === 'parametres') paintPanel(); } }).catch(function () {}); }
+  var MOISN = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  function moisTxt(m) { var p = String(m).split('-'); return (MOISN[Number(p[1]) - 1] || '') + ' ' + p[0]; }
+  function facturesHTML() {
+    var R = S.factures, me = D().me;
+    if (!R) { chargerFactures(); return '<div class="cz-t">🧾 Factures</div><p class="muted">Chargement…</p>'; }
+    var fs = R.factures || [], an = new Date().getFullYear();
+    var h = '<div class="cz-t">🧾 Factures</div><p class="cz-s">Générées automatiquement le dernier jour du mois à 23 h : enquêtes premium et articles standards publiés dans le mois (autrice, co-autrice ou relecture d’un article de Julien), plus les interviews comptabilisées.</p>';
+    if (me.chef) h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0 4px"><button class="btn small" data-act="fa-lancer">⚡ Générer la facture du mois en cours</button>' +
+      '<select class="in" id="wl-fa-an" style="width:auto;flex:0 0 auto">' + [an, an - 1].map(function (y) { return '<option>' + y + '</option>'; }).join('') + '</select><button class="btn small" data-act="fa-zip">⬇️ Télécharger l’année (ZIP)</button></div>';
+    if (!fs.length) return h + '<p class="muted">Aucune facture pour l’instant : la première sera générée à la fin du mois.</p>';
+    return h + fs.map(function (f) {
+      var paye = f.statut === 'payee', ed = S.faEdit === f.id, d = f.details || {};
+      var lg = (f.lignes || []).map(function (l) { return esc(l.libelle) + (l.qte != null ? ' × ' + l.qte : '') + ' : ' + eurTxt(Number(l.total)); }).join('<br>');
+      var x = '<div class="cz-l"><div class="cz-h"><span><b>' + esc(moisTxt(f.mois)) + '</b>' + (me.chef ? ' · ' + esc(membre(f.membre).nom) : '') + '</span>' + (paye ? '<span class="tag g">✅ payée ' + esc(when(f.payee_le)) + '</span>' : '<span class="tag a">à payer</span>') + '</div>' +
+        '<div class="cz-n" style="font-size:24px">' + eurTxt(Number(f.total)) + '<small>N° ' + esc(f.numero) + '</small></div><div class="cz-s" style="margin-top:4px">' + lg + '</div>' +
+        '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">' + (f.url ? '<a class="btn small" href="' + esc(f.url) + '" target="_blank" rel="noopener" data-stop="1">📄 Ouvrir le PDF</a>' : '') +
+        (me.chef && !paye ? '<button class="btn small go" data-act="fa-payer" data-id="' + f.id + '">💸 Marquer comme payée</button><button class="btn small" data-act="fa-edit" data-id="' + f.id + '">✏️ Ajuster</button>' : '') + '</div>';
+      if (ed) {
+        var q = function (l) { var k = (f.lignes || []).filter(function (z) { return z.libelle === l; })[0]; return k || {}; };
+        x += '<div class="fa-ed"><label>Enquêtes premium</label><div class="row" style="gap:6px"><input class="in" id="fa-pq" value="' + (q('Posthumain (premium)').qte || 0) + '" inputmode="numeric" style="width:80px"> × <input class="in" id="fa-pp" value="' + String(q('Posthumain (premium)').pu || 0).replace('.', ',') + '" inputmode="decimal" style="width:90px"> €</div>' +
+          '<label>Articles standards</label><div class="row" style="gap:6px"><input class="in" id="fa-sq" value="' + (q('Articles standards').qte || 0) + '" inputmode="numeric" style="width:80px"> × <input class="in" id="fa-sp" value="' + String(q('Articles standards').pu || 0).replace('.', ',') + '" inputmode="decimal" style="width:90px"> €</div>' +
+          '<label>Interviews (montant)</label><div class="row" style="gap:6px"><input class="in" id="fa-iv" value="' + String(q('Interviews').total || 0).replace('.', ',') + '" inputmode="decimal" style="width:110px"> €</div>' +
+          '<div class="row" style="gap:6px;margin-top:10px"><button class="btn small go" data-act="fa-regen" data-id="' + f.id + '">↻ Régénérer la facture</button><button class="btn small" data-act="fa-edit" data-id="0">Annuler</button></div></div>';
+      }
+      var arts = (d.premium || []).map(function (a) { return ['premium', a]; }).concat((d.standard || []).map(function (a) { return ['standard', a]; }));
+      if (arts.length) x += '<details class="cz-d" style="margin-top:10px"><summary>Articles comptés (' + arts.length + ')</summary>' + arts.map(function (z) { return '<div class="cz-s" style="margin:4px 0">' + (z[0] === 'premium' ? '⭐ ' : '📰 ') + esc(z[1].titre) + ' <i>(' + esc(z[1].role) + ')</i></div>'; }).join('') + '</details>';
+      return x + '</div>';
+    }).join('');
+  }
   function sidWebpushr(cb) {
     var n = 0;
     (function essai() {
@@ -1779,6 +1846,7 @@
     if (h === 'interphone' || h === 'suivi' || h === 'articles') { S.tab = h; render(); }
     else if (h === 'a-interviewer') act('a-interviewer', document.body);
     else if (h === 'sc' || h === 'mk') { S.tab = 'bureau'; render(); openPanel(h); }
+    else if (h === 'factures' || h === 'pieces') { S.tab = 'bureau'; render(); openPanel('compta'); }
     else return;
     try { history.replaceState(null, '', location.pathname); } catch (e) {}
   }
