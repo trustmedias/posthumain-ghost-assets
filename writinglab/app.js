@@ -769,22 +769,29 @@
   function startDictee() {
     if (!SR) { toast('La dictée n’est pas disponible dans ce navigateur.', true); return; }
     var ta = S.root.querySelector('#wl-msg'); if (!ta) return;
-    var base = ta.value ? ta.value.replace(/\s*$/, ' ') : '', fini = '';
+    var base = ta.value ? ta.value.replace(/\s*$/, ' ') : '', fini = '', enCours = '', fait = false;
     var rec = new SR(); rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true;
     rec.onresult = function (ev) {
       var interim = '';
+      if (fait) return;
       for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fini += t; else interim += t; }
+      enCours = interim;
       var txt = (base + fini + interim).replace(/^\s+/, '');
       var el = S.root.querySelector('#wl-msg'); if (el) { el.value = txt; el.scrollTop = el.scrollHeight; }
       S.msgDraft = (base + fini).replace(/^\s+/, '');
     };
     rec.onerror = function (ev) { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') toast('Autorisez le micro pour posthumain.com dans le navigateur.', true); else if (ev.error !== 'no-speech' && ev.error !== 'aborted') toast('Dictée interrompue (' + ev.error + ').', true); };
-    rec.onend = function () {
+    // Fin de dictée : on garde aussi le dernier morceau encore « provisoire » (sinon les derniers mots se perdent).
+    var terminer = function () {
+      if (fait) return; fait = true; clearTimeout(S.recGarde);
       S.rec = null; S.dicte = false; majMic();
-      var el = S.root.querySelector('#wl-msg'); if (el) S.msgDraft = el.value;
-      var dit = fini.trim();
-      if (dit) miseEnForme(base, dit); else if (el) el.focus();
+      var dit = (fini + ' ' + enCours).replace(/\s+/g, ' ').trim();
+      var el = S.root.querySelector('#wl-msg');
+      if (el) { el.value = (base + dit).replace(/^\s+/, ''); S.msgDraft = el.value; }
+      if (dit) miseEnForme(base, dit); else { verrou(false); if (el) el.focus(); }
     };
+    rec.onend = terminer;
+    rec.terminer = terminer;
     try { rec.start(); } catch (e) { toast('Impossible de lancer la dictée.', true); return; }
     S.rec = rec; S.dicte = true; majMic();
   }
@@ -807,7 +814,13 @@
     var garde = setTimeout(function () { fin(''); }, 12000); // jamais plus de 12 s de champ bloqué
     pushApi({ action: 'dictee', texte: dit }).then(function (r) { clearTimeout(garde); if (S.miseEnForme) fin(r && r.ok ? r.texte : ''); }, function () { clearTimeout(garde); if (S.miseEnForme) fin(''); });
   }
-  function stopDictee() { S.dicte = false; if (S.rec) { try { S.rec.stop(); } catch (e) {} } majMic(); }
+  // Clic sur « arrêter » : le champ se grise TOUT DE SUITE, puis le texte part à la mise en forme dès que le navigateur rend la main
+  // (au plus 1,2 s d'attente : au-delà on prend ce qui est déjà écrit).
+  function stopDictee() {
+    S.dicte = false; var rec = S.rec;
+    if (rec) { verrou(true); try { rec.stop(); } catch (e) {} S.recGarde = setTimeout(function () { try { rec.abort(); } catch (e) {} if (rec.terminer) rec.terminer(); }, 1200); }
+    majMic();
+  }
   function pjZone() {
     if (!S.pj) return '';
     return '<div class="box" style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>📎 <b>' + esc(S.pj.nom) + '</b> <span class="muted">' + taille(S.pj.taille) + '</span></span>' +
