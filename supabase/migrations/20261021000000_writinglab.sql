@@ -1,0 +1,5 @@
+-- Writinglab : tables du lab (lues/écrites uniquement par la fonction wl-db, service role) + sonnette temps réel.
+-- Appliqué le 21/10/2026 en deux migrations (writinglab_tables, writinglab_sonnette, writinglab_sonnette_invoker).
+-- Tables : wl_fiches (fiche_id unique), wl_messages, wl_courrier (mail_id unique) — RLS activée, aucune policy.
+-- wl_signal (kind, at) : lecture publique (aucune donnée), publiée dans supabase_realtime ; mise à jour par
+-- les triggers wl_*_sonner à chaque insert/update. Triggers wl_*_touch : updated_at.
