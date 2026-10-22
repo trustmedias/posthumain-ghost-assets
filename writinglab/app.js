@@ -286,7 +286,7 @@
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .panel .dossier .dh{cursor:pointer}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
-#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
+#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .rd-h{display:flex;gap:10px;align-items:flex-start}#wl .rd-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:rgba(0,255,119,.14);color:#9fffc8;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .rd-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0}#wl .rd-a{margin-top:6px;font-size:13.5px;line-height:1.5;color:rgba(243,236,224,.72);white-space:pre-wrap}#wl .rd-vote{border-color:rgba(0,255,119,.55)!important;background:rgba(0,255,119,.06)!important}#wl .mb-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block}#wl .mb-soc{width:100%;max-width:320px;border-radius:10px;margin:8px 0;display:block}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
 #wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .fa-ed{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18)}#wl .fa-ed label{display:block;font-size:12.5px;color:rgba(243,236,224,.6);margin:8px 0 4px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 #wl .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.62);backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}#wl .cfm-bg.on{opacity:1}#wl .cfm{width:min(440px,100%);background:#14110c;border:1px solid rgba(0,255,119,.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}#wl .cfm-bg.on .cfm{transform:none}#wl .cfm.danger{border-color:rgba(255,80,80,.45)}#wl .cfm-ic{font-size:26px;margin-bottom:8px}#wl .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}#wl .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(243,236,224,.7)}#wl .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
@@ -371,7 +371,7 @@
 
   // ---------- le plan de la rédaction (SVG, 1600 × 1000) ----------
   // Plan en largeur (21/10/2026) : 4 pièces par rangée, 2 rangées → beaucoup moins haut, tout le monde voit tous les bureaux.
-  var PLAN_W = 2760, PLAN_H = 1000;
+  var PLAN_W = 3200, PLAN_H = 1000;
   var ROOMS = [
     { key: 'redac', name: 'Salle de rédaction', x: 30, y: 30, w: 560, h: 410, floor: '#16110b' },
     { key: 'secr', name: 'Secrétariat', x: 610, y: 30, w: 760, h: 410, floor: '#0b1216' },
@@ -381,7 +381,8 @@
     { key: 'courrier', name: 'Salle du courrier', x: 610, y: 500, w: 560, h: 470, floor: '#0c0f16' },
     { key: 'marbre', name: 'Le marbre · Ghost', x: 1190, y: 500, w: 580, h: 470, floor: '#0a0d0b' },
     { key: 'mk', name: 'Marketing · redaction@', x: 1790, y: 500, w: 560, h: 470, floor: '#16100c' },
-    { key: 'compta', name: 'Arrière-salle · comptabilité', x: 2370, y: 30, w: 360, h: 940, floor: '#110d07' }
+    { key: 'compta', name: 'Arrière-salle · comptabilité', x: 2370, y: 30, w: 360, h: 940, floor: '#110d07' },
+    { key: 'decisions', name: 'Salle des décisions · Usine', x: 2750, y: 30, w: 420, h: 940, floor: '#08120f' }
   ];
   function rooms() { return ROOMS; }
   function people() {
@@ -400,6 +401,10 @@
     list.push({ key: 'sc', kind: 'sc', nom: JULIEN.sc.nom, titre: JULIEN.sc.adr, emoji: JULIEN.sc.emoji, hue: 175, x: 2070, y: 215 });
     list.push({ key: 'mk', kind: 'mk', nom: JULIEN.mk.nom, titre: JULIEN.mk.adr, emoji: JULIEN.mk.emoji, hue: 20, x: 2070, y: 735 });
     list.push({ key: 'compta', kind: 'compta', nom: 'Le Comptable', titre: 'Les pièces de la rédaction', emoji: '🧮', hue: 45, x: 2550, y: 230 });
+    // Salle des décisions (22/10/2026) : ce que Telegram montrait et permettait de commander, en propre. Chaque poste = une entrée
+    // de DECISIONS (plus bas) ; la future « Décisions vidéo » s'ajoute ici avec sa propre clé, sans toucher au reste.
+    list.push({ key: 'radar', kind: 'radar', nom: 'Le Radar', titre: 'Les sujets du jour', emoji: '📡', x: 2960, y: 235, device: true });
+    list.push({ key: 'votes', kind: 'votes', nom: 'Votes du public', titre: 'posthumain.com/vote', emoji: '🗳️', x: 2960, y: 735, device: true });
     return list;
   }
   function P(key) { return people().filter(function (p) { return p.key === key; })[0]; }
@@ -420,7 +425,16 @@
       var dm = me0.chef ? Object.keys(R.demandes || {}).filter(function (k) { return R.demandes[k] === R.mois && ((R.soldes || {})[k] || 0) > 0; }).length : 0;
       return dm ? { s: 'on', why: dm + ' demande' + pl(dm) + ' de paiement' } : af ? { s: 'slot', why: af + ' montant' + pl(af) + ' à facturer' } : av ? { s: 'slot', why: av + ' à vérifier' } : { s: 'off', why: 'compte les pièces' };
     }
-    if (p.kind === 'marbre') { var a = D().articles.length; return { s: a ? 'slot' : 'off', why: a + ' brouillon' + pl(a) + ' sur le marbre' }; }
+    if (p.kind === 'radar') {
+      var RD = S.radar;
+      if (!RD) return { s: 'off', why: 'ouvrir pour voir les sujets' };
+      if (!RD.ok) return { s: 'err', why: 'à configurer' };
+      var nv = (RD.votes || []).filter(function (v) { return v.statut === 'new'; }).length, nf = (RD.file || []).length;
+      return nv ? { s: 'on', why: '🗳️ sujet voté en tête' } : nf ? { s: 'slot', why: nf + ' sujet' + pl(nf) + ' en file' } : { s: 'off', why: (RD.sujets || []).length + ' sujet' + pl((RD.sujets || []).length) + ' notés' };
+    }
+    if (p.kind === 'votes') return { s: 'off', why: 'la salle des votes' };
+    if (p.kind === 'marbre') { var a = D().articles.length, au = S.marbre && S.marbre.ok ? (S.marbre.brouillons || []).filter(function (x) { return x.statut === 'drafted'; }).length : 0;
+      if (au) return { s: 'on', why: au + ' brouillon' + pl(au) + ' de l’Usine à approuver' }; return { s: a ? 'slot' : 'off', why: a + ' brouillon' + pl(a) + ' sur le marbre' }; }
     if (p.vide) return { s: 'off', why: 'poste à attribuer' };
     if (isMe(p)) return { s: 'on', why: 'vous êtes ici' };
     return { s: 'off', why: p.titre || '' };
@@ -476,6 +490,15 @@
         if (env) s += '<rect x="' + (x + 4) + '" y="' + (y + 7) + '" width="22" height="14" rx="1.5" fill="' + env + '"' + (k < rep ? ' filter="url(#glow)"' : '') + '/><path d="M' + (x + 4) + ' ' + (y + 7) + ' l11 8 l11 -8" stroke="rgba(0,0,0,.45)" fill="none"/>';
         k++;
       }
+    } else if (p.kind === 'radar') {
+      s += '<rect x="-110" y="-60" width="220" height="110" rx="10" fill="#101a16" stroke="rgba(0,255,119,.25)"/>' +
+        '<circle cx="0" cy="-5" r="46" fill="#06100c" stroke="rgba(0,255,119,.35)"/><circle cx="0" cy="-5" r="30" fill="none" stroke="rgba(0,255,119,.18)"/><circle cx="0" cy="-5" r="14" fill="none" stroke="rgba(0,255,119,.18)"/>' +
+        '<path d="M0 -5 L0 -51 A46 46 0 0 1 40 -28 Z" fill="rgba(0,255,119,.18)"><animateTransform attributeName="transform" type="rotate" from="0 0 -5" to="360 0 -5" dur="6s" repeatCount="indefinite"/></path>';
+      var pts = Math.min(((S.radar || {}).sujets || []).length, 7);
+      for (var j = 0; j < pts; j++) { var an = j * 2.3, rr = 12 + (j * 9) % 32; s += '<circle cx="' + (Math.cos(an) * rr).toFixed(1) + '" cy="' + (-5 + Math.sin(an) * rr).toFixed(1) + '" r="3" fill="#7dffb8" filter="url(#glow)"/>'; }
+    } else if (p.kind === 'votes') {
+      s += '<rect x="-70" y="-30" width="140" height="80" rx="8" fill="#1d2a24" stroke="rgba(0,255,119,.3)"/><rect x="-40" y="-36" width="80" height="8" rx="3" fill="#0a0f0c" stroke="rgba(0,255,119,.4)"/>' +
+        '<rect x="-14" y="-62" width="28" height="34" rx="2" fill="#f3ead6" transform="rotate(-6 0 -45)"/><text x="0" y="22" text-anchor="middle" font-size="12" font-weight="800" fill="#00ff77" font-family="monospace">VOTE</text>';
     } else {
       s += '<rect x="-110" y="-55" width="220" height="100" rx="8" fill="#2b2b2b" stroke="rgba(255,255,255,.16)"/><rect x="-100" y="-45" width="200" height="80" rx="4" fill="#3a3a3a"/>';
       var n = Math.min(D().articles.length, 6);
@@ -888,7 +911,7 @@
 
 
   // ---------- panneaux (le bureau de chaque employé) ----------
-  function openPanel(key) { S.panel = key; paintPanel(); var r = S.root; r.querySelector('.panel').classList.add('open'); r.querySelector('.panelbg').classList.add('open'); r.querySelector('.panel').scrollTop = 0; }
+  function openPanel(key) { S.panel = key; if (DECISIONS[key] && DECISIONS[key].ouvrir) DECISIONS[key].ouvrir(); if (key === 'marbre') chargerMarbre(); paintPanel(); var r = S.root; r.querySelector('.panel').classList.add('open'); r.querySelector('.panelbg').classList.add('open'); r.querySelector('.panel').scrollTop = 0; }
   function closePanel() { S.dosFocus = null; S.panel = null; S.reformule = null; S.root.querySelector('.panel').classList.remove('open'); S.root.querySelector('.panelbg').classList.remove('open'); }
   function head(emoji, nom, st) { return '<div class="ph2"><span class="em">' + emoji + '</span><div><div class="nm">' + esc(nom) + '</div><div class="st">' + (st || '') + '</div></div><span class="x" data-act="close-panel">✕</span></div>'; }
   function paintPanel() {
@@ -900,7 +923,9 @@
     if (k === 'secretaire') h = panelSecretaire();
     else if (k === 'assistant') h = panelAssistant();
     else if (k === 'courrier') h = panelCourrier();
-    else if (k === 'marbre' || k === 'articles') h = panelArticles();
+    else if (k === 'marbre') h = panelMarbre();
+    else if (k === 'articles') h = panelArticles();
+    else if (DECISIONS[k]) h = DECISIONS[k].panel();
     else if (k === 'chef') h = panelChef();
     else if (k === 'sc' || k === 'mk') h = panelJulien(k);
     else if (k === 'compta') h = panelCompta();
@@ -1108,6 +1133,106 @@
     h += '<h3>En attente de réponse (' + e.length + ')</h3><div class="dos">' + (e.map(function (f) { return dcard(f, '<div class="su">envoyé ' + esc(when(f.envoye_le)) + (relancable(f) && !relancePrete(f) ? ' · <b>relance possible</b>' : '') + '</div>'); }).join('') || '<div class="muted">Rien en attente.</div>') + '</div>';
     if (c.length) h += '<h3>Déjà cités (' + c.length + ')</h3><div class="dos">' + c.slice(0, 8).map(function (f) { return dcard(f); }).join('') + '</div>';
     return h;
+  }
+  // ================= Salle des décisions (Radar, Marbre de l'Usine, Votes) — fonction Supabase wl-radar, zéro exécution n8n =================
+  var RADAR_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-radar';
+  function radarApi(body) { return supa(RADAR_FN, body); }
+  var RD_TYPES = [['', 'type noté'], ['actu', 'Actu'], ['actu-premium', 'Actu-premium'], ['premium', 'Enquête premium']];
+  function rdType(x) { return x.type === 'premium' ? ['💎', 'Enquête premium', 'b'] : x.actu_premium ? ['🔐', 'Actu-premium', 'a'] : ['📰', 'Actu', 'g']; }
+  function chargerRadar() {
+    if (S.radarLd) return S.radarLd;
+    S.radarLd = radarApi({ action: 'radar' }).then(function (r) { S.radarLd = null; S.radar = r || { ok: false, why: 'réponse vide' }; if (S.panel === 'radar') paintPanel(); paintFloor(); }, function () { S.radarLd = null; });
+    return S.radarLd;
+  }
+  function chargerMarbre() {
+    if (S.marbreLd) return S.marbreLd;
+    S.marbreLd = radarApi({ action: 'marbre' }).then(function (r) { S.marbreLd = null; S.marbre = r || { ok: false, why: 'réponse vide' }; if (S.panel === 'marbre') paintPanel(); paintFloor(); }, function () { S.marbreLd = null; });
+    return S.marbreLd;
+  }
+  function rdSecret(why) {
+    var w = String(why || '');
+    if (/Airtable/i.test(w) && /absent/i.test(w)) return '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🔑 <b>Il manque le jeton Airtable dans Supabase.</b><div class="cz-s">Ajoutez le secret <b>AIRTABLE_TOKEN</b> (jeton personnel Airtable avec accès à la base Radar de l’Usine) dans Supabase PosthumanOS → Edge Functions → Secrets. La Salle du Radar et le bouton Approuver marchent dès qu’il est enregistré.</div></div>';
+    if (/Ghost/i.test(w) && /absent/i.test(w)) return '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🔑 <b>Il manque la clé Admin Ghost dans Supabase</b> (secret GHOST_ADMIN_API_KEY).</div>';
+    return '<p class="muted">⚠️ ' + esc(w || 'Impossible de joindre le Radar.') + '</p>';
+  }
+  function rdCarte(x, n, chef, enFile) {
+    var t = rdType(x), lien = x.url && /^https?:\/\//i.test(x.url) && !x.vote ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">source</a>' : '';
+    var h = '<div class="cz-l rd-c' + (x.vote ? ' rd-vote' : '') + '"><div class="rd-h">' + (n ? '<span class="rd-n">' + n + '</span>' : '') + '<div style="flex:1"><div class="rd-t">' + esc(x.titre || '(sans titre)') + '</div>' +
+      '<div class="cz-s">' + (x.vote ? '<span class="tag g">🗳️ Choisi par le public</span> <span class="tag b">enquête supplémentaire</span> ' : '') + '<span class="tag ' + t[2] + '">' + t[0] + ' ' + t[1] + '</span>' + (x.format && x.format !== 'actu' ? ' <span class="tag">' + esc(String(x.format).toUpperCase()) + '</span>' : '') +
+      (x.score ? ' · score <b>' + x.score + '</b>' : '') + (x.source === 'EVERGREEN' ? ' · 💎 sujet de fond' : '') + (x.manuel ? ' · 🔒 hors IA' : '') + (lien ? ' · ' + lien : '') + (x.choisir && !enFile && !x.vote ? ' · <span class="tag g">✓ en file</span>' : '') + '</div></div></div>';
+    if (x.angle) h += '<div class="rd-a">' + esc(x.angle) + '</div>';
+    if (chef) {
+      if (x.vote) h += '<div class="row" style="gap:6px;margin-top:8px">' + (x.statut === 'skipped' ? '<span class="cz-s">Écarté : il ne sera pas écrit.</span><button class="btn small" data-act="rd-remettre" data-id="' + esc(x.id) + '">↩️ Le remettre</button>' : '<span class="cz-s">Sans action de votre part, l’Usine l’écrit en plus du sujet du jour.</span><button class="btn small red" data-act="rd-ecarter" data-id="' + esc(x.id) + '">✖️ Ne pas l’écrire</button>') + '</div>';
+      else if (enFile) h += '<div class="row" style="gap:6px;margin-top:8px"><button class="btn small" data-act="rd-up" data-id="' + esc(x.id) + '" aria-label="Monter">▲</button><button class="btn small" data-act="rd-down" data-id="' + esc(x.id) + '" aria-label="Descendre">▼</button><button class="btn small" data-act="rd-retirer" data-id="' + esc(x.id) + '">Retirer de la file</button></div>';
+      else if (!x.choisir) h += '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><select class="in" id="rd-t-' + esc(x.id) + '" style="width:auto;flex:0 0 auto">' + RD_TYPES.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select><button class="btn small go" data-act="rd-choisir" data-id="' + esc(x.id) + '">✍️ Écrire celui-ci</button></div>';
+    }
+    return h + '</div>';
+  }
+  function panelRadar() {
+    var R = S.radar, me = D().me, chef = !!me.chef;
+    var h = head('📡', 'Le Radar', 'Sujets notés du jour · file de rédaction de l’Usine') + '<div class="pb">';
+    h += '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px"><button class="btn small" data-act="rd-refresh">🔄 Actualiser</button>' + (chef ? '<button class="btn small" data-act="rd-relancer">📡 Relancer le Radar</button>' : '') + (R && R.at ? '<span class="cz-s" style="align-self:center">lu ' + esc(when(R.at)) + '</span>' : '') + '</div>';
+    if (!chef) h += '<p class="cz-s">Lecture seule : seul le rédacteur en chef choisit les sujets.</p>';
+    if (!R) return h + '<p class="muted">Le Radar se met en route…</p></div>';
+    if (!R.ok) return h + rdSecret(R.why) + '</div>';
+    var vs = R.votes || [], fl = (R.file || []).filter(function (x) { return !x.vote; }), sj = R.sujets || [];
+    if (vs.length) h += '<div class="cz-t">🗳️ Le sujet choisi par le public</div>' + vs.map(function (x) { return rdCarte(x, 0, chef, false); }).join('');
+    h += '<div class="cz-t">📋 File de rédaction (' + fl.length + ')</div>' + (fl.length ? '<p class="cz-s">Le n°1 part au prochain passage de l’Usine (8 h 30 ou 12 h), le n°2 au suivant.</p>' + fl.map(function (x, i) { return rdCarte(x, i + 1, chef, true); }).join('') : '<p class="muted">File vide : sans choix, l’Usine prend le sujet le mieux noté du jour.</p>');
+    var libres = sj.filter(function (x) { return !x.choisir; });
+    h += '<div class="cz-t">📰 Sujets notés du jour (' + sj.length + ')</div>' + (libres.length ? libres.map(function (x, i) { return rdCarte(x, i + 1, chef, false); }).join('') : '<p class="muted">Aucun autre sujet en attente aujourd’hui.</p>');
+    if (chef) h += '<details class="cz-d"' + (S.rdImposer ? ' open' : '') + '><summary>✍️ Imposer un sujet</summary>' +
+      '<label class="cz-s">Sujet</label><input class="in" id="rd-i-t" maxlength="300" placeholder="Ex. Neuralink : le premier implant visuel testé sur l’humain">' +
+      '<label class="cz-s">Lien source (facultatif)</label><input class="in" id="rd-i-u" inputmode="url" placeholder="https://…">' +
+      '<label class="cz-s">Angle imposé (facultatif)</label><textarea class="in" id="rd-i-a" rows="3" placeholder="Ce que l’article doit absolument traiter…"></textarea>' +
+      '<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select class="in" id="rd-i-ty" style="width:auto;flex:0 0 auto"><option value="actu">Actu</option><option value="actu-premium">Actu-premium</option><option value="premium">Enquête premium</option></select><button class="btn go" data-act="rd-imposer">Mettre en file (prioritaire)</button></div></details>';
+    return h + '</div>';
+  }
+  function panelMarbre() {
+    var M = S.marbre, me = D().me, chef = !!me.chef;
+    var h = head('📰', 'Le Marbre', 'Brouillons de l’Usine à approuver, puis tous les brouillons Ghost') + '<div class="pb">';
+    h += '<div class="row" style="gap:8px;margin-bottom:6px"><button class="btn small" data-act="mb-refresh">🔄 Actualiser</button>' + (M && M.at ? '<span class="cz-s" style="align-self:center">lu ' + esc(when(M.at)) + '</span>' : '') + '</div>';
+    if (!M) h += '<p class="muted">Lecture des brouillons de l’Usine…</p>';
+    else if (!M.ok) h += rdSecret(M.why);
+    else {
+      if (M.airtable_absent) h += rdSecret('jeton Airtable absent') ;
+      if (M.erreur_ghost) h += '<p class="muted">⚠️ Ghost : ' + esc(M.erreur_ghost) + '</p>';
+      var bs = M.brouillons || [];
+      h += '<div class="cz-t">🏭 Brouillons de l’Usine (' + bs.length + ')</div>' + (bs.length ? bs.map(function (x) {
+        var p = x.post || {}, t = x.type ? rdType(x) : null, ap = x.statut === 'approved';
+        return '<div class="cz-l mb-c">' + (p.image ? '<img class="mb-img" loading="lazy" alt="" src="' + esc(p.image) + '">' : '') + '<div class="rd-t">' + esc(p.titre || x.titre) + '</div>' +
+          '<div class="cz-s">' + (t ? '<span class="tag ' + t[2] + '">' + t[0] + ' ' + t[1] + '</span> ' : '') + (ap ? '<span class="tag g">✅ approuvé · publié au batch de 18 h 30</span>' : x.statut === 'drafted' ? '<span class="tag a">à relire et approuver</span>' : '') +
+          (p.statut === 'scheduled' ? ' <span class="tag b">programmé</span>' : '') + (p.visibilite && p.visibilite !== 'public' ? ' · ' + esc(p.visibilite) : '') + (p.lecture ? ' · ' + p.lecture + ' min' : '') + (p.maj ? ' · modifié ' + esc(when(p.maj)) : '') + '</div>' +
+          (p.extrait ? '<div class="rd-a">' + esc(p.extrait) + '</div>' : '') +
+          (x.couverture_ref ? '<div class="cz-s">🖼️ Couverture faite d’après une photo de référence</div>' : '') +
+          (x.social && x.social.image ? '<details class="cz-d"><summary>📱 Visuel réseaux sociaux (' + esc(x.social.statut || '') + ')</summary><img class="mb-soc" loading="lazy" alt="" src="' + esc(x.social.image) + '"><div class="cz-s" style="white-space:pre-wrap">' + esc(x.social.legende || '') + (x.social.hashtags ? '\n' + esc(x.social.hashtags) : '') + '</div></details>' : '') +
+          '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' + (p.editeur ? '<a class="btn small" href="' + esc(p.editeur) + '" target="_blank" rel="noopener">✏️ Relire dans Ghost</a>' : '') + (p.apercu ? '<a class="btn small" href="' + esc(p.apercu) + '" target="_blank" rel="noopener">👁️ Aperçu</a>' : '') +
+          (chef && x.id && x.statut === 'drafted' ? '<button class="btn small go" data-act="mb-approuver" data-id="' + esc(x.id) + '">✅ Approuver</button>' : '') + '</div></div>';
+      }).join('') + '<p class="cz-s">Le rapport détaillé de l’Usine (alertes de rédaction, sources, photos, encart vidéo) n’est pas encore enregistré : il reste dans le message Telegram « Brouillon prêt ».</p>' : '<p class="muted">Aucun brouillon de l’Usine en attente.</p>');
+      var pu = M.publies || [];
+      h += '<div class="cz-t">🌙 Publiés aujourd’hui (' + pu.length + ')</div>' + (pu.length ? pu.map(function (p) { return '<div class="cz-l"><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><b>' + esc(p.titre) + '</b></a><div class="cz-s">' + esc(when(p.publie_le)) + (p.visibilite && p.visibilite !== 'public' ? ' · ' + esc(p.visibilite) : '') + '</div></div>'; }).join('') : '<p class="muted">Rien de publié depuis minuit.</p>');
+    }
+    var as = artsRecents();
+    h += '<div class="cz-t">🗂️ Tous les brouillons Ghost</div><p class="muted">Choisissez l’article sur lequel vous travaillez : l’Assistant s’en sert et les citations y seront insérées.</p><div class="arts" style="grid-template-columns:1fr">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon.</div>') + '</div>';
+    return h + '</div>';
+  }
+  function panelVotes() {
+    return head('🗳️', 'Votes du public', 'Le prochain sujet premium choisi par les abonnés') + '<div class="pb"><p>La salle des votes vit sur <b>posthumain.com/vote</b> : propositions, sujets fusionnés par l’IA, votes en direct et, pour la rédaction, qui a proposé quoi.</p>' +
+      '<div class="row" style="margin-top:10px"><a class="btn go" href="https://posthumain.com/vote/#redaction" target="_blank" rel="noopener">Ouvrir la vue rédaction</a><a class="btn" href="https://posthumain.com/vote/" target="_blank" rel="noopener">Voir la page publique</a></div>' +
+      '<p class="cz-s" style="margin-top:10px">Le sujet gagnant arrive en tête du Radar le lendemain de la clôture : vous pouvez l’y écarter.</p></div>';
+  }
+  // Registre des postes de décision : clé du plan → panneau (+ chargement à l'ouverture). « Décisions vidéo » viendra s'ajouter ici.
+  var DECISIONS = {
+    radar: { panel: panelRadar, ouvrir: function () { chargerRadar(); } },
+    votes: { panel: panelVotes }
+  };
+  function rdAction(body, okMsg) {
+    return radarApi(body).then(function (r) {
+      if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return r; }
+      if (okMsg) toast(okMsg);
+      if (r.file && S.radar && S.radar.ok) S.radar.file = r.file;
+      chargerRadar();
+      return r;
+    });
   }
   function panelArticles() {
     var h = head('📰', 'Le Marbre', 'Les brouillons et articles programmés de Ghost');
@@ -1564,6 +1689,38 @@
       case 'articles': openPanel('articles'); break;
       case 'pick-art': pickArt(id); break;
       case 'open-ag': openPanel(t.getAttribute('data-ag').replace(/^j:vide$/, 'chef')); break;
+      case 'rd-refresh': S.radar = S.radar && S.radar.ok ? S.radar : null; chargerRadar(); break;
+      case 'mb-refresh': chargerMarbre(); break;
+      case 'rd-choisir': rdAction({ action: 'choisir', id: id, type: val('rd-t-' + id) }, '✍️ Sujet mis en file : il part au prochain passage de l’Usine.'); break;
+      case 'rd-retirer': rdAction({ action: 'decocher', id: id }, 'Retiré de la file.'); break;
+      case 'rd-up': case 'rd-down':
+        var fl7 = ((S.radar || {}).file || []).filter(function (x) { return !x.vote; }).map(function (x) { return x.id; }), all7 = ((S.radar || {}).file || []).map(function (x) { return x.id; });
+        var i7 = fl7.indexOf(id), j7 = name === 'rd-up' ? i7 - 1 : i7 + 1;
+        if (i7 < 0 || j7 < 0 || j7 >= fl7.length) break;
+        var tmp7 = fl7[i7]; fl7[i7] = fl7[j7]; fl7[j7] = tmp7;
+        var ordre7 = all7.filter(function (x) { return fl7.indexOf(x) < 0; }).concat(fl7); // un sujet voté éventuellement coché reste devant
+        rdAction({ action: 'ordre', ids: ordre7 }); break;
+      case 'rd-imposer':
+        var ti8 = val('rd-i-t').trim(), u8 = val('rd-i-u').trim(), a8 = val('rd-i-a').trim(), ty8 = val('rd-i-ty');
+        if (ti8.length < 6) { toast('⚠️ Donnez un sujet un peu plus précis.', true); break; }
+        S.rdImposer = true;
+        rdAction({ action: 'imposer', titre: ti8, url: u8, angle: a8, type: ty8, enquete: ty8 === 'premium' }, '✍️ Sujet imposé : il part en priorité au prochain passage de l’Usine.').then(function (r) { if (r && r.ok) { S.rdImposer = false; ['rd-i-t', 'rd-i-u', 'rd-i-a'].forEach(function (k) { var e = S.root.querySelector('#' + k); if (e) e.value = ''; }); } });
+        break;
+      case 'rd-ecarter':
+        var ck9 = S.clicking; confirmer('Ne pas écrire le sujet choisi par le public ?\n\nIl est retiré de la file de l’Usine. Vous pourrez le remettre tant qu’il n’est pas rédigé.').then(function (ok) { if (!ok) return; S.clicking = ck9; rdAction({ action: 'ecarter', id: id }, 'Sujet du public écarté.'); });
+        break;
+      case 'rd-remettre': rdAction({ action: 'remettre', id: id }, '↩️ Sujet du public remis en file.'); break;
+      case 'rd-relancer':
+        var ck10 = S.clicking; confirmer('Lancer un nouveau Radar maintenant ?\n\nL’Usine rassemble les flux et note de nouveaux sujets (quelques minutes). Les sujets du jour non choisis sont archivés.').then(function (ok) { if (!ok) return; S.clicking = ck10;
+          radarApi({ action: 'relancer_radar' }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('📡 ' + (r.why || 'Radar relancé.')); setTimeout(function () { S.radar = null; chargerRadar(); }, 240000); });
+        });
+        break;
+      case 'mb-approuver':
+        var b11 = ((S.marbre || {}).brouillons || []).filter(function (x) { return x.id === id; })[0], ck11 = S.clicking;
+        confirmer('Approuver ce brouillon ?\n\n' + (b11 ? '« ' + ((b11.post || {}).titre || b11.titre) + ' »\n\n' : '') + 'Il sera publié au batch du soir (vers 18 h 30), comme avec le lien Approuver de Telegram.').then(function (ok) { if (!ok) return; S.clicking = ck11;
+          radarApi({ action: 'approuver', id: id }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✅ Approuvé : publication au batch de 18 h 30.'); chargerMarbre(); });
+        });
+        break;
       case 'close-panel': closePanel(); break;
       case 'close-doc': closeDoc(); break;
       case 'open-valid': openDoc('valid', id); break;
@@ -2027,6 +2184,7 @@
     if (h === 'interphone' || h === 'suivi' || h === 'articles') { S.tab = h; render(); }
     else if (h === 'a-interviewer') act('a-interviewer', document.body);
     else if (h === 'sc' || h === 'mk') { S.tab = 'bureau'; render(); openPanel(h); }
+    else if (h === 'radar' || h === 'marbre' || h === 'votes') { S.tab = 'bureau'; render(); openPanel(h); }
     else if (h === 'factures' || h === 'pieces' || h === 'tableau') { S.tab = 'bureau'; S.ctab = h === 'tableau' ? 'bord' : h; render(); openPanel('compta'); }
     else return;
     try { history.replaceState(null, '', location.pathname); } catch (e) {}
