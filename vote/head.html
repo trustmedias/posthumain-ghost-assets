@@ -1,0 +1,8 @@
+<!-- Posthumain /vote : en-tête de page (injecté dans « Code injection > Header » de la page par la fonction vote).
+     Masque le thème Ghost dès le premier octet (pas de flash d'article) ; la page est une application plein écran. -->
+<style id="phv-voile">
+html{background:#0f0f0f}html.white-mode{background:#f4f6f3}
+html::before{content:"";position:fixed;inset:0;z-index:3998999;background:inherit}
+html,body{overflow:hidden!important}
+</style>
+<script>try{if(/(?:^|;\s*)tlj_theme=white/.test(document.cookie))document.documentElement.classList.add('white-mode')}catch(e){}</script>

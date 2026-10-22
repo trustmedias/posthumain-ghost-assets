@@ -4,9 +4,62 @@
 (function () {
   'use strict';
   var API = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/vote';
-  var root = document.getElementById('phv');
-  if (!root || root.getAttribute('data-pret')) return;
-  root.setAttribute('data-pret', '1');
+  if (document.getElementById('phv-app')) return;
+  // ---------------------------------------------------------------- coquille : application plein écran, styles isolés (Shadow DOM)
+  // Le thème Ghost et son Code injection ne peuvent plus rien imposer ici ; le voile posé par vote/head.html cache la page article.
+  var ICI = (document.currentScript && document.currentScript.src) || '';
+  var CSS = ICI ? ICI.replace(/vote\.js(\?.*)?$/, 'vote.css') : 'https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@main/vote/vote.css';
+  var host = document.createElement('div');
+  host.id = 'phv-app';
+  document.body.appendChild(host);
+  var sh = host.attachShadow({ mode: 'open' });
+  var MODE = window.PHTheme ? window.PHTheme.get() : (document.documentElement.classList.contains('white-mode') ? 'light' : 'dark');
+  host.setAttribute('data-mode', MODE);
+  sh.innerHTML = '<style>:host{all:initial;position:fixed;inset:0;z-index:3999000;display:block;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;' +
+    'background:#0f0f0f;color:#e6ebe7;font:16px/1.55 Inter,system-ui,-apple-system,sans-serif;visibility:visible}:host([data-mode="light"]){background:#f4f6f3;color:#1a1f1c}' +
+    '.phv-coque{opacity:0;transition:opacity .2s}.phv-coque.pret{opacity:1}</style>' +
+    '<link rel="stylesheet" href="' + CSS + '">' +
+    '<div class="phv-coque"><header class="phv-app-barre">' +
+    '<a class="phv-marque" href="/" aria-label="Retour sur posthumain.com"><span class="phv-marque-nom">posthumain</span><span class="phv-marque-chemin">/vote</span></a>' +
+    '<div class="phv-app-actions"><span id="phv-app-compte"></span>' +
+    '<button type="button" class="phv-mode" data-act="mode"></button></div></header>' +
+    '<div class="phv-page"><div id="phv" class="phv"><div class="phv-gris">Chargement du vote…</div></div></div></div>';
+  var coque = sh.querySelector('.phv-coque'), root = sh.getElementById('phv');
+  var lien = sh.querySelector('link');
+  var montrer = function () { coque.classList.add('pret'); };
+  lien.addEventListener('load', montrer); lien.addEventListener('error', montrer); setTimeout(montrer, 2500);
+  var SOLEIL = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  var LUNE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  function majMode(m) {
+    MODE = m; host.setAttribute('data-mode', m);
+    var b = sh.querySelector('.phv-mode'); if (!b) return;
+    b.innerHTML = m === 'light' ? LUNE : SOLEIL;
+    b.setAttribute('aria-label', m === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair');
+    b.title = b.getAttribute('aria-label');
+  }
+  majMode(MODE);
+  if (window.PHTheme) window.PHTheme.onChange(majMode);
+  // liens Portal (connexion, inscription, abonnement) : Portal écoute l'ancre #/portal/… de l'adresse
+  sh.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-portal]'); if (!a) return;
+    e.preventDefault(); fermerFenetre(); location.hash = '#/portal/' + a.getAttribute('data-portal');
+  });
+  coque.querySelector('.phv-app-barre').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.getAttribute('data-act');
+    if (act === 'mode') { if (window.PHTheme) window.PHTheme.toggle(); else majMode(MODE === 'light' ? 'dark' : 'light'); }
+    else if (act === 'passer-premium') fenetre((S.d && S.d.role) || 'visiteur');
+    else if (act === 'aller-redaction') { location.hash = '#redaction'; if (S.d && S.d.equipe) chargerRedaction().then(function () { var r = root.querySelector('#redaction'); if (r) r.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
+  });
+  function majCompte() {
+    var z = sh.getElementById('phv-app-compte'); if (!z) return;
+    var d = S.d || {}, role = d.role || '', h = '';
+    if (d.equipe) h += '<button type="button" class="phv-app-lien" data-act="aller-redaction">Rédaction</button>';
+    if (role === 'premium') h += '<a class="phv-app-statut" href="#/portal/account" data-portal="account" title="Mon compte">Premium</a>';
+    else if (role === 'gratuit') h += '<button type="button" class="phv-app-btn" data-act="passer-premium">Passer premium</button><a class="phv-app-lien" href="#/portal/account" data-portal="account">Mon compte</a>';
+    else if (role === 'visiteur') h += '<a class="phv-app-btn" href="#/portal/signin" data-portal="signin">Se connecter</a>';
+    z.innerHTML = h;
+  }
 
   var REDUIT = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var q = new URLSearchParams(location.search);
@@ -73,9 +126,9 @@
     clearTimeout(S.sondage);
     var enFusion = S.d && S.d.tour && S.d.tour.ia_etat === 'en_cours';
     S.sondage = setTimeout(function () {
-      var a = document.activeElement;
+      var a = sh.activeElement;
       var saisie = a && root.contains(a) && /^(TEXTAREA|INPUT)$/.test(a.tagName);
-      if (document.visibilityState === 'visible' && !saisie && !S.occupe && !document.querySelector('.phv-fond')) charger(true).then(sonder); else sonder();
+      if (document.visibilityState === 'visible' && !saisie && !S.occupe && !sh.querySelector('.phv-fond')) charger(true).then(sonder); else sonder();
     }, enFusion ? 6000 : 25000);
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.d) charger(true); });
@@ -98,9 +151,10 @@
     if (!d || !d.tour) {
       root.innerHTML = '<div class="phv-surtitre">Vote du mois</div><h1 class="phv-titre">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>' +
         (S.alerte ? '<div class="phv-alerte ko">' + esc(S.alerte.t) + '</div>' : '<div class="phv-gris">Chargement du vote…</div>');
+      majCompte();
       return;
     }
-    var t = d.tour, role = d.role, cible = phaseCible(t), h = '';
+    var t = d.tour, role = d.role, cible = phaseCible(t), h = '<div class="phv-grille"><aside class="phv-rail">';
     h += '<div class="phv-surtitre">Vote de ' + esc(t.mois_txt) + (t.test ? ' (tour de test)' : '') + '</div>';
     h += '<h1 class="phv-titre phv-dec">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>';
     h += '<div class="phv-chapo">Chaque mois, les abonnés premium proposent des sujets et votent. Le plus demandé devient une enquête de la rédaction, publiée pour tous les abonnés.</div>';
@@ -124,18 +178,20 @@
       '<li class="phv-etape ' + e2 + '"><b>2. Vote</b>jusqu’au ' + esc(dateTxt(t.fin_vote)) + '</li>' +
       '<li class="phv-etape ' + e3 + '"><b>3. Enquête</b>rédigée dans la foulée</li></ol>';
 
-    if (S.alerte) h += '<div class="phv-alerte ' + (S.alerte.ko ? 'ko' : 'ok') + '" role="status">' + esc(S.alerte.t) + '</div>';
-
-    h += zoneParticipation(d);
-    h += tableau(d);
-    h += gagnants(d);
     h += '<section class="phv-regles" aria-label="Règles du vote">' +
       '<div><strong>Qui participe ?</strong> Les abonnés premium : une proposition et un vote par mois, vote modifiable jusqu’à la clôture.</div>' +
       '<div><strong>Comment sont choisis les 3 sujets ?</strong> Les 5 premières propositions entrent telles quelles. À la 6e, l’IA de la rédaction regroupe les idées proches et formule les 3 sujets du vote. Les votes déjà donnés suivent leur proposition.</div>' +
       '<div><strong>Et ensuite ?</strong> Le sujet qui a reçu le plus de votes depuis le début du tour devient une enquête premium. Elle apparaît ici une fois publiée.</div>' +
       '<div><strong>Confidentialité :</strong> les propositions sont affichées sans nom. Seule la rédaction sait qui a proposé quoi.</div></section>';
+    h += '</aside><main class="phv-principal">';
+    if (S.alerte) h += '<div class="phv-alerte ' + (S.alerte.ko ? 'ko' : 'ok') + '" role="status">' + esc(S.alerte.t) + '</div>';
+    h += zoneParticipation(d);
+    h += tableau(d);
+    h += gagnants(d);
     if (d.equipe) h += redaction();
+    h += '</main></div>';
     root.innerHTML = h;
+    majCompte();
     lierEvenements();
     if (S.premier) { S.premier = false; if (!REDUIT) decoder(); requestAnimationFrame(function () { remplirBarres(); }); } else remplirBarres(true);
     demarrerHorloge();
@@ -281,13 +337,13 @@
       '<div class="phv-prix">' + esc(prix) + '</div>' +
       (visiteur ? '<a class="phv-btn" href="#/portal/signup" data-portal="signup">Créer mon compte</a><a class="phv-lien" href="#/portal/signin" data-portal="signin">J’ai déjà un compte : me connecter</a>'
         : '<a class="phv-btn" href="#/portal/account/plans" data-portal="account/plans">Passer premium</a><a class="phv-lien" href="/tv/">Découvrir Posthumain TV</a>') + '</div>';
-    document.body.appendChild(f);
-    var prec = document.activeElement;
+    coque.appendChild(f);
+    var prec = sh.activeElement;
     f.addEventListener('click', function (e) { if (e.target === f || e.target.closest('.phv-fermer')) { fermerFenetre(); if (prec && prec.focus) prec.focus(); } else if (e.target.closest('[data-portal]')) fermerFenetre(); });
     f.addEventListener('keydown', function (e) { if (e.key === 'Escape') { fermerFenetre(); if (prec && prec.focus) prec.focus(); } });
     var b = f.querySelector('.phv-btn'); if (b) b.focus();
   }
-  function fermerFenetre() { var f = document.querySelector('.phv-fond'); if (f) f.remove(); }
+  function fermerFenetre() { var f = sh.querySelector('.phv-fond'); if (f) f.remove(); }
 
   // ---------------------------------------------------------------- actions
   function lierEvenements() {
