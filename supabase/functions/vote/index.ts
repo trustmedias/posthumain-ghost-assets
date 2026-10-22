@@ -168,7 +168,7 @@ async function moderer(them: string, titre: string, detail: string): Promise<{ o
       "Refuse : insultes, haine, contenu sexuel, attaques contre une personne privée, spam ou publicité, texte vide de sens, demandes dangereuses (fabriquer une arme, pirater, nuire), sujets sans aucun lien avec la ligne éditoriale. " +
       "Réponds UNIQUEMENT en JSON : {\"ok\": true|false, \"motif\": \"si refus : une phrase courte, polie, en français, qui explique quoi changer\"}.",
       `Thématique choisie : ${THEMES[them] || them}\nSujet proposé : ${titre}\nPrécisions : ${detail || "(aucune)"}`, 300, 20000);
-    return { ok: r.ok === true, motif: propre(r.motif, 240) };
+    return { ok: r.ok === true, motif: propre(r.motif, 320) };
   } catch (_) {
     // IA indisponible : on n'empêche pas un abonné de participer, la rédaction peut écarter ensuite
     return { ok: true, motif: "" };

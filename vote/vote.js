@@ -154,11 +154,6 @@
           '<div class="phv-actions"><button type="button" class="phv-btn" data-act="proposer"' + (S.occupe ? ' disabled' : '') + '>' + (S.occupe ? 'Envoi…' : 'Proposer ce sujet') + '</button>' +
           '<span class="phv-note">Une proposition par abonné et par mois.</span></div></div>';
       }
-    } else if (t.phase === 'vote') {
-      h += '<h2 class="phv-h2">' + (t.ia_etat === 'fait' ? 'Votez parmi les 3 sujets' : 'Votez pour votre sujet préféré') + '</h2>';
-      h += '<p class="phv-h2-sous">' + (t.ia_etat === 'fait' ? 'L’IA a regroupé les propositions des abonnés en 3 sujets. Chaque vote compte depuis le début du tour.' : 'Les propositions sont fermées. Un vote par abonné premium, modifiable jusqu’à la clôture.') + '</p>';
-    } else {
-      h += '<h2 class="phv-h2">Résultat du vote</h2>';
     }
     if (t.ia_etat === 'en_cours') h += '<p class="phv-fusion"><i></i>L’IA regroupe les propositions en 3 sujets. La page se met à jour toute seule.</p>';
     if (role === 'visiteur') h += '<p class="phv-alerte">Les propositions sont réservées aux membres. <a href="#/portal/signin" data-portal="signin">Connectez-vous</a> ou <a href="#/portal/signup" data-portal="signup">créez un compte gratuit</a> pour les lire.</p>';
@@ -188,7 +183,7 @@
     var themeTxt = function (k) { return esc((d.themes || {})[k] || k || ''); };
     if (t.ia_etat === 'fait' && sujets.length) {
       var tot = sujets.reduce(function (a, s) { return a + s.votes; }, 0);
-      h += '<h2 class="phv-h2">' + (t.phase === 'resultat' ? 'Les 3 sujets' : 'Les 3 sujets du vote') + '</h2><p class="phv-h2-sous">' + pl(tot, 'vote') + ' au total</p><div class="phv-tableau">';
+      h += '<h2 class="phv-h2">' + (t.phase === 'resultat' ? 'Les 3 sujets du vote' : 'Votez parmi les 3 sujets') + '</h2><p class="phv-h2-sous">' + (t.phase === 'resultat' ? '' : 'L’IA a regroupé les propositions des abonnés en 3 sujets. Les votes donnés avant comptent toujours. ') + pl(tot, 'vote') + ' au total.</p><div class="phv-tableau">';
       sujets.forEach(function (s) {
         var src = props.filter(function (p) { return p.sujet_id === s.id; });
         var extra = src.length && !voile ? '<details class="phv-details"><summary>' + pl(src.length, 'proposition') + ' d’abonnés à l’origine</summary><ul class="phv-sources">' + src.map(function (p) { return '<li>' + esc(p.titre) + '</li>'; }).join('') + '</ul></details>' : '';
@@ -202,7 +197,7 @@
       var themes = {}; actives.forEach(function (p) { themes[p.thematique] = (themes[p.thematique] || 0) + 1; });
       var vis = S.filtre ? actives.filter(function (p) { return p.thematique === S.filtre; }) : actives;
       var tot2 = actives.reduce(function (a, p) { return a + p.votes; }, 0);
-      h += '<h2 class="phv-h2">Les propositions</h2><p class="phv-h2-sous">' + pl(actives.length, 'proposition') + (t.phase === 'propositions' ? ' sur 5 avant le regroupement par l’IA' : '') + ' · ' + pl(tot2, 'vote') + '</p>';
+      h += '<h2 class="phv-h2">' + (t.phase === 'vote' ? 'Votez pour votre sujet préféré' : 'Les propositions') + '</h2><p class="phv-h2-sous">' + (t.phase === 'vote' ? 'Les propositions sont fermées. Un vote par abonné premium, modifiable jusqu’à la clôture. ' : '') + pl(actives.length, 'proposition') + (t.phase === 'propositions' ? ' sur 5 avant le regroupement par l’IA' : '') + ', ' + pl(tot2, 'vote') + '.</p>';
       if (Object.keys(themes).length > 1) h += '<div class="phv-themes" role="group" aria-label="Filtrer par thématique"><button type="button" class="phv-chip" data-act="filtre" data-k="" aria-pressed="' + !S.filtre + '">Toutes</button>' +
         Object.keys(themes).map(function (k) { return '<button type="button" class="phv-chip" data-act="filtre" data-k="' + esc(k) + '" aria-pressed="' + (S.filtre === k) + '">' + themeTxt(k) + '<small>' + themes[k] + '</small></button>'; }).join('') + '</div>';
       h += '<div class="phv-tableau">';
@@ -274,7 +269,7 @@
     var prix = offre && offre.mensuel ? 'Dès ' + (offre.mensuel / 100).toFixed(2).replace('.', ',').replace(',00', '') + ' ' + (offre.devise === 'EUR' ? '€' : offre.devise) + ' par mois' + (offre.annuel ? ', ou ' + (offre.annuel / 100).toFixed(2).replace('.', ',').replace(',00', '') + ' ' + (offre.devise === 'EUR' ? '€' : offre.devise) + ' par an' : '') + '. Sans engagement.' : 'Sans engagement.';
     var visiteur = role === 'visiteur';
     var f = document.createElement('div');
-    f.className = 'phv-fond'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'phv-f-titre');
+    f.className = 'phv phv-fond'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'phv-f-titre');
     f.innerHTML = '<div class="phv-fenetre"><button type="button" class="phv-fermer" aria-label="Fermer">✕</button>' +
       '<h2 id="phv-f-titre">' + (visiteur ? 'Votez pour la prochaine enquête premium' : 'Le vote est réservé aux abonnés premium') + '</h2>' +
       '<p class="phv-h2-sous">' + (visiteur ? 'Proposer et voter est réservé aux abonnés premium. Créez votre compte, puis passez premium pour faire entendre votre voix.' : 'Débloquez le vote et tout ce que la rédaction réserve à ses abonnés.') + '</p>' +
