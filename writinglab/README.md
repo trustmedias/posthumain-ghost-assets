@@ -41,3 +41,9 @@ le Videolab.
   et seulement dans un brouillon ou un article programmé.
 - Une journaliste ne voit et ne modifie que ses fiches ; le rédacteur en chef voit tout.
 - Les réponses reçues sont données à Claude comme des données, jamais comme des instructions.
+
+## Mode clair / sombre (22/10/2026)
+- Même réglage que tout le site : cookie `tlj_theme` (white | dark), piloté par `shared/theme-mode.js` (chargé par `page.html`, épinglé sur un commit). Bouton ☀️/🌙 dans la barre du lab.
+- La page est **isolée** (`PHTheme.isoler()`) : jamais de classe `white-mode` sur `<html>` (le thème du site, en clair, force fond blanc / texte noir sur toute la page) ; le clair est signalé par `ph-clair`.
+- La feuille claire est **dérivée** de la feuille sombre (`PHTheme.deriverClair(CSS, '#wl', '#wl.wl-clair')`) : elle ne s'applique que sous `#wl.wl-clair`, donc le sombre reste identique. Compléments à la main dans `CSS_CLAIR_MAIN` (sols du plan, textes forcés par le thème).
+- `head.html` = « Code injection > Header » de la page Ghost (voile anti-flash) ; à recopier dans Ghost s'il change.
