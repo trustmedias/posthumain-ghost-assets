@@ -41,9 +41,9 @@
   .phv-grille { display: grid; grid-template-columns: minmax(340px, 410px) minmax(0, 1fr); gap: 64px; align-items: start; }
   .phv-rail { position: sticky; top: 98px; }
   .phv-principal > .phv-zone:first-child, .phv-principal > .phv-alerte:first-child { margin-top: 0; }
-  .phv .phv-titre { font-size: 32px; }
-  .phv .phv-chiffres { gap: 22px; }
-  .phv .phv-bloc b { font-size: clamp(40px, 4vw, 58px); }
+  .phv .phv-rail .phv-titre { font-size: 32px; }
+  .phv .phv-rail .phv-chiffres { gap: 20px; }
+  .phv .phv-rail .phv-bloc b { font-size: clamp(40px, 3.9vw, 56px); }
 }
 .phv { color: var(--texte); font-family: var(--sans); font-size: 16px; line-height: 1.55; }
 .phv *, .phv *::before, .phv *::after { box-sizing: border-box; }
