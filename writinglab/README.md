@@ -46,4 +46,8 @@ le Videolab.
 - Même réglage que tout le site : cookie `tlj_theme` (white | dark), piloté par `shared/theme-mode.js` (chargé par `page.html`, épinglé sur un commit). Bouton ☀️/🌙 dans la barre du lab.
 - La page est **isolée** (`PHTheme.isoler()`) : jamais de classe `white-mode` sur `<html>` (le thème du site, en clair, force fond blanc / texte noir sur toute la page) ; le clair est signalé par `ph-clair`.
 - La feuille claire est **dérivée** de la feuille sombre (`PHTheme.deriverClair(CSS, '#wl', '#wl.wl-clair')`) : elle ne s'applique que sous `#wl.wl-clair`, donc le sombre reste identique. Compléments à la main dans `CSS_CLAIR_MAIN` (sols du plan, textes forcés par le thème).
-- `head.html` = « Code injection > Header » de la page Ghost (voile anti-flash) ; à recopier dans Ghost s'il change.
+- L'en-tête Ghost (voile anti-flash) est `shared/lab-head.html`, recopié automatiquement par « 🛠️ Publier la page Writinglab ».
+
+## Briques communes avec le Videolab (22/10/2026)
+Écran de chargement, appels au webhook, boutons occupés, confirmations, toasts, thème, porte de couloir « Aller au Videolab » :
+voir `shared/README.md`. `page.html` ne contient plus que la configuration de l'écran de chargement.
