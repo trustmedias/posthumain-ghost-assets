@@ -449,7 +449,7 @@ Deno.serve(async (req) => {
 
     if (action === "etat") {
       const voirTout = role !== "visiteur";
-      const [lt, gg, av] = await Promise.all([lireTour(t, email, voirTout, false), gagnants(), role === "premium" ? Promise.resolve(null) : avantages()]);
+      const [lt, gg, av] = await Promise.all([lireTour(t, email, voirTout, false), gagnants(), role === "premium" && !equipe ? Promise.resolve(null) : avantages()]);
       return json({ ok: true, role, equipe, serveur: new Date().toISOString(), themes: THEMES, ...lt, gagnants: gg, offre: av }, 200, h);
     }
 

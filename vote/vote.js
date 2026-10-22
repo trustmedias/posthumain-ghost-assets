@@ -96,24 +96,24 @@
   function rendre() {
     var d = S.d;
     if (!d || !d.tour) {
-      root.innerHTML = '<p class="phv-surtitre">Vote du mois</p><h1 class="phv-titre">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>' +
-        (S.alerte ? '<p class="phv-alerte ko">' + esc(S.alerte.t) + '</p>' : '<p class="phv-gris">Chargement du vote…</p>');
+      root.innerHTML = '<div class="phv-surtitre">Vote du mois</div><h1 class="phv-titre">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>' +
+        (S.alerte ? '<div class="phv-alerte ko">' + esc(S.alerte.t) + '</div>' : '<div class="phv-gris">Chargement du vote…</div>');
       return;
     }
     var t = d.tour, role = d.role, cible = phaseCible(t), h = '';
-    h += '<p class="phv-surtitre">Vote de ' + esc(t.mois_txt) + (t.test ? ' (tour de test)' : '') + '</p>';
+    h += '<div class="phv-surtitre">Vote de ' + esc(t.mois_txt) + (t.test ? ' (tour de test)' : '') + '</div>';
     h += '<h1 class="phv-titre phv-dec">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>';
-    h += '<p class="phv-chapo">Chaque mois, les abonnés premium proposent des sujets et votent. Le plus demandé devient une enquête de la rédaction, publiée pour tous les abonnés.</p>';
+    h += '<div class="phv-chapo">Chaque mois, les abonnés premium proposent des sujets et votent. Le plus demandé devient une enquête de la rédaction, publiée pour tous les abonnés.</div>';
 
     // compte à rebours
     if (cible) {
       var ms = Date.parse(cible.quand) - maintenant();
-      h += '<section class="phv-horloge' + (ms < 864e5 ? ' urgent' : '') + '" aria-live="off"><p class="phv-horloge-quoi"><strong>' + esc(cible.quoi) + '</strong></p>' +
+      h += '<section class="phv-horloge' + (ms < 864e5 ? ' urgent' : '') + '" aria-live="off"><div class="phv-horloge-quoi"><strong>' + esc(cible.quoi) + '</strong></div>' +
         '<div class="phv-chiffres" data-cible="' + esc(cible.quand) + '" role="timer" aria-label="Temps restant">' +
         blocs(ms).map(function (b, i) { return '<div class="phv-bloc"><b class="' + (S.premier && !REDUIT ? 'phv-dec' : '') + '" data-i="' + i + '">' + b[0] + '</b><span>' + b[1] + '</span></div>'; }).join('') +
-        '</div><p class="phv-horloge-suite">' + esc(cible.suite) + '</p></section>';
+        '</div><div class="phv-horloge-suite">' + esc(cible.suite) + '</div></section>';
     } else {
-      h += '<section class="phv-horloge"><p class="phv-horloge-quoi"><strong>Vote clos</strong></p><p class="phv-horloge-suite">Le prochain tour ouvre le 1er du mois.</p></section>';
+      h += '<section class="phv-horloge"><div class="phv-horloge-quoi"><strong>Vote clos</strong></div><div class="phv-horloge-suite">Le prochain tour ouvre le 1er du mois.</div></section>';
     }
 
     // étapes
@@ -124,16 +124,16 @@
       '<li class="phv-etape ' + e2 + '"><b>2. Vote</b>jusqu’au ' + esc(dateTxt(t.fin_vote)) + '</li>' +
       '<li class="phv-etape ' + e3 + '"><b>3. Enquête</b>rédigée dans la foulée</li></ol>';
 
-    if (S.alerte) h += '<p class="phv-alerte ' + (S.alerte.ko ? 'ko' : 'ok') + '" role="status">' + esc(S.alerte.t) + '</p>';
+    if (S.alerte) h += '<div class="phv-alerte ' + (S.alerte.ko ? 'ko' : 'ok') + '" role="status">' + esc(S.alerte.t) + '</div>';
 
     h += zoneParticipation(d);
     h += tableau(d);
     h += gagnants(d);
     h += '<section class="phv-regles" aria-label="Règles du vote">' +
-      '<p><strong>Qui participe ?</strong> Les abonnés premium : une proposition et un vote par mois, vote modifiable jusqu’à la clôture.</p>' +
-      '<p><strong>Comment sont choisis les 3 sujets ?</strong> Les 5 premières propositions entrent telles quelles. À la 6e, l’IA de la rédaction regroupe les idées proches et formule les 3 sujets du vote. Les votes déjà donnés suivent leur proposition.</p>' +
-      '<p><strong>Et ensuite ?</strong> Le sujet qui a reçu le plus de votes depuis le début du tour devient une enquête premium. Elle apparaît ici une fois publiée.</p>' +
-      '<p><strong>Confidentialité :</strong> les propositions sont affichées sans nom. Seule la rédaction sait qui a proposé quoi.</p></section>';
+      '<div><strong>Qui participe ?</strong> Les abonnés premium : une proposition et un vote par mois, vote modifiable jusqu’à la clôture.</div>' +
+      '<div><strong>Comment sont choisis les 3 sujets ?</strong> Les 5 premières propositions entrent telles quelles. À la 6e, l’IA de la rédaction regroupe les idées proches et formule les 3 sujets du vote. Les votes déjà donnés suivent leur proposition.</div>' +
+      '<div><strong>Et ensuite ?</strong> Le sujet qui a reçu le plus de votes depuis le début du tour devient une enquête premium. Elle apparaît ici une fois publiée.</div>' +
+      '<div><strong>Confidentialité :</strong> les propositions sont affichées sans nom. Seule la rédaction sait qui a proposé quoi.</div></section>';
     if (d.equipe) h += redaction();
     root.innerHTML = h;
     lierEvenements();
@@ -145,9 +145,9 @@
     var t = d.tour, role = d.role, me = d.me || {}, h = '<section class="phv-zone" id="participer">';
     if (t.phase === 'propositions') {
       if (role === 'premium' && me.proposition_id) {
-        h += '<h2 class="phv-h2">Votre proposition est en lice</h2><p class="phv-h2-sous">' + (t.n_propositions < 6 ? 'Encore ' + pl(6 - t.n_propositions, 'proposition') + ' avant que l’IA forme les 3 sujets du vote. ' : '') + 'Vous pouvez voter pour n’importe quel sujet, y compris le vôtre (c’est le cas par défaut).</p>';
+        h += '<h2 class="phv-h2">Votre proposition est en lice</h2><div class="phv-h2-sous">' + (t.n_propositions < 6 ? 'Encore ' + pl(6 - t.n_propositions, 'proposition') + ' avant que l’IA forme les 3 sujets du vote. ' : '') + 'Vous pouvez voter pour n’importe quel sujet, y compris le vôtre (c’est le cas par défaut).</div>';
       } else {
-        h += '<h2 class="phv-h2">Proposez un sujet</h2><p class="phv-h2-sous">Choisissez une thématique, puis dites en une phrase sur quoi la rédaction devrait enquêter.</p>';
+        h += '<h2 class="phv-h2">Proposez un sujet</h2><div class="phv-h2-sous">Choisissez une thématique, puis dites en une phrase sur quoi la rédaction devrait enquêter.</div>';
         h += '<div class="phv-themes" role="group" aria-label="Thématique">' + Object.keys(d.themes || {}).map(function (k) {
           return '<button type="button" class="phv-chip" data-act="theme" data-k="' + esc(k) + '" aria-pressed="' + (S.theme === k) + '">' + esc(d.themes[k]) + '</button>';
         }).join('') + '</div>';
@@ -159,8 +159,8 @@
           '<span class="phv-note">Une proposition par abonné et par mois.</span></div></div>';
       }
     }
-    if (t.ia_etat === 'en_cours') h += '<p class="phv-fusion"><i></i>L’IA regroupe les propositions en 3 sujets. La page se met à jour toute seule.</p>';
-    if (role === 'visiteur') h += '<p class="phv-alerte">Les propositions sont réservées aux membres. <a href="#/portal/signin" data-portal="signin">Connectez-vous</a> ou <a href="#/portal/signup" data-portal="signup">créez un compte gratuit</a> pour les lire.</p>';
+    if (t.ia_etat === 'en_cours') h += '<div class="phv-fusion"><i></i>L’IA regroupe les propositions en 3 sujets. La page se met à jour toute seule.</div>';
+    if (role === 'visiteur') h += '<div class="phv-alerte">Les propositions sont réservées aux membres. <a href="#/portal/signin" data-portal="signin">Connectez-vous</a> ou <a href="#/portal/signup" data-portal="signup">créez un compte gratuit</a> pour les lire.</div>';
     return h + '</section>';
   }
 
@@ -180,14 +180,14 @@
       var pct = total ? Math.round(100 * x.votes / total) : 0;
       return '<div class="phv-ligne' + (mien ? ' mien' : '') + (voile ? ' voile' : '') + (x.statut === 'non_retenue' ? ' non-retenue' : '') + '">' +
         '<div class="phv-barre" data-w="' + pct + '"></div>' +
-        '<div class="phv-ligne-texte"><p class="phv-ligne-titre">' + (titre ? esc(titre) : 'Proposition réservée aux membres connectés') + '</p>' +
-        (desc ? '<p class="phv-ligne-desc">' + esc(desc) + '</p>' : '') + '<p class="phv-ligne-meta">' + meta + '</p>' + (extra || '') + '</div>' +
-        '<div class="phv-ligne-droite"><p class="phv-votes" aria-label="' + pl(x.votes, 'vote') + '">' + x.votes + '<small>' + (x.votes > 1 ? 'votes' : 'vote') + ' · ' + pct + ' %</small></p>' + (x.statut === 'non_retenue' ? '' : boutonVote(type, x.id)) + '</div></div>';
+        '<div class="phv-ligne-texte"><div class="phv-ligne-titre">' + (titre ? esc(titre) : 'Proposition réservée aux membres connectés') + '</div>' +
+        (desc ? '<div class="phv-ligne-desc">' + esc(desc) + '</div>' : '') + '<div class="phv-ligne-meta">' + meta + '</div>' + (extra || '') + '</div>' +
+        '<div class="phv-ligne-droite"><div class="phv-votes" aria-label="' + pl(x.votes, 'vote') + '">' + x.votes + '<small>' + (x.votes > 1 ? 'votes' : 'vote') + ' · ' + pct + ' %</small></div>' + (x.statut === 'non_retenue' ? '' : boutonVote(type, x.id)) + '</div></div>';
     }
     var themeTxt = function (k) { return esc((d.themes || {})[k] || k || ''); };
     if (t.ia_etat === 'fait' && sujets.length) {
       var tot = sujets.reduce(function (a, s) { return a + s.votes; }, 0);
-      h += '<h2 class="phv-h2">' + (t.phase === 'resultat' ? 'Les 3 sujets du vote' : 'Votez parmi les 3 sujets') + '</h2><p class="phv-h2-sous">' + (t.phase === 'resultat' ? '' : 'L’IA a regroupé les propositions des abonnés en 3 sujets. Les votes donnés avant comptent toujours. ') + pl(tot, 'vote') + ' au total.</p><div class="phv-tableau">';
+      h += '<h2 class="phv-h2">' + (t.phase === 'resultat' ? 'Les 3 sujets du vote' : 'Votez parmi les 3 sujets') + '</h2><div class="phv-h2-sous">' + (t.phase === 'resultat' ? '' : 'L’IA a regroupé les propositions des abonnés en 3 sujets. Les votes donnés avant comptent toujours. ') + pl(tot, 'vote') + ' au total.</div><div class="phv-tableau">';
       sujets.forEach(function (s) {
         var src = props.filter(function (p) { return p.sujet_id === s.id; });
         var extra = src.length && !voile ? '<details class="phv-details"><summary>' + pl(src.length, 'proposition') + ' d’abonnés à l’origine</summary><ul class="phv-sources">' + src.map(function (p) { return '<li>' + esc(p.titre) + '</li>'; }).join('') + '</ul></details>' : '';
@@ -201,11 +201,11 @@
       var themes = {}; actives.forEach(function (p) { themes[p.thematique] = (themes[p.thematique] || 0) + 1; });
       var vis = S.filtre ? actives.filter(function (p) { return p.thematique === S.filtre; }) : actives;
       var tot2 = actives.reduce(function (a, p) { return a + p.votes; }, 0);
-      h += '<h2 class="phv-h2">' + (t.phase === 'vote' ? 'Votez pour votre sujet préféré' : 'Les propositions') + '</h2><p class="phv-h2-sous">' + (t.phase === 'vote' ? 'Les propositions sont fermées. Un vote par abonné premium, modifiable jusqu’à la clôture. ' : '') + pl(actives.length, 'proposition') + (t.phase === 'propositions' ? ' sur 5 avant le regroupement par l’IA' : '') + ', ' + pl(tot2, 'vote') + '.</p>';
+      h += '<h2 class="phv-h2">' + (t.phase === 'vote' ? 'Votez pour votre sujet préféré' : 'Les propositions') + '</h2><div class="phv-h2-sous">' + (t.phase === 'vote' ? 'Les propositions sont fermées. Un vote par abonné premium, modifiable jusqu’à la clôture. ' : '') + pl(actives.length, 'proposition') + (t.phase === 'propositions' ? ' sur 5 avant le regroupement par l’IA' : '') + ', ' + pl(tot2, 'vote') + '.</div>';
       if (Object.keys(themes).length > 1) h += '<div class="phv-themes" role="group" aria-label="Filtrer par thématique"><button type="button" class="phv-chip" data-act="filtre" data-k="" aria-pressed="' + !S.filtre + '">Toutes</button>' +
         Object.keys(themes).map(function (k) { return '<button type="button" class="phv-chip" data-act="filtre" data-k="' + esc(k) + '" aria-pressed="' + (S.filtre === k) + '">' + themeTxt(k) + '<small>' + themes[k] + '</small></button>'; }).join('') + '</div>';
       h += '<div class="phv-tableau">';
-      if (!vis.length) h += '<p class="phv-vide">' + (t.phase === 'propositions' ? 'Aucune proposition pour l’instant. La première idée donne le ton du mois.' : 'Aucune proposition ce mois-ci.') + '</p>';
+      if (!vis.length) h += '<div class="phv-vide">' + (t.phase === 'propositions' ? 'Aucune proposition pour l’instant. La première idée donne le ton du mois.' : 'Aucune proposition ce mois-ci.') + '</div>';
       vis.sort(function (a, b) { return b.votes - a.votes || a.id - b.id; }).forEach(function (p) {
         h += ligne('proposition', p, tot2, p.titre, p.detail, '<span class="tag">' + themeTxt(p.thematique) + '</span>' + (p.mienne ? ' · votre proposition' : ''));
       });
@@ -220,11 +220,11 @@
     var publies = g.filter(function (x) { return x.article && x.article.url; });
     if (!publies.length) {
       var dernier = g[0];
-      return h + '<p class="phv-h2-sous">' + (dernier ? 'Sujet choisi en ' + esc(dernier.mois_txt) + ' : « ' + esc(dernier.titre) + ' ». L’enquête apparaîtra ici dès sa publication.' : 'Les enquêtes choisies par les abonnés apparaîtront ici dès leur publication.') + '</p></section>';
+      return h + '<div class="phv-h2-sous">' + (dernier ? 'Sujet choisi en ' + esc(dernier.mois_txt) + ' : « ' + esc(dernier.titre) + ' ». L’enquête apparaîtra ici dès sa publication.' : 'Les enquêtes choisies par les abonnés apparaîtront ici dès leur publication.') + '</div></section>';
     }
     h += '<div class="phv-gagnants">' + publies.slice(0, 6).map(function (x) {
       var a = x.article;
-      return '<a class="phv-gagnant" href="' + esc(a.url) + '"><figure>' + (a.image ? '<img src="' + esc(a.image) + '" alt="" loading="lazy">' : '') + '</figure><h3>' + esc(a.title || x.titre) + '</h3><p>Vote de ' + esc(x.mois_txt) + ', ' + pl(x.votes || 0, 'vote') + '</p></a>';
+      return '<a class="phv-gagnant" href="' + esc(a.url) + '"><figure>' + (a.image ? '<img src="' + esc(a.image) + '" alt="" loading="lazy">' : '') + '</figure><h3>' + esc(a.title || x.titre) + '</h3><div>Vote de ' + esc(x.mois_txt) + ', ' + pl(x.votes || 0, 'vote') + '</div></a>';
     }).join('') + '</div>';
     return h + '</section>';
   }
@@ -233,13 +233,13 @@
   function redaction() {
     var r = S.red;
     var h = '<section class="phv-red" id="redaction"><h2>Vue rédaction</h2>';
-    if (!r) return h + '<p class="phv-note">Visible par la rédaction seulement. <button type="button" class="phv-btn petit secondaire" data-act="red-charger">Ouvrir le suivi</button></p></section>';
+    if (!r) return h + '<div class="phv-note">Visible par la rédaction seulement. <button type="button" class="phv-btn petit secondaire" data-act="red-charger">Ouvrir le suivi</button></div></section>';
     var c = r.config || {};
-    if (!c.airtable) h += '<p class="phv-alerte ko">Le secret Supabase AIRTABLE_TOKEN manque : à la clôture, le gagnant ne pourra pas être envoyé à l’Usine (il faudra l’imposer à la main).</p>';
+    if (!c.airtable) h += '<div class="phv-alerte ko">Le secret Supabase AIRTABLE_TOKEN manque : à la clôture, le gagnant ne pourra pas être envoyé à l’Usine (il faudra l’imposer à la main).</div>';
     var t = r.tour, props = r.propositions || [], sujets = r.sujets || [];
     var votesPar = {}; (r.votes || []).forEach(function (v) { var k = v.cible_type + ':' + v.cible_id; votesPar[k] = (votesPar[k] || 0) + 1; });
-    h += '<p class="phv-note">Tour ' + esc(t.mois_txt) + (t.test ? ' (test)' : '') + ' · phase ' + esc(t.phase) + ' · IA : ' + esc(t.ia_etat) + (r.ia_essais ? ' (' + r.ia_essais + ' essai' + (r.ia_essais > 1 ? 's' : '') + ')' : '') + ' · ' + pl((r.votes || []).length, 'votant') + '</p>';
-    if (r.ia_erreur) h += '<p class="phv-alerte ko">Dernière erreur de l’IA : ' + esc(r.ia_erreur) + '</p>';
+    h += '<div class="phv-note">Tour ' + esc(t.mois_txt) + (t.test ? ' (test)' : '') + ' · phase ' + esc(t.phase) + ' · IA : ' + esc(t.ia_etat) + (r.ia_essais ? ' (' + r.ia_essais + ' essai' + (r.ia_essais > 1 ? 's' : '') + ')' : '') + ' · ' + pl((r.votes || []).length, 'votant') + '</div>';
+    if (r.ia_erreur) h += '<div class="phv-alerte ko">Dernière erreur de l’IA : ' + esc(r.ia_erreur) + '</div>';
     h += '<div class="phv-red-grille">';
     h += '<div class="phv-red-scroll"><table><thead><tr><th>Proposition</th><th>Auteur</th><th>Votes</th><th></th></tr></thead><tbody>' + (props.length ? props.map(function (p) {
       return '<tr class="' + (p.statut === 'ecartee' ? 'ecartee' : '') + '"><td><b>' + esc(p.titre) + '</b>' + (p.detail ? '<br><span class="phv-gris">' + esc(p.detail) + '</span>' : '') + '<br><span class="phv-gris">' + esc((r.themes || {})[p.thematique] || p.thematique) + ' · ' + esc(p.statut) + (p.sujet_id ? ' → sujet ' + p.sujet_id : '') + (p.motif ? ' · ' + esc(p.motif) : '') + '</span></td>' +
@@ -250,7 +250,7 @@
       return '<tr class="' + (s.statut === 'ecarte' ? 'ecartee' : '') + '"><td><b>' + esc(s.titre) + '</b><br><span class="phv-gris">' + esc(s.description || '') + '</span></td><td>' + s.votes + '</td><td>' +
         (s.statut === 'ecarte' ? '<button type="button" class="phv-btn petit secondaire" data-act="retablir" data-type="sujet" data-id="' + s.id + '">Rétablir</button>' : '<button type="button" class="phv-btn petit danger" data-act="ecarter" data-type="sujet" data-id="' + s.id + '">Écarter</button>') + '</td></tr>';
     }).join('') + '</tbody></table></div>';
-    if (r.ia_justification) h += '<div><p class="phv-note">Ce que l’IA a fait :</p><pre>' + esc(r.ia_justification) + '</pre></div>';
+    if (r.ia_justification) h += '<div><div class="phv-note">Ce que l’IA a fait :</div><pre>' + esc(r.ia_justification) + '</pre></div>';
     if ((r.refus || []).length) h += '<details class="phv-details"><summary>Propositions refusées par la modération (' + r.refus.length + ')</summary><div class="phv-red-scroll"><table><tbody>' + r.refus.map(function (x) { return '<tr><td>' + esc(x.detail) + '</td><td class="phv-gris">' + esc(x.membre) + '<br>' + esc(dateTxt(x.le, true)) + '</td></tr>'; }).join('') + '</tbody></table></div></details>';
     if ((r.tours || []).length) h += '<details class="phv-details"><summary>Tours (' + r.tours.length + ')</summary><div class="phv-red-scroll"><table><tbody>' + r.tours.map(function (x) {
       return '<tr><td>' + esc(x.mois) + (x.test ? ' (test, <a href="?tour=' + x.id + '#redaction">ouvrir</a>)' : '') + '</td><td>' + esc(x.statut) + '</td><td>' + esc(x.gagnant_titre || '') + (x.gagnant_votes != null ? ' (' + x.gagnant_votes + ')' : '') + (x.airtable_erreur ? '<br><span class="phv-gris">Airtable : ' + esc(x.airtable_erreur) + '</span>' : '') + '</td></tr>';
@@ -276,9 +276,9 @@
     f.className = 'phv phv-fond'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'phv-f-titre');
     f.innerHTML = '<div class="phv-fenetre"><button type="button" class="phv-fermer" aria-label="Fermer">✕</button>' +
       '<h2 id="phv-f-titre">' + (visiteur ? 'Votez pour la prochaine enquête premium' : 'Le vote est réservé aux abonnés premium') + '</h2>' +
-      '<p class="phv-h2-sous">' + (visiteur ? 'Proposer et voter est réservé aux abonnés premium. Créez votre compte, puis passez premium pour faire entendre votre voix.' : 'Débloquez le vote et tout ce que la rédaction réserve à ses abonnés.') + '</p>' +
+      '<div class="phv-h2-sous">' + (visiteur ? 'Proposer et voter est réservé aux abonnés premium. Créez votre compte, puis passez premium pour faire entendre votre voix.' : 'Débloquez le vote et tout ce que la rédaction réserve à ses abonnés.') + '</div>' +
       '<ul class="phv-avantages">' + av.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' +
-      '<p class="phv-prix">' + esc(prix) + '</p>' +
+      '<div class="phv-prix">' + esc(prix) + '</div>' +
       (visiteur ? '<a class="phv-btn" href="#/portal/signup" data-portal="signup">Créer mon compte</a><a class="phv-lien" href="#/portal/signin" data-portal="signin">J’ai déjà un compte : me connecter</a>'
         : '<a class="phv-btn" href="#/portal/account/plans" data-portal="account/plans">Passer premium</a><a class="phv-lien" href="/tv/">Découvrir Posthumain TV</a>') + '</div>';
     document.body.appendChild(f);
