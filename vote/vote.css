@@ -12,8 +12,9 @@
   --signal: #00813e; --signal-fond: #00c95d; --sur-signal: #04120a; --signal-rgb: 0, 129, 62; --signal-doux: rgba(0, 129, 62, .10);
   --ambre: #a35f00; --ambre-rgb: 163, 95, 0; --rouge: #c23a2a; --lueur: 0; --voile-fond: rgba(20, 26, 22, .45); --barre-fond: rgba(244, 246, 243, .86);
 }
-.phv-coque { min-height: 100%; background: var(--nuit); color: var(--texte); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+.phv-coque { scrollbar-color: var(--trait) transparent; scrollbar-width: thin; background: var(--nuit); color: var(--texte); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
 .phv-coque *, .phv-coque *::before, .phv-coque *::after { box-sizing: border-box; }
+.phv-coque::-webkit-scrollbar { width: 8px; } .phv-coque::-webkit-scrollbar-thumb { background: var(--trait); border-radius: 8px; } .phv-coque::-webkit-scrollbar-track { background: transparent; }
 
 /* ---------- barre de l'application */
 .phv-app-barre { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 58px; padding: 0 max(16px, env(safe-area-inset-left)) 0 max(16px, env(safe-area-inset-left));
@@ -41,7 +42,8 @@
   .phv-rail { position: sticky; top: 98px; }
   .phv-principal > .phv-zone:first-child, .phv-principal > .phv-alerte:first-child { margin-top: 0; }
   .phv .phv-titre { font-size: 32px; }
-  .phv .phv-bloc b { font-size: clamp(44px, 5.4vw, 74px); }
+  .phv .phv-chiffres { gap: 22px; }
+  .phv .phv-bloc b { font-size: clamp(40px, 4vw, 58px); }
 }
 .phv { color: var(--texte); font-family: var(--sans); font-size: 16px; line-height: 1.55; }
 .phv *, .phv *::before, .phv *::after { box-sizing: border-box; }

@@ -15,9 +15,9 @@
   var sh = host.attachShadow({ mode: 'open' });
   var MODE = window.PHTheme ? window.PHTheme.get() : (document.documentElement.classList.contains('white-mode') ? 'light' : 'dark');
   host.setAttribute('data-mode', MODE);
-  sh.innerHTML = '<style>:host{all:initial;position:fixed;inset:0;z-index:3999000;display:block;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;' +
+  sh.innerHTML = '<style>:host{all:initial;position:fixed;inset:0;z-index:3999000;display:block;overflow:hidden;' +
     'background:#0f0f0f;color:#e6ebe7;font:16px/1.55 Inter,system-ui,-apple-system,sans-serif;visibility:visible}:host([data-mode="light"]){background:#f4f6f3;color:#1a1f1c}' +
-    '.phv-coque{opacity:0;transition:opacity .2s}.phv-coque.pret{opacity:1}</style>' +
+    '.phv-coque{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;opacity:0;transition:opacity .2s}.phv-coque.pret{opacity:1}</style>' +
     '<link rel="stylesheet" href="' + CSS + '">' +
     '<div class="phv-coque"><header class="phv-app-barre">' +
     '<a class="phv-marque" href="/" aria-label="Retour sur posthumain.com"><span class="phv-marque-nom">posthumain</span><span class="phv-marque-chemin">/vote</span></a>' +
