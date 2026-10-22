@@ -1,3 +1,11 @@
+<script>
+/* Mode clair / sombre (22/10/2026) : le lab est une application isolée du thème du site. En mode clair, le thème force
+   « html.white-mode body * { fond blanc ; texte noir } », ce qui cassait le lab : ici, jamais de « white-mode » ; le mode
+   clair est signalé par « ph-clair » sur <html> (même réglage que le site : cookie tlj_theme). */
+(function () { var h = document.documentElement; try { var w = /(?:^|;\s*)tlj_theme=white/.test(document.cookie); h.classList.remove('white-mode'); h.classList.toggle('ph-clair', w); } catch (e) {} })();
+</script>
+<script src="https://cdn.jsdelivr.net/gh/trustmedias/posthumain-ghost-assets@9038ebc22bd94fb668b122bb4482b1389f0d632d/shared/theme-mode.js"></script>
+<script>try { if (window.PHTheme) PHTheme.isoler(); } catch (e) {}</script>
 <div id="wl-loader" role="status" aria-live="polite">
   <div class="wll-in">
     <div class="wll-logo">WRITINGLAB<small>La rédaction de Posthumain</small></div>
@@ -40,6 +48,22 @@
 .wl-boot{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px;background:#0b0a08;color:rgba(243,236,224,.75);font:16px/1.5 system-ui,-apple-system,sans-serif}
 .wl-boot b{color:#00ff77;letter-spacing:.2em;font-family:ui-monospace,monospace}
 .wl-boot a{display:inline-block;margin-top:6px;padding:10px 18px;border-radius:12px;background:rgba(0,255,119,.12);border:1px solid rgba(0,255,119,.45);color:#bfffdc;text-decoration:none}
+/* écran de chargement en mode clair */
+html.ph-clair #wl-loader{background:radial-gradient(900px 520px at 30% -10%,#efe6d6 0%,#f6f2ea 60%) #f6f2ea;color:#1f1a12}
+html.ph-clair .wll-logo{color:#0a7a45;text-shadow:none}
+html.ph-clair .wll-logo small{color:rgba(31,26,18,.6)}
+html.ph-clair .wll-plan .cor{fill:#e7e0d3}
+html.ph-clair .wll-plan .rm rect{fill:rgba(150,100,30,.06);stroke:rgba(150,100,30,.5)}
+html.ph-clair .wll-plan .rm text{fill:rgba(31,26,18,.55)}
+html.ph-clair .wll-plan .pp circle{fill:#f1eadc;stroke:rgba(10,122,69,.6)}
+html.ph-clair .wll-plan .pp .dk{fill:#d8ccb6}
+html.ph-clair .wll-plan .pp .on{fill:#0a9a55}
+html.ph-clair .wll-bar{background:rgba(31,26,18,.1)}
+html.ph-clair .wll-bar i{background:linear-gradient(90deg,#0a7a45,#0fb565);box-shadow:none}
+html.ph-clair .wll-txt{color:rgba(31,26,18,.7)}
+html.ph-clair .wl-boot{background:#f6f2ea;color:rgba(31,26,18,.75)}
+html.ph-clair .wl-boot b{color:#0a7a45}
+html.ph-clair .wl-boot a{background:rgba(10,122,69,.1);border-color:rgba(10,122,69,.45);color:#0a5a33}
 </style>
 <script>
 (function () {
