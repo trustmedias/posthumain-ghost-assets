@@ -1162,14 +1162,15 @@
       h += '<div class="cz-t">🏭 Brouillons de l’Usine (' + bs.length + ')</div>' + (bs.length ? bs.map(function (x) {
         var p = x.post || {}, t = x.type ? rdType(x) : null, ap = x.statut === 'approved';
         return '<div class="cz-l mb-c">' + (p.image ? '<img class="mb-img" loading="lazy" alt="" src="' + esc(p.image) + '">' : '') + '<div class="rd-t">' + esc(p.titre || x.titre) + '</div>' +
-          '<div class="cz-s">' + (t ? '<span class="tag ' + t[2] + '">' + t[0] + ' ' + t[1] + '</span> ' : '') + (ap ? '<span class="tag g">✅ approuvé · publié au batch de 18 h 30</span>' : x.statut === 'drafted' ? '<span class="tag a">à relire et approuver</span>' : '') +
+          '<div class="cz-s">' + (t ? '<span class="tag ' + t[2] + '">' + t[0] + ' ' + t[1] + '</span> ' : '') + (ap ? '<span class="tag g">✅ approuvé · publié au batch de 18 h 30</span>' : x.statut === 'drafted' ? '<span class="tag a">à relire et approuver</span>' : '') + (x.ghost_supprime ? ' <span class="tag r">🗑️ post Ghost supprimé</span>' : '') +
           (p.statut === 'scheduled' ? ' <span class="tag b">programmé</span>' : '') + (p.visibilite && p.visibilite !== 'public' ? ' · ' + esc(p.visibilite) : '') + (p.lecture ? ' · ' + p.lecture + ' min' : '') + (p.maj ? ' · modifié ' + esc(when(p.maj)) : '') + '</div>' +
           (p.extrait ? '<div class="rd-a">' + esc(p.extrait) + '</div>' : '') +
           (x.couverture_ref && !(x.rapport && x.rapport.reference && x.rapport.reference.length) ? '<div class="cz-s">🖼️ Couverture faite d’après une photo de référence</div>' : '') +
           mbRapport(x.rapport) +
           (x.social && x.social.image ? '<details class="cz-d"><summary>📱 Visuel réseaux sociaux (' + esc(x.social.statut || '') + ')</summary><img class="mb-soc" loading="lazy" alt="" src="' + esc(x.social.image) + '"><div class="cz-s" style="white-space:pre-wrap">' + esc(x.social.legende || '') + (x.social.hashtags ? '\n' + esc(x.social.hashtags) : '') + '</div></details>' : '') +
           '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' + (p.editeur ? '<a class="btn small" href="' + esc(p.editeur) + '" target="_blank" rel="noopener">✏️ Relire dans Ghost</a>' : '') + (p.apercu ? '<a class="btn small" href="' + esc(p.apercu) + '" target="_blank" rel="noopener">👁️ Aperçu</a>' : '') +
-          (chef && x.id && x.statut === 'drafted' ? '<button class="btn small go" data-act="mb-approuver" data-id="' + esc(x.id) + '">✅ Approuver</button>' : '') + '</div></div>';
+          (chef && x.id && x.statut === 'drafted' && !x.ghost_supprime ? '<button class="btn small go" data-act="mb-approuver" data-id="' + esc(x.id) + '">✅ Approuver</button>' : '') +
+          (chef && x.id && x.statut === 'drafted' ? '<button class="btn small" data-act="mb-ecarter" data-id="' + esc(x.id) + '" title="Ne pas publier ce brouillon (le post Ghost n’est pas supprimé)">🗑️ Écarter</button>' : '') + '</div></div>';
       }).join('') + (bs.some(function (x) { return !x.rapport; }) ? '<p class="cz-s">Les brouillons créés avant le 22/10/2026 n’ont pas de rapport détaillé : il est resté dans le message Telegram « Brouillon prêt ».</p>' : '') : '<p class="muted">Aucun brouillon de l’Usine en attente.</p>');
       var pu = M.publies || [];
       h += '<div class="cz-t">🌙 Publiés aujourd’hui (' + pu.length + ')</div>' + (pu.length ? pu.map(function (p) { return '<div class="cz-l"><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><b>' + esc(p.titre) + '</b></a><div class="cz-s">' + esc(when(p.publie_le)) + (p.visibilite && p.visibilite !== 'public' ? ' · ' + esc(p.visibilite) : '') + '</div></div>'; }).join('') : '<p class="muted">Rien de publié depuis minuit.</p>');
@@ -1688,6 +1689,15 @@
         var b11 = ((S.marbre || {}).brouillons || []).filter(function (x) { return x.id === id; })[0], ck11 = S.clicking;
         confirmer('Approuver ce brouillon ?\n\n' + (b11 ? '« ' + ((b11.post || {}).titre || b11.titre) + ' »\n\n' : '') + 'Il sera publié au batch du soir (vers 18 h 30), comme avec le lien Approuver de Telegram.').then(function (ok) { if (!ok) return; S.clicking = ck11;
           radarApi({ action: 'approuver', id: id }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✅ Approuvé : publication au batch de 18 h 30.'); chargerMarbre(); });
+        });
+        break;
+      case 'mb-ecarter':
+        // 22/10/2026 : écarte un brouillon de l'Usine (Airtable → skipped) ; le post Ghost n'est jamais touché.
+        var b12 = ((S.marbre || {}).brouillons || []).filter(function (x) { return x.id === id; })[0], ck12 = S.clicking;
+        confirmer('Écarter ce brouillon ?\n\n' + (b12 ? '« ' + ((b12.post || {}).titre || b12.titre) + ' »\n\n' : '') + 'Il ne sera pas publié. Le post Ghost n’est pas supprimé.').then(function (ok) { if (!ok) return; S.clicking = ck12;
+          radarApi({ action: 'ecarter_brouillon', id: id }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; }
+            if (S.marbre && S.marbre.brouillons) S.marbre.brouillons = S.marbre.brouillons.filter(function (x) { return x.id !== id; });
+            if (S.panel === 'marbre') paintPanel(); toast('🗑️ Brouillon écarté : il ne sera pas publié.'); chargerMarbre(); });
         });
         break;
       case 'close-panel': closePanel(); break;

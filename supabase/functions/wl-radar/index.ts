@@ -11,6 +11,7 @@
 //   - /file, /inverser       → file = Choisir=1 ET Status='new', triée Priorite desc, Score desc, CreatedAt desc ; ordre = champ Priorite
 //   - Approuver              → PATCH { Status:'approved' } (publié au batch de 18 h 30)
 //   - sujet écarté           → { Status:'skipped', Choisir:false } (comme « Gere echec redaction » et « Archiver anciens candidats »)
+//   - brouillon écarté (Marbre) → { Status:'skipped', Choisir:false, Rationale += « [écarté depuis le Marbre le JJ/MM] » }
 // « Relancer le Radar » est la seule action qui coûte une exécution n8n : on poste au webhook Telegram de l'Usine
 // (posthumain-enquete) la même mise à jour qu'un « /radar » tapé par Jonathan dans son chat ; l'Usine n'est pas modifiée.
 // Rapport du brouillon (22/10/2026) : l'Usine envoie, juste après « Prepare notif brouillon », le rapport détaillé qu'elle
@@ -163,7 +164,7 @@ Deno.serve(async (req) => {
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const chef = qui === CHEF;
-  const ecrit = ["choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "relancer_radar"];
+  const ecrit = ["choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar"];
   if (ecrit.includes(String(b.action)) && !chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
   try {
     // État de configuration (aucune valeur de secret n'est renvoyée).
@@ -257,7 +258,9 @@ Deno.serve(async (req) => {
       const pm = new Map(((posts as any).posts || []).map((p: any) => [p.id, post(p)]));
       const sm = new Map(((soc as any).records || []).map((x: any) => [x.fields?.GhostPostId, { image: x.fields?.ImageURL || "", legende: x.fields?.Caption || "", hashtags: x.fields?.Hashtags || "", statut: x.fields?.Status || "" }]));
       const brouillons = recs.map((s: any) => ({ ...s, post: pm.get(s.ghost_id) || null, social: sm.get(s.ghost_id) || null, rapport: rm.get(s.ghost_id) || null }))
-        .filter((x: any) => !x.post || x.post.statut === "draft" || x.post.statut === "scheduled");
+        .filter((x: any) => !x.post || x.post.statut === "draft" || x.post.statut === "scheduled")
+        // Post Ghost introuvable alors que la requête Ghost a réussi : il a été supprimé à la main (22/10/2026).
+        .map((x: any) => ({ ...x, ghost_supprime: !x.post && !(posts as any).erreur && /^[a-f0-9]{24}$/.test(x.ghost_id) }));
       return out({ ok: true, chef, brouillons, publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
         erreur_ghost: (posts as any).erreur || (pub as any).erreur || "", at: new Date().toISOString() });
     }
@@ -267,6 +270,22 @@ Deno.serve(async (req) => {
       if (s.statut === "approved") return out({ ok: true, sujet: s, deja: true });
       if (s.statut !== "drafted" || !s.ghost_id) return out({ ok: false, why: "ce sujet n’est pas un brouillon en attente (statut : " + s.statut + ")" });
       return out({ ok: true, sujet: await patch(s.id, { Status: "approved" }) });
+    }
+    // Écarter un brouillon de l'Usine depuis le Marbre (22/10/2026) : il ne sera pas publié au batch du soir.
+    // Même écriture qu'un sujet écarté ({ Status:'skipped', Choisir:false }) + trace dans Rationale. Le post Ghost n'est JAMAIS touché.
+    // Pas de risque de réécriture : l'Usine ne prend que des sujets 'new', et « Dedup candidats » écarte du Radar toute URL / tout titre
+    // déjà présent dans la table, quel que soit son statut.
+    if (b.action === "ecarter_brouillon") {
+      const id = String(b.id || "");
+      if (!/^rec[A-Za-z0-9]{10,20}$/.test(id)) return out({ ok: false, why: "identifiant de sujet invalide" }, 400);
+      const raw = await air("Radar/" + id), f = raw.fields || {};
+      const st = String(f.Status || "");
+      if (st === "skipped") return out({ ok: true, sujet: sujet(raw), deja: true });
+      if (st !== "drafted") return out({ ok: false, why: st === "approved" ? "déjà approuvé : il partira au batch du soir (retirez l’approbation dans Airtable si besoin)" : "ce sujet n’est pas un brouillon en attente (statut : " + (st || "?") + ")" });
+      const jour = new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", day: "2-digit", month: "2-digit" }).format(new Date()).replace(".", "/");
+      const rat = String(f.Rationale || "").trim();
+      const trace = "[écarté depuis le Marbre le " + jour + "]";
+      return out({ ok: true, sujet: await patch(id, { Status: "skipped", Choisir: false, Rationale: (rat ? rat + " " : "") + trace }) });
     }
     // Relancer le Radar (= /radar) : 1 exécution n8n ; au plus une fois toutes les 10 minutes.
     if (b.action === "relancer_radar") {
