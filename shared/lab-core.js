@@ -157,16 +157,18 @@
 
   // ---------- porte de couloir (navigation d'un lab à l'autre, façon RPG) ----------
   // opts : x, y (pointe de la flèche, dans les coordonnées du plan), dir ('droite' | 'gauche'), href, titre (« Aller au Videolab »),
-  // sous (petite ligne), couleur (accent). Un vrai lien <a> dans le SVG : clic, Entrée au clavier, clic molette.
+  // sous (petite ligne), taille (échelle). Un vrai lien <a> dans le SVG : clic, Entrée au clavier, clic molette.
   L.porteSVG = function (o) {
-    var g = o.dir === 'gauche' ? -1 : 1, x = o.x, y = o.y;
-    var fl = 'M' + (x - g * 46) + ' ' + (y - 13) + ' L' + (x - g * 18) + ' ' + (y - 13) + ' L' + (x - g * 18) + ' ' + (y - 24) + ' L' + x + ' ' + y + ' L' + (x - g * 18) + ' ' + (y + 24) + ' L' + (x - g * 18) + ' ' + (y + 13) + ' L' + (x - g * 46) + ' ' + (y + 13) + ' Z';
-    var tx = x - g * 58, anc = g > 0 ? 'end' : 'start';
+    // dessinée autour de la pointe (0,0) puis placée et mise à l'échelle du plan (taille : 1 = plan d'environ 1600 de large)
+    var g = o.dir === 'gauche' ? -1 : 1, k = o.taille || 1;
+    var fl = 'M' + (-g * 46) + ' -13 L' + (-g * 18) + ' -13 L' + (-g * 18) + ' -24 L0 0 L' + (-g * 18) + ' 24 L' + (-g * 18) + ' 13 L' + (-g * 46) + ' 13 Z';
+    var tx = -g * 58, anc = g > 0 ? 'end' : 'start';
     return '<a class="phl-porte" href="' + L.esc(o.href) + '" aria-label="' + L.esc(o.titre) + '"><title>' + L.esc(o.titre) + '</title>' +
-      '<rect class="phl-porte-zone" x="' + (g > 0 ? x - 250 : x - 10) + '" y="' + (y - 30) + '" width="260" height="60" rx="10"/>' +
+      '<g transform="translate(' + o.x + ' ' + o.y + ') scale(' + k + ')">' +
+      '<rect class="phl-porte-zone" x="' + (g > 0 ? -250 : -10) + '" y="-30" width="260" height="60" rx="10"/>' +
       '<g class="phl-porte-fl"><path class="phl-porte-halo" d="' + fl + '"/><path class="phl-porte-f" d="' + fl + '"/></g>' +
-      '<text class="phl-porte-t" x="' + tx + '" y="' + (y + 1) + '" text-anchor="' + anc + '">' + L.esc(o.titre) + '</text>' +
-      (o.sous ? '<text class="phl-porte-s" x="' + tx + '" y="' + (y + 16) + '" text-anchor="' + anc + '">' + L.esc(o.sous) + '</text>' : '') + '</a>';
+      '<text class="phl-porte-t" x="' + tx + '" y="1" text-anchor="' + anc + '">' + L.esc(o.titre) + '</text>' +
+      (o.sous ? '<text class="phl-porte-s" x="' + tx + '" y="16" text-anchor="' + anc + '">' + L.esc(o.sous) + '</text>' : '') + '</g></a>';
   };
 
   // ---------- styles partagés ----------
@@ -193,7 +195,10 @@
       R + ' .phl-porte-fl{animation:phlpousse 1.6s ease-in-out infinite}' +
       R + ' .phl-porte-t{font:800 15px ui-monospace,"JetBrains Mono",monospace;letter-spacing:.06em;fill:' + acc + '}' + R + ' .phl-porte-s{font:600 10.5px Inter,system-ui,sans-serif;fill:rgba(' + tx + ',.6)}' +
       '@keyframes phlporte{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.55;transform:scale(1.35)}}@keyframes phlpousse{0%,100%{transform:translateX(0)}50%{transform:translateX(' + (p.porteDir === 'gauche' ? -5 : 5) + 'px)}}' +
-      '@media (prefers-reduced-motion:reduce){' + R + ' .phl-porte-halo,' + R + ' .phl-porte-fl{animation:none}}';
+      '@media (prefers-reduced-motion:reduce){' + R + ' .phl-porte-halo,' + R + ' .phl-porte-fl{animation:none}}' +
+      // mode clair (racine « #wl.wl-clair », « #vl.vl-clair ») : vert profond lisible sur le papier
+      R + '.' + pre + '-clair .phl-porte-t{fill:#0a7a45}' + R + '.' + pre + '-clair .phl-porte-s{fill:rgba(31,26,18,.62)}' +
+      R + '.' + pre + '-clair .phl-porte-f,' + R + '.' + pre + '-clair .phl-porte-halo{fill:#0fb565}' + R + '.' + pre + '-clair .phl-porte-f{stroke:rgba(10,60,30,.35)}';
     return { occupe: occupe, confirmer: confirmer, toast: toast, porte: porte };
   };
 })();
