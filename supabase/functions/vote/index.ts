@@ -415,11 +415,8 @@ async function publierPage() {
   const h = await fetch(`https://raw.githubusercontent.com/${repo}/${commit}/vote/page.html`);
   if (!h.ok) throw new Error("page.html introuvable (" + h.status + ")");
   const html = (await h.text()).replaceAll("{{COMMIT}}", commit);
-  // En-tête de page (Code injection > Header) : voile qui masque le thème Ghost dès le premier octet → application plein écran.
-  const hh = await fetch(`https://raw.githubusercontent.com/${repo}/${commit}/vote/head.html`);
-  const tete = hh.ok ? (await hh.text()).replaceAll("{{COMMIT}}", commit) : "";
   const lexical = JSON.stringify({ root: { children: [{ type: "html", version: 1, html }], direction: null, format: "", indent: 0, type: "root", version: 1 } });
-  const page = { title: "Votez pour la prochaine enquête premium", slug: "vote", lexical, status: "published", visibility: "public", codeinjection_head: tete || null,
+  const page = { title: "Votez pour la prochaine enquête premium", slug: "vote", lexical, status: "published", visibility: "public",
     custom_excerpt: "Chaque mois, les abonnés premium de Posthumain proposent et choisissent le sujet de la prochaine enquête.",
     meta_title: "Votez pour la prochaine enquête premium — Posthumain", meta_description: "Proposez un sujet, votez : chaque mois, l'enquête premium la plus demandée par nos abonnés est menée par la rédaction." };
   let ex = null;
