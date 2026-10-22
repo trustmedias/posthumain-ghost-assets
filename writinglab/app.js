@@ -368,6 +368,10 @@
 #wl .btn.small{padding:5px 9px!important;font-size:12.5px!important;border-radius:8px!important}\
 @media (max-width:720px){#wl{font-size:14.5px}#wl .top{flex-wrap:wrap;gap:8px;padding:10px 12px}#wl .chips{order:3;justify-content:flex-start;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#wl .chips::-webkit-scrollbar{display:none}#wl .clock{order:2;font-size:17px;margin-left:auto}#wl .wrap{padding:0 10px 60px}#wl .tabs{padding:8px 10px 0}#wl .panel{width:100vw;top:6vh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid rgba(255,190,90,.3);transform:translateY(105%)}#wl .panel.open{transform:none}#wl .floor svg{min-width:1500px}#wl .paper{margin:10px 8px 60px;padding:22px 16px 28px;font-size:16.5px}#wl .paper h1{font-size:22px}#wl .two{grid-template-columns:1fr}#wl .kan{grid-template-columns:repeat(4,82vw)}#wl button.clsr-h{top:auto;bottom:150px;padding:10px 6px}#wl .clsr-h .lb{display:none}#wl .clsr{width:100vw;top:8vh;border-left:none;border-top:1px solid rgba(255,190,90,.3);border-radius:18px 18px 0 0;transform:translateY(105%)}#wl .clsr.open{transform:none}}\
 ";
+  // Mode clair (22/10/2026) : la feuille claire est DÉRIVÉE de la feuille sombre ci-dessus par PHTheme.deriverClair
+  // (shared/theme-mode.js) et ne s'applique que sous « #wl.wl-clair » : le mode sombre reste identique.
+  // Ici, les seuls compléments écrits à la main : sols du plan (attributs SVG) et textes forcés par le thème du site.
+  var CSS_CLAIR_MAIN = "#wl.wl-clair .floor svg rect[fill=\"#0a0806\"]{fill:#ddd5c6}\n#wl.wl-clair .floor svg rect[fill=\"#100d09\"]{fill:#e9e2d5}\n#wl.wl-clair .floor svg rect[fill=\"#16110b\"]{fill:#f7f0e4}\n#wl.wl-clair .floor svg rect[fill=\"#0b1216\"]{fill:#ebf2f6}\n#wl.wl-clair .floor svg rect[fill=\"#120e19\"]{fill:#f1ecf7}\n#wl.wl-clair .floor svg rect[fill=\"#0c1414\"]{fill:#e9f4f3}\n#wl.wl-clair .floor svg rect[fill=\"#0f140c\"]{fill:#eff5e9}\n#wl.wl-clair .floor svg rect[fill=\"#0c0f16\"]{fill:#ebeef7}\n#wl.wl-clair .floor svg rect[fill=\"#0a0d0b\"]{fill:#eef2ef}\n#wl.wl-clair .floor svg rect[fill=\"#16100c\"]{fill:#f8efe7}\n#wl.wl-clair .floor svg rect[fill=\"#110d07\"]{fill:#f5efe3}\n#wl.wl-clair .floor svg rect[fill=\"#08120f\"]{fill:#e7f4ef}\n#wl.wl-clair .floor svg rect[stroke=\"rgba(243,236,224,.16)\"]{stroke:rgba(31,26,18,.2)}\n#wl.wl-clair .floor svg path[stroke=\"rgba(0,0,0,.6)\"]{stroke:rgba(60,45,20,.1)}\n#wl.wl-clair .floor svg path[stroke=\"rgba(255,190,90,.18)\"]{stroke:rgba(150,100,30,.38)}\n#wl.wl-clair .floor svg pattern path[stroke=\"rgba(255,255,255,.035)\"]{stroke:rgba(31,26,18,.06)}\n#wl.wl-clair .floor svg pattern path[stroke=\"rgba(255,190,90,.05)\"]{stroke:rgba(150,100,30,.12)}\n#wl.wl-clair .tip,#wl.wl-clair .paper{box-shadow:0 12px 40px rgba(60,45,20,.22)}\n#wl.wl-clair p:not([class]),#wl.wl-clair li:not([class]),#wl.wl-clair b:not([class]),#wl.wl-clair strong:not([class]),#wl.wl-clair em:not([class]),#wl.wl-clair i:not([class]){color:inherit!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair h1:not([class]),#wl.wl-clair h2:not([class]),#wl.wl-clair h3:not([class]),#wl.wl-clair h4:not([class]),#wl.wl-clair h5:not([class]){color:rgba(31,26,18,.82)!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair a:not(.btn):not(.chip){color:#0a7a45!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair p.muted,#wl.wl-clair p.hint,#wl.wl-clair p.cz-s{color:rgba(31,26,18,.68)!important;-webkit-text-fill-color:currentColor!important}";
 
   // ---------- le plan de la rédaction (SVG, 1600 × 1000) ----------
   // Plan en largeur (21/10/2026) : 4 pièces par rangée, 2 rangées → beaucoup moins haut, tout le monde voit tous les bureaux.
@@ -697,6 +701,7 @@
       (by('rebond').length ? '<span class="chip warn" data-act="open-ag" data-ag="courrier">✉️ ' + by('rebond').length + ' adresse' + pl(by('rebond').length) + ' invalide' + pl(by('rebond').length) + '</span>' : '') +
       (r ? '<span class="chip hot" data-act="open-ag" data-ag="courrier">📬 ' + r + ' réponse' + pl(r) + '</span>' : '') +
       (e ? '<span class="chip" data-act="open-ag" data-ag="courrier">⏳ ' + e + ' en attente</span>' : '') +
+      (document.getElementById('wl-clair-css') ? '<span class="chip" data-act="theme" title="' + (modeClair() ? 'Passer en mode sombre' : 'Passer en mode clair') + '">' + (modeClair() ? '🌙' : '☀️') + '</span>' : '') +
       '<span class="chip" data-act="parametres" title="Paramètres (notifications, signature, dictée)">⚙️' + (S.pushOk ? '' : '<span class="dot-off"></span>') + '</span>' +
       '<span class="chip" data-act="refresh" title="Recharger">↻</span>' +
       '<span class="chip" data-act="open-aide" title="Configurer son adresse @posthumain.com dans Outlook" style="opacity:.6">✉︎ ?</span></div>' +
@@ -1490,6 +1495,17 @@
     ['Proton', ['proton.me', 'protonmail.com']], ['GMX / Web.de', ['gmx.com', 'gmx.fr', 'gmx.ch', 'gmx.de', 'web.de']], ['Fournisseurs français (Orange, Free, SFR, La Poste, Wanadoo)', ['orange.fr', 'free.fr', 'sfr.fr', 'laposte.net', 'wanadoo.fr']],
     ['Bluewin (Suisse)', ['bluewin.ch']], ['Autres (AOL, Mail.com, Yandex, Tutanota, Zoho)', ['aol.com', 'mail.com', 'yandex.com', 'tutanota.com', 'zoho.com']]];
   function majTop() { var tp = S.root && S.root.querySelector('.top'); if (tp) tp.innerHTML = header(); }
+  // Mode clair / sombre : le même réglage que tout posthumain.com (cookie tlj_theme, piloté par shared/theme-mode.js).
+  function modeClair() {
+    if (window.PHTheme) return PHTheme.get() === 'light';
+    try { return /(?:^|;\s*)tlj_theme=white/.test(document.cookie); } catch (e) { return false; }
+  }
+  function appliquerTheme() { if (S.root) S.root.classList.toggle('wl-clair', modeClair() && !!document.getElementById('wl-clair-css')); }
+  function basculerTheme() {
+    if (window.PHTheme) PHTheme.toggle();
+    else { try { document.cookie = 'tlj_theme=' + (modeClair() ? 'dark' : 'white') + '; path=/; max-age=31536000; SameSite=Strict'; } catch (e) {} }
+    appliquerTheme(); try { majTop(); } catch (e) {}
+  }
   function chargerParams() {
     if (S.paramP) return S.paramP;
     S.paramP = pushApi({ action: 'parametres' }).then(function (r) {
@@ -1938,6 +1954,7 @@
       case 'bord': masquerTip(); closeDoc(); S.ctab = 'bord'; openPanel('compta'); chargerCouts(); break;
       case 'ct-tab': var ctv = t.getAttribute('data-id'); S.ctab = ctv === 'factures' || ctv === 'bord' ? ctv : 'pieces'; if (S.ctab === 'factures') chargerFactures(); if (S.ctab === 'bord') chargerCouts(); paintPanel(); break;
       case 'parametres': closeDoc(); openPanel('parametres'); break;
+      case 'theme': basculerTheme(); break;
       case 'voir-facture': masquerTip(); closeDoc(); S.ctab = 'factures'; openPanel('compta'); chargerFactures(); break;
       case 'fa-tarifs':
         factApi({ action: 'tarifs', premium: val('wl-tp'), standard: val('wl-ts') }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'tarifs invalides'), true); return; } toast('🧾 Tarifs enregistrés : ' + eurTxt(r.tarif_premium) + ' / ' + eurTxt(r.tarif_standard)); chargerFactures(); });
@@ -2231,11 +2248,14 @@
     font.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap';
     document.head.appendChild(font);
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+    try { if (window.PHTheme && PHTheme.deriverClair) { var stc = document.createElement('style'); stc.id = 'wl-clair-css'; stc.textContent = PHTheme.deriverClair(CSS, '#wl', '#wl.wl-clair') + '\n' + CSS_CLAIR_MAIN; document.head.appendChild(stc); } } catch (e) { /* pas de mode clair : le lab reste sombre */ }
     var r = document.createElement('div'); r.id = 'wl';
     r.innerHTML = '<div class="top"></div><div class="tabs"></div><div class="wrap"></div><div class="panelbg"></div><div class="panel"></div><div class="doc"></div><div class="toast"></div>';
     document.body.appendChild(r);
     document.documentElement.style.overflow = 'hidden';
     S.root = r;
+    appliquerTheme();
+    if (window.PHTheme) PHTheme.onChange(function () { appliquerTheme(); try { if (S.data) majTop(); } catch (e) {} });
     if (S.art) loadDraft();
     r.addEventListener('click', function (e) {
       var t = e.target;
