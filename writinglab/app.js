@@ -208,7 +208,7 @@
 #wl .tab .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:#00ff77;color:#05170d;font-size:11px;font-weight:800;text-align:center}\
 #wl .wrap{padding:0 18px 60px}\
 #wl .floor{position:relative;border:1px solid rgba(255,255,255,.09);border-radius:0 14px 14px 14px;background:rgba(255,255,255,.02);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}\
-#wl .floor svg{display:block;width:100%;min-width:1180px;height:auto}#wl .case,#wl .tableau{cursor:pointer}#wl .case:hover rect:first-child{fill:rgba(255,190,90,.12)}#wl .tip{position:fixed;z-index:65;pointer-events:none;max-width:300px;padding:10px 12px;border-radius:12px;background:#f8f4ea;color:#1f1a12;font-size:13px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}#wl .tip.on{opacity:1}#wl .tip b{display:block;font-size:13.5px;margin-bottom:3px;color:#1f1a12!important;font-weight:700}#wl .tip span{display:block;color:#5c5444!important}#wl .tip span.go{color:#1f6b45!important;font-weight:600}\
+#wl .floor svg{display:block;width:100%;min-width:1180px;height:auto}#wl .case,#wl .tableau{cursor:pointer}#wl .case:hover rect:first-child{fill:rgba(255,190,90,.12)}" + (PHL_CSS.tip || "") + "\
 #wl .hint{font-size:12.5px;color:rgba(243,236,224,.5);margin:8px 2px 0}\
 #wl .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:14px}\
 #wl .card{cursor:pointer;border:1px solid rgba(255,255,255,.09);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));border-radius:14px;padding:12px 13px;transition:border-color .2s,transform .2s}\
@@ -834,61 +834,27 @@
     var b = S.root && S.root.querySelector('[data-act="dicter"]'); if (b) { b.classList.toggle('on', !!S.dicte); b.textContent = S.dicte ? '⏹️ Arrêter' : '🎙️ Dicter'; }
     var ta = S.root && S.root.querySelector('#wl-msg'); if (ta) ta.placeholder = S.dicte ? '🎙️ Je vous écoute…' : 'Votre message…';
   }
-  function startDictee() {
-    if (!SR) { toast('La dictée n’est pas disponible dans ce navigateur.', true); return; }
-    var ta = S.root.querySelector('#wl-msg'); if (!ta) return;
-    var base = ta.value ? ta.value.replace(/\s*$/, ' ') : '', fini = '', enCours = '', fait = false;
-    var rec = new SR(); rec.lang = LS.get('wl-dictee-lang') || 'fr-FR'; rec.continuous = true; rec.interimResults = true;
-    rec.onresult = function (ev) {
-      var interim = '';
-      if (fait) return;
-      for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fini += t; else interim += t; }
-      enCours = interim;
-      var txt = (base + fini + interim).replace(/^\s+/, '');
-      var el = S.root.querySelector('#wl-msg'); if (el) { el.value = txt; el.scrollTop = el.scrollHeight; }
-      S.msgDraft = (base + fini).replace(/^\s+/, '');
-    };
-    rec.onerror = function (ev) { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') toast('Autorisez le micro pour posthumain.com dans le navigateur.', true); else if (ev.error !== 'no-speech' && ev.error !== 'aborted') toast('Dictée interrompue (' + ev.error + ').', true); };
-    // Fin de dictée : on garde aussi le dernier morceau encore « provisoire » (sinon les derniers mots se perdent).
-    var terminer = function () {
-      if (fait) return; fait = true; clearTimeout(S.recGarde);
-      S.rec = null; S.dicte = false; majMic();
-      var dit = (fini + ' ' + enCours).replace(/\s+/g, ' ').trim();
-      var el = S.root.querySelector('#wl-msg');
-      if (el) { el.value = (base + dit).replace(/^\s+/, ''); S.msgDraft = el.value; }
-      if (dit && LS.get('wl-mef') !== '0') miseEnForme(base, dit); else { verrou(false); if (el) el.focus(); }
-    };
-    rec.onend = terminer;
-    rec.terminer = terminer;
-    try { rec.start(); } catch (e) { toast('Impossible de lancer la dictée.', true); return; }
-    S.rec = rec; S.dicte = true; majMic();
-  }
-  // Après la dictée : le texte dicté repasse par Claude Haiku (ponctuation, majuscules, mots mal reconnus).
-  // Pendant ce temps le champ est grisé et verrouillé ; en cas d'échec, le texte brut reste tel quel.
+  // Pendant la mise en forme (Claude Haiku : ponctuation, majuscules, mots mal reconnus), le champ est grisé et verrouillé ;
+  // en cas d'échec, le texte brut reste tel quel. Moteur de dictée commun aux deux labs : shared/lab-core.js (PHLab.dictee).
   function verrou(on) {
     S.miseEnForme = on;
     var el = S.root && S.root.querySelector('#wl-msg'), b = S.root && S.root.querySelector('[data-act="send-msg"]'), m = S.root && S.root.querySelector('[data-act="dicter"]');
     if (el) { el.disabled = on; el.classList.toggle('wl-mef', on); }
     if (b) b.disabled = on; if (m) m.disabled = on;
   }
-  function miseEnForme(base, dit) {
-    verrou(true);
-    var fin = function (txt) {
-      verrou(false);
-      var el = S.root.querySelector('#wl-msg'); if (!el) return;
-      if (txt) { el.value = (base + txt).replace(/^\s+/, ''); S.msgDraft = el.value; }
-      el.focus(); el.setSelectionRange(el.value.length, el.value.length);
-    };
-    var garde = setTimeout(function () { fin(''); }, 12000); // jamais plus de 12 s de champ bloqué
-    pushApi({ action: 'dictee', texte: dit }).then(function (r) { clearTimeout(garde); if (S.miseEnForme) fin(r && r.ok ? r.texte : ''); }, function () { clearTimeout(garde); if (S.miseEnForme) fin(''); });
-  }
-  // Clic sur « arrêter » : le champ se grise TOUT DE SUITE, puis le texte part à la mise en forme dès que le navigateur rend la main
-  // (au plus 1,2 s d'attente : au-delà on prend ce qui est déjà écrit).
-  function stopDictee() {
-    S.dicte = false; var rec = S.rec;
-    if (rec) { verrou(true); try { rec.stop(); } catch (e) {} S.recGarde = setTimeout(function () { try { rec.abort(); } catch (e) {} if (rec.terminer) rec.terminer(); }, 1200); }
-    majMic();
-  }
+  // (repli si un ancien lab-core.js est encore en cache quelques minutes : pas de dictée plutôt qu'une page cassée)
+  var DICTEE = !PHL.dictee ? { dispo: false, demarrer: function () {}, arreter: function () {}, actif: function () { return false; } } : PHL.dictee({
+    champ: function () { return S.root && S.root.querySelector('#wl-msg'); },
+    lang: function () { return LS.get('wl-dictee-lang') || 'fr-FR'; },
+    brouillon: function (t) { S.msgDraft = t; },
+    etat: function (on) { S.dicte = on; majMic(); },
+    verrou: verrou,
+    toast: function (t, bad) { toast(t, bad); },
+    formaterActif: function () { return LS.get('wl-mef') !== '0'; },
+    miseEnForme: function (dit) { return pushApi({ action: 'dictee', texte: dit }).then(function (r) { return r && r.ok ? r.texte : ''; }); }
+  });
+  function startDictee() { DICTEE.demarrer(); }
+  function stopDictee() { DICTEE.arreter(); }
   function pjZone() {
     if (!S.pj) return '';
     return '<div class="box" style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>📎 <b>' + esc(S.pj.nom) + '</b> <span class="muted">' + taille(S.pj.taille) + '</span></span>' +
@@ -2027,7 +1993,9 @@
       case 'dicter': if (S.dicte) stopDictee(); else startDictee(); break;
       case 'send-msg':
         if (S.miseEnForme) break;
-        if (S.dicte) stopDictee();
+        // pendant la dictée, « Envoyer » arrête d'abord la dictée (le texte est mis en forme) : on relit, puis on envoie.
+        // Avant, le message partait à moitié dicté et le texte mis en forme revenait ensuite dans le champ.
+        if (S.dicte) { stopDictee(); toast('Dictée arrêtée : relisez, puis envoyez.'); break; }
         var m = val('wl-msg').trim(), pj = S.pj; if (!m && !pj) break;
         var lien = S.root.querySelector('#wl-msg-art'), a = art(S.art), cs = S.root.querySelector('#wl-pj-cat');
         if (pj && cs) pj.categorie = cs.value;
@@ -2178,20 +2146,10 @@
     else return;
     try { history.replaceState(null, '', location.pathname); } catch (e) {}
   }
-  // Infobulle des cases de l'étagère (et de tout élément data-tip="titre|ligne|ligne"), placée près de la souris sans sortir de l'écran.
-  function masquerTip() { var t = S.root && S.root.querySelector('.tip'); if (t) t.classList.remove('on'); }
-  function suivreTip(e) {
-    var el = e.target && e.target.closest && e.target.closest('[data-tip]'), t = S.root.querySelector('.tip');
-    if (!el) { if (t) t.classList.remove('on'); return; }
-    if (!t) { t = document.createElement('div'); t.className = 'tip'; S.root.appendChild(t); }
-    var parts = String(el.getAttribute('data-tip')).split('|');
-    var html = '<b>' + esc(parts[0]) + '</b>' + parts.slice(1).filter(Boolean).map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '<span class="go" style="margin-top:4px">' + (el.getAttribute('data-tip-act') || 'Cliquer pour ouvrir le dossier') + '</span>';
-    if (t.innerHTML !== html) t.innerHTML = html;
-    var w = t.offsetWidth || 260, h = t.offsetHeight || 80, x = e.clientX + 16, y = e.clientY + 16;
-    if (x + w > window.innerWidth - 8) x = e.clientX - w - 16;
-    if (y + h > window.innerHeight - 8) y = e.clientY - h - 16;
-    t.style.left = Math.max(8, x) + 'px'; t.style.top = Math.max(8, y) + 'px'; t.classList.add('on');
-  }
+  // Infobulle des cases de l'étagère (et de tout élément data-tip="titre|ligne|ligne") : module commun shared/lab-core.js.
+  var TIP = PHL.infobulle ? PHL.infobulle({ root: function () { return S.root; }, defaut: 'Cliquer pour ouvrir le dossier' }) : { suivre: function () {}, masquer: function () {} };
+  function masquerTip() { TIP.masquer(); }
+  function suivreTip(e) { TIP.suivre(e); }
   window.WRITINGLAB_START = function (o) {
     S.call = o.call;
     var host = o.root;

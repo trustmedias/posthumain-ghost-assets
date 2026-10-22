@@ -20,7 +20,10 @@
      lireDefilement / remettreDefilement    garder le défilement horizontal (plan, tableaux) d'un rendu à l'autre
      auRetour(fn, delai)                    relecture au retour sur l'onglet, seulement si la page n'a rien reçu depuis « delai »
      porteSVG(opts)                         flèche de couloir façon RPG (lien vers l'autre lab), à placer dans le plan SVG
-     cssParts(R, pal)                       styles partagés : { occupe, confirmer, toast, porte } */
+     infobulle(opts)                        infobulle des éléments data-tip="titre|ligne|ligne" (data-tip-act : la ligne d'action)
+     dictee(opts)                           dictée vocale dans un champ (texte provisoire gardé à l'arrêt, erreurs claires,
+                                            mise en forme facultative avec champ grisé pendant ce temps)
+     cssParts(R, pal)                       styles partagés : { occupe, confirmer, toast, porte, tip } */
 (function () {
   'use strict';
   var L = window.PHLab = window.PHLab || {};
@@ -171,6 +174,88 @@
       (o.sous ? '<text class="phl-porte-s" x="' + tx + '" y="16" text-anchor="' + anc + '">' + L.esc(o.sous) + '</text>' : '') + '</g></a>';
   };
 
+  // ---------- infobulle ----------
+  // Éléments data-tip="titre|ligne|ligne" (+ data-tip-act : ligne d'action en vert). Placée près de la souris sans sortir de l'écran.
+  // opts : root() ; defaut : ligne d'action par défaut. Retourne { suivre(e), masquer() } à brancher sur mousemove / mouseleave.
+  L.infobulle = function (opts) {
+    function masquer() { var r = opts.root(), t = r && r.querySelector('.tip'); if (t) t.classList.remove('on'); }
+    function suivre(e) {
+      var r = opts.root(); if (!r) return;
+      var el = e.target && e.target.closest && e.target.closest('[data-tip]'), t = r.querySelector('.tip');
+      if (!el) { if (t) t.classList.remove('on'); return; }
+      if (!t) { t = document.createElement('div'); t.className = 'tip'; r.appendChild(t); }
+      var parts = String(el.getAttribute('data-tip')).split('|');
+      var html = '<b>' + L.esc(parts[0]) + '</b>' + parts.slice(1).filter(Boolean).map(function (x) { return '<span>' + L.esc(x) + '</span>'; }).join('') + '<span class="go" style="margin-top:4px">' + (el.getAttribute('data-tip-act') || opts.defaut || '') + '</span>';
+      if (t.innerHTML !== html) t.innerHTML = html;
+      var w = t.offsetWidth || 260, h = t.offsetHeight || 80, x = e.clientX + 16, y = e.clientY + 16;
+      if (x + w > window.innerWidth - 8) x = e.clientX - w - 16;
+      if (y + h > window.innerHeight - 8) y = e.clientY - h - 16;
+      t.style.left = Math.max(8, x) + 'px'; t.style.top = Math.max(8, y) + 'px'; t.classList.add('on');
+    }
+    return { suivre: suivre, masquer: masquer };
+  };
+
+  // ---------- dictée vocale ----------
+  // Reprise du Writinglab (la plus complète) : à l'arrêt, le dernier morceau encore « provisoire » est gardé (sinon les derniers
+  // mots se perdent), le champ se grise tout de suite, erreurs de micro expliquées, puis mise en forme facultative (ex. Claude
+  // Haiku) avec un garde de 12 s ; en cas d'échec, le texte brut reste. Rien ne part tout seul : on relit puis on envoie.
+  // opts : champ() → <textarea> ; lang() ; brouillon(txt) : garder le brouillon ; etat(on) : la dictée démarre / s'arrête ;
+  // verrou(on) : griser le champ pendant la mise en forme ; toast(t, mauvais) ; miseEnForme(dit) → Promise<texte|''> (facultatif) ;
+  // formaterActif() → faux pour sauter la mise en forme (réglage).
+  L.dictee = function (o) {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+    var st = { rec: null, actif: false, mef: false, garde: null };
+    var dire = function (t, bad) { if (o.toast) o.toast(t, bad); };
+    function verrou(on) { st.mef = on; if (o.verrou) o.verrou(on); }
+    function etat(on) { st.actif = on; if (o.etat) o.etat(on); }
+    function formater(base, dit) {
+      verrou(true);
+      var fin = function (txt) {
+        verrou(false);
+        var el = o.champ(); if (!el) return;
+        if (txt) { el.value = (base + txt).replace(/^\s+/, ''); if (o.brouillon) o.brouillon(el.value); }
+        el.focus(); el.setSelectionRange(el.value.length, el.value.length);
+      };
+      var garde = setTimeout(function () { fin(''); }, 12000); // jamais plus de 12 s de champ bloqué
+      Promise.resolve().then(function () { return o.miseEnForme(dit); }).then(function (t) { clearTimeout(garde); if (st.mef) fin(t || ''); }, function () { clearTimeout(garde); if (st.mef) fin(''); });
+    }
+    function demarrer() {
+      if (!SR) { dire('La dictée n’est pas disponible dans ce navigateur.', true); return; }
+      var ta = o.champ(); if (!ta) return;
+      var base = ta.value ? ta.value.replace(/\s*$/, ' ') : '', fini = '', enCours = '', fait = false;
+      var rec = new SR(); rec.lang = (o.lang && o.lang()) || 'fr-FR'; rec.continuous = true; rec.interimResults = true;
+      rec.onresult = function (ev) {
+        var interim = '';
+        if (fait) return;
+        for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fini += t; else interim += t; }
+        enCours = interim;
+        var txt = (base + fini + interim).replace(/^\s+/, '');
+        var el = o.champ(); if (el) { el.value = txt; el.scrollTop = el.scrollHeight; }
+        if (o.brouillon) o.brouillon((base + fini).replace(/^\s+/, ''));
+      };
+      rec.onerror = function (ev) { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') dire('Autorisez le micro pour posthumain.com dans le navigateur.', true); else if (ev.error !== 'no-speech' && ev.error !== 'aborted') dire('Dictée interrompue (' + ev.error + ').', true); };
+      var terminer = function () {
+        if (fait) return; fait = true; clearTimeout(st.garde);
+        st.rec = null; etat(false);
+        var dit = (fini + ' ' + enCours).replace(/\s+/g, ' ').trim();
+        var el = o.champ();
+        if (el) { el.value = (base + dit).replace(/^\s+/, ''); if (o.brouillon) o.brouillon(el.value); }
+        if (dit && o.miseEnForme && (!o.formaterActif || o.formaterActif())) formater(base, dit); else { verrou(false); if (el) el.focus(); }
+      };
+      rec.onend = terminer;
+      rec.terminer = terminer;
+      try { rec.start(); } catch (e) { dire('Impossible de lancer la dictée.', true); return; }
+      st.rec = rec; etat(true);
+    }
+    // arrêt : le champ se grise TOUT DE SUITE, puis le texte part dès que le navigateur rend la main (au plus 1,2 s d'attente)
+    function arreter() {
+      var rec = st.rec; etat(false);
+      if (rec) { verrou(true); try { rec.stop(); } catch (e) {} st.garde = setTimeout(function () { try { rec.abort(); } catch (e) {} if (rec.terminer) rec.terminer(); }, 1200); }
+    }
+    return { dispo: !!SR, demarrer: demarrer, arreter: arreter, basculer: function () { if (st.actif) arreter(); else demarrer(); },
+      actif: function () { return st.actif; }, enMiseEnForme: function () { return st.mef; } };
+  };
+
   // ---------- styles partagés ----------
   // R : racine du lab (« #wl ») ; pal : couleurs du lab. Chaque morceau est inséré à sa place dans la feuille du lab, ce qui
   // garde l'ordre des règles (et donc le rendu) exactement identique, et le fait passer par sa feuille claire dérivée.
@@ -199,6 +284,8 @@
       // mode clair (racine « #wl.wl-clair », « #vl.vl-clair ») : vert profond lisible sur le papier
       R + '.' + pre + '-clair .phl-porte-t{fill:#0a7a45}' + R + '.' + pre + '-clair .phl-porte-s{fill:rgba(31,26,18,.62)}' +
       R + '.' + pre + '-clair .phl-porte-f,' + R + '.' + pre + '-clair .phl-porte-halo{fill:#0fb565}' + R + '.' + pre + '-clair .phl-porte-f{stroke:rgba(10,60,30,.35)}';
-    return { occupe: occupe, confirmer: confirmer, toast: toast, porte: porte };
+    var tip = R + ' .tip{position:fixed;z-index:' + (p.tipZ || 65) + ';pointer-events:none;max-width:300px;padding:10px 12px;border-radius:12px;background:' + (p.fondTip || '#f8f4ea') + ';color:' + (p.encreTip || '#1f1a12') + ';font-size:13px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}' + R + ' .tip.on{opacity:1}' +
+      R + ' .tip b{display:block;font-size:13.5px;margin-bottom:3px;color:' + (p.encreTip || '#1f1a12') + '!important;font-weight:700}' + R + ' .tip span{display:block;color:' + (p.douxTip || '#5c5444') + '!important}' + R + ' .tip span.go{color:' + (p.goTip || '#1f6b45') + '!important;font-weight:600}';
+    return { occupe: occupe, confirmer: confirmer, toast: toast, porte: porte, tip: tip };
   };
 })();
