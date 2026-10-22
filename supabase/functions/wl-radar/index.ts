@@ -13,6 +13,10 @@
 //   - sujet écarté           → { Status:'skipped', Choisir:false } (comme « Gere echec redaction » et « Archiver anciens candidats »)
 // « Relancer le Radar » est la seule action qui coûte une exécution n8n : on poste au webhook Telegram de l'Usine
 // (posthumain-enquete) la même mise à jour qu'un « /radar » tapé par Jonathan dans son chat ; l'Usine n'est pas modifiée.
+// Rapport du brouillon (22/10/2026) : l'Usine envoie, juste après « Prepare notif brouillon », le rapport détaillé qu'elle
+// ne mettait jusque-là que dans le message Telegram (alertes de rédaction, contrôle des sources, photos, encart vidéo,
+// graphiques non placés, mise en forme, couverture) → table usine_rapports (action « rapport », en-tête x-tv-secret),
+// affiché sous chaque brouillon du Marbre.
 // Secrets Supabase : jeton Airtable (AIRTABLE_TOKEN, ou AIRTABLE_API_KEY / AIRTABLE_PAT / POSTHUMAIN_AIRTABLE_TOKEN),
 // clé Admin Ghost GHOST_ADMIN_API_KEY (format id:secret) et, facultatif, GHOST_ADMIN_API_URL.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -124,12 +128,38 @@ function post(p: any) {
     extrait: p.custom_excerpt || "", lecture: p.reading_time || 0, url: p.url, apercu: p.uuid ? SITE + "/p/" + p.uuid + "/" : "", editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id };
 }
 
+function egal(a: string, b: string) { if (!a || a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
+const txt = (v: unknown, max: number) => String(v ?? "").slice(0, max);
+const liste = (v: unknown, n: number, max: number) => (Array.isArray(v) ? v : v ? [v] : []).map((x) => txt(x, max)).filter((x) => x.trim()).slice(0, n);
+// Rapport envoyé par l'Usine (n8n, en-tête x-tv-secret) : on ne garde que des champs connus, de taille bornée.
+async function enregistrerRapport(b: any) {
+  const id = txt(b.post_id, 40).trim();
+  if (!/^[a-f0-9]{24}$/.test(id)) return { ok: false, why: "post_id invalide" };
+  const r = b.rapport || {};
+  const rapport = {
+    type: txt(r.type, 40), editeur: txt(r.editeur, 300),
+    couverture: { ok: r.couverture?.ok !== false, cause: txt(r.couverture?.cause, 400) },
+    reference: liste(r.reference, 6, 400), photos: liste(r.photos, 12, 400), video: liste(r.video, 4, 600),
+    alertes: liste(r.alertes, 20, 400), graphiques_non_places: liste(r.graphiques_non_places, 12, 300),
+    mise_en_forme: liste(r.mise_en_forme, 15, 400), sources: txt(r.sources, 6000),
+  };
+  const row = { post_id: id, airtable_id: txt(b.airtable_id, 30) || null, titre: txt(b.titre, 300) || null, type: rapport.type || null, rapport, texte: txt(b.texte, 12000) || null, updated_at: new Date().toISOString() };
+  const { error } = await db.from("usine_rapports").upsert(row, { onConflict: "post_id" });
+  if (error) return { ok: false, why: error.message };
+  return { ok: true, post_id: id };
+}
+
 Deno.serve(async (req) => {
   const h = { ...cors(req), "Content-Type": "application/json", "Cache-Control": "no-store" };
   if (req.method === "OPTIONS") return new Response(null, { headers: h });
   const out = (v: unknown, s = 200) => new Response(JSON.stringify(v), { status: s, headers: h });
   if (req.method !== "POST") return out({ ok: false, why: "method" }, 405);
   let b: any; try { b = await req.json(); } catch { return out({ ok: false, why: "bad_json" }, 400); }
+  // Usine (serveur à serveur) : dépôt du rapport du brouillon.
+  if (b.action === "rapport") {
+    if (!egal(req.headers.get("x-tv-secret") || "", env("TV_ADMIN_SECRET"))) return out({ ok: false, why: "unauthorized" }, 401);
+    try { return out(await enregistrerRapport(b)); } catch (e) { return out({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) }, 500); }
+  }
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const chef = qui === CHEF;
@@ -222,9 +252,11 @@ Deno.serve(async (req) => {
         ids.length ? air("Social" + q("OR(" + ids.map((i: string) => `{GhostPostId}='${i}'`).join(",") + ")", "&maxRecords=30")).catch(() => ({ records: [] })) : Promise.resolve({ records: [] }),
         ghost(`posts/?filter=${encodeURIComponent(`status:published+published_at:>'${minuitZurich()}'`)}&limit=20&order=published_at%20desc&fields=${CHAMPS_POST}`).catch((e) => ({ erreur: String(e.message || e) })),
       ]);
+      const { data: rps } = ids.length ? await db.from("usine_rapports").select("post_id,rapport,updated_at").in("post_id", ids) : { data: [] };
+      const rm = new Map((rps || []).map((x: any) => [x.post_id, { ...x.rapport, le: x.updated_at }]));
       const pm = new Map(((posts as any).posts || []).map((p: any) => [p.id, post(p)]));
       const sm = new Map(((soc as any).records || []).map((x: any) => [x.fields?.GhostPostId, { image: x.fields?.ImageURL || "", legende: x.fields?.Caption || "", hashtags: x.fields?.Hashtags || "", statut: x.fields?.Status || "" }]));
-      const brouillons = recs.map((s: any) => ({ ...s, post: pm.get(s.ghost_id) || null, social: sm.get(s.ghost_id) || null }))
+      const brouillons = recs.map((s: any) => ({ ...s, post: pm.get(s.ghost_id) || null, social: sm.get(s.ghost_id) || null, rapport: rm.get(s.ghost_id) || null }))
         .filter((x: any) => !x.post || x.post.statut === "draft" || x.post.statut === "scheduled");
       return out({ ok: true, chef, brouillons, publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
         erreur_ghost: (posts as any).erreur || (pub as any).erreur || "", at: new Date().toISOString() });

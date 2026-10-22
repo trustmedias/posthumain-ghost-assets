@@ -360,6 +360,24 @@ async function cloturer(t: Tour) {
   }
   return { ok: true, gagnant: g, airtable_id, airtable_erreur };
 }
+// Brief du vendredi : l'enquête choisie par le public est rappelée EN BAS du brief du PREMIER vendredi qui suit sa publication
+// (jour strictement postérieur, heure suisse), pour tout le monde (le paywall Ghost fait le reste). La date est figée au moment
+// où l'article est relié au tour : un seul vendredi correspond, donc le bloc ne part qu'une fois.
+function premierVendrediApres(iso: string) {
+  const z = partsZurich(new Date(iso));
+  const d = new Date(Date.UTC(z.y, z.m - 1, z.j));
+  do { d.setUTCDate(d.getUTCDate() + 1); } while (d.getUTCDay() !== 5);
+  return d.toISOString().slice(0, 10);
+}
+async function briefDuJour() {
+  const z = partsZurich(), auj = `${z.y}-${String(z.m).padStart(2, "0")}-${String(z.j).padStart(2, "0")}`;
+  const { data } = await db.from("vote_tours").select("mois,gagnant_titre,gagnant_votes,article").eq("test", false).eq("statut", "clos").eq("brief_le", auj).not("article", "is", null).order("clos_le", { ascending: false }).limit(1);
+  const t = data && data[0];
+  if (!t || !t.article) return { ok: true, bloc: null, jour: auj };
+  // deno-lint-ignore no-explicit-any
+  const a: any = t.article;
+  return { ok: true, jour: auj, bloc: { titre: a.title || t.gagnant_titre, url: a.url, image: a.image || null, extrait: a.excerpt || "", mois_txt: moisTxt(t.mois), votes: t.gagnant_votes || 0 } };
+}
 // Article publié par l'Usine pour un sujet gagnant (Airtable GhostPostId → Ghost) : affiché dans « Choisis par vous »
 async function lierArticles() {
   const { data } = await db.from("vote_tours").select("id,airtable_id").eq("statut", "clos").eq("test", false).not("airtable_id", "is", null).is("ghost_post_id", null).gte("clos_le", new Date(Date.now() - 150 * 864e5).toISOString()).limit(5);
@@ -368,10 +386,10 @@ async function lierArticles() {
       const rec = await airtableLire(String(t.airtable_id));
       const pid = rec?.fields?.GhostPostId;
       if (!pid) continue;
-      const out = await ghost(`/posts/${encodeURIComponent(String(pid))}/?fields=id,title,url,feature_image,status,published_at`);
+      const out = await ghost(`/posts/${encodeURIComponent(String(pid))}/?fields=id,title,url,feature_image,status,published_at,custom_excerpt`);
       const p = out?.posts?.[0];
       if (!p || p.status !== "published") continue;
-      await db.from("vote_tours").update({ ghost_post_id: p.id, article: { title: p.title, url: String(p.url || "").replace("https://the-last-journal.ghost.io", SITE), image: p.feature_image || null, published_at: p.published_at } }).eq("id", t.id);
+      await db.from("vote_tours").update({ ghost_post_id: p.id, brief_le: premierVendrediApres(p.published_at), article: { title: p.title, url: String(p.url || "").replace("https://the-last-journal.ghost.io", SITE), image: p.feature_image || null, published_at: p.published_at, excerpt: String(p.custom_excerpt || "").slice(0, 400) } }).eq("id", t.id);
     } catch (_) { /* nouvel essai au prochain passage */ }
   }
 }
@@ -427,6 +445,8 @@ Deno.serve(async (req) => {
     if (!attendu || attendu.length < 32 || !egal(String(b.secret || ""), attendu)) return json({ ok: false, why: "unauthorized" }, 401, h);
     try { return json(await tick(), 200, h); } catch (e) { return json({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) }, 500, h); }
   }
+  // Usine (brief du soir, serveur à serveur, lecture seule d'informations publiques) : bloc « Le sujet choisi par nos abonnés ».
+  if (action === "brief_du_jour") { try { return json(await briefDuJour(), 200, h); } catch (e) { return json({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) }, 500, h); } }
   if (!ORIGINES.includes(origin)) return json({ ok: false, why: "origin_not_allowed" }, 403, h);
 
   const email = await emailDuJeton(req);
