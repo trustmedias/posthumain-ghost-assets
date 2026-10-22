@@ -166,7 +166,7 @@ async function moderer(them: string, titre: string, detail: string): Promise<{ o
       "Tu modères les propositions de sujets d'enquête envoyées par les abonnés de Posthumain, média francophone sur l'IA, les technologies, la génétique, les neurosciences, la santé du futur, l'énergie, l'espace, la cybersécurité et les futurs de la société. " +
       "Accepte toute idée sincère, même maladroite, mal orthographiée ou en anglais, si elle peut devenir une enquête dans ce périmètre. " +
       "Refuse : insultes, haine, contenu sexuel, attaques contre une personne privée, spam ou publicité, texte vide de sens, demandes dangereuses (fabriquer une arme, pirater, nuire), sujets sans aucun lien avec la ligne éditoriale. " +
-      "Réponds UNIQUEMENT en JSON : {\"ok\": true|false, \"motif\": \"si refus : une phrase courte, polie, en français, qui explique quoi changer\"}.",
+      "Réponds UNIQUEMENT en JSON : {\"ok\": true|false, \"motif\": \"si refus : une seule phrase polie en français, 25 mots maximum, qui dit quoi changer\"}.",
       `Thématique choisie : ${THEMES[them] || them}\nSujet proposé : ${titre}\nPrécisions : ${detail || "(aucune)"}`, 300, 20000);
     return { ok: r.ok === true, motif: propre(r.motif, 320) };
   } catch (_) {
@@ -207,11 +207,14 @@ async function fusion(tourId: number) {
     if (!r) throw new Error(err || "fusion impossible");
     const { data: ap, error } = await db.rpc("vote_appliquer_ia", { p_tour: tourId, p_sujets: r.sujets, p_justif: r.justification || "" });
     if (error || !ap?.ok) throw new Error(error?.message || ap?.why || "application impossible");
-    await annoncer("🗳️ Les 3 sujets du vote sont fixés (" + (props || []).length + " propositions fusionnées par l'IA) : " + r.sujets!.map((x, i) => (i + 1) + ". " + x.titre).join(" · "), "🗳️ Votes : les 3 sujets sont fixés", r.sujets!.map((x) => x.titre).join(" · "));
+    const { data: tt } = await db.from("vote_tours").select("test").eq("id", tourId).limit(1);
+    const estTest = !!tt?.[0]?.test;
+    if (!estTest) await annoncer("🗳️ Les 3 sujets du vote sont fixés (" + (props || []).length + " propositions fusionnées par l'IA) : " + r.sujets!.map((x, i) => (i + 1) + ". " + x.titre).join(" · "), "🗳️ Votes : les 3 sujets sont fixés", r.sujets!.map((x) => x.titre).join(" · "));
   } catch (e) {
     const msg = String((e as Error)?.message || e).slice(0, 300);
     await db.from("vote_tours").update({ ia_etat: "echec", ia_erreur: msg }).eq("id", tourId).eq("ia_etat", "en_cours");
-    await annoncer("🚨 Votes du public : la fusion IA des propositions a échoué (" + msg + "). Nouvel essai automatique, ou « Relancer l'IA » dans la vue Rédaction de posthumain.com/vote.", "🚨 Votes : fusion IA en échec", msg);
+    const { data: tt2 } = await db.from("vote_tours").select("test").eq("id", tourId).limit(1);
+    if (!tt2?.[0]?.test) await annoncer("🚨 Votes du public : la fusion IA des propositions a échoué (" + msg + "). Nouvel essai automatique, ou « Relancer l'IA » dans la vue Rédaction de posthumain.com/vote.", "🚨 Votes : fusion IA en échec", msg);
   }
 }
 
