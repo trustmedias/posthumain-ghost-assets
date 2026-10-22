@@ -36,6 +36,7 @@ function cors(origin: string): Record<string, string> {
   return h;
 }
 const enc = new TextEncoder();
+function egal(a: string, b: string) { if (a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
 const hex = (b: ArrayBuffer) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, "0")).join("");
 async function sha(s: string) { return hex(await crypto.subtle.digest("SHA-256", enc.encode(s))); }
 const propre = (s: unknown, max: number) => String(s ?? "").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, "").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, max);
@@ -116,6 +117,20 @@ async function membre(email: string): Promise<Membre> {
   const m = { email, nom: String(g?.name || "").slice(0, 120), statut, premium: statut === "paid" || statut === "comped" };
   cacheMembres.set(email, { m, exp: Date.now() + (m.premium ? 5 : 1) * 60_000 });
   return m;
+}
+
+let cacheTiers: { v: unknown; exp: number } | null = null;
+async function avantages() {
+  if (cacheTiers && cacheTiers.exp > Date.now()) return cacheTiers.v;
+  let v: unknown = null;
+  try {
+    const out = await ghost(`/tiers/?filter=${encodeURIComponent("type:paid+active:true")}&include=monthly_price,yearly_price,benefits&limit=5`);
+    v = (out?.tiers || []).filter((x: { visibility?: string }) => x.visibility !== "none").map((x: { name: string; description: string; benefits: string[]; monthly_price: number; yearly_price: number; currency: string }) => ({
+      nom: x.name, description: x.description || "", avantages: (x.benefits || []).slice(0, 8), mensuel: x.monthly_price || null, annuel: x.yearly_price || null, devise: String(x.currency || "eur").toUpperCase(),
+    }));
+  } catch (_) { v = null; }
+  cacheTiers = { v, exp: Date.now() + 3600_000 };
+  return v;
 }
 
 // ---------------------------------------------------------------------------- Claude (modération, fusion, reformulation)
@@ -285,8 +300,9 @@ async function limite(cle: string, action: string, max: number, minutes: number)
 const journal = (cle: string, action: string, detail = "") => db.from("vote_journal").insert({ cle, action, detail: detail.slice(0, 300) }).then(() => {}, () => {});
 
 // ---------------------------------------------------------------------------- clôture
+const airtableCle = () => env("AIRTABLE_TOKEN") || env("POSTHUMAIN_AIRTABLE_TOKEN") || env("AIRTABLE_API_KEY") || env("AIRTABLE_PAT");
 async function airtableCreer(fields: Record<string, unknown>) {
-  const key = env("AIRTABLE_TOKEN") || env("AIRTABLE_API_KEY") || env("AIRTABLE_PAT") || env("POSTHUMAIN_AIRTABLE_TOKEN");
+  const key = airtableCle();
   if (!key) throw new Error("clé Airtable absente des secrets Supabase (AIRTABLE_TOKEN)");
   const base = env("AIRTABLE_BASE") || AIRTABLE_BASE;
   const r = await fetch(`https://api.airtable.com/v0/${base}/Radar`, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields, typecast: true }) });
@@ -295,7 +311,7 @@ async function airtableCreer(fields: Record<string, unknown>) {
   return String(j.id);
 }
 async function airtableLire(id: string) {
-  const key = env("AIRTABLE_TOKEN") || env("AIRTABLE_API_KEY") || env("AIRTABLE_PAT") || env("POSTHUMAIN_AIRTABLE_TOKEN");
+  const key = airtableCle();
   if (!key) return null;
   const r = await fetch(`https://api.airtable.com/v0/${env("AIRTABLE_BASE") || AIRTABLE_BASE}/Radar/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${key}` } });
   return r.ok ? await r.json() : null;
@@ -324,13 +340,15 @@ async function cloturer(t: Tour) {
   if (g && !t.test) {
     const angle = (g.description ? g.description + "\n\n" : "") + "Sujet choisi par les abonnés premium (vote de " + moisTxt(t.mois) + ", " + g.votes + " vote" + (g.votes > 1 ? "s" : "") + "). Leurs propositions :\n" +
       g.sources.map((s) => "- " + s.titre + (s.detail ? " — " + s.detail : "")).join("\n");
-    // mêmes champs que la commande Telegram « /ecrire <sujet> | | premium » de l'Usine (Parse commande enquete)
-    try { airtable_id = await airtableCreer({ Title: g.titre, Type: "premium", Status: "new", Score: 100, Choisir: true, CreatedAt: new Date().toISOString(), Angle: angle }); }
+    // Mêmes champs que la commande Telegram « /ecrire <sujet> | <url> | premium » de l'Usine (nœud « Parse commande enquete »),
+    // + URL = marqueur partagé avec l'Usine et le Writinglab (https://posthumain.com/vote?tour=AAAA-MM) : enquête SUPPLÉMENTAIRE
+    // rédigée par le passage dédié de 14 h 30 (jamais par les passages 8 h 30 / 12 h), en tête du Radar ; Priorite haute.
+    try { airtable_id = await airtableCreer({ Title: g.titre, Type: "premium", Status: "new", Score: 100, Choisir: true, Priorite: 1000, CreatedAt: new Date().toISOString(), Angle: angle, URL: `${SITE}/vote?tour=${t.mois}` }); }
     catch (e) { airtable_erreur = String((e as Error)?.message || e).slice(0, 300); }
   }
   await db.from("vote_tours").update({ statut: "clos", clos_le: new Date().toISOString(), gagnant_type: g?.type || null, gagnant_id: g?.id || null, gagnant_titre: g?.titre || null, gagnant_description: g?.description || null, gagnant_votes: g?.votes ?? null, airtable_id, airtable_erreur }).eq("id", t.id);
   if (!t.test) {
-    if (g) await annoncer("🗳️ Le public a choisi : « " + g.titre + " » (" + g.votes + " vote" + (g.votes > 1 ? "s" : "") + ", vote de " + moisTxt(t.mois) + "). " + (airtable_id ? "Le sujet est dans la file de l'Usine comme enquête premium prioritaire." : "⚠️ Pas pu l'ajouter à l'Usine (" + airtable_erreur + ") : à imposer à la main avec /ecrire " + g.titre + " | | premium"), "🗳️ Le public a choisi", g.titre);
+    if (g) await annoncer("🗳️ Le public a choisi : « " + g.titre + " » (" + g.votes + " vote" + (g.votes > 1 ? "s" : "") + ", vote de " + moisTxt(t.mois) + "). " + (airtable_id ? "Il sera n°1 du Radar demain et rédigé à 14 h 30 comme enquête supplémentaire, sauf si vous le passez (« Ne pas l'écrire » dans la Salle du Radar du Writinglab)." : "⚠️ Pas pu l'ajouter à l'Usine (" + airtable_erreur + ") : à imposer à la main avec /ecrire " + g.titre + " | " + SITE + "/vote?tour=" + t.mois + " | premium"), "🗳️ Le public a choisi", g.titre);
     else await annoncer("🗳️ Vote de " + moisTxt(t.mois) + " clos sans aucune proposition. Le tour suivant est ouvert.", "🗳️ Vote clos (aucune proposition)", moisTxt(t.mois));
     // tour suivant : le mois qui suit celui qui vient de se clore
     let [y, m] = t.mois.split("-").map(Number); m++; if (m > 12) { m = 1; y++; }
@@ -363,7 +381,8 @@ async function tick() {
     if (ok) { waitUntil(fusion(t.id)); res.ia = "relancée"; }
   }
   await lierArticles();
-  return { ok: true, ...res };
+  await db.from("vote_journal").delete().lt("created_at", new Date(Date.now() - 90 * 864e5).toISOString());
+  return { ok: true, ...res, config: { airtable: !!airtableCle(), ghost: !!env("GHOST_ADMIN_API_KEY") && !!env("GHOST_ADMIN_API_URL"), anthropic: !!env("ANTHROPIC_API_KEY"), push: !!env("WEBPUSHR_KEY") } };
 }
 
 // ---------------------------------------------------------------------------- page Ghost /vote (contenu tiré de GitHub, version figée par commit)
@@ -400,6 +419,9 @@ Deno.serve(async (req) => {
 
   // pg_cron (sans origine) : passage idempotent qui ne fait que ce qui est dû
   if (action === "tick") {
+    const { data: sec } = await db.from("wl_reglages").select("valeur").eq("cle", "vote_cron_secret").limit(1);
+    const attendu = String(sec?.[0]?.valeur || "");
+    if (!attendu || attendu.length < 32 || !egal(String(b.secret || ""), attendu)) return json({ ok: false, why: "unauthorized" }, 401, h);
     try { return json(await tick(), 200, h); } catch (e) { return json({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) }, 500, h); }
   }
   if (!ORIGINES.includes(origin)) return json({ ok: false, why: "origin_not_allowed" }, 403, h);
@@ -408,7 +430,7 @@ Deno.serve(async (req) => {
   let m: Membre | null = null;
   if (email) { try { m = await membre(email); } catch (e) { console.warn("ghost", String(e)); if (action !== "etat") return json({ ok: false, why: "Ghost ne répond pas, réessayez dans un instant." }, 503, h); } }
   const equipe = !!email && !!EQUIPE[email];
-  const role = !email ? "visiteur" : m?.premium ? "premium" : "gratuit";
+  let role = !email ? "visiteur" : m?.premium ? "premium" : "gratuit";
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || req.headers.get("cf-connecting-ip") || "";
   const cleIp = "ip:" + (await sha("vote|" + ip)).slice(0, 24);
 
@@ -420,10 +442,12 @@ Deno.serve(async (req) => {
       if (!data || !data[0]) return json({ ok: false, why: "tour introuvable" }, 404, h);
       t = data[0] as Tour;
     } else t = await tourCourant();
+    if (equipe && t.test && role !== "premium") role = "premium";
 
     if (action === "etat") {
       const voirTout = role !== "visiteur";
-      return json({ ok: true, role, equipe, serveur: new Date().toISOString(), themes: THEMES, ...(await lireTour(t, email, voirTout, false)), gagnants: await gagnants() }, 200, h);
+      const [lt, gg, av] = await Promise.all([lireTour(t, email, voirTout, false), gagnants(), role === "premium" ? Promise.resolve(null) : avantages()]);
+      return json({ ok: true, role, equipe, serveur: new Date().toISOString(), themes: THEMES, ...lt, gagnants: gg, offre: av }, 200, h);
     }
 
     if (action === "proposer") {
@@ -464,7 +488,7 @@ Deno.serve(async (req) => {
         db.from("vote_tours").select("id,mois,statut,fin_vote,gagnant_titre,gagnant_votes,airtable_id,airtable_erreur,article,test").order("fin_vote", { ascending: false }).limit(15),
         db.from("vote_journal").select("cle,detail,created_at").eq("action", "refus").order("created_at", { ascending: false }).limit(30),
       ]);
-      return json({ ok: true, role, equipe, themes: THEMES, ...(await lireTour(t, email, true, true)), ia_justification: t.ia_justification, ia_erreur: t.ia_erreur, ia_essais: t.ia_essais, config: { airtable: !!(env("AIRTABLE_TOKEN") || env("AIRTABLE_API_KEY") || env("AIRTABLE_PAT") || env("POSTHUMAIN_AIRTABLE_TOKEN")), ghost: !!env("GHOST_ADMIN_API_KEY"), anthropic: !!env("ANTHROPIC_API_KEY"), push: !!env("WEBPUSHR_KEY") }, votes, tours, refus: (refus || []).map((r: { cle: string; detail: string; created_at: string }) => ({ membre: r.cle.replace(/^m:/, ""), detail: r.detail, le: r.created_at })) }, 200, h);
+      return json({ ok: true, role, equipe, themes: THEMES, ...(await lireTour(t, email, true, true)), ia_justification: t.ia_justification, ia_erreur: t.ia_erreur, ia_essais: t.ia_essais, config: { airtable: !!(airtableCle()), ghost: !!env("GHOST_ADMIN_API_KEY"), anthropic: !!env("ANTHROPIC_API_KEY"), push: !!env("WEBPUSHR_KEY") }, votes, tours, refus: (refus || []).map((r: { cle: string; detail: string; created_at: string }) => ({ membre: r.cle.replace(/^m:/, ""), detail: r.detail, le: r.created_at })) }, 200, h);
     }
     if (action === "ecarter" || action === "retablir") {
       const table = b.type === "sujet" ? "vote_sujets" : "vote_propositions";
