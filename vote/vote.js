@@ -61,6 +61,10 @@
   function fusionner(r) {
     var garde = S.d || {};
     S.d = Object.assign({}, garde, r);
+    // Aperçu réservé à la rédaction : ?apercu=gratuit ou ?apercu=visiteur montre la page comme ces lecteurs la voient
+    // (affichage seulement : le serveur continue de décider qui peut proposer ou voter).
+    var ap = q.get('apercu');
+    if (S.d.equipe && (ap === 'gratuit' || ap === 'visiteur')) S.d.role = ap;
   }
   function chargerRedaction() {
     return api('redaction_etat').then(function (r) { if (r && r.ok) S.red = r; rendre(); });
