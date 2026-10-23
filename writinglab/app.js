@@ -2626,7 +2626,7 @@
     if (TEL_DICTEE.actif()) TEL_DICTEE.arreter();
     var ta = S.root.querySelector('#wl-tel-msg'), txt = String((ta && ta.value) || '').trim(); if (!txt) { toast('Écrivez ou dictez votre requête.', true); return; }
     T.envoi = true; T.fil = (T.fil || []).concat([{ id: 'tmp', de: 'moi', texte: txt, created_at: new Date().toISOString() }]);
-    T.brouillon = ''; if (S.telBr) delete S.telBr[T.poste]; if (ta) ta.value = ''; telPeindre();
+    S.telVide = true; T.brouillon = ''; if (S.telBr) delete S.telBr[T.poste]; if (ta) ta.value = ''; telPeindre();
     var k = T.poste;
     telApi({ action: 'telephone', poste: k, texte: txt, article_id: S.art || '', fiche_id: S.doc && S.doc.kind === 'fiche' ? S.doc.id : '', articles: telArticles() }).then(function (r) {
       if (!S.telP || S.telP.poste !== k) return;
@@ -2769,9 +2769,10 @@
     return '<div class="autres-postes"><span class="muted">Autres postes :</span>' + l.map(function (p) { return '<button class="btn small" data-act="open-ag" data-ag="' + esc(p.id) + '">' + esc(p.emoji + ' ' + p.nom) + '</button>'; }).join('') + '</div>';
   }
   var TEL_DICTEE = !PHL.dictee ? { dispo: false, demarrer: function () {}, arreter: function () {}, actif: function () { return false; } } : PHL.dictee({
-    champ: function () { return S.root && S.root.querySelector('#wl-tel-msg'); },
+    // 23/10/2026 : après « Envoyer », la fin de la dictée (dernier mot reconnu, mise en forme) ne réécrit plus le message envoyé dans le champ
+    champ: function () { return S.telVide ? null : S.root && S.root.querySelector('#wl-tel-msg'); },
     lang: function () { return LS.get('wl-dictee-lang') || 'fr-FR'; },
-    brouillon: function (t) { if (S.telP) S.telP.brouillon = t; },
+    brouillon: function (t) { if (S.telP && !S.telVide) S.telP.brouillon = t; },
     etat: function () { var b = S.root && S.root.querySelector('[data-act="tel-dicter"]'); if (b) { b.classList.toggle('on', TEL_DICTEE.actif()); b.textContent = TEL_DICTEE.actif() ? '⏹️ Arrêter' : '🎙️ Dicter'; } var ta = S.root && S.root.querySelector('#wl-tel-msg'); if (ta) ta.placeholder = TEL_DICTEE.actif() ? '🎙️ Je vous écoute…' : 'Votre requête…'; },
     verrou: function (on) { var ta = S.root && S.root.querySelector('#wl-tel-msg'); if (ta) { ta.disabled = on; ta.classList.toggle('wl-mef', on); } },
     toast: function (t, bad) { toast(t, bad); },
@@ -3769,7 +3770,7 @@
       case 'info-ouvrir': infoFermer(true); openPanel(id === 'j:vide' ? 'chef' : id); break;
       case 'tel-fermer': telFermer(); break;
       case 'tel-envoyer': telEnvoyer(); break;
-      case 'tel-dicter': if (TEL_DICTEE.actif()) TEL_DICTEE.arreter(); else TEL_DICTEE.demarrer(); break;
+      case 'tel-dicter': if (TEL_DICTEE.actif()) TEL_DICTEE.arreter(); else { S.telVide = false; TEL_DICTEE.demarrer(); } break;
       case 'tel-exec': telExec(id); break;
       case 'tel-suite': telSuite(id); break;
       case 'ap-ouvrir': apOuvrir(id); break;
@@ -4133,7 +4134,7 @@
     if (t.id && /^eq-/.test(t.id)) { S.eqDraft = S.eqDraft || {}; S.eqDraft[t.id.slice(3)] = t.type === 'checkbox' ? !!t.checked : t.value; return; }
     if (t.classList && t.classList.contains('pub-in')) { S.pub = S.pub || {}; S.pub[t.getAttribute('data-pub')] = !!t.checked; return; }
     if (t.id === 'wl-msg') { S.msgDraft = t.value; return; }
-    if (t.id === 'wl-tel-msg') { if (S.telP) { S.telP.brouillon = t.value; S.telBr = S.telBr || {}; S.telBr[S.telP.poste] = t.value; } return; }
+    if (t.id === 'wl-tel-msg') { S.telVide = false; if (S.telP) { S.telP.brouillon = t.value; S.telBr = S.telBr || {}; S.telBr[S.telP.poste] = t.value; } return; }
     if (t.id === 'wl-ap-ok') { if (S.appel) { S.appel.consent = !!t.checked; var be = S.root.querySelector('[data-act="ap-ecouter"]'); if (be) be.disabled = !t.checked; } return; }
     if (t.id === 'wl-canal') { if (e.type === 'change') canalChoisir(t.getAttribute('data-id'), t.value); return; }
     if (t.id === 'wl-ap-lang') { if (S.appel) S.appel.lang = t.value; return; }
