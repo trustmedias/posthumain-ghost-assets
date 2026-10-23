@@ -86,6 +86,7 @@
   "capacites": [
     {
       "id": "rediger_interview",
+      "nom": "✍️ Demande d'interview (premier mail)",
       "postes": ["secretaire"],
       "description": "la Secrétaire rédige le PREMIER mail d'interview à un contact qui n'a pas encore de fiche ; la fiche arrive « à valider ». Pour écrire à quelqu'un qui a déjà une fiche, utilise suite_interview. Paramètres : article_id, contact { nom, email, role, institution, langue: 'fr'|'en' }, questions [texte…] (3 à 6), consigne?",
       "aide": "Rédige le premier mail de demande d'interview à un nouveau contact, à partir de l'article, du contact et des questions.",
@@ -124,6 +125,7 @@
     },
     {
       "id": "suite_interview",
+      "nom": "✉️ Réponse dans le fil d'une fiche",
       "postes": ["secretaire"],
       "description": "la Secrétaire rédige une réponse dans le FIL de la fiche d'interview d'un contact (après le premier mail ou après sa réponse : remercier, proposer un appel ou une autre formule, fixer un rendez-vous, demander une précision, donner notre numéro). Brouillon à valider dans la fiche, envoyé dans le même fil après « Valider et envoyer ». Paramètres : fiche_id, consigne (ce qu'il faut dire, fidèle à la demande du membre, sans rien ajouter), telephone? (le numéro à donner : seulement s'il faut le donner et qu'il est fourni par le membre ou présent dans moi.telephone)",
       "aide": "Répond dans le fil d'une fiche d'interview : remercier, proposer un appel ou une autre formule, fixer un rendez-vous, demander une précision, donner votre numéro.",
@@ -159,6 +161,7 @@
     },
     {
       "id": "chercher_contacts",
+      "nom": "🔎 Chercher qui interroger",
       "postes": ["assistant"],
       "description": "recherche des chercheurs à interroger pour cet article. Paramètres : article_id",
       "aide": "Cherche des chercheurs et des experts à interroger pour l'article en cours, avec une adresse publiée officiellement.",
@@ -181,6 +184,7 @@
     },
     {
       "id": "questions",
+      "nom": "❓ Préparer les questions",
       "postes": ["assistant"],
       "description": "propose des questions d'interview pour ce contact. Paramètres : article_id, contact { nom, role, institution, langue }, angle?",
       "aide": "Propose des questions d'interview adaptées au contact et à l'article ; vous pouvez ensuite faire rédiger le mail.",
@@ -213,6 +217,7 @@
     },
     {
       "id": "reponse_fiche",
+      "nom": "📞 Enregistrer une réponse reçue au téléphone",
       "postes": ["assistant"],
       "description": "réponse structurée du contact à enregistrer dans SA fiche (marquée « reçue par téléphone » ; le membre valide d'un clic). N'invente rien : seulement ce que le membre a rapporté. Paramètres : fiche_id, resume, reponses [{ question, reponse }], citations? [texte…]",
       "aide": "Met en forme ce qu'un contact a répondu (au téléphone ou d'après vos notes) : un résumé et la réponse à chaque question, enregistrés dans sa fiche après votre clic.",
@@ -254,6 +259,7 @@
     },
     {
       "id": "citations",
+      "nom": "✅ Placer les citations dans l'article",
       "postes": ["assistant"],
       "description": "ouvre la fiche (qui a déjà une réponse) et propose les emplacements des citations dans l'article. Paramètres : fiche_id",
       "aide": "Ouvre la fiche d'un contact qui a répondu et propose où placer ses citations dans l'article ; vous validez chaque emplacement avant l'insertion dans Ghost.",
@@ -275,6 +281,7 @@
     },
     {
       "id": "proposer_reponse",
+      "nom": "✉️ Répondre à un mail du Courrier",
       "postes": ["mk", "sc"],
       "description": "rédige la proposition de réponse à ce mail (brouillon à valider). Paramètres : mail_id, consigne",
       "aide": "Rédige une proposition de réponse à un mail du Courrier (redaction@ ou subs@) ; le rédacteur en chef la relit et l'envoie.",
@@ -303,6 +310,7 @@
     },
     {
       "id": "ouvrir",
+      "nom": "↗ Ouvrir une fiche, un mail ou un panneau",
       "postes": ["secretaire", "assistant", "mk", "sc", "compta"],
       "description": "ouvre l'élément dans le lab (fiche_id, mail_id, ou poste pour un panneau). Paramètres : cible 'fiche'|'mail'|'panneau', id",
       "aide": "Ouvre directement une fiche, un mail ou le panneau d'un poste.",

@@ -21,7 +21,10 @@ Dès qu'il est déclaré, sans aucune autre ligne de code :
 - sa place dans la **liste de transmission** des autres postes ;
 - ses **bulles d'activité** (« … travaille ») et ses **droits** (`acces` : `tous` ou `chef`) ;
 - un **bureau sur le plan** s'il a un `plan` { x, y }, sinon un bouton dans « Autres postes » sous le plan ;
-- un **panneau** générique (rôle, capacités, bouton ☎️) s'il n'a pas de panneau dédié dans la page.
+- un **panneau** générique (rôle, capacités, bouton ☎️) s'il n'a pas de panneau dédié dans la page ;
+- un bouton **ⓘ « Qui fait quoi »** sur son bureau : son aide, chaque capacité (ce qu'elle fait, exemples de phrases au ☎️,
+  ce qu'il faut fournir, le résultat, qui y a droit), les règles d'aiguillage vers les autres postes et « ☎️ Appeler ce poste ».
+  Une journaliste ne voit que ce qui lui est accessible.
 
 Une capacité apparaît automatiquement dans la fiche de poste de son porteur. Elle est validée côté serveur
 (schéma des paramètres, droits, existence de la fiche, du mail ou de l'article visé) et exécutée par la page
@@ -30,12 +33,16 @@ via son `executeur`, sans `switch` à compléter.
 ## Champs
 
 **Poste** : `id` (minuscules), `nom`, `emoji`, `couleur`, `acces` (`tous` | `chef`), `titre` (sous le nom sur le
-plan), `role` (texte pour l'IA, à la 2e personne), `contexte` (données lues pour lui : `fiches`, `courrier`,
-`pieces`), `mail` ({ boite, adresse, role } si `courrier`), `plan` ({ x, y, teinte } ou `null`), `capacites` (ids).
+plan), `role` (texte pour l'IA, à la 2e personne), `aide` (une phrase claire pour les humains, bouton ⓘ), `exemples`
+(au moins 2 phrases à dire au ☎️), `aiguillage` (ce que les autres postes doivent lui transmettre : sert à générer les
+règles d'aiguillage des IA et l'aide ⓘ), `contexte` (données lues pour lui : `fiches`, `courrier`, `pieces`), `mail`
+({ boite, adresse, role } si `courrier`), `plan` ({ x, y, teinte } ou `null`), `capacites` (ids).
 
 **Capacité** :
 
 - `id` et `postes` (qui la porte) ;
+- `nom` (titre lisible, avec son emoji), `aide` (ce qu'elle fait, pour les humains), `fournir` (ce qu'il faut donner),
+  `exemples` (au moins 2 phrases à dire au ☎️) : affichés par le bouton ⓘ ;
 - `description` (pour l'IA, avec la liste des paramètres) ;
 - `params` (schéma : `article`, `fiche`, `mail`, `contact`, `liste`, `qr`, `texte`, `choix`, `cible` ; options
   `requis`, `long`, `max`, `statuts`, `avec_reponse`, `valeurs`) ;
@@ -46,7 +53,8 @@ plan), `role` (texte pour l'IA, à la 2e personne), `contexte` (données lues po
   - `clic` : attend un clic ;
 - `executeur` :
   - `{ type: "api", mode, donnees, bureau, libelle, liste?, resultat, lien?, suite? }` pour une action du webhook n8n ;
-  - `{ type: "tel", action, donnees }` pour une action de wl-tel ;
+  - `{ type: "tel", action, donnees, envoi?, ecarter?, lister? }` pour une action de wl-tel (les actions d'envoi validé,
+    d'abandon et de liste d'un brouillon, si la capacité en a, sont aussi vérifiées) ;
   - `{ type: "page", fonction }` pour une fonction de `PAGE_EXEC` dans app.js ;
 - `carte` : affichage au téléphone, `{ titre, texte?, liste?, format?, note?, bouton }`.
 
@@ -59,6 +67,13 @@ Valeurs dynamiques :
 - `$bureau_mail` : le bureau du mail visé ;
 - dans les textes : `{p.x}`, `{r.x}`, `{n}`.
 
+**Aiguillage** : `aiguillage.contacts_interview` désigne le poste qui écrit à toute personne qui a une fiche
+d'interview. Un poste avec une boîte de courrier (`mail`) ne reçoit jamais ces demandes : la règle est écrite dans la fiche
+de poste de chaque IA et vérifiée par wl-tel avant toute transmission.
+
+**Stations** (`stations`) : l'aide ⓘ des bureaux sans IA (`chef`, `journaliste`, `courrier`, `marbre`, `radar`, `votes`) :
+`id`, `nom`, `emoji`, `aide`, `actions` (ce que fait son panneau), `acces?`. Une nouvelle station du plan doit y figurer.
+
 ## Exemple complet : une Documentaliste
 
 Ajouter dans `postes` :
@@ -68,6 +83,9 @@ Ajouter dans `postes` :
   "id": "documentaliste", "nom": "La Documentaliste", "emoji": "📚", "couleur": "#7a9a4a",
   "acces": "tous", "titre": "Archives et sources",
   "role": "Tu retrouves dans les archives de Posthumain les articles et les sources déjà publiés sur un sujet, et tu en fais un dossier de lecture pour la journaliste.",
+  "aide": "Elle retrouve dans les archives de Posthumain les articles et les sources déjà publiés sur un sujet, et en fait un dossier de lecture.",
+  "exemples": ["Prépare-moi un dossier d'archives sur les interfaces cerveau-machine.", "Qu'avons-nous déjà publié sur CRISPR ?"],
+  "aiguillage": "retrouver les articles et sources déjà publiés par Posthumain sur un sujet (dossier d'archives)",
   "contexte": ["fiches"], "mail": null,
   "plan": { "x": 1305, "y": 250, "teinte": 95 },
   "capacites": ["dossier_archives", "ouvrir"]
@@ -78,8 +96,11 @@ Ajouter dans `capacites` (et `"documentaliste"` dans les `postes` de la capacit�
 
 ```json
 {
-  "id": "dossier_archives", "postes": ["documentaliste"],
+  "id": "dossier_archives", "nom": "📚 Dossier d'archives", "postes": ["documentaliste"],
   "description": "prépare un dossier des articles et sources déjà publiés sur un sujet. Paramètres : sujet",
+  "aide": "Rassemble les articles et les sources déjà publiés par Posthumain sur un sujet, en une liste à lire.",
+  "fournir": "le sujet",
+  "exemples": ["Dossier d'archives sur les interfaces cerveau-machine.", "Retrouve nos articles sur l'IA au travail."],
   "params": { "sujet": { "type": "texte", "requis": true, "long": 200 } },
   "droits": "tous", "mode": "immediat",
   "executeur": { "type": "api", "mode": "archives", "bureau": "documentaliste", "libelle": "fouille les archives",
@@ -99,13 +120,15 @@ Ensuite :
 2. `node scripts/wl-catalogue.mjs`
 3. commit, push, redéploiement de wl-tel.
 
-La Documentaliste a son bureau, son ☎️, sa dictée, sa fiche de poste, et les autres postes peuvent lui
-transmettre les demandes d'archives. Démonstration au harnais : capture `wl-catalogue-poste-fictif.png`,
+La Documentaliste a son bureau, son ☎️, sa dictée, sa fiche de poste, son bouton ⓘ, et les autres postes peuvent lui
+transmettre les demandes d'archives (captures `wl-catalogue-poste-fictif.png` et `wl-info-documentaliste.png`). Démonstration au harnais : capture `wl-catalogue-poste-fictif.png`,
 avec ce poste uniquement dans le catalogue de test.
 
 ## Ce que le test vérifie
 
-- Chaque poste a ses champs obligatoires et des capacités qui existent. Chaque capacité a un porteur qui la
+- Chaque poste a ses champs obligatoires (dont `aide`, `exemples`, `aiguillage`) et des capacités qui existent ; chaque
+  capacité a son aide (`nom`, `aide`, `fournir`, `exemples`) ; chaque station du plan a son aide ; `aiguillage.contacts_interview`
+  vise un poste existant qui n'est pas un poste de courrier. Chaque capacité a un porteur qui la
   liste, un schéma valide, des droits, un mode, une carte et un exécuteur qui existe :
   - `api('…')` présent dans app.js ;
   - action présente dans wl-tel ;

@@ -65,7 +65,7 @@ for (const c of caps) {
   const n = "capacité « " + (c.id || "?") + " »";
   if (!c.id) ko(n + " : id manquant"); if (capIds.has(c.id)) ko(n + " : id en double"); capIds.add(c.id);
   if (!c.description) ko(n + " : description (pour l'IA) manquante");
-  for (const k of ["aide", "fournir"]) if (!c[k] || typeof c[k] !== "string") ko(n + " : « " + k + " » manquant (aide ⓘ pour les humains" + (k === "fournir" ? " : ce qu'il faut fournir" : "") + ")");
+  for (const k of ["nom", "aide", "fournir"]) if (!c[k] || typeof c[k] !== "string") ko(n + " : « " + k + " » manquant (aide ⓘ pour les humains" + (k === "fournir" ? " : ce qu'il faut fournir" : "") + ")");
   if (!Array.isArray(c.exemples) || c.exemples.length < 2 || c.exemples.some((x) => typeof x !== "string" || !x.trim())) ko(n + " : « exemples » = au moins 2 phrases à dire au ☎️ (aide ⓘ)");
   if (!Array.isArray(c.postes) || !c.postes.length) ko(n + " : « postes » (qui la porte) manquant");
   else for (const pid of c.postes) {

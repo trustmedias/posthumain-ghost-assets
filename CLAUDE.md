@@ -16,7 +16,13 @@ Un poste déclaré obtient automatiquement :
 - son ☎️ et sa 🎙️ dictée ;
 - sa fiche de poste pour l'IA et sa place dans l'aiguillage ;
 - ses bulles d'activité et ses droits ;
-- son bureau sur le plan (ou « Autres postes ») et un panneau.
+- son bureau sur le plan (ou « Autres postes ») et un panneau ;
+- son bouton ⓘ « Qui fait quoi » (rôle, capacités avec exemples, aiguillage), généré depuis le catalogue.
+
+Champs d'aide obligatoires (le test échoue sinon) : sur chaque poste `aide` (une phrase pour les humains), `exemples`
+(au moins 2 phrases à dire au ☎️) et `aiguillage` (ce qu'on lui transmet) ; sur chaque capacité `nom`, `aide`, `fournir`
+et `exemples`. Les stations du plan sans IA (Courrier, Marbre, Radar, Votes) et les bureaux humains (chef, journaliste)
+ont leur aide dans `stations`.
 
 Une nouvelle action `api('…')` dans app.js doit être l'exécuteur d'une capacité, ou figurer dans `interne`
 avec sa raison, sinon le test échoue.
