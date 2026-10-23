@@ -1896,7 +1896,8 @@
     cv.addEventListener('pointerdown', function (ev) { ev.preventDefault(); bas = true; try { cv.setPointerCapture(ev.pointerId); } catch (x) {} last = pos(ev); c.beginPath(); c.arc(last.x, last.y, 1.2, 0, Math.PI * 2); c.fillStyle = '#14110c'; c.fill(); S.consSig.pts++; });
     cv.addEventListener('pointermove', function (ev) {
       if (!bas) return; ev.preventDefault();
-      (ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev]).forEach(function (pe) {
+      var lot = ev.getCoalescedEvents ? ev.getCoalescedEvents() : []; if (!lot || !lot.length) lot = [ev]; // certains navigateurs renvoient une liste vide
+      lot.forEach(function (pe) {
         var p = pos(pe), mx = (last.x + p.x) / 2, my = (last.y + p.y) / 2;
         c.beginPath(); c.moveTo(last.x, last.y); c.quadraticCurveTo(last.x, last.y, mx, my); c.lineTo(p.x, p.y); c.stroke();
         S.consSig.len += Math.hypot(p.x - last.x, p.y - last.y); S.consSig.pts++; last = p;
