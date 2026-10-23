@@ -63,7 +63,7 @@
       '@keyframes ' + K + 'walk{0%{opacity:0;transform:translate(260px,130px) scale(.4)}25%{opacity:1}100%{opacity:1;transform:translate(var(--x),var(--y)) scale(1)}}' +
       '@keyframes ' + K + 'pulse{50%{opacity:.35}}@keyframes ' + K + 'prog{0%{width:0}60%{width:72%}100%{width:90%}}' +
       '@media (prefers-reduced-motion:reduce){' + l + '-plan *{animation-duration:.01s!important;animation-delay:0s!important}}' +
-      B + '{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px;background:' + c.fondUni + ';color:rgba(' + c.texteRgb + ',.75);font:16px/1.5 system-ui,-apple-system,sans-serif}' +
+      B + '{position:fixed;inset:0;z-index:3999500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px;background:' + c.fondUni + ';color:rgba(' + c.texteRgb + ',.75);font:16px/1.5 system-ui,-apple-system,sans-serif}' +
       B + ' b{color:#00ff77;letter-spacing:.2em;font-family:ui-monospace,monospace}' +
       B + ' a{display:inline-block;margin-top:6px;padding:10px 18px;border-radius:12px;background:rgba(0,255,119,.12);border:1px solid rgba(0,255,119,.45);color:#bfffdc;text-decoration:none}' +
       // mode clair
@@ -137,7 +137,17 @@
       if (typeof window[o.demarrer] !== 'function') { msg('<div>⚠️ L’application n’a pas pu démarrer. Réessayez dans un instant.</div>'); return; }
       window[o.demarrer]({ root: root, call: call });
     }).catch(function (e) {
-      if (e && e.why === 'non connecté') msg('<div>' + esc(o.reserve) + '</div><a href="#/portal/signin" data-portal="signin">Se connecter</a>');
+      // 23/10/2026 : l'écran « Se connecter » passe SOUS la fenêtre de connexion de Ghost (Portal, z-index 3999999) : avant, il
+      // la recouvrait (z-index maximal) et le bouton semblait ne rien faire. Le clic force aussi l'ouverture de Portal par le hash.
+      if (e && e.why === 'non connecté') {
+        msg('<div>' + esc(o.reserve) + '</div><a href="#/portal/signin" data-portal="signin">Se connecter</a>');
+        var a = root.querySelector('a[data-portal]');
+        if (a) a.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          if (location.hash === '#/portal/signin') { history.replaceState(null, '', location.pathname + location.search); }
+          setTimeout(function () { location.hash = '#/portal/signin'; }, 0);
+        });
+      }
       else msg('<div>' + esc(o.panne) + '</div>');
     });
   }

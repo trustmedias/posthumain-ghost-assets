@@ -524,12 +524,14 @@
     return '<g class="ag ' + st + '" data-ag="' + esc(p.key) + '" transform="translate(' + p.x + ',' + p.y + ')">' +
       '<rect x="-100" y="-70" width="200" height="200" rx="14" fill="transparent"/>' +
       (glow ? '<ellipse cx="0" cy="0" rx="' + (big ? 100 : 80) + '" ry="60" fill="url(#halo-' + st + ')"/>' : '') +
-      (p.vide ? '' : '<circle cx="0" cy="52" r="23" fill="#221c15" stroke="rgba(255,255,255,.08)"/>' + personSVG(p, st)) +
+      (p.vide ? '' : '<circle cx="0" cy="52" r="23" fill="#221c15" stroke="rgba(255,255,255,.08)"/>') +
       '<rect class="deskTop" x="' + (-w / 2) + '" y="-30" width="' + w + '" height="' + h + '" rx="7" fill="' + (big ? 'url(#wood)' : '#2c261d') + '" stroke="rgba(255,255,255,.14)"/>' +
       '<rect x="' + (-w / 2 + 6) + '" y="-24" width="' + (w - 12) + '" height="' + (h - 12) + '" rx="5" fill="' + (big ? 'rgba(0,0,0,.18)' : '#221d16') + '"/>' +
       '<rect class="scr" x="-36" y="-26" width="72" height="9" rx="2.5" fill="' + scr + '" ' + (glow ? 'filter="url(#glow)"' : '') + '/>' +
       (glow ? '<path d="M-34 -17 L34 -17 L52 22 L-52 22 Z" fill="' + scr + '" opacity=".07"/>' : '') +
       '<rect x="-24" y="2" width="48" height="10" rx="2" fill="#3e372b"/>' + deco +
+      // 23/10/2026 : la personne est dessinée APRÈS le bureau (au-dessus) : avec son léger flottement, elle passait sous le plateau
+      (p.vide ? '' : personSVG(p, st)) +
       '<circle class="ledsvg ' + st + '" cx="' + (w / 2 - 8) + '" cy="-24" r="5" fill="' + (st === 'off' ? '#3a4440' : scr) + '" ' + (st !== 'off' ? 'filter="url(#glow)"' : '') + '/>' +
       '<g transform="translate(' + (-w / 2 + 2) + ',-46)"><circle r="17" fill="#15110c" stroke="rgba(255,190,90,.4)"/><text x="0" y="6" text-anchor="middle" font-size="18">' + p.emoji + '</text></g>' +
       (TEL_POSTES[p.kind] && telPeut(p.kind) ? '<g class="tel-svg" data-act="tel" data-id="' + p.kind + '" transform="translate(' + (w / 2 - 2) + ',-46)" data-tip="' + esc('☎️ Appeler ' + TEL_POSTES[p.kind].nom + '|une requête libre, écrite ou dictée|') + '"><circle r="15" fill="#15110c" stroke="rgba(0,255,119,.55)"/><text x="0" y="5.5" text-anchor="middle" font-size="15">☎️</text></g>' : '') +
@@ -2815,7 +2817,8 @@
     if (me.chef) h += bxSection();
     if (me.chef) h += consSection();
     var adr = ({ jonathan: 'jonathan.paiano@posthumain.com', valisoa: 'valisoa.rasolofo@posthumain.com' })[me.id] || '';
-    h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div></div>';
+    h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn small" data-act="deconnexion">🚪 Se déconnecter</button></div></div>';
     return h + '</div>';
   }
   // Tableau de bord du rédacteur en chef : tout est calculé ici depuis les fiches, sauf le coût IA (compté par les coulisses).
@@ -3422,6 +3425,16 @@
         break;
       case 'push': reglerPush(true); break;
       case 'dicter': if (S.dicte) stopDictee(); else startDictee(); break;
+      // 23/10/2026 : déconnexion du compte membre posthumain.com (session Ghost), puis retour à l'écran « Se connecter » du lab
+      case 'deconnexion':
+        confirmer('Se déconnecter du Writinglab ?\n\nVous vous déconnectez aussi de posthumain.com sur cet appareil.').then(function (ok) {
+          if (!ok) return;
+          fetch('/members/api/session', { method: 'DELETE', credentials: 'same-origin' }).catch(function () {}).then(function () {
+            try { sessionStorage.clear(); } catch (e) {}
+            location.reload();
+          });
+        });
+        break;
       case 'send-msg':
         if (S.miseEnForme) break;
         // pendant la dictée, « Envoyer » arrête d'abord la dictée (le texte est mis en forme) : on relit, puis on envoie.
