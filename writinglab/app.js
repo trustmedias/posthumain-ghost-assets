@@ -433,7 +433,7 @@
       return nv ? { s: 'on', why: '🗳️ sujet voté en tête' } : nf ? { s: 'slot', why: nf + ' sujet' + pl(nf) + ' en file' } : { s: 'off', why: (RD.sujets || []).length + ' sujet' + pl((RD.sujets || []).length) + ' notés' };
     }
     if (p.kind === 'votes') return { s: 'off', why: 'la salle des votes' };
-    if (p.kind === 'marbre') { var a = D().articles.length, au = S.marbre && S.marbre.ok ? (S.marbre.brouillons || []).filter(function (x) { return x.statut === 'drafted'; }).length : 0;
+    if (p.kind === 'marbre') { var a = D().articles.filter(function (x) { return x.statut !== 'published'; }).length, au = S.marbre && S.marbre.ok ? (S.marbre.brouillons || []).filter(function (x) { return x.statut === 'drafted'; }).length : 0;
       if (au) return { s: 'on', why: au + ' brouillon' + pl(au) + ' de l’Usine à approuver' }; return { s: a ? 'slot' : 'off', why: a + ' brouillon' + pl(a) + ' sur le marbre' }; }
     if (p.vide) return { s: 'off', why: 'poste à attribuer' };
     if (isMe(p)) return { s: 'on', why: 'vous êtes ici' };
@@ -771,7 +771,8 @@
   function artsRes() {
     var l = artsFiltres(), grp = function (st) { return l.filter(function (a) { return (st === 'draft' ? ['scheduled', 'published'].indexOf(a.statut) < 0 : a.statut === st); }); };
     var onglets = ART_ST.filter(function (x) { return x[0] !== 'scheduled' || grp('scheduled').length; });
-    var cur = onglets.some(function (x) { return x[0] === S.artTab; }) ? S.artTab : 'draft', liste = grp(cur);
+    var plein = onglets.filter(function (x) { return grp(x[0]).length; })[0];
+    var cur = onglets.some(function (x) { return x[0] === S.artTab; }) ? S.artTab : (grp('draft').length || !plein ? 'draft' : plein[0]), liste = grp(cur);
     return '<div class="seg arts-seg" role="tablist">' + onglets.map(function (x) { return '<button type="button" role="tab" aria-selected="' + (x[0] === cur) + '" class="' + (x[0] === cur ? 'on' : '') + '" data-act="art-tab" data-id="' + x[0] + '">' + x[1] + ' <span class="n">' + grp(x[0]).length + '</span></button>'; }).join('') + '</div>' +
       (String(S.qArt || '').trim() ? '<p class="muted" style="margin:2px 0 0">' + l.length + ' article' + pl(l.length) + ' trouvé' + pl(l.length) + ' pour « ' + esc(S.qArt) + ' »</p>' : '') +
       '<div class="arts">' + (liste.map(artCard).join('') || '<div class="muted">' + (String(S.qArt || '').trim() ? 'Aucun article ne correspond.' : cur === 'draft' ? 'Aucun brouillon dans Ghost.' : cur === 'scheduled' ? 'Rien de programmé.' : 'Aucun article publié récemment.') + '</div>') + '</div>';
