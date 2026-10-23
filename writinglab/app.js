@@ -382,6 +382,7 @@
 @media (max-width:720px){#wl{font-size:14.5px}#wl .top{flex-wrap:wrap;gap:8px;padding:10px 12px}#wl .chips{order:3;justify-content:flex-start;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#wl .chips::-webkit-scrollbar{display:none}#wl .clock{order:2;font-size:17px;margin-left:auto}#wl .wrap{padding:0 10px 60px}#wl .tabs{padding:8px 10px 0}#wl .panel{width:100vw;top:6vh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid rgba(255,190,90,.3);transform:translateY(105%)}#wl .panel.open{transform:none}#wl .floor svg{min-width:1100px}#wl .paper{margin:10px 8px 60px;padding:22px 16px 28px;font-size:16.5px}#wl .paper h1{font-size:22px}#wl .two{grid-template-columns:1fr}#wl .kan{grid-template-columns:repeat(4,82vw)}#wl button.clsr-h{top:auto;bottom:150px;padding:10px 6px}#wl .clsr-h .lb{display:none}#wl .clsr{width:100vw;top:8vh;border-left:none;border-top:1px solid rgba(255,190,90,.3);border-radius:18px 18px 0 0;transform:translateY(105%)}#wl .clsr.open{transform:none}}\
 #wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg,#wl .wrap,#wl .tel{overflow-wrap:anywhere;word-break:break-word}#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg{overflow-x:hidden;max-width:100%}#wl .panel pre,#wl .doc pre,#wl .clsr pre{white-space:pre-wrap}#wl .dtop>div,#wl .ph2>div,#wl .tl li,#wl .feed .it>span,#wl .dcard,#wl .pp-ct-h>*{min-width:0}#wl a.src-l.h-l{white-space:nowrap}\
 ";
+  CSS += "#wl .kb-tabs{display:flex;gap:6px;margin:12px 0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px}#wl button.kb-tab{flex:0 0 auto;padding:8px 14px!important;border-radius:10px!important;border:1px solid rgba(255,255,255,.14)!important;background:transparent!important;color:rgba(243,236,224,.75)!important;-webkit-text-fill-color:currentColor!important;font:600 13.5px Inter,system-ui,sans-serif!important;cursor:pointer;text-transform:none!important;letter-spacing:normal!important;box-shadow:none!important;margin:0!important;width:auto!important;height:auto!important}#wl button.kb-tab.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;border-color:rgba(0,255,119,.45)!important}#wl .kb-aide{margin:0 0 10px}#wl .kb-ps{display:block;margin-top:2px}#wl .kb-budget{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:rgba(243,236,224,.75);margin:0 0 6px}#wl .kb-budget i{font-style:normal;color:rgba(243,236,224,.5)}#wl .kb-jauge{height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:2px 0 10px}#wl .kb-jauge i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77)}#wl .kb-jauge.plein i{background:linear-gradient(90deg,#ffb020,#ff8a3d)}#wl .kb-bloc{margin:12px 0;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08)}#wl .kb-t{font-weight:700;font-size:14.5px;color:#f3ece0}#wl textarea.kb-ta{display:block;width:100%;box-sizing:border-box;min-height:200px;height:340px;max-height:85vh;resize:vertical;margin:8px 0 0;padding:12px 13px;background:#16120d;color:#f3ece0;-webkit-text-fill-color:#f3ece0;border:1px solid #3a3020;border-radius:10px;font:14px/1.55 'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;tab-size:2}#wl textarea.kb-ta:focus{outline:none;border-color:#00ff77;box-shadow:0 0 0 3px rgba(0,255,119,.15)}#wl textarea.kb-ta.wl-mef{opacity:.55}#wl .kb-ar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}#wl .kb-mod{color:#ffd27a}#wl button.kb-tg{display:flex;align-items:center;gap:8px;width:100%!important;text-align:left;background:transparent!important;border:0!important;padding:2px 0!important;margin:0!important;color:#f3ece0!important;-webkit-text-fill-color:currentColor!important;font:700 14.5px Inter,system-ui,sans-serif!important;cursor:pointer;text-transform:none!important;letter-spacing:normal!important;box-shadow:none!important;flex-wrap:wrap;height:auto!important}#wl button.kb-tg .set-s{font-weight:400;margin:0}#wl .kb-ch{display:inline-block;width:14px;color:rgba(243,236,224,.6)}#wl .kb-src{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.07)}#wl .kb-src .kb-n{min-width:0}#wl .kb-src .kb-n b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;color:#f3ece0}#wl .kb-src .kb-n .set-s{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}#wl .kb-src .kb-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}#wl .kb-src .kb-e{grid-column:1/-1}#wl .kb-src .tag{white-space:normal}#wl .kb-file{position:relative;overflow:hidden;cursor:pointer;display:inline-block}#wl .kb-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;font-size:0}#wl .kb-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 6px}#wl .kb-row .in{flex:1 1 220px;min-width:0;width:auto!important}#wl .kb-glob{margin-top:4px}#wl .kb-prog{margin:8px 0;padding:8px 12px;border-radius:10px;background:rgba(0,255,119,.07);border:1px solid rgba(0,255,119,.25);font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:#f3ece0}#wl .kb-envois{margin:6px 0}#wl .kb-mem{margin:10px 0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08)}#wl .kb-mh{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap}#wl .kb-mh b{color:#f3ece0;font-size:13.5px}#wl .kb-sec{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.1)}#wl .kb-sec b{font-size:13.5px;color:#f3ece0}#wl .kb-sec .in{margin:4px 0!important}#wl .kb-sc{font-size:13px;line-height:1.5;color:rgba(243,236,224,.82);white-space:pre-wrap;margin:4px 0 6px;word-break:break-word}#wl .kb-pre{white-space:pre-wrap;font:12.5px/1.5 'JetBrains Mono',ui-monospace,monospace;max-height:340px;overflow:auto;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(243,236,224,.88);margin:8px 0 0;word-break:break-word}#wl .kb-pre:empty{display:none}#wl .kb-pages{margin:4px 0 0 18px;padding:0;font-size:12px;color:rgba(243,236,224,.6)}#wl .kb-pages li{margin:2px 0;word-break:break-word}@media (max-width:640px){#wl textarea.kb-ta{height:260px;font-size:13.5px}#wl .kb-src{grid-template-columns:1fr}#wl .kb-src .kb-b{justify-content:flex-start}#wl .kb-bloc{padding:10px 11px}}"; // 📚 base de connaissances (Paramètres), bloc kb- : voir kbMonterRacine
   CSS += PHL_CSS.porte; // porte de couloir vers l'autre lab (shared/lab-core.js)
   CSS += "#wl .ob-voile{position:fixed;inset:0;z-index:3998900;background:transparent;cursor:default}#wl .ob-voile.plein{background:rgba(5,4,3,.72)}#wl .ob-trou{position:fixed;z-index:3998910;left:50%;top:50%;width:0;height:0;border-radius:14px;pointer-events:none;opacity:0;box-shadow:0 0 0 200vmax rgba(5,4,3,.72);transition:left .35s cubic-bezier(.2,.8,.2,1),top .35s cubic-bezier(.2,.8,.2,1),width .35s cubic-bezier(.2,.8,.2,1),height .35s cubic-bezier(.2,.8,.2,1),opacity .2s}#wl .ob-trou.on{opacity:1;outline:2px solid #00ff77;outline-offset:2px;animation:wlObHalo 1.6s ease-in-out infinite}@keyframes wlObHalo{0%,100%{outline-color:rgba(0,255,119,.95);filter:drop-shadow(0 0 0 rgba(0,255,119,0))}50%{outline-color:rgba(0,255,119,.45);filter:drop-shadow(0 0 14px rgba(0,255,119,.45))}}#wl .ob-carte{position:fixed;z-index:3998950;right:20px;bottom:20px;width:min(400px,calc(100vw - 32px));max-height:min(72vh,620px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 14px;border-radius:18px;background:#14110c;border:1px solid rgba(0,255,119,.4);box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 0 6px rgba(0,255,119,.06);color:#f3ece0;outline:none;box-sizing:border-box;animation:wlObIn .35s cubic-bezier(.2,.8,.2,1)}#wl .ob-carte.haut{bottom:auto;top:20px}@keyframes wlObIn{from{opacity:0;transform:translateY(16px) scale(.98)}}#wl .ob-tete{display:flex;align-items:center;gap:10px}#wl .ob-em{font-size:30px;line-height:1}#wl .ob-n{font:700 12px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;color:#00ff77}#wl .ob-ap{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,176,32,.16);color:#ffc861;border:1px solid rgba(255,176,32,.45)}#wl button.ob-x{margin-left:auto;width:34px;height:34px;padding:0!important;border-radius:10px!important;border:1px solid rgba(255,255,255,.14)!important;background:transparent!important;color:#f3ece0!important;font-size:16px!important;line-height:1!important;cursor:pointer;box-shadow:none!important}#wl .ob-barre{position:relative;height:5px;margin:10px 0 12px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}#wl .ob-barre i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77);transition:width .35s ease}#wl h2.ob-t{margin:0 0 6px!important;font:800 19px/1.25 Inter,system-ui,sans-serif!important;color:#f3ece0!important;letter-spacing:normal!important;text-transform:none!important;text-shadow:none!important}#wl .ob-c{font-size:15px;line-height:1.55}#wl .ob-c p{margin:0 0 8px!important;color:#e9e1d2!important;font-size:15px!important;line-height:1.55!important;text-shadow:none!important}#wl ul.ob-ul{margin:4px 0 8px 18px!important;padding:0!important}#wl ul.ob-ul li{margin:3px 0!important;color:#e9e1d2!important;font-size:14.5px!important;line-height:1.45!important}#wl ul.ob-ul li b{color:#f3ece0!important}#wl .ob-c p.ob-ex{padding:8px 10px;border-radius:10px;background:rgba(0,255,119,.07);border:1px solid rgba(0,255,119,.25);font-size:14px!important;font-style:italic}#wl .ob-c p.ob-note{padding:8px 10px;border-radius:10px;background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.35);font-size:14px!important}#wl .ob-b{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}#wl .ob-sp{flex:1}#wl button.ob-btn{min-height:40px;padding:8px 14px!important;border-radius:12px!important;border:1px solid rgba(255,255,255,.18)!important;background:rgba(255,255,255,.05)!important;color:#f3ece0!important;font:700 14px Inter,system-ui,sans-serif!important;cursor:pointer;box-shadow:none!important;text-transform:none!important;letter-spacing:normal!important}#wl button.ob-btn.ob-go{background:#00ff77!important;border-color:#00ff77!important;color:#05170d!important}#wl button.ob-lien{padding:6px 4px!important;border:none!important;background:transparent!important;color:rgba(243,236,224,.6)!important;font:600 13.5px Inter,system-ui,sans-serif!important;text-decoration:underline;cursor:pointer;box-shadow:none!important}#wl .ob-conf{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.38);font-size:14px;line-height:1.45}#wl .ob-carte .ob-b{position:sticky;bottom:-14px;margin-bottom:-14px;padding:10px 0 14px;background:inherit}@media (max-width:640px){#wl .ob-carte{left:10px;right:10px;bottom:10px;width:auto;max-height:56vh;padding:14px 14px 12px}#wl .ob-d{display:none}#wl h2.ob-t{font-size:17px!important}#wl .ob-c p,#wl ul.ob-ul li{font-size:14px!important}}@media (prefers-reduced-motion:reduce){#wl .ob-trou,#wl .ob-trou.on,#wl .ob-carte,#wl .ob-barre i{transition:none;animation:none}}"; // visite guidée (onboarding), bloc ob- : voir obDemarrer
   // Mode clair (22/10/2026) : la feuille claire est DÉRIVÉE de la feuille sombre ci-dessus par PHTheme.deriverClair
@@ -1288,7 +1289,7 @@
 
   // ---------- panneaux (le bureau de chaque employé) ----------
   function openPanel(key) { masquerTip(); S.panel = key; if (DECISIONS[key] && DECISIONS[key].ouvrir) DECISIONS[key].ouvrir(); if (key === 'marbre') { chargerMarbre(); chargerJournal(); } paintPanel(); var r = S.root; r.querySelector('.panel').classList.add('open'); r.querySelector('.panelbg').classList.add('open'); r.querySelector('.panel').scrollTop = 0; }
-  function closePanel() { S.dosFocus = null; S.panel = null; S.reformule = null; S.root.querySelector('.panel').classList.remove('open'); S.root.querySelector('.panelbg').classList.remove('open'); }
+  function closePanel() { kbDemonterTout(); S.dosFocus = null; S.panel = null; S.reformule = null; S.root.querySelector('.panel').classList.remove('open'); S.root.querySelector('.panelbg').classList.remove('open'); }
   function head(emoji, nom, st) { return '<div class="ph2"><span class="em">' + emoji + '</span><div><div class="nm">' + esc(nom) + '</div><div class="st">' + (st || '') + '</div></div><span class="x" data-act="close-panel">✕</span></div>'; }
   function paintPanel() {
     if (!S.panel || !S.root) return;
@@ -1309,7 +1310,7 @@
     else if (k.indexOf('j:') === 0) h = panelJournaliste(k.slice(2));
     else if (catPoste(k)) h = panelPosteCatalogue(k);
     if (TEL_POSTES[k] && telPeut(k)) h = h.replace('<span class="x" data-act="close-panel">', telBouton(k) + '<span class="x" data-act="close-panel">'); // ☎️ du poste
-    el.innerHTML = h; el.scrollTop = keep; markBusy();
+    el.innerHTML = h; kbRattacher(); el.scrollTop = keep; markBusy();
   }
   function mcard(m) {
     var t = m.statut === 'répondu' ? ['✅', 'répondu', 'g'] : m.brouillon_corps ? ['🟠', 'réponse à valider', 'a'] : m.categorie === 'demande' ? ['📩', 'demande', 'g'] : ['❔', 'à vérifier', ''];
@@ -3025,6 +3026,384 @@
     a.href = u; a.download = 'Engagement-confidentialite-' + String(c.nom_saisi).replace(/[^\w-]+/g, '_') + '-' + c.texte_version + '.html'; document.body.appendChild(a); a.click(); a.remove();
     window.open(u, '_blank', 'noopener'); setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
   }
+  // ---------- 📚 Base de connaissances (Paramètres, rédacteur en chef seul) — 23/10/2026 ----------
+  // Un onglet par domaine déclaré au catalogue (« connaissances » de shared/wl-catalogue.json) : un poste ajouté plus tard avec
+  // un nouveau domaine a son onglet tout seul. Fonction wl-kb (jeton Ghost et rôle chef vérifiés côté serveur).
+  // UN SEUL onglet monté à la fois. Le composant vit hors du rendu par chaînes du panneau : paintPanel() le remet dans son
+  // emplacement #wl-kb-slot (même nœud : la taille du champ, le curseur et le texte en cours restent) ; s'il n'y a plus
+  // d'emplacement (autre panneau, fermeture), tout est démonté. Démonter un onglet : requêtes interrompues (AbortController),
+  // écouteurs retirés, URL d'objet révoquées, DOM vidé, données oubliées. Seul un texte d'instructions NON enregistré est gardé
+  // (KB.brouillons) pour ne pas perdre ce que vous tapiez.
+  var KB_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-kb';
+  var KB_TYPES = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', txt: 'text/plain', md: 'text/markdown' };
+  var KB_TAILLE = 10 * 1024 * 1024, KB_INS_MAX = 60000;
+  var KB = { racine: null, ec: [], vue: null, onglet: null, brouillons: {}, plie: { docs: false, sites: false, avance: true } };
+  function kbDomaines() { return CAT.connaissances || []; }
+  function kbDomaine(id) { return kbDomaines().filter(function (d) { return d.id === id; })[0] || null; }
+  function kbPostes(id) { return (CAT.postes || []).filter(function (p) { return p.connaissances === id; }); }
+  function kbEcoute(liste, el, type, fn) { el.addEventListener(type, fn); liste.push([el, type, fn]); }
+  function kbRetirer(liste) { liste.forEach(function (x) { x[0].removeEventListener(x[1], x[2]); }); liste.length = 0; }
+  function kbVivant(V) { return !!V && KB.vue === V && !!V.el; }
+  function kbNb(n) { return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function kbDate(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('fr-CH', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+  function kbCourt(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function kbSection() { return '<div class="set kb-set" id="wl-kb-slot"></div>'; }
+  // Appelé par paintPanel après chaque rendu et par closePanel : remonte le composant dans son emplacement, sinon le démonte.
+  function kbRattacher() {
+    var slot = S.root && S.panel === 'parametres' ? S.root.querySelector('#wl-kb-slot') : null;
+    if (!slot) { kbDemonterTout(); return; }
+    if (!KB.racine) kbMonterRacine();
+    if (KB.racine.parentNode !== slot) slot.appendChild(KB.racine);
+  }
+  function kbMonterRacine() {
+    var r = document.createElement('div'), doms = kbDomaines();
+    r.className = 'kb';
+    r.innerHTML = '<div class="set-h"><div><b>📚 Base de connaissances</b><div class="set-s">Ce que chaque poste sait au moment d’agir : vos instructions (toujours données), plus les résumés de vos documents et de vos sites. Chaque domaine ne sert qu’à ses postes : les autres prompts restent courts.</div></div></div>' +
+      '<div class="kb-tabs" role="tablist" aria-label="Domaines de connaissances">' + doms.map(function (d) { return '<button type="button" role="tab" class="kb-tab" data-kbt="' + esc(d.id) + '" aria-selected="false">' + esc(d.emoji + ' ' + d.nom) + '</button>'; }).join('') + '</div><div class="kb-corps"></div>';
+    KB.racine = r;
+    kbEcoute(KB.ec, r, 'click', function (e) { var b = e.target.closest && e.target.closest('[data-kbt]'); if (b && r.contains(b)) { e.preventDefault(); kbChoisirOnglet(b.getAttribute('data-kbt')); } });
+    var dep = KB.onglet || LS.get('wl-kb-onglet');
+    if (!kbDomaine(dep)) dep = doms[0] ? doms[0].id : null;
+    if (dep) kbMonterOnglet(dep); else r.querySelector('.kb-corps').innerHTML = '<p class="muted">Aucun domaine de connaissances déclaré au catalogue.</p>';
+  }
+  function kbDemonterTout() {
+    if (!KB.racine) return;
+    kbDemonterOnglet(); kbRetirer(KB.ec);
+    if (KB.racine.parentNode) KB.racine.parentNode.removeChild(KB.racine);
+    KB.racine.innerHTML = ''; KB.racine = null;
+  }
+  function kbChoisirOnglet(id) {
+    var V = KB.vue;
+    if (!kbDomaine(id) || (V && V.dom === id)) return;
+    var occupe = V && (V.file || V.envois.some(function (x) { return x.etat === 'envoi' || x.etat === 'attente'; }) || Object.keys(V.occ).length);
+    if (!occupe) { kbMonterOnglet(id); return; }
+    confirmer('Quitter cet onglet ?\n\nLe suivi de l’envoi ou de l’extraction en cours s’arrête ici (une extraction déjà lancée peut se terminer côté serveur ; un envoi interrompu est à refaire).').then(function (ok) { if (ok && KB.racine) kbMonterOnglet(id); });
+  }
+  function kbMonterOnglet(dom) {
+    kbDemonterOnglet();
+    var V = { dom: dom, el: document.createElement('div'), ac: new AbortController(), ec: [], urls: [], d: null, occ: {}, file: null, envois: [], edit: null };
+    V.el.className = 'kb-vue'; V.el.setAttribute('role', 'tabpanel');
+    KB.vue = V; KB.onglet = dom; LS.set('wl-kb-onglet', dom);
+    kbEcoute(V.ec, V.el, 'click', function (e) { kbClic(V, e); });
+    kbEcoute(V.ec, V.el, 'input', function (e) { if (e.target && e.target.id === 'wl-kb-ta') kbZone(V, 'ins-st'); });
+    kbEcoute(V.ec, V.el, 'change', function (e) { if (e.target && e.target.getAttribute('data-kbi') === 'fichiers') { var fs = Array.prototype.slice.call(e.target.files || []); e.target.value = ''; kbEnvoyer(V, fs); } });
+    kbEcoute(V.ec, V.el, 'keydown', function (e) {
+      var k = e.target && e.target.getAttribute && e.target.getAttribute('data-kbi');
+      if (e.key === 'Enter' && !e.isComposing && (k === 'url' || k === 'ap-q')) { e.preventDefault(); if (k === 'url') kbSiteAjouter(V); else kbApercu(V); }
+    });
+    Array.prototype.forEach.call(KB.racine.querySelectorAll('[data-kbt]'), function (b) { var on = b.getAttribute('data-kbt') === dom; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    KB.racine.querySelector('.kb-corps').appendChild(V.el);
+    V.el.innerHTML = '<p class="muted">Chargement…</p>';
+    kbCharger(V, true);
+  }
+  function kbDemonterOnglet() {
+    var V = KB.vue; if (!V) return;
+    var ta = V.el && V.el.querySelector('#wl-kb-ta');
+    if (ta && V.d) { if (ta.value !== V.d.instructions.contenu) KB.brouillons[V.dom] = ta.value; else delete KB.brouillons[V.dom]; }
+    if (KB_DICTEE.actif()) KB_DICTEE.arreter();
+    KB.vue = null;
+    try { V.ac.abort(); } catch (e) { /* déjà interrompu */ }
+    if (V.file) V.file.arret = true;
+    kbRetirer(V.ec);
+    V.urls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) { /* rien */ } }); V.urls.length = 0;
+    if (V.el.parentNode) V.el.parentNode.removeChild(V.el);
+    V.el.innerHTML = ''; V.el = null; V.d = null; V.envois = []; V.occ = {}; V.file = null; V.edit = null;
+  }
+  // Appel de wl-kb lié à l'onglet : interrompu au démontage (la réponse est alors ignorée).
+  function kbApi(V, body) {
+    return PHL.jeton().then(function (t) {
+      body.token = t;
+      return fetch(KB_FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: V.ac.signal }).then(function (r) {
+        if (r.status === 401 && PHL.jetonPerime) PHL.jetonPerime();
+        return r.json().catch(function () { return { ok: false, why: 'réponse illisible (' + r.status + ')' }; });
+      });
+    }).then(function (r) { return r || { ok: false, why: 'réponse vide' }; }, function (e) { return { ok: false, annule: V.ac.signal.aborted || !!(e && e.name === 'AbortError'), why: 'connexion perdue, réessayez' }; });
+  }
+  function kbCharger(V, premier) {
+    return kbApi(V, { action: 'etat', domaine: V.dom }).then(function (r) {
+      if (!kbVivant(V) || r.annule) return;
+      if (!r.ok) {
+        if (premier || !V.d) V.el.innerHTML = '<p class="muted">⚠️ ' + esc(r.why || 'indisponible') + '</p><button type="button" class="btn small" data-kb="recharger">↻ Réessayer</button>';
+        else toast(r.why || 'Actualisation impossible.', true);
+        return;
+      }
+      V.d = r;
+      if (!V.el.querySelector('#wl-kb-ta')) kbPeindre(V); else ['budget', 'ins-st', 'global', 'docs', 'sites', 'avance'].forEach(function (z) { kbZone(V, z); });
+    });
+  }
+  function kbPeindre(V) {
+    var d = kbDomaine(V.dom) || {}, ps = kbPostes(V.dom), br = KB.brouillons[V.dom], txt = br != null ? br : V.d.instructions.contenu;
+    V.el.innerHTML = '<div class="kb-aide set-s">' + esc(d.aide || '') + (ps.length ? ' <span class="kb-ps">Postes : ' + ps.map(function (p) { return esc(p.emoji + ' ' + p.nom); }).join(', ') + '</span>' : '') + '</div>' +
+      '<div data-z="budget"></div>' +
+      '<div class="kb-bloc"><div class="kb-t">📝 Instructions</div><div class="set-s">Règles, tarifs, ton, informations à respecter : donnés tels quels à chaque action des postes de ce domaine. Rien de confidentiel (ni mot de passe, ni donnée personnelle). ' + kbNb(KB_INS_MAX) + ' caractères au plus ; tirez le coin du champ pour l’agrandir.</div>' +
+      '<textarea class="kb-ta" id="wl-kb-ta" spellcheck="true" maxlength="' + KB_INS_MAX + '" aria-label="Instructions ' + esc(d.nom || '') + '">' + esc(txt) + '</textarea>' +
+      '<div class="kb-ar"><button type="button" class="btn go" data-kb="ins-save">💾 Enregistrer</button>' + (KB_DICTEE.dispo ? '<button type="button" class="btn small" data-kb="dicter">🎙️ Dicter</button>' : '') +
+      '<button type="button" class="btn small" data-kb="ins-annuler">↺ Revenir à la version enregistrée</button><span class="set-s" data-z="ins-st"></span></div></div>' +
+      '<div data-z="global"></div><div data-z="docs"></div><div data-z="sites"></div><div data-z="avance"></div>';
+    ['budget', 'ins-st', 'global', 'docs', 'sites', 'avance'].forEach(function (z) { kbZone(V, z); });
+  }
+  function kbZone(V, z) {
+    if (!kbVivant(V) || !V.d) return;
+    var el = V.el.querySelector('[data-z="' + z + '"]'); if (!el) return;
+    el.innerHTML = KB_ZONES[z](V);
+  }
+  function kbNbSec(V, id) { return (V.d.resumes || []).filter(function (r) { return r.source_id === id; }).length; }
+  function kbTokSrc(V, id) { return (V.d.resumes || []).filter(function (r) { return r.source_id === id; }).reduce(function (a, r) { return a + (r.tokens || 0); }, 0); }
+  function kbEtatSrc(V, s) {
+    if (V.occ[s.id]) return '<span class="tag a">⏳ ' + esc(V.occ[s.id]) + '…</span>';
+    if (s.statut === 'extrait') return '<span class="tag g">✓ extrait ' + esc(when(s.extrait_le)) + ' · ' + kbNbSec(V, s.id) + ' section(s)</span>' + (s.mode === 'site' && Array.isArray(s.pages_lues) ? '<span class="tag">' + s.pages_lues.length + ' page(s) lue(s)</span>' : '');
+    if (s.statut === 'erreur') return '<span class="tag r" title="' + esc(s.erreur || '') + '">⚠️ ' + esc(kbCourt(s.erreur || 'échec de l’extraction', 110)) + '</span>';
+    if (s.statut === 'extraction') return '<span class="tag a">⏳ extraction en cours (ou interrompue)</span>';
+    if (s.statut === 'envoi') return '<span class="tag a">envoi inachevé : supprimez et renvoyez</span>';
+    return '<span class="tag">non extrait</span>';
+  }
+  function kbDis(V, s) { return V.occ[s.id] || V.file ? ' disabled' : ''; }
+  function kbPlie(id, titre, compte) { return '<button type="button" class="kb-tg" data-kb="plier" data-id="' + id + '" aria-expanded="' + (KB.plie[id] ? 'false' : 'true') + '"><span class="kb-ch">' + (KB.plie[id] ? '▸' : '▾') + '</span>' + titre + (compte ? ' <span class="set-s">' + compte + '</span>' : '') + '</button>'; }
+  var KB_ZONES = {
+    budget: function (V) {
+      var b = V.d.budget || 3000, ti = V.d.tokens_instructions || 0, tr = V.d.tokens_resumes || 0, pc = Math.min(100, Math.round(tr / b * 100));
+      return '<div class="kb-budget"><span>📝 Instructions ≈ ' + kbNb(ti) + ' jetons <i>toujours données</i></span><span>🧾 Résumés ≈ ' + kbNb(tr) + ' / ' + kbNb(b) + ' jetons <i>' +
+        (tr > b ? 'au-delà du budget : pour chaque demande, seuls les passages les plus pertinents (recherche plein texte)' : 'donnés en entier') + '</i></span></div>' +
+        '<div class="kb-jauge' + (tr > b ? ' plein' : '') + '" title="Résumés : ' + pc + ' % du budget"><i style="width:' + Math.max(pc, tr ? 2 : 0) + '%"></i></div>';
+    },
+    'ins-st': function (V) {
+      var ta = V.el.querySelector('#wl-kb-ta'), I = V.d.instructions || {}, v = ta ? ta.value : I.contenu, mod = v !== I.contenu;
+      var qui = I.maj_par === 'pré-remplissage (fiches GitHub)' ? 'pré-rempli depuis les fiches de connaissances' : (I.maj_par ? 'par ' + I.maj_par : '');
+      return (mod ? '<b class="kb-mod">● Modifications non enregistrées</b> · ' : (I.updated_at ? 'Enregistré ' + esc(when(I.updated_at)) + (qui ? ' · ' + esc(qui) : '') + ' · ' : 'Vide · ')) + kbNb(String(v || '').length) + ' car.';
+    },
+    global: function (V) {
+      var F = V.file, h = '<div class="kb-row kb-glob"><button type="button" class="btn small" data-kb="lot" data-id="doc"' + (F ? ' disabled' : '') + '>⚡ Extraire tous les documents</button><button type="button" class="btn small" data-kb="lot" data-id="site"' + (F ? ' disabled' : '') + '>⚡ Extraire tous les sites</button><button type="button" class="btn small go" data-kb="lot" data-id="tout"' + (F ? ' disabled' : '') + '>⚡ Tout extraire</button></div>';
+      if (F) h += '<div class="kb-prog" role="status">⏳ Extraction ' + Math.min(F.i + 1, F.liste.length) + ' / ' + F.liste.length + ' : « ' + esc(kbCourt((F.liste[F.i] || {}).nom, 60)) + ' » · ' + F.ok + ' faite(s)' + (F.ko ? ', ' + F.ko + ' en échec' : '') + (F.arret ? ' · arrêt après celle-ci' : ' <button type="button" class="btn small" data-kb="lot-stop">⏹️ Arrêter après celle-ci</button>') + '</div>';
+      return h + '<div class="set-s">« Tous » = les sources pas encore extraites ou en échec, une à la fois. Pour relire une source déjà extraite : 🔄 Ré-extraire.</div>';
+    },
+    docs: function (V) {
+      var L = (V.d.sources || []).filter(function (s) { return s.type === 'doc'; }), nx = L.filter(function (s) { return s.statut !== 'extrait'; }).length;
+      var h = '<div class="kb-bloc">' + kbPlie('docs', '📄 Documents', L.length ? L.length + ' · ' + (nx ? nx + ' non extrait(s)' : 'tous extraits') : 'aucun');
+      if (KB.plie.docs) return h + '</div>';
+      h += '<div class="set-s">PDF, Word (.docx), texte (.txt) ou Markdown (.md), plusieurs à la fois · 10 Mo au plus par fichier · PDF de 100 pages au plus · un texte est lu jusqu’à 150 000 caractères. Rangés dans un stockage privé ; supprimer un document efface aussi son résumé.</div>' +
+        '<div class="kb-row"><label class="btn small go kb-file">➕ Ajouter des documents<input type="file" multiple data-kbi="fichiers" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"></label></div>';
+      if (V.envois.length) h += '<div class="kb-envois">' + V.envois.map(function (x) { return '<div class="set-s">' + ({ attente: '⏳ en attente', envoi: '⏫ envoi…', ok: '✓ envoyé', erreur: '⚠️ ' + esc(x.why || 'échec') })[x.etat] + ' · ' + esc(x.nom) + '</div>'; }).join('') + '</div>';
+      if (!L.length) return h + '<p class="muted">Aucun document pour ce domaine.</p></div>';
+      return h + L.map(function (s) {
+        var fini = s.statut === 'extrait';
+        return '<div class="kb-src"><div class="kb-n"><b title="' + esc(s.nom) + '">📄 ' + esc(s.nom) + '</b><span class="set-s">' + (s.taille ? taille(s.taille) + ' · ' : '') + 'ajouté ' + esc(when(s.created_at)) + '</span></div>' +
+          '<div class="kb-b">' + (s.statut === 'envoi' ? '' : '<button type="button" class="btn small' + (fini ? '' : ' go') + '" data-kb="extraire" data-id="' + esc(s.id) + '"' + kbDis(V, s) + '>' + (fini ? '🔄 Ré-extraire' : '⚡ Extraire') + '</button>') +
+          '<button type="button" class="btn small red" data-kb="supprimer" data-id="' + esc(s.id) + '"' + kbDis(V, s) + ' title="Supprimer le document et son résumé">🗑️</button></div><div class="kb-e">' + kbEtatSrc(V, s) + '</div></div>';
+      }).join('') + '</div>';
+    },
+    sites: function (V) {
+      var L = (V.d.sources || []).filter(function (s) { return s.type === 'site'; }), nx = L.filter(function (s) { return s.statut !== 'extrait'; }).length;
+      var h = '<div class="kb-bloc">' + kbPlie('sites', '🌐 Sites web', L.length ? L.length + ' · ' + (nx ? nx + ' non extrait(s)' : 'tous extraits') : 'aucun');
+      if (KB.plie.sites) return h + '</div>';
+      h += '<div class="set-s">Une page seule, ou le site exploré jusqu’à 5 pages du même domaine (les plus utiles : tarifs, offres, à propos…). Le robots.txt du site est respecté, avec une pause entre deux pages ; une page construite en JavaScript peut sortir vide.</div>' +
+        '<div class="kb-row"><input class="in" type="url" inputmode="url" data-kbi="url" placeholder="https://exemple.ch/tarifs" aria-label="Adresse du site"><button type="button" class="btn small go" data-kb="site-ajouter">➕ Ajouter</button></div>';
+      if (!L.length) return h + '<p class="muted">Aucun site pour ce domaine.</p></div>';
+      return h + L.map(function (s) {
+        return '<div class="kb-src"><div class="kb-n"><b title="' + esc(s.url) + '">🌐 ' + esc(s.nom || s.url) + '</b><span class="set-s"><a href="' + PHL.url(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(kbCourt(s.url, 70)) + '</a></span></div>' +
+          '<div class="kb-b"><button type="button" class="btn small" data-kb="extraire" data-id="' + esc(s.id) + '" data-mode="page"' + kbDis(V, s) + '>📄 Extraire cette page</button><button type="button" class="btn small" data-kb="extraire" data-id="' + esc(s.id) + '" data-mode="site"' + kbDis(V, s) + '>🧭 Explorer le site (5 pages max)</button>' +
+          '<button type="button" class="btn small red" data-kb="supprimer" data-id="' + esc(s.id) + '"' + kbDis(V, s) + ' title="Supprimer le site et son résumé">🗑️</button></div><div class="kb-e">' + kbEtatSrc(V, s) + '</div></div>';
+      }).join('') + '</div>';
+    },
+    avance: function (V) {
+      var R = V.d.resumes || [], tok = R.reduce(function (a, r) { return a + (r.tokens || 0); }, 0);
+      var h = '<div class="kb-bloc kb-av">' + kbPlie('avance', '🧠 Mémoire des pièces jointes <span class="tag">avancé</span>', R.length ? R.length + ' section(s) · ≈ ' + kbNb(tok) + ' jetons' : 'vide');
+      if (KB.plie.avance) return h + '</div>';
+      h += '<div class="set-s">Ce que les extractions ont retenu, source par source, avec la date et la taille lue. Corrigez une section à la main (elle garde sa source et n’est remplacée que si vous ré-extrayez) ou ré-extrayez la source.</div>';
+      var srcs = (V.d.sources || []).filter(function (s) { return kbNbSec(V, s.id) || s.statut === 'extrait'; });
+      if (!srcs.length) h += '<p class="muted">Rien d’extrait pour l’instant.</p>';
+      h += srcs.map(function (s) {
+        var lu = s.type === 'doc' && /\.pdf$/i.test(s.nom) ? 'PDF lu en entier (' + taille(s.caracteres || s.taille || 0) + ')' : kbNb(s.caracteres) + ' caractères lus';
+        var pages = Array.isArray(s.pages_lues) ? s.pages_lues : [];
+        return '<div class="kb-mem"><div class="kb-mh"><b>' + (s.type === 'site' ? '🌐 ' : '📄 ') + esc(kbCourt(s.nom || s.url, 80)) + '</b><span class="set-s">' + (s.extrait_le ? 'extrait le ' + esc(kbDate(s.extrait_le)) + ' · ' : '') + lu + ' · ≈ ' + kbNb(kbTokSrc(V, s.id)) + ' jetons</span>' +
+          '<button type="button" class="btn small" data-kb="extraire" data-id="' + esc(s.id) + '"' + (s.type === 'site' ? ' data-mode="' + (s.mode === 'site' ? 'site' : 'page') + '"' : '') + kbDis(V, s) + '>🔄 Ré-extraire</button></div>' +
+          (pages.length > 1 || (pages.length === 1 && s.mode === 'site') ? '<ul class="kb-pages">' + pages.map(function (p) { return '<li>' + esc(kbCourt(p.titre || p.url, 90)) + ' — <a href="' + PHL.url(p.url) + '" target="_blank" rel="noopener noreferrer">' + esc(kbCourt(p.url, 60)) + '</a></li>'; }).join('') + '</ul>' : '') +
+          R.filter(function (r) { return r.source_id === s.id; }).map(function (r) {
+            if (V.edit === r.id) return '<div class="kb-sec"><input class="in" data-kbi="ed-titre" value="' + esc(r.titre || '') + '" aria-label="Titre de la section" maxlength="200">' +
+              '<textarea class="in" data-kbi="ed-contenu" rows="6" aria-label="Contenu de la section" maxlength="4000">' + esc(r.contenu || '') + '</textarea>' +
+              '<div class="kb-ar"><button type="button" class="btn small go" data-kb="corriger-ok" data-id="' + r.id + '">💾 Enregistrer</button><button type="button" class="btn small" data-kb="corriger" data-id="">Annuler</button></div></div>';
+            return '<div class="kb-sec"><div><b>' + esc(r.titre || '(sans titre)') + '</b> <span class="tag">≈ ' + kbNb(r.tokens) + ' jetons</span>' + (r.modifie_main ? '<span class="tag a">corrigé à la main</span>' : '') + '</div><div class="kb-sc">' + esc(r.contenu || '') + '</div>' +
+              '<button type="button" class="btn small" data-kb="corriger" data-id="' + r.id + '">✏️ Corriger</button></div>';
+          }).join('') + '</div>';
+      }).join('');
+      return h + '<div class="kb-mem"><b>👁️ Ce que reçoit un poste</b><div class="set-s">Tapez une demande type : vous voyez exactement le texte ajouté au prompt (instructions + résumés, ou sélection si le budget est dépassé).</div>' +
+        '<div class="kb-row"><input class="in" data-kbi="ap-q" placeholder="ex. tarif d’un article sponsorisé" aria-label="Demande type"><button type="button" class="btn small" data-kb="apercu">👁️ Voir</button><button type="button" class="btn small" data-kb="exporter">⬇️ Exporter la mémoire (.txt)</button></div><pre class="kb-pre" data-kbo="apercu"></pre></div></div>';
+    }
+  };
+  function kbClic(V, e) {
+    var b = e.target.closest && e.target.closest('[data-kb]'); if (!b || !V.el || !V.el.contains(b)) return;
+    e.preventDefault(); if (b.disabled) return;
+    var a = b.getAttribute('data-kb'), id = b.getAttribute('data-id') || '';
+    if (a === 'recharger') { V.el.innerHTML = '<p class="muted">Chargement…</p>'; kbCharger(V, true); return; }
+    if (!V.d) return;
+    if (a === 'plier') { KB.plie[id] = !KB.plie[id]; kbZone(V, id === 'avance' ? 'avance' : id); return; }
+    if (a === 'ins-save') { kbInsEnregistrer(V, b); return; }
+    if (a === 'ins-annuler') { var ta = V.el.querySelector('#wl-kb-ta'); if (ta && ta.value !== V.d.instructions.contenu) confirmer('Abandonner vos modifications ?\n\nLe champ revient au texte enregistré.').then(function (ok) { if (!ok || !kbVivant(V)) return; ta.value = V.d.instructions.contenu; delete KB.brouillons[V.dom]; kbZone(V, 'ins-st'); }); return; }
+    if (a === 'dicter') { if (KB_DICTEE.actif()) KB_DICTEE.arreter(); else KB_DICTEE.demarrer(); return; }
+    if (a === 'extraire') { var s1 = kbSrc(V, id); if (!s1) return; kbExtraire1(V, s1, b.getAttribute('data-mode') || (s1.type === 'site' ? 'page' : '')).then(function (r) { if (!kbVivant(V)) return; if (r.ok) toast('✓ « ' + kbCourt(s1.nom || s1.url, 50) + ' » : ' + r.sections + ' section(s) résumée(s).'); else if (!r.annule) toast('Extraction impossible : ' + (r.why || 'erreur'), true); kbCharger(V); }); return; }
+    if (a === 'supprimer') { kbSupprimer(V, id); return; }
+    if (a === 'site-ajouter') { kbSiteAjouter(V); return; }
+    if (a === 'lot') { kbLot(V, id); return; }
+    if (a === 'lot-stop') { if (V.file) { V.file.arret = true; kbZone(V, 'global'); } return; }
+    if (a === 'corriger') { V.edit = id ? Number(id) : null; kbZone(V, 'avance'); return; }
+    if (a === 'corriger-ok') { kbCorriger(V, Number(id), b); return; }
+    if (a === 'apercu') { kbApercu(V, b); return; }
+    if (a === 'exporter') { kbExporter(V); return; }
+  }
+  function kbSrc(V, id) { return (V.d.sources || []).filter(function (s) { return s.id === id; })[0] || null; }
+  function kbOcc(b, on) { if (b) { b.classList.toggle('ld', on); b.disabled = on; } }
+  function kbInsEnregistrer(V, b) {
+    var ta = V.el.querySelector('#wl-kb-ta'); if (!ta) return;
+    var v = ta.value.replace(/\s+$/, '');
+    if (v.length > KB_INS_MAX) { toast('Instructions trop longues : ' + kbNb(KB_INS_MAX) + ' caractères au plus.', true); return; }
+    kbOcc(b, true);
+    kbApi(V, { action: 'instructions', domaine: V.dom, contenu: v }).then(function (r) {
+      if (!kbVivant(V) || r.annule) return; kbOcc(b, false);
+      if (!r.ok) { toast(r.why || 'Enregistrement impossible.', true); return; }
+      V.d.instructions = { contenu: v, updated_at: new Date().toISOString(), maj_par: D().me.nom || D().me.id };
+      V.d.tokens_instructions = r.tokens || 0; delete KB.brouillons[V.dom];
+      if (ta.value !== v && document.activeElement !== ta) ta.value = v;
+      kbZone(V, 'ins-st'); kbZone(V, 'budget');
+      toast('📚 Instructions enregistrées : les postes les reçoivent dès leur prochaine action (au plus 1 minute).');
+    });
+  }
+  // Une extraction (document, page ou site) ; met à jour la ligne pendant le travail. Résout { ok, sections } ou { ok:false, why }.
+  function kbExtraire1(V, s, mode) {
+    V.occ[s.id] = s.type === 'site' ? (mode === 'site' ? 'exploration du site (jusqu’à 5 pages)' : 'lecture de la page') : 'extraction';
+    kbZone(V, s.type === 'site' ? 'sites' : 'docs'); kbZone(V, 'avance');
+    var body = { action: 'extraire', source_id: s.id }; if (s.type === 'site') body.mode = mode === 'site' ? 'site' : 'page';
+    return kbApi(V, body).then(function (r) {
+      if (!kbVivant(V)) return { ok: false, annule: true };
+      delete V.occ[s.id];
+      if (r.ok) { s.statut = 'extrait'; s.erreur = null; s.extrait_le = new Date().toISOString(); if (s.type === 'site') s.mode = body.mode; }
+      else if (!r.annule) { s.statut = 'erreur'; s.erreur = r.why || 'erreur'; }
+      kbZone(V, s.type === 'site' ? 'sites' : 'docs'); kbZone(V, 'avance');
+      return r;
+    });
+  }
+  function kbLot(V, quoi) {
+    if (V.file) return;
+    var L = (V.d.sources || []).filter(function (s) { return (quoi === 'tout' || s.type === quoi) && s.statut !== 'envoi' && s.statut !== 'extrait' && !V.occ[s.id]; });
+    if (!L.length) { toast((quoi === 'site' ? 'Aucun site' : quoi === 'doc' ? 'Aucun document' : 'Aucune source') + ' à extraire : tout est déjà extrait (🔄 Ré-extraire pour relire une source).'); return; }
+    V.file = { liste: L.map(function (s) { return { id: s.id, nom: s.nom || s.url }; }), i: 0, ok: 0, ko: 0, arret: false };
+    ['global', 'docs', 'sites'].forEach(function (z) { kbZone(V, z); });
+    var suivant = function () {
+      if (!kbVivant(V)) return;
+      var F = V.file;
+      if (F.arret || F.i >= F.liste.length) {
+        V.file = null; toast('⚡ Extraction terminée : ' + F.ok + ' réussie(s)' + (F.ko ? ', ' + F.ko + ' en échec (voir le message sur la ligne)' : '') + (F.arret && F.i < F.liste.length ? ', ' + (F.liste.length - F.i) + ' non traitée(s)' : '') + '.', F.ko > 0);
+        kbCharger(V); return;
+      }
+      kbZone(V, 'global');
+      var s = kbSrc(V, F.liste[F.i].id);
+      if (!s) { F.i++; suivant(); return; }
+      kbExtraire1(V, s, s.type === 'site' ? (s.mode === 'site' ? 'site' : 'page') : '').then(function (r) { if (!kbVivant(V) || r.annule) return; if (r.ok) F.ok++; else F.ko++; F.i++; suivant(); });
+    };
+    suivant();
+  }
+  function kbSupprimer(V, id) {
+    var s = kbSrc(V, id); if (!s) return;
+    confirmer('Supprimer « ' + kbCourt(s.nom || s.url, 70) + ' » ?\n\n' + (s.type === 'doc' ? 'Le fichier et son résumé sont effacés' : 'Le site et son résumé sont effacés') + ' de la base de connaissances : les postes ne s’en serviront plus.').then(function (ok) {
+      if (!ok || !kbVivant(V)) return;
+      V.occ[id] = 'suppression'; kbZone(V, s.type === 'site' ? 'sites' : 'docs');
+      kbApi(V, { action: 'supprimer', source_id: id }).then(function (r) {
+        if (!kbVivant(V) || r.annule) return; delete V.occ[id];
+        if (!r.ok) { toast(r.why || 'Suppression impossible.', true); kbZone(V, s.type === 'site' ? 'sites' : 'docs'); return; }
+        toast('🗑️ Supprimé, avec son résumé.'); kbCharger(V);
+      });
+    });
+  }
+  function kbSiteAjouter(V) {
+    var inp = V.el.querySelector('[data-kbi="url"]'), u = inp ? inp.value.trim() : '';
+    if (!u) { toast('Collez l’adresse du site (https://…).', true); return; }
+    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    var b = V.el.querySelector('[data-kb="site-ajouter"]'); kbOcc(b, true);
+    kbApi(V, { action: 'site_ajouter', domaine: V.dom, url: u }).then(function (r) {
+      if (!kbVivant(V) || r.annule) return; kbOcc(b, false);
+      if (!r.ok) { toast(r.why || 'Adresse refusée.', true); return; }
+      if (inp) inp.value = '';
+      toast('🌐 Site ajouté : choisissez « Extraire cette page » ou « Explorer le site ».'); kbCharger(V);
+    });
+  }
+  // Envoi direct au stockage privé (URL signée à usage unique), un fichier après l'autre, puis confirmation au serveur.
+  function kbEnvoyer(V, fs) {
+    var refus = [];
+    fs = fs.filter(function (f) {
+      var ext = String(f.name || '').toLowerCase().split('.').pop();
+      if (!KB_TYPES[ext]) { refus.push(f.name + ' (format non pris en charge)'); return false; }
+      if (!f.size) { refus.push(f.name + ' (vide)'); return false; }
+      if (f.size > KB_TAILLE) { refus.push(f.name + ' (plus de 10 Mo)'); return false; }
+      return true;
+    });
+    if (refus.length) toast('Non ajouté : ' + refus.join(', ') + '. Formats : PDF, DOCX, TXT, MD ; 10 Mo au plus.', true);
+    if (!fs.length) return;
+    KB.plie.docs = false;
+    V.envois = V.envois.filter(function (x) { return x.etat !== 'ok' && x.etat !== 'erreur'; });
+    var E = fs.map(function (f) { var x = { nom: f.name, etat: 'attente' }; V.envois.push(x); return x; });
+    kbZone(V, 'docs');
+    var un = function (k) {
+      if (!kbVivant(V)) return;
+      if (k >= fs.length) { var ko = E.filter(function (x) { return x.etat === 'erreur'; }).length; V.envois = V.envois.filter(function (x) { return x.etat === 'erreur'; }); toast(ko ? ko + ' envoi(s) en échec : voir la liste.' : '📄 ' + fs.length + ' document(s) ajouté(s) : « Extraire » pour les résumer.', ko > 0); kbCharger(V); return; }
+      var f = fs[k], x = E[k], ext = String(f.name).toLowerCase().split('.').pop(), sid = null;
+      x.etat = 'envoi'; kbZone(V, 'docs');
+      kbApi(V, { action: 'doc_preparer', domaine: V.dom, nom: f.name, mime: KB_TYPES[ext], taille: f.size }).then(function (r) {
+        if (!r.ok) throw new Error(r.annule ? 'interrompu' : (r.why || 'refusé'));
+        sid = r.source_id;
+        return fetch(r.url, { method: 'PUT', headers: { 'Content-Type': r.mime || KB_TYPES[ext], 'x-upsert': 'false' }, body: f, signal: V.ac.signal }).then(function (p) {
+          if (!p.ok) throw new Error('le stockage a refusé le fichier (' + p.status + ')');
+          return kbApi(V, { action: 'doc_confirme', source_id: sid });
+        }).then(function (c) { if (!c.ok) throw new Error(c.why || 'fichier non confirmé'); sid = null; });
+      }).then(function () { x.etat = 'ok'; }, function (err) {
+        x.etat = 'erreur'; x.why = err && err.name === 'AbortError' ? 'interrompu' : String((err && err.message) || err);
+        if (sid && kbVivant(V)) kbApi(V, { action: 'supprimer', source_id: sid }); // pas de ligne orpheline « envoi inachevé »
+      }).then(function () { if (kbVivant(V)) { kbZone(V, 'docs'); un(k + 1); } });
+    };
+    un(0);
+  }
+  function kbCorriger(V, id, b) {
+    var t = V.el.querySelector('[data-kbi="ed-titre"]'), c = V.el.querySelector('[data-kbi="ed-contenu"]');
+    var titre = t ? t.value.trim() : '', contenu = c ? c.value.trim() : '';
+    if (!contenu) { toast('La section ne peut pas être vide (supprimez la source si elle ne sert plus).', true); return; }
+    kbOcc(b, true);
+    kbApi(V, { action: 'resume_modifier', id: id, titre: titre, contenu: contenu }).then(function (r) {
+      if (!kbVivant(V) || r.annule) return; kbOcc(b, false);
+      if (!r.ok) { toast(r.why || 'Correction impossible.', true); return; }
+      V.edit = null; toast('✏️ Section corrigée.'); kbCharger(V);
+    });
+  }
+  function kbApercu(V, b) {
+    var q = V.el.querySelector('[data-kbi="ap-q"]'), out = V.el.querySelector('[data-kbo="apercu"]');
+    b = b || V.el.querySelector('[data-kb="apercu"]'); kbOcc(b, true);
+    kbApi(V, { action: 'apercu', domaine: V.dom, requete: q ? q.value.trim() : '' }).then(function (r) {
+      if (!kbVivant(V) || r.annule) return; kbOcc(b, false);
+      out = V.el.querySelector('[data-kbo="apercu"]'); if (!out) return;
+      if (!r.ok) { toast(r.why || 'Aperçu impossible.', true); return; }
+      // le texte ne vit que dans le DOM de l'onglet (vidé au démontage)
+      out.textContent = r.texte ? '≈ ' + r.tokens + ' jetons' + (r.selection ? ' · sélection par pertinence (budget dépassé)' : '') + '\n\n' + r.texte : '(rien : ce domaine est vide, le poste agit sans base de connaissances)';
+    });
+  }
+  function kbExporter(V) {
+    var d = kbDomaine(V.dom) || {}, R = V.d.resumes || [], lignes = ['Base de connaissances Posthumain — ' + (d.nom || V.dom), 'Exportée le ' + kbDate(new Date().toISOString()), '', '=== INSTRUCTIONS ===', V.d.instructions.contenu || '(vides)'];
+    (V.d.sources || []).forEach(function (s) {
+      var rs = R.filter(function (r) { return r.source_id === s.id; }); if (!rs.length) return;
+      lignes.push('', '=== ' + (s.type === 'site' ? 'SITE ' + s.url : 'DOCUMENT ' + s.nom) + (s.extrait_le ? ' (extrait le ' + kbDate(s.extrait_le) + ')' : '') + ' ===');
+      rs.forEach(function (r) { lignes.push('• ' + (r.titre ? r.titre + ' : ' : '') + r.contenu); });
+    });
+    var u = URL.createObjectURL(new Blob([lignes.join('\n')], { type: 'text/plain;charset=utf-8' })), a = document.createElement('a');
+    V.urls.push(u);
+    a.href = u; a.download = 'connaissances-' + V.dom + '-' + new Date().toISOString().slice(0, 10) + '.txt'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { var i = V.urls.indexOf(u); if (i >= 0) { V.urls.splice(i, 1); URL.revokeObjectURL(u); } }, 30000);
+  }
+  // Dictée dans le champ des Instructions (même moteur et mêmes réglages que l'Interphone : langue, mise en forme).
+  var KB_DICTEE = !PHL.dictee ? { dispo: false, demarrer: function () {}, arreter: function () {}, actif: function () { return false; } } : PHL.dictee({
+    champ: function () { return KB.vue && KB.vue.el ? KB.vue.el.querySelector('#wl-kb-ta') : null; },
+    lang: function () { return LS.get('wl-dictee-lang') || 'fr-FR'; },
+    brouillon: function () { if (KB.vue) kbZone(KB.vue, 'ins-st'); },
+    etat: function (on) { var b = KB.vue && KB.vue.el && KB.vue.el.querySelector('[data-kb="dicter"]'); if (b) { b.classList.toggle('on', on); b.textContent = on ? '⏹️ Arrêter' : '🎙️ Dicter'; } },
+    verrou: function (on) { var t = KB.vue && KB.vue.el && KB.vue.el.querySelector('#wl-kb-ta'); if (t) { t.disabled = on; t.classList.toggle('wl-mef', on); } },
+    toast: function (t, bad) { toast(t, bad); },
+    formaterActif: function () { return LS.get('wl-mef') !== '0'; },
+    miseEnForme: function (dit) { return pushApi({ action: 'dictee', texte: dit }).then(function (r) { return r && r.ok ? r.texte : ''; }); }
+  });
   function panelParams() {
     var me = D().me, P = S.params, lg = S.sigLang || 'fr';
     var h = head('⚙️', 'Paramètres', esc(me.nom) + ' · ' + esc(me.titre || '')) + '<div class="pb">';
@@ -3060,6 +3439,7 @@
     }
     if (me.chef) h += eqSection();
     if (me.chef) h += bxSection();
+    if (me.chef) h += kbSection(); // 📚 Base de connaissances : composant monté par kbRattacher() (un onglet à la fois)
     if (me.chef) h += consSection();
     var adr = ({ jonathan: 'jonathan.paiano@posthumain.com', valisoa: 'valisoa.rasolofo@posthumain.com' })[me.id] || '';
     h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div>' +

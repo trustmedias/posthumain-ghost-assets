@@ -7,9 +7,11 @@ puis lancer le test. Ne jamais coder un poste ou une action en dur ailleurs** : 
 ni dans `supabase/functions/wl-tel`, ni dans n8n.
 
 1. Modifier `shared/wl-catalogue.json` (poste dans `postes`, capacité dans `capacites`).
-2. `node scripts/wl-catalogue.mjs --ecrire` : recopie dans app.js et dans `supabase/functions/wl-tel/catalogue.ts`.
+2. `node scripts/wl-catalogue.mjs --ecrire` : recopie dans app.js, dans `supabase/functions/wl-tel/catalogue.ts` et dans
+   `supabase/functions/wl-kb/catalogue.ts` (extrait).
 3. `node scripts/wl-catalogue.mjs` : le test doit afficher ✓.
-4. Commit et push, puis redéployer **wl-tel** avec `index.ts`, `equipe.ts` et `catalogue.ts`.
+4. Commit et push, puis redéployer **wl-tel** avec `index.ts`, `equipe.ts`, `catalogue.ts` et `kb.ts` (et **wl-kb**, mêmes
+   fichiers, si les domaines de connaissances ont changé).
 
 Un poste déclaré obtient automatiquement :
 
@@ -17,7 +19,12 @@ Un poste déclaré obtient automatiquement :
 - sa fiche de poste pour l'IA et sa place dans l'aiguillage ;
 - ses bulles d'activité et ses droits ;
 - son bureau sur le plan (ou « Autres postes ») et un panneau ;
+- sa base de connaissances si son champ `connaissances` désigne un domaine (onglet de Paramètres → 📚 Base de connaissances) ;
 - son bouton ⓘ « Qui fait quoi » (rôle, capacités avec exemples, aiguillage), généré depuis le catalogue.
+
+Base de connaissances : un domaine = une entrée dans `connaissances` du catalogue (`id`, `nom`, `emoji`, `aide`, `defaut`) ;
+chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_shared/kb.ts` est copié tel quel en `wl-tel/kb.ts` et
+`wl-kb/kb.ts` : modifier les trois ensemble.
 
 Champs d'aide obligatoires (le test échoue sinon) : sur chaque poste `aide` (une phrase pour les humains), `exemples`
 (au moins 2 phrases à dire au ☎️) et `aiguillage` (ce qu'on lui transmet) ; sur chaque capacité `nom`, `aide`, `fournir`

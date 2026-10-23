@@ -6,11 +6,12 @@
 ## Les deux commandes
 
 ```bash
-node scripts/wl-catalogue.mjs --ecrire   # recopie le catalogue dans writinglab/app.js et supabase/functions/wl-tel/catalogue.ts
+node scripts/wl-catalogue.mjs --ecrire   # recopie le catalogue dans writinglab/app.js, supabase/functions/wl-tel/catalogue.ts et wl-kb/catalogue.ts (extrait)
 node scripts/wl-catalogue.mjs            # vérifie tout (échoue au moindre oubli) ; lancé aussi par la GitHub Action
 ```
 
-Après `--ecrire` : commit, push, puis **redéployer wl-tel** (fichiers `index.ts`, `equipe.ts`, `catalogue.ts`).
+Après `--ecrire` : commit, push, puis **redéployer wl-tel** (fichiers `index.ts`, `equipe.ts`, `catalogue.ts`, `kb.ts`) et,
+si les domaines de connaissances ou le champ `connaissances` d'un poste ont changé, **wl-kb** (mêmes quatre fichiers).
 
 ## Ce qu'un poste obtient automatiquement
 
@@ -22,6 +23,8 @@ Dès qu'il est déclaré, sans aucune autre ligne de code :
 - ses **bulles d'activité** (« … travaille ») et ses **droits** (`acces` : `tous` ou `chef`) ;
 - un **bureau sur le plan** s'il a un `plan` { x, y }, sinon un bouton dans « Autres postes » sous le plan ;
 - un **panneau** générique (rôle, capacités, bouton ☎️) s'il n'a pas de panneau dédié dans la page ;
+- sa **base de connaissances** s'il déclare un domaine (`connaissances`) : les Instructions et les résumés de ce domaine
+  (Paramètres → 📚 Base de connaissances) sont ajoutés à son prompt au moment où il agit ;
 - un bouton **ⓘ « Qui fait quoi »** sur son bureau : son aide, chaque capacité (ce qu'elle fait, exemples de phrases au ☎️,
   ce qu'il faut fournir, le résultat, qui y a droit), les règles d'aiguillage vers les autres postes et « ☎️ Appeler ce poste ».
   Une journaliste ne voit que ce qui lui est accessible.
@@ -36,7 +39,8 @@ via son `executeur`, sans `switch` à compléter.
 plan), `role` (texte pour l'IA, à la 2e personne), `aide` (une phrase claire pour les humains, bouton ⓘ), `exemples`
 (au moins 2 phrases à dire au ☎️), `aiguillage` (ce que les autres postes doivent lui transmettre : sert à générer les
 règles d'aiguillage des IA et l'aide ⓘ), `contexte` (données lues pour lui : `fiches`, `courrier`, `pieces`), `mail`
-({ boite, adresse, role } si `courrier`), `plan` ({ x, y, teinte } ou `null`), `capacites` (ids).
+({ boite, adresse, role } si `courrier`), `plan` ({ x, y, teinte } ou `null`), `capacites` (ids), `connaissances` (id d'un
+domaine de `connaissances`, ou `null` : obligatoire).
 
 **Capacité** :
 
@@ -70,6 +74,20 @@ Valeurs dynamiques :
 **Aiguillage** : `aiguillage.contacts_interview` désigne le poste qui écrit à toute personne qui a une fiche
 d'interview. Un poste avec une boîte de courrier (`mail`) ne reçoit jamais ces demandes : la règle est écrite dans la fiche
 de poste de chaque IA et vérifiée par wl-tel avant toute transmission.
+
+**Domaines de connaissances** (`connaissances`, liste) : `id` (minuscules, `_` permis), `nom`, `emoji`, `aide` (affichée
+dans l'onglet), `defaut` (fiches de `writinglab/connaissances/` qui pré-remplissent les Instructions la première fois).
+Chaque domaine a son onglet dans Paramètres → 📚 Base de connaissances (rédacteur en chef seul) : Instructions, documents
+(PDF, DOCX, TXT, MD, 10 Mo), sites (une page, ou 5 pages du même site, robots.txt respecté) et la « Mémoire des pièces
+jointes » (résumés sourcés, corrigeables). Un nouveau domaine = une entrée ici, puis `--ecrire`, le test et le
+redéploiement de wl-kb et wl-tel ; un nouveau poste choisit son domaine avec `connaissances`.
+
+**Récupération** (`supabase/functions/_shared/kb.ts`, copié tel quel en `wl-tel/kb.ts` et `wl-kb/kb.ts`) : seulement quand un
+poste agit, et seulement son domaine. Instructions toujours incluses ; résumés en entier sous ~3 000 jetons, sinon les
+sections les plus pertinentes pour la demande (recherche plein texte Postgres en français, `wl_kb_chercher`) ; cache de
+60 s. Côté n8n, les nœuds « Connaissances — courrier » et « Connaissances — prospection » appellent `wl-kb` (action
+`contexte`, secret du lab) ; si la base est vide ou injoignable, Julien reprend les fiches GitHub. L'Usine à articles n'est
+pas concernée.
 
 **Stations** (`stations`) : l'aide ⓘ des bureaux sans IA (`chef`, `journaliste`, `courrier`, `marbre`, `radar`, `votes`) :
 `id`, `nom`, `emoji`, `aide`, `actions` (ce que fait son panneau), `acces?`. Une nouvelle station du plan doit y figurer.
@@ -138,4 +156,6 @@ avec ce poste uniquement dans le catalogue de test.
 - **Toute action de wl-tel** (`b.action === "…"`) est un exécuteur de capacité (`action`, `envoi`, `ecarter`, `lister`) ou
   figure dans `interne_tel` avec sa raison (téléphone, canal, « ✓ Marquer comme traitée »…).
 - wl-tel n'a plus de postes codés en dur.
-- Les copies du catalogue (app.js, wl-tel/catalogue.ts) sont à jour.
+- Chaque domaine de connaissances a ses champs, ses fiches `defaut` existent ; chaque poste déclare `connaissances`
+  (domaine connu ou `null`).
+- Les copies du catalogue (app.js, wl-tel/catalogue.ts, wl-kb/catalogue.ts) sont à jour.

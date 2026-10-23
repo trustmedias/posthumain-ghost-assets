@@ -33,7 +33,8 @@ le Videolab.
 - Envoi : nœuds « ✉️ Envoi — x » (credentials « SMTP — x », mail.infomaniak.com:465 SSL). Relève : déclencheurs « 📥 IMAP — x » (credentials « IMAP — x », port 993), en continu.
 - Tri des mails reçus par règles fixes dans « Courrier — trier » (aucun appel à Claude) : notifications, newsletters, réponses automatiques écartées ;
   subs@/redaction@ → table « Writinglab courrier » (bureaux de Julien, visibles du rédacteur en chef seulement) ; jonathan/valisoa → fiche du chercheur qui répond.
-- Julien ne rédige (Claude Haiku) que sur clic « Proposer une réponse », à partir de `connaissances/*.md` ; rien ne part sans « Valider et envoyer ».
+- Julien ne rédige (Claude Haiku) que sur clic « Proposer une réponse », à partir de la base de connaissances de son domaine (Paramètres → 📚 Base de connaissances ; repli sur `connaissances/*.md`) ; rien ne part sans « Valider et envoyer ».
+- Base de connaissances (rédacteur en chef) : un onglet par domaine du catalogue (Rédaction, Service client, Marketing), Instructions pré-remplies depuis `connaissances/*.md`, documents et sites résumés par Claude (fonction `wl-kb`, tables `wl_kb_*`, stockage privé `writinglab/kb/`).
 - Ajouter quelqu'un : ligne dans `EQUIPE` (nœud Accès), boîte dans `BOITES`/`ADRESSES`, sortie dans « Boîte ? » + nœud d'envoi SMTP + déclencheur IMAP.
 
 ## Garde-fous
