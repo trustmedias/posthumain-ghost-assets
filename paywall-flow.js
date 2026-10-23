@@ -270,6 +270,7 @@
 
     if (isGenericReturnPageAfterCheckout()) {
       markEmailCheckRedirected();
+      journal('redirection vers Vérification E-mail');
       try { gtag('event', 'verification_email_redirection'); } catch (e) {}
       window.location.href = EMAIL_CHECK_PATH;
     }
@@ -307,6 +308,7 @@
     // Cela couvre surtout les comptes gratuits / freemium.
     if (isLoggedIn) {
       try { gtag('event', 'retour_article'); } catch (e) {}
+      journal('redirection vers l\'article', savedArticleUrl);
       window.location.href = savedArticleUrl;
     }
   }
@@ -315,6 +317,38 @@
     redirectToEmailCheckPageIfNeeded();
     redirectBackToArticleAfterLogin();
   }
+
+  // ---------------------------------------------------------------------------
+  // JOURNAL DE TEST (23/10/2026, temporaire) : note chaque page du parcours (adresse d'origine avec ?stripe=…,
+  // provenance, connecté ou non, redirections) dans ce navigateur seulement. Pour le lire : ajouter #journal-parcours
+  // à n'importe quelle adresse du site. Rien n'est envoyé nulle part. A RETIRER APRES LES TESTS.
+  var PH_JOURNAL = 'posthumain_journal_parcours';
+  function journal(evt, extra) {
+    try {
+      var l = JSON.parse(localStorage.getItem(PH_JOURNAL) || '[]');
+      var nav = ''; try { nav = (performance.getEntriesByType('navigation')[0] || {}).name || ''; } catch (e) {}
+      l.push({ t: new Date().toLocaleTimeString('fr-CH'), evt: evt, url: location.href, nav: nav, ref: document.referrer || '', connecte: !!isGhostMemberProbablyLoggedIn(), x: extra || '' });
+      localStorage.setItem(PH_JOURNAL, JSON.stringify(l.slice(-40)));
+    } catch (e) {}
+  }
+  function afficherJournal() {
+    if (location.hash !== '#journal-parcours') return;
+    var l = []; try { l = JSON.parse(localStorage.getItem(PH_JOURNAL) || '[]'); } catch (e) {}
+    var txt = l.map(function (e) { return e.t + ' · ' + e.evt + (e.x ? ' (' + e.x + ')' : '') + ' · ' + (e.connecte ? 'CONNECTÉ' : 'non connecté') + '\n  page : ' + e.url + (e.nav && e.nav !== e.url ? '\n  adresse d\'arrivée : ' + e.nav : '') + (e.ref ? '\n  venant de : ' + e.ref : ''); }).join('\n\n') || '(journal vide)';
+    var d = document.createElement('div');
+    d.setAttribute('style', 'position:fixed;inset:0;z-index:2147483647;background:#0b0a08;color:#f3ece0;padding:16px;overflow:auto;font:13px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap');
+    d.textContent = 'JOURNAL DU PARCOURS (' + l.length + ' étapes)\n\n' + txt + '\n\n';
+    var b1 = document.createElement('button'); b1.textContent = 'Copier'; b1.setAttribute('style', 'margin:8px 8px 0 0;padding:10px 16px;font-size:15px');
+    b1.onclick = function () { try { navigator.clipboard.writeText(txt); b1.textContent = 'Copié ✓'; } catch (e) {} };
+    var b2 = document.createElement('button'); b2.textContent = 'Effacer le journal'; b2.setAttribute('style', 'margin:8px 8px 0 0;padding:10px 16px;font-size:15px');
+    b2.onclick = function () { try { localStorage.removeItem(PH_JOURNAL); } catch (e) {} d.textContent = 'Journal effacé.'; };
+    var b3 = document.createElement('button'); b3.textContent = 'Fermer'; b3.setAttribute('style', 'margin:8px 0 0;padding:10px 16px;font-size:15px');
+    b3.onclick = function () { d.remove(); history.replaceState(null, '', location.pathname + location.search); };
+    d.appendChild(b1); d.appendChild(b2); d.appendChild(b3); document.body.appendChild(d);
+  }
+  if (location.hash !== '#journal-parcours') journal('page');
+  afficherJournal();
+  window.addEventListener('hashchange', afficherJournal);
 
   // ------------------------------------------------------
   // Vérifications répétées après retour / connexion Ghost
@@ -451,6 +485,7 @@
       rememberCurrentArticleBeforeSubscribe();
       markSubscriptionFlowStarted();
       try { gtag('event', 'paywall_clic'); } catch (e) {}
+      journal('clic abonnement');
     }
   }
 
