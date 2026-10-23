@@ -361,6 +361,7 @@
 #wl .btn.red{background:rgba(255,61,90,.1)!important;color:#ffb3c0!important;-webkit-text-fill-color:#ffb3c0!important;border-color:rgba(255,61,90,.45)!important}\
 #wl .btn.small{padding:5px 9px!important;font-size:12.5px!important;border-radius:8px!important}\
 @media (max-width:720px){#wl{font-size:14.5px}#wl .top{flex-wrap:wrap;gap:8px;padding:10px 12px}#wl .chips{order:3;justify-content:flex-start;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#wl .chips::-webkit-scrollbar{display:none}#wl .clock{order:2;font-size:17px;margin-left:auto}#wl .wrap{padding:0 10px 60px}#wl .tabs{padding:8px 10px 0}#wl .panel{width:100vw;top:6vh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid rgba(255,190,90,.3);transform:translateY(105%)}#wl .panel.open{transform:none}#wl .floor svg{min-width:1100px}#wl .paper{margin:10px 8px 60px;padding:22px 16px 28px;font-size:16.5px}#wl .paper h1{font-size:22px}#wl .two{grid-template-columns:1fr}#wl .kan{grid-template-columns:repeat(4,82vw)}#wl button.clsr-h{top:auto;bottom:150px;padding:10px 6px}#wl .clsr-h .lb{display:none}#wl .clsr{width:100vw;top:8vh;border-left:none;border-top:1px solid rgba(255,190,90,.3);border-radius:18px 18px 0 0;transform:translateY(105%)}#wl .clsr.open{transform:none}}\
+#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg,#wl .wrap{overflow-wrap:anywhere;word-break:break-word}#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg{overflow-x:hidden;max-width:100%}#wl .panel pre,#wl .doc pre,#wl .clsr pre{white-space:pre-wrap}#wl .dtop>div,#wl .ph2>div,#wl .tl li,#wl .feed .it>span,#wl .dcard,#wl .pp-ct-h>*{min-width:0}#wl a.src-l.h-l{white-space:nowrap}\
 ";
   CSS += PHL_CSS.porte; // porte de couloir vers l'autre lab (shared/lab-core.js)
   // Mode clair (22/10/2026) : la feuille claire est DÉRIVÉE de la feuille sombre ci-dessus par PHTheme.deriverClair
@@ -1011,6 +1012,19 @@
     return { profil: pr, source: src };
   }
   function hote(u) { var m = String(u || '').match(/^https?:\/\/([^\/?#]+)/i); return m ? m[1].replace(/^www\./, '') : ''; }
+  // Ligne d'historique (23/10/2026) : jamais d'URL brute (elle débordait sur iPhone). Chaque adresse web devient un lien court au nom
+  // du site (« adresse trouvée sur researchgate.net ↗ ») ; conversion à l'affichage, rien ne change en base.
+  function histTxt(s) {
+    s = String(s || ''); var re = /(\(adresse : )?(https?:\/\/[^\s)<>"]+)(\))?/g, out = '', i = 0, m;
+    while ((m = re.exec(s))) {
+      out += esc(s.slice(i, m.index));
+      var u = m[2].replace(/[.,;:!?]+$/, ''), reste = m[2].slice(u.length), h = hote(u) || 'lien';
+      var a = '<a class="src-l h-l" href="' + url(u) + '" target="_blank" rel="noopener" data-stop="1" title="' + esc(h) + '">' + esc(h) + ' ↗</a>';
+      out += m[1] ? '(adresse trouvée sur ' + a + esc(reste) + (m[3] ? ')' : '') : a + esc(reste) + (m[3] ? ')' : '');
+      i = m.index + m[0].length;
+    }
+    return out + esc(s.slice(i));
+  }
   function nomLien(nom, profil, institution) {
     if (!nom) return esc('(sans nom)');
     if (/^https?:\/\//i.test(String(profil || '').trim())) {
@@ -1295,7 +1309,7 @@
       '<button class="red" data-act="p-stop" data-id="' + esc(x.prospect_id) + '">⛔ Ne plus contacter</button></div>' +
       '<p class="lead">Le mail part de redaction@posthumain.com, signé Julien, avec la ligne « répondez STOP ». Les réponses arrivent dans ce bureau et ce prospect passe tout seul en « a répondu ».</p>';
     var hi = (x.historique || []).slice().reverse().slice(0, 8);
-    if (hi.length) h += '<label>Historique</label><div class="muted">' + hi.map(function (e) { return esc(when(e.t)) + ' — ' + esc(e.e); }).join('<br>') + '</div>';
+    if (hi.length) h += '<label>Historique</label><div class="muted">' + hi.map(function (e) { return esc(when(e.t)) + ' — ' + histTxt(e.e); }).join('<br>') + '</div>';
     return h + '</div>';
   }
   function docMail(m) {
@@ -1604,7 +1618,7 @@
     var mf = D().fiches.filter(function (f) { return f.redacteur === me.id; });
     if (mf.length) h += '<h3>Vos propres fiches (' + mf.length + ')</h3><div class="dos">' + mf.slice(0, 10).map(function (f) { return dcard(f); }).join('') + '</div>';
     var ev = events().slice(0, 25);
-    h += '<h3>Ce qui s’est passé</h3><div class="feed">' + (ev.map(function (e) { return '<div class="it" data-act="open-fiche" data-id="' + esc(e.f.fiche_id) + '" style="cursor:pointer"><span class="t">' + esc(when(e.t)) + '</span><span>' + esc(e.e) + ' · <b>' + esc(e.f.contact.nom) + '</b> · ' + esc(e.par === 'courrier' ? 'courrier' : membre(e.par).nom) + '</span></div>'; }).join('') || '<div class="muted">Rien pour l’instant.</div>') + '</div>';
+    h += '<h3>Ce qui s’est passé</h3><div class="feed">' + (ev.map(function (e) { return '<div class="it" data-act="open-fiche" data-id="' + esc(e.f.fiche_id) + '" style="cursor:pointer"><span class="t">' + esc(when(e.t)) + '</span><span>' + histTxt(e.e) + ' · <b>' + esc(e.f.contact.nom) + '</b> · ' + esc(e.par === 'courrier' ? 'courrier' : membre(e.par).nom) + '</span></div>'; }).join('') || '<div class="muted">Rien pour l’instant.</div>') + '</div>';
     h += '<div style="margin-top:14px"><button class="btn" data-act="tab" data-tab="interphone">📞 Interphone</button></div>';
     return h + '</div>';
   }
@@ -1698,7 +1712,7 @@
     if (qe.length || qo.length) h += '<h2>Questions ' + (f.statut === 'brouillon' ? 'prévues' : 'posées') + (traduites ? ' <span class="tag">' + (f.langue === 'en' ? 'en anglais, telles qu’envoyées' : 'telles qu’envoyées') + '</span>' : '') + '</h2><ol>' + (qe.length ? qe : qo).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol>' +
       (traduites ? '<details><summary>Version choisie dans le lab</summary><ol>' + qo.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol></details>' : '');
     if (f.mail_corps && f.statut !== 'brouillon') h += '<details><summary>Le mail envoyé · ' + esc(f.mail_sujet) + '</summary><div class="txt" style="font-size:15px">' + esc(f.mail_corps) + '</div></details>';
-    h += '<h2>Historique</h2><ul class="tl">' + (f.historique || []).slice().reverse().map(function (e) { return '<li>' + esc(day(e.t) + ' ' + hm(e.t)) + ' — ' + esc(e.e) + (e.par && e.par !== 'courrier' ? ' (' + esc(membre(e.par).nom) + ')' : '') + '</li>'; }).join('') + '</ul>';
+    h += '<h2>Historique</h2><ul class="tl">' + (f.historique || []).slice().reverse().map(function (e) { return '<li>' + esc(day(e.t) + ' ' + hm(e.t)) + ' — ' + histTxt(e.e) + (e.par && e.par !== 'courrier' ? ' (' + esc(membre(e.par).nom) + ')' : '') + '</li>'; }).join('') + '</ul>';
     if (rw) h += '<div class="acts"><button class="red" data-act="archive" data-id="' + esc(f.fiche_id) + '">🗄️ Archiver la fiche</button></div>';
     h += '</div>';
     return h;
