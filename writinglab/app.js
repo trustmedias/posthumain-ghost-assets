@@ -2210,7 +2210,7 @@
     }).join('');
     h += '<details class="cz-d"><summary>Barème</summary><p>Citation insérée avant la publication ou jusqu’à 2 jours après : <b>10 pièces</b><br>jusqu’à 4 jours : <b>5 pièces</b><br>jusqu’au 6e jour : <b>2 pièces</b><br>à partir du 7e jour : 0, ce sera pour la prochaine fois.</p></details>';
     if (me.chef && testRec()) h += '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🧪 <b>Mode récompense (test) actif</b> : vous gagnez aussi des pièces, avec votre propre caisse. Désactivable dans ⚙️ Paramètres.</div>';
-    if (me.chef) h += '<details class="cz-d"><summary>Réglages et contrôles (visible par vous seul)</summary><p>Une pièce n’est accordée que si le mail est parti du lab, que la réponse arrive dans le fil de ce mail depuis l’adresse du chercheur (en-têtes vérifiés côté serveur), et que la citation est insérée depuis le lab. Une seule récompense par fiche ; webmail gratuit, adresse de l’équipe ou réponse très courte → « à vérifier ».</p>' +
+    if (me.chef) h += '<details class="cz-d"><summary>Réglages et contrôles (visible par vous seul)</summary><p>Une pièce n’est accordée que si le mail est parti du lab, que la réponse arrive dans le fil de ce mail (en-têtes vérifiés côté serveur ; depuis une autre adresse que celle du chercheur et hors de son domaine : « à vérifier »), et que la citation est insérée depuis le lab. Une seule récompense par fiche ; webmail gratuit, adresse de l’équipe ou réponse très courte → « à vérifier ».</p>' +
       '<div class="row" style="gap:8px;align-items:center">Valeur d’une pièce : <input class="in" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div></details>';
     var arch = (r.conversions || []).filter(function (c) { return c.statut !== 'a_facturer' && (me.chef || c.membre === me.id); });
     if (arch.length) h += '<details class="cz-d"><summary>Archives (' + arch.length + ')</summary>' + arch.map(function (c) {
@@ -2255,9 +2255,17 @@
   function parcoursHTML(f) {
     var w = membre(f.redacteur), chefFiche = w.role === 'chef' && !testRec(), p = pieceDe(f.fiche_id), v = verifiee(f.fiche_id);
     var et = function (on, txt) { return '<span class="pa' + (on ? ' on' : '') + '">' + txt + '</span>'; };
-    return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, f.reponse ? (v || !D().me.chef ? '📬 réponse reçue' : '📝 réponse saisie à la main') : '📬 réponse') + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
+    // 23/10/2026 : message exact selon le vrai cas. Preuve = en-têtes du fil (notre Message-ID), pas l'adresse seule.
+    var pv = ((S.pieces && S.pieces.preuves) || {})[f.fiche_id] || null;
+    var parCourrier = (f.historique || []).some(function (e) { return e && e.par === 'courrier' && /réponse reçue/.test(String(e.e || '')); });
+    var etiq = !f.reponse ? '📬 réponse' : v || !D().me.chef ? '📬 réponse reçue' : parCourrier ? '📬 réponse hors du fil' : '📝 réponse saisie à la main';
+    var note = '';
+    if (f.reponse && v && pv && pv.lien === 'meme_domaine') note = 'Réponse reçue dans le fil, depuis ' + pv.de + ' (autre adresse du même domaine que le contact).';
+    else if (f.reponse && v && pv && pv.lien === 'autre_adresse') note = 'Réponse reçue dans le fil, depuis ' + pv.de + ' : une autre adresse que celle du contact' + (chefFiche ? '.' : ', les pièces passent « à vérifier » au Comptable.');
+    else if (f.reponse && !v && D().me.chef && !chefFiche) note = parCourrier ? 'Réponse reçue hors du fil (sans référence à notre mail) : pas de pièces automatiques.' : 'Réponse ajoutée à la main : pas de pièces automatiques.';
+    return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, etiq) + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
       (chefFiche ? '' : '<i></i>' + et(p && p.statut === 'acquis', p ? (PST2[p.statut] || ['🪙'])[0] + ' ' + (p.montant || 0) + ' pièces' : '🪙 pièces')) + '</div>' +
-      (D().me.chef && !chefFiche && f.reponse && !v ? '<p class="muted" style="margin:4px 0 0;font-size:13px">Cette réponse n’a pas été reçue par le fil du mail envoyé depuis le lab : elle ne rapporte pas de pièces.</p>' : '');
+      (note ? '<p class="muted" style="margin:4px 0 0;font-size:13px">' + esc(note) + '</p>' : '');
   }
 
   // Fenêtre de confirmation au style du lab (remplace window.confirm) : titre = première ligne, détail = la suite.

@@ -117,7 +117,10 @@ async function apresEcriture(table: string, action: string, row: Record<string, 
       await push(EQUIPE.filter((x) => x !== auteur), "📞 " + (r.nom || NOMS[auteur] || "Interphone"), r.texte || (r.fichier_nom ? "📎 " + r.fichier_nom : "nouveau message"), "interphone");
     }
     if (table === "courrier" && nouveau && r.categorie === "demande") {
-      await push(CHEFS, (r.boite === "redaction" ? "📣 Julien · Marketing" : "🎧 Julien · Service client") + " : nouvelle demande", (r.de_nom || r.de_email || "") + " — " + (r.sujet || ""), r.boite === "redaction" ? "mk" : "sc");
+      // 23/10/2026 : boîte ajoutée depuis le lab (boite « x-… ») → bureau de son rôle (wl_boites.role : mk ou sc).
+      let bureau = r.boite === "redaction" ? "mk" : "sc";
+      if (/^x-/.test(String(r.boite || ""))) { const { data: bx } = await db.from("wl_boites").select("role").eq("id", r.boite).limit(1); if (bx && bx[0] && bx[0].role === "mk") bureau = "mk"; }
+      await push(CHEFS, (bureau === "mk" ? "📣 Julien · Marketing" : "🎧 Julien · Service client") + " : nouvelle demande", (r.de_nom || r.de_email || "") + " — " + (r.sujet || ""), bureau);
     }
     if (table === "fiches" && row.statut === "inséré") await recompenser(data, meta);
     if (table === "fiches" && row.statut === "rebond") {
@@ -147,14 +150,34 @@ async function webmailsAVerifier(): Promise<string[]> {
   const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "webmails_a_verifier").limit(1);
   try { const v = JSON.parse(String((data && data[0] && data[0].valeur) || "[]")); return Array.isArray(v) ? v.map((x: unknown) => String(x).toLowerCase()) : []; } catch { return []; }
 }
+// 23/10/2026 : la preuve, ce sont les en-têtes du fil (References / In-Reply-To contenant NOTRE Message-ID, aléatoire et unique).
+// L'adresse de l'expéditeur ne décide plus seule : un chercheur répond souvent depuis une autre adresse (pn@ au lieu de info@).
+//  - même adresse que le contact → vérifiée ;
+//  - même domaine (pn@intotheminds.com pour info@intotheminds.com) → vérifiée, preuve « autre adresse du même domaine » ;
+//  - autre domaine (adresse personnelle…) → vérifiée, mais les pièces passent « à vérifier » (voir recompenser) ;
+//  - aucune référence à notre mail → non vérifiée, même si l'adresse est la bonne (réponse hors du fil).
+// La vraie adresse de l'expéditeur est gardée dans reponse_preuve.de ; lien = meme_adresse | meme_domaine | autre_adresse.
+const domaineDe = (e: string) => String(e || "").toLowerCase().trim().split("@")[1] || "";
 async function verifierReponse(data: any[] | null, preuves: any[]) {
   for (const f of data || []) {
     if (f.reponse_verifiee || !f.message_id || !f.contact_email) continue;
     const mid = String(f.message_id).trim(), email = String(f.contact_email).toLowerCase().trim();
-    const p = preuves.find((x: any) => x && String(x.refs || "").includes(mid) && String(x.de_email || "").toLowerCase().trim() === email);
-    if (!p) continue;
-    await db.from("wl_fiches").update({ reponse_verifiee: true, reponse_preuve: JSON.stringify({ reponse_message_id: String(p.message_id || "").slice(0, 300), de: email, recu_le: p.recu_le || null, en_reponse_a: mid }) }).eq("fiche_id", f.fiche_id);
+    const fil = preuves.filter((x: any) => x && String(x.refs || "").includes(mid));
+    if (!fil.length) continue;
+    const de0 = (x: any) => String(x.de_email || "").toLowerCase().trim();
+    const p = fil.find((x: any) => de0(x) === email) || fil.find((x: any) => domaineDe(de0(x)) && domaineDe(de0(x)) === domaineDe(email)) || fil[0];
+    const de = de0(p);
+    const lien = de === email ? "meme_adresse" : domaineDe(de) && domaineDe(de) === domaineDe(email) ? "meme_domaine" : "autre_adresse";
+    const note = lien === "meme_domaine" ? "autre adresse du même domaine" : lien === "autre_adresse" ? "réponse dans le fil depuis une autre adresse (" + de + ")" : "";
+    await db.from("wl_fiches").update({ reponse_verifiee: true, reponse_preuve: JSON.stringify({ reponse_message_id: String(p.message_id || "").slice(0, 300), de, recu_le: p.recu_le || null, en_reponse_a: mid, lien, ...(note ? { note } : {}) }) }).eq("fiche_id", f.fiche_id);
   }
+}
+// Expéditeur réel de la réponse vérifiée (reponse_preuve.de), et son lien avec l'adresse du contact.
+function preuveDe(f: any): { de: string; lien: string } {
+  let p: any = f && f.reponse_preuve; if (typeof p === "string") { try { p = JSON.parse(p); } catch { p = null; } }
+  const email = String((f && f.contact_email) || "").toLowerCase().trim(), de = String((p && p.de) || email).toLowerCase().trim();
+  const lien = (p && p.lien) || (de === email ? "meme_adresse" : domaineDe(de) && domaineDe(de) === domaineDe(email) ? "meme_domaine" : "autre_adresse");
+  return { de, lien };
 }
 // Barème selon le délai après publication (date de Ghost, transmise par l'insertion n8n) :
 // brouillon / programmé ou ≤ 2 jours → 10 · ≤ 4 jours → 5 · moins de 7 jours → 2 · 7 jours et plus → 0 (créneau manqué).
@@ -174,9 +197,11 @@ async function recompenser(data: any[] | null, meta: any = null) {
     if (!qui || !f.reponse_verifiee) continue;
     if (CHEFS.includes(qui) && !(await modeTest(qui))) continue;
     const email = String(f.contact_email || "").toLowerCase(), dom = email.split("@")[1] || "";
+    const pr = preuveDe(f), domDe = domaineDe(pr.de);
     const doutes: string[] = [];
-    if (ADRESSES_EQUIPE.includes(email) || dom === "posthumain.com") doutes.push("adresse de l'équipe");
-    if ((await webmailsAVerifier()).includes(dom)) doutes.push("adresse de messagerie gratuite (" + dom + ")");
+    if (ADRESSES_EQUIPE.includes(email) || dom === "posthumain.com" || ADRESSES_EQUIPE.includes(pr.de) || domDe === "posthumain.com") doutes.push("adresse de l'équipe");
+    else if (pr.lien === "autre_adresse") doutes.push("réponse dans le fil depuis une autre adresse (" + pr.de + ")");
+    { const wm = await webmailsAVerifier(), d2 = wm.includes(dom) ? dom : wm.includes(domDe) ? domDe : ""; if (d2) doutes.push("adresse de messagerie gratuite (" + d2 + ")"); }
     if (String(f.reponse || "").replace(/\s+/g, " ").trim().length < 120) doutes.push("réponse très courte");
     const bm = bareme(meta);
     const statut = bm.montant === 0 ? "manque" : doutes.length ? "a_verifier" : "acquis";
@@ -300,7 +325,11 @@ async function alerte(b: any) {
 
 async function run(b: any): Promise<Record<string, unknown>[]> {
   // Équipe pour le nœud « Accès » de n8n : tous les membres (actifs, inactifs, de test), un seul élément.
-  if (b.action === "equipe") return [{ ok: true, membres: await equipe(db, true) }];
+  // 23/10/2026 : + boîtes ajoutées depuis le lab (sans aucun secret) pour « Accès » → page et réponses de Julien.
+  if (b.action === "equipe") {
+    const { data: bx } = await db.from("wl_boites").select("id,adresse,role,nom_affiche,actif,statut,fournisseur").order("created_at");
+    return [{ ok: true, membres: await equipe(db, true), boites: bx || [] }];
+  }
   if (b.action === "cout") return [await noterCout(b)];
   if (b.action === "couts") return [await couts()];
   if (b.action === "relance_prete") return [await relancePrete(b)];

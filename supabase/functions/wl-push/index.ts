@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
   if (b.action === "pieces") {
     const chef = estChef;
     let q = db.from("wl_pieces").select("*").order("created_at", { ascending: false }).limit(300);
-    let qv = db.from("wl_fiches").select("fiche_id").eq("reponse_verifiee", true).limit(2000);
+    let qv = db.from("wl_fiches").select("fiche_id,contact_email,reponse_preuve").eq("reponse_verifiee", true).limit(2000);
     const [{ data: ps }, { data: vs }] = await Promise.all([q, qv]);
     const totaux: Record<string, number> = {};
     for (const p of ps || []) if (p.statut === "acquis") totaux[p.membre] = (totaux[p.membre] || 0) + Number(p.montant || 0);
@@ -174,7 +174,15 @@ Deno.serve(async (req) => {
     const recompense_test = await modeTest(CHEF);
     // Équipe (23/10/2026) : pour le Comptable (badge TEST, membres de test hors totaux, mention « inactif »).
     const membres = (await equipe(db)).map((m) => ({ id: m.id, nom: m.nom, test: m.test, actif: m.actif, chef: m.chef }));
-    return out({ ok: true, moi: qui, chef, recompense_test, membres, totaux, soldes: so, taux: t, demandes, mois: moisZurich(), jour: jourZurich(), conversions: cs || [], pieces: ps || [], verifiees: (vs || []).map((x: any) => x.fiche_id) });
+    // 23/10/2026 : expéditeur réel de chaque réponse vérifiée (dans le fil) et son lien avec l'adresse du contact, pour un message exact sur la page.
+    const dom = (e: string) => String(e || "").toLowerCase().split("@")[1] || "";
+    const preuves: Record<string, { de: string; lien: string }> = {};
+    for (const x of (vs || []) as any[]) {
+      let pv: any = x.reponse_preuve; if (typeof pv === "string") { try { pv = JSON.parse(pv); } catch { pv = null; } }
+      const email = String(x.contact_email || "").toLowerCase(), de = String((pv && pv.de) || email).toLowerCase();
+      preuves[x.fiche_id] = { de, lien: (pv && pv.lien) || (de === email ? "meme_adresse" : dom(de) && dom(de) === dom(email) ? "meme_domaine" : "autre_adresse") };
+    }
+    return out({ ok: true, moi: qui, chef, recompense_test, membres, totaux, soldes: so, taux: t, demandes, mois: moisZurich(), jour: jourZurich(), conversions: cs || [], pieces: ps || [], verifiees: (vs || []).map((x: any) => x.fiche_id), preuves });
   }
   if (b.action === "taux") {
     if (!estChef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
