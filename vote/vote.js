@@ -323,9 +323,10 @@
     fermerFenetre();
     var d = S.d || {}, offre = (d.offre && d.offre[0]) || null;
     var av = (offre && offre.avantages && offre.avantages.length) ? offre.avantages.slice(0, 6) : ['Toutes les enquêtes premium en entier'];
-    var texte = av.join(' ').toLowerCase();
-    if (texte.indexOf('tv') < 0 && texte.indexOf('documentaire') < 0) av.push('Posthumain TV : les documentaires en exclusivité, trois mois avant YouTube');
-    av.push('Une voix dans le choix de l’enquête du mois : proposer un sujet et voter');
+    // 23/10/2026 : Posthumain TV n'est pas encore officiellement en ligne : aucun avantage ni lien TV pour l'instant
+    av = av.filter(function (a) { return !/\btv\b|documentaire/i.test(String(a)); });
+    if (!av.length) av = ['Toutes les enquêtes premium en entier'];
+    av.push('Une voix dans le choix de nos prochaines enquêtes : proposer un sujet et voter');
     var prix = offre && offre.mensuel ? 'Dès ' + (offre.mensuel / 100).toFixed(2).replace('.', ',').replace(',00', '') + ' ' + (offre.devise === 'EUR' ? '€' : offre.devise) + ' par mois' + (offre.annuel ? ', ou ' + (offre.annuel / 100).toFixed(2).replace('.', ',').replace(',00', '') + ' ' + (offre.devise === 'EUR' ? '€' : offre.devise) + ' par an' : '') + '. Sans engagement.' : 'Sans engagement.';
     var visiteur = role === 'visiteur';
     var f = document.createElement('div');
@@ -336,7 +337,7 @@
       '<ul class="phv-avantages">' + av.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' +
       '<div class="phv-prix">' + esc(prix) + '</div>' +
       (visiteur ? '<a class="phv-btn" href="#/portal/signup" data-portal="signup">Créer mon compte</a><a class="phv-lien" href="#/portal/signin" data-portal="signin">J’ai déjà un compte : me connecter</a>'
-        : '<a class="phv-btn" href="#/portal/account/plans" data-portal="account/plans">Passer premium</a><a class="phv-lien" href="/tv/">Découvrir Posthumain TV</a>') + '</div>';
+        : '<a class="phv-btn" href="#/portal/account/plans" data-portal="account/plans">Passer premium</a>') + '</div>';
     coque.appendChild(f);
     var prec = sh.activeElement;
     f.addEventListener('click', function (e) { if (e.target === f || e.target.closest('.phv-fermer')) { fermerFenetre(); if (prec && prec.focus) prec.focus(); } else if (e.target.closest('[data-portal]')) fermerFenetre(); });
