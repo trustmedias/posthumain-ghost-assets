@@ -366,19 +366,20 @@
   // Plan en largeur (21/10/2026) : 4 pièces par rangée, 2 rangées → beaucoup moins haut, tout le monde voit tous les bureaux.
   // Plan sur TROIS rangées (23/10/2026) : sur deux rangées de 3200 de large, tout devenait minuscule sur un portable.
   // Rangée 1 = l'écriture (rédaction, secrétariat, bibliothèque) ; rangée 2 = ce qui en sort (courrier, marbre, décisions) ;
-  // rangée 3 = l'arrière (chef, service client, marketing, comptabilité). Deux couloirs : y 470 et y 1000 (CORR).
-  var PLAN_W = 1840, PLAN_H = 1540, CORR = [470, 1000];
+  // rangée 3 = l'arrière (chef, service client, marketing, comptabilité). Deux couloirs : y 390 et y 760 (CORR).
+  // v2 (23/10) : rangées resserrées à ce dont elles ont besoin (étagère à 80 %) et toile moins large -> plan moins haut, tout plus grand.
+  var PLAN_W = 1700, PLAN_H = 1150, CORR = [390, 760];
   var ROOMS = [
-    { key: 'redac', name: 'Salle de rédaction', x: 30, y: 30, w: 560, h: 410, floor: '#16110b' },
-    { key: 'secr', name: 'Secrétariat', x: 610, y: 30, w: 760, h: 410, floor: '#0b1216' },
-    { key: 'biblio', name: 'Bibliothèque', x: 1390, y: 30, w: 420, h: 410, floor: '#120e19' },
-    { key: 'courrier', name: 'Salle du courrier', x: 30, y: 500, w: 560, h: 470, floor: '#0c0f16' },
-    { key: 'marbre', name: 'Le marbre · Ghost', x: 610, y: 500, w: 580, h: 470, floor: '#0a0d0b' },
-    { key: 'decisions', name: 'Salle des décisions · Usine', x: 1210, y: 500, w: 600, h: 470, floor: '#08120f' },
-    { key: 'chef', name: 'Bureau du rédacteur en chef', x: 30, y: 1030, w: 440, h: 480, floor: '#0f140c' },
-    { key: 'sc', name: 'Service client · subs@', x: 490, y: 1030, w: 360, h: 480, floor: '#0c1414' },
-    { key: 'mk', name: 'Marketing · redaction@', x: 870, y: 1030, w: 360, h: 480, floor: '#16100c' },
-    { key: 'compta', name: 'Arrière-salle · comptabilité', x: 1250, y: 1030, w: 560, h: 480, floor: '#110d07' }
+    { key: 'redac', name: 'Salle de rédaction', x: 30, y: 30, w: 560, h: 330, floor: '#16110b' },
+    { key: 'secr', name: 'Secrétariat', x: 610, y: 30, w: 620, h: 330, floor: '#0b1216' },
+    { key: 'biblio', name: 'Bibliothèque', x: 1250, y: 30, w: 420, h: 330, floor: '#120e19' },
+    { key: 'courrier', name: 'Salle du courrier', x: 30, y: 420, w: 440, h: 310, floor: '#0c0f16' },
+    { key: 'marbre', name: 'Le marbre · Ghost', x: 490, y: 420, w: 440, h: 310, floor: '#0a0d0b' },
+    { key: 'decisions', name: 'Salle des décisions · Usine', x: 950, y: 420, w: 720, h: 310, floor: '#08120f' },
+    { key: 'chef', name: 'Bureau du rédacteur en chef', x: 30, y: 790, w: 440, h: 330, floor: '#0f140c' },
+    { key: 'sc', name: 'Service client · subs@', x: 490, y: 790, w: 280, h: 330, floor: '#0c1414' },
+    { key: 'mk', name: 'Marketing · redaction@', x: 790, y: 790, w: 280, h: 330, floor: '#16100c' },
+    { key: 'compta', name: 'Arrière-salle · comptabilité', x: 1090, y: 790, w: 580, h: 330, floor: '#110d07' }
   ];
   function rooms() { return ROOMS; }
   function people() {
@@ -389,18 +390,18 @@
     var list = [];
     if (!js.length) list.push({ key: 'j:vide', kind: 'journaliste', vide: true, nom: 'Poste de la journaliste', titre: 'à attribuer', emoji: '✍️', hue: 330, x: 310, y: 215 });
     js.forEach(function (w, i) { list.push({ key: 'j:' + w.id, id: w.id, kind: 'journaliste', nom: w.nom, titre: w.titre, emoji: '✍️', hue: [330, 300, 15][i], x: xs[i], y: 215 }); });
-    list.push({ key: 'secretaire', kind: 'secretaire', nom: 'La Secrétaire', titre: 'Rédige, fait valider, envoie', emoji: '📮', hue: 200, x: 1255, y: 215 });
-    list.push({ key: 'assistant', kind: 'assistant', nom: 'L’Assistant', titre: 'Questions et contacts', emoji: '🧠', hue: 265, x: 1600, y: 215 });
-    list.push({ key: 'chef', id: chef.id, kind: 'chef', nom: chef.nom, titre: chef.titre || 'Rédacteur en chef', emoji: '🧐', hue: 40, x: 250, y: 1265 });
-    list.push({ key: 'courrier', kind: 'courrier', nom: 'Le Courrier', titre: 'Suit les réponses', emoji: '📬', x: 310, y: 735, device: true });
-    list.push({ key: 'marbre', kind: 'marbre', nom: 'Le Marbre', titre: 'Les brouillons Ghost', emoji: '📰', x: 900, y: 735, device: true });
-    list.push({ key: 'sc', kind: 'sc', nom: JULIEN.sc.nom, titre: JULIEN.sc.adr, emoji: JULIEN.sc.emoji, hue: 175, x: 670, y: 1265 });
-    list.push({ key: 'mk', kind: 'mk', nom: JULIEN.mk.nom, titre: JULIEN.mk.adr, emoji: JULIEN.mk.emoji, hue: 20, x: 1050, y: 1265 });
-    list.push({ key: 'compta', kind: 'compta', nom: 'Le Comptable', titre: 'Les pièces de la rédaction', emoji: '🧮', hue: 45, x: 1390, y: 1250 });
+    list.push({ key: 'secretaire', kind: 'secretaire', nom: 'La Secrétaire', titre: 'Rédige, fait valider, envoie', emoji: '📮', hue: 200, x: 1100, y: 215 });
+    list.push({ key: 'assistant', kind: 'assistant', nom: 'L’Assistant', titre: 'Questions et contacts', emoji: '🧠', hue: 265, x: 1460, y: 215 });
+    list.push({ key: 'chef', id: chef.id, kind: 'chef', nom: chef.nom, titre: chef.titre || 'Rédacteur en chef', emoji: '🧐', hue: 40, x: 250, y: 950 });
+    list.push({ key: 'courrier', kind: 'courrier', nom: 'Le Courrier', titre: 'Suit les réponses', emoji: '📬', x: 330, y: 590, device: true });
+    list.push({ key: 'marbre', kind: 'marbre', nom: 'Le Marbre', titre: 'Les brouillons Ghost', emoji: '📰', x: 770, y: 590, device: true });
+    list.push({ key: 'sc', kind: 'sc', nom: JULIEN.sc.nom, titre: JULIEN.sc.adr, emoji: JULIEN.sc.emoji, hue: 175, x: 630, y: 950 });
+    list.push({ key: 'mk', kind: 'mk', nom: JULIEN.mk.nom, titre: JULIEN.mk.adr, emoji: JULIEN.mk.emoji, hue: 20, x: 930, y: 950 });
+    list.push({ key: 'compta', kind: 'compta', nom: 'Le Comptable', titre: 'Les pièces de la rédaction', emoji: '🧮', hue: 45, x: 1230, y: 950 });
     // Salle des décisions (22/10/2026) : ce que Telegram montrait et permettait de commander, en propre. Chaque poste = une entrée
     // de DECISIONS (plus bas) ; la future « Décisions vidéo » s'ajoute ici avec sa propre clé, sans toucher au reste.
-    list.push({ key: 'radar', kind: 'radar', nom: 'Le Radar', titre: 'Les sujets du jour', emoji: '📡', x: 1360, y: 735, device: true });
-    list.push({ key: 'votes', kind: 'votes', nom: 'Votes du public', titre: 'posthumain.com/vote', emoji: '🗳️', x: 1660, y: 735, device: true });
+    list.push({ key: 'radar', kind: 'radar', nom: 'Le Radar', titre: 'Les sujets du jour', emoji: '📡', x: 1130, y: 590, device: true });
+    list.push({ key: 'votes', kind: 'votes', nom: 'Votes du public', titre: 'posthumain.com/vote', emoji: '🗳️', x: 1470, y: 590, device: true });
     return list;
   }
   function P(key) { return people().filter(function (p) { return p.key === key; })[0]; }
@@ -527,8 +528,8 @@
   function gagnants() { return (D().equipe || []).filter(function (w) { return w.role !== 'chef' || testRec(); }); }
   function caissesSVG() {
     var js = gagnants().slice(0, 3);
-    var so = (S.pieces && S.pieces.soldes) || {}, X0 = 1650, Y0 = 1250, cp = P('compta') || { x: 1390, y: 1250 };
-    var s = '<g class="compta-deco"><rect x="1710" y="1390" width="80" height="90" rx="6" fill="#262626" stroke="rgba(255,255,255,.18)" stroke-width="2"/><circle cx="1750" cy="1435" r="16" fill="none" stroke="#9a8a6a" stroke-width="3"/><rect x="1747" y="1419" width="6" height="12" fill="#9a8a6a"/><text class="lbl2" x="1750" y="1497" text-anchor="middle">coffre</text></g>';
+    var so = (S.pieces && S.pieces.soldes) || {}, X0 = 1500, Y0 = 965, cp = P('compta') || { x: 1230, y: 950 };
+    var s = '<g class="compta-deco"><rect x="1590" y="808" width="64" height="70" rx="6" fill="#262626" stroke="rgba(255,255,255,.18)" stroke-width="2"/><circle cx="1622" cy="843" r="13" fill="none" stroke="#9a8a6a" stroke-width="3"/><rect x="1619.5" y="830" width="5" height="10" fill="#9a8a6a"/><text class="lbl2" x="1622" y="894" text-anchor="middle">coffre</text></g>';
     s += '<rect x="' + (X0 - 150) + '" y="' + (Y0 - 50) + '" width="300" height="150" rx="10" fill="url(#wood)" stroke="rgba(255,255,255,.14)"/><text class="lbl2" x="' + X0 + '" y="' + (Y0 + 125) + '" text-anchor="middle">table des caisses</text>';
     var xs = js.length === 3 ? [-95, 0, 95] : js.length === 2 ? [-60, 60] : [0];
     js.forEach(function (w, i) {
@@ -538,7 +539,7 @@
       s += '<g class="case" data-act="pieces" data-tip="' + esc('Caisse de ' + w.nom + '|🪙 ' + n + ' pièces à convertir|' + (n ? '≈ ' + eurTxt(n * Number((S.pieces || {}).taux || 0)) : 'vide pour l’instant')) + '" data-tip-act="Cliquer pour voir le Comptable">' +
         '<rect x="' + (x - 34) + '" y="' + (Y0 - 18) + '" width="68" height="44" rx="5" fill="#3d2b17" stroke="#c99a3a" stroke-width="2"/>' + tas +
         '<rect x="' + (x - 34) + '" y="' + (Y0 + 8) + '" width="68" height="18" rx="3" fill="#2a1d10"/><text x="' + x + '" y="' + (Y0 + 21) + '" text-anchor="middle" font-size="12" font-weight="800" fill="#ffd77a">🪙 ' + n + '</text>' +
-        '<text class="lbl2" x="' + x + '" y="' + (Y0 + 44) + '" text-anchor="middle">' + esc(w.nom.split(' ')[0]) + '</text>';
+        '<text class="lbl2" x="' + x + '" y="' + (Y0 + 44) + '" text-anchor="middle" style="fill:#f3e6c6">' + esc(w.nom.split(' ')[0]) + '</text>';
       if (anim) for (var c = 0; c < 5; c++) s += '<g><ellipse cx="0" cy="0" rx="8" ry="4" fill="#ffd25a" stroke="#a87a14"><animateMotion dur="' + (0.9 + c * 0.15) + 's" begin="' + (c * 0.18) + 's" fill="freeze" path="M' + cp.x + ' ' + (cp.y + 70) + ' Q' + ((cp.x + x) / 2) + ' ' + (cp.y + 130) + ' ' + x + ' ' + (Y0 - 6) + '"/></ellipse></g>';
       s += '</g>';
     });
@@ -549,9 +550,10 @@
     var actifs = vues().filter(function (f) { return f.statut !== 'inséré'; });
     var ivs = aInterviewer().map(function (a) { return { iv: a }; });
     var ds = ivs.concat(dossiers(actifs)), X = 720, Y = 64, CW = 62, CH = 78, cols = 4, rows = 4, max = cols * rows;
-    var s = '<g class="etagere"><rect x="' + (X - 8) + '" y="' + (Y - 8) + '" width="' + (cols * CW + 16) + '" height="' + (rows * CH + 16) + '" rx="6" fill="#2b2015" stroke="rgba(255,190,90,.25)" stroke-width="2"/>';
+    var K = 0.8; // étagère à 80 % (23/10) : cases, montants et zones cliquables réduits ensemble ; le libellé reste à taille normale
+    var s = '<g class="etagere" transform="translate(' + X + ' ' + Y + ') scale(' + K + ') translate(' + (-X) + ' ' + (-Y) + ')"><rect x="' + (X - 8) + '" y="' + (Y - 8) + '" width="' + (cols * CW + 16) + '" height="' + (rows * CH + 16) + '" rx="6" fill="#2b2015" stroke="rgba(255,190,90,.25)" stroke-width="2"/>';
     for (var r = 0; r < rows; r++) s += '<rect x="' + (X - 8) + '" y="' + (Y + r * CH + CH - 6) + '" width="' + (cols * CW + 16) + '" height="6" fill="#4a3624"/>';
-    s += '<text class="lbl2" x="' + (X + cols * CW / 2) + '" y="' + (Y + rows * CH + 30) + '" text-anchor="middle">étagère des dossiers' + (ds.length ? ' · ' + ds.length + ' enquête' + pl(ds.length) : ' · vide') + (ivs.length ? ' · 🎙️ ' + ivs.length + ' à interviewer' : '') + '</text>';
+    var lbl = '<text class="lbl2" x="' + (X + cols * CW * K / 2) + '" y="' + (Y + rows * CH * K + 24) + '" text-anchor="middle">étagère des dossiers' + (ds.length ? ' · ' + ds.length + ' enquête' + pl(ds.length) : ' · vide') + (ivs.length ? ' · 🎙️ ' + ivs.length + ' à interviewer' : '') + '</text>';
     ds.slice(0, max).forEach(function (d, i) {
       var cx = X + (i % cols) * CW, cy = Y + Math.floor(i / cols) * CH;
       if (d.iv) { // enquête premium sans demande d'interview : case au micro, clic = préparer les interviews
@@ -571,7 +573,7 @@
       s += '<g transform="translate(' + (CW - 14) + ',14)"><circle r="10" fill="' + col + '" filter="url(#glow)"/><text y="4" text-anchor="middle" font-size="11.5" font-weight="800" fill="#05170d">' + d.fiches.length + '</text></g>' +
         (nrel ? '<text x="12" y="' + (CH - 12) + '" font-size="15">⏰</text>' : '') + '</g>';
     });
-    return s + '</g>';
+    return s + '</g>' + lbl;
   }
   function pilesSVG() {
     var s = '';
@@ -629,7 +631,7 @@
     var HH = PLAN_H, WW = PLAN_W;
     var s = '<svg viewBox="0 0 ' + WW + ' ' + HH + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La rédaction de Posthumain vue de haut">' + defs + '<rect width="' + WW + '" height="' + HH + '" fill="#0a0806"/>';
     [[CORR[0], 'couloir · le chemin du courrier'], [CORR[1], 'couloir · arrière-salle']].forEach(function (c) {
-      s += '<rect x="20" y="' + (c[0] - 22) + '" width="' + (WW - 40) + '" height="44" fill="#100d09"/><rect x="20" y="' + (c[0] - 22) + '" width="' + (WW - 40) + '" height="44" fill="url(#tiles)"/><text class="roomname" x="40" y="' + (c[0] + 5) + '" style="font-size:11px">' + esc(c[1]) + '</text>';
+      s += '<rect x="20" y="' + (c[0] - 22) + '" width="' + (WW - 40) + '" height="44" fill="#100d09"/><rect x="20" y="' + (c[0] - 22) + '" width="' + (WW - 40) + '" height="44" fill="url(#tiles)"/><text class="roomname" x="40" y="' + (c[0] - 9) + '" style="font-size:11px">' + esc(c[1]) + '</text>';
     });
     var plaques = '';
     rooms().forEach(function (r) {
@@ -639,15 +641,15 @@
       // nom de la salle sur une plaque de la couleur du sol, posée APRÈS les fils : un fil qui entre dans la salle passe dessous
       plaques += '<rect x="' + (r.x + 10) + '" y="' + (r.y + 12) + '" width="' + Math.round(r.name.length * 10.2 + 12) + '" height="19" rx="4" fill="' + r.floor + '"/><text class="roomname" x="' + (r.x + 16) + '" y="' + (r.y + 26) + '">' + esc(r.name) + '</text>';
     });
-    [[310, 440], [1090, 440], [1600, 440], [310, 500], [900, 500], [1360, 500], [1660, 500], [310, 970], [900, 970], [1510, 970], [250, 1030], [670, 1030], [1050, 1030], [1390, 1030]].forEach(function (p) { s += '<rect x="' + (p[0] - 34) + '" y="' + (p[1] - 4) + '" width="68" height="8" fill="#0a0806"/>'; });
+    [[310, 360], [920, 360], [1460, 360], [330, 420], [770, 420], [1130, 420], [1470, 420], [330, 730], [770, 730], [1300, 730], [250, 790], [630, 790], [930, 790], [1230, 790]].forEach(function (p) { s += '<rect x="' + (p[0] - 34) + '" y="' + (p[1] - 4) + '" width="68" height="8" fill="#0a0806"/>'; });
     // décor : étagères de la bibliothèque, tableau de liège de la rédaction, fauteuils du chef
-    s += '<g transform="translate(1410,66)">';
+    s += '<g transform="translate(1270,66)">';
     for (var i = 0; i < 9; i++) s += '<rect x="' + (i * 38) + '" y="0" width="34" height="14" rx="2" fill="hsl(' + (i * 37) + ',35%,32%)"/>';
     s += '</g><g class="tableau" data-act="articles" transform="translate(60,62)"><title>Tableau des sujets : les brouillons Ghost (touchez pour choisir l’article en cours)</title><rect width="200" height="60" rx="6" fill="#5a4426" stroke="rgba(0,0,0,.4)"/>';
     var arts = artsRecents().slice(0, 5);
     arts.forEach(function (a, j) { s += '<rect x="' + (8 + j * 38) + '" y="' + (8 + (j % 2) * 6) + '" width="32" height="38" fill="' + (a.id === S.art ? '#fff7b0' : '#f3ead6') + '" transform="rotate(' + ((j % 3) - 1) * 4 + ' ' + (24 + j * 38) + ' 27)"/><circle cx="' + (24 + j * 38) + '" cy="' + (11 + (j % 2) * 6) + '" r="2.5" fill="#d42a44"/>'; });
     s += '<text x="100" y="76" text-anchor="middle" class="lbl2">tableau des sujets</text></g>';
-    s += '<g transform="translate(70,1410)"><rect width="70" height="56" rx="18" fill="#3a2a1c"/><rect x="250" width="70" height="56" rx="18" fill="#3a2a1c"/><text x="160" y="40" text-anchor="middle" font-size="26">🪴</text></g>';
+    s += '<g transform="translate(70,1040)"><rect width="70" height="56" rx="18" fill="#3a2a1c"/><rect x="300" width="70" height="56" rx="18" fill="#3a2a1c"/><text x="335" y="-12" text-anchor="middle" font-size="26">🪴</text></g>';
     var pp = people(), J = pp.filter(function (p) { return p.kind === 'journaliste'; });
     var sec = P('secretaire'), asst = P('assistant'), cour = P('courrier'), mar = P('marbre'), chef = P('chef');
     var envoyes = by('envoyé').length, reps = by('a répondu').length;
