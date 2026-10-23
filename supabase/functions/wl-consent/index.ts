@@ -172,7 +172,17 @@ Deno.serve(async (req) => {
       const { data, error } = requis ? await db.from("wl_consentements").select("id,signe_le,texte_version,nom_saisi").eq("journaliste_id", me.id).eq("texte_version", VERSION).limit(1) : { data: [], error: null };
       if (error) return out({ ok: false, why: "lecture de votre engagement impossible pour le moment, réessayez" }, 503);
       const s = data && data[0];
-      return out({ ok: true, requis, signe: s ? { ...s, signe_le_zurich: zurich(s.signe_le) } : null, version: VERSION, titre: TITRE, texte: TEXTE, hash: await HASH, nom: me.nom, id: me.id, email: me.email, editeur: EDITEUR });
+      // 23/10/2026 : visite guidée (onboarding) déjà vue ? réglage onboarding_<membre> = version vue ; une erreur de lecture = « pas vue »
+      let onboarding = "";
+      try { const { data: ob } = await db.from("wl_reglages").select("valeur").eq("cle", "onboarding_" + me.id).limit(1); onboarding = String((ob && ob[0] && ob[0].valeur) || ""); } catch (_) { onboarding = ""; }
+      return out({ ok: true, requis, signe: s ? { ...s, signe_le_zurich: zurich(s.signe_le) } : null, version: VERSION, titre: TITRE, texte: TEXTE, hash: await HASH, nom: me.nom, id: me.id, email: me.email, editeur: EDITEUR, onboarding });
+    }
+    // Visite guidée : vue (valeur = version, ex. « v1 ») ou à refaire (valeur vide). Chaque membre ne touche que SON réglage.
+    if (b.action === "onboarding") {
+      const valeur = String(b.valeur || "").replace(/[^a-z0-9._-]/gi, "").slice(0, 12);
+      const { error } = await db.from("wl_reglages").upsert({ cle: "onboarding_" + me.id, valeur, updated_at: new Date().toISOString() }, { onConflict: "cle" });
+      if (error) return out({ ok: false, why: "réglage non enregistré" });
+      return out({ ok: true, onboarding: valeur });
     }
     if (b.action === "signer") {
       if (me.role !== "journaliste") return out({ ok: false, why: "seules les journalistes signent cet engagement" }, 403);

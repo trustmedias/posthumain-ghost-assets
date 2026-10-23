@@ -104,6 +104,14 @@ for (const st of stations) {
   if (postes.some((p) => p.id === st.id)) ko(n + " : même id qu'un poste IA");
 }
 for (const id of STATIONS_PLAN) if (!stations.some((x) => x.id === id)) ko("station du plan « " + id + " » sans aide dans « stations »");
+// --- visite guidée (onboarding) : ordre des bureaux (postes ou stations existants) et étapes de navigation complètes ---
+const ob = cat.onboarding;
+if (!ob || typeof ob !== "object") ko("« onboarding » (visite guidée des journalistes) manquant");
+else {
+  if (!ob.version || typeof ob.version !== "string") ko("onboarding : « version » manquante");
+  for (const id of ob.ordre || []) if (!postes.some((p) => p.id === id) && !stations.some((x) => x.id === id)) ko("onboarding : « " + id + " » dans « ordre » n'est ni un poste ni une station");
+  for (const n of ob.navigation || []) for (const k of ["id", "emoji", "titre", "texte", "cible"]) if (!n[k] || typeof n[k] !== "string") ko("onboarding : étape « " + (n.id || "?") + " » sans « " + k + " »");
+}
 // --- chaque action de la page est une capacité ou une exception déclarée ---
 const interne = Object.keys(cat.interne || {}).filter((k) => !k.startsWith("_"));
 for (const m of apiModes) if (!couverts.has(m) && !interne.includes(m)) ko("api('" + m + "') (writinglab/app.js) n'est ni l'exécuteur d'une capacité, ni dans « interne » avec sa raison");

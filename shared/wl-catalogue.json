@@ -401,5 +401,69 @@
       "actions": ["Voir les sujets votés", "Écarter ou remettre un sujet"],
       "acces": "tous"
     }
-  ]
+  ],
+  "onboarding": {
+    "_lisezmoi": "Visite guidée (onboarding) montrée à chaque journaliste après la signature de l'engagement. Les étapes des postes et des stations sont GÉNÉRÉES depuis « postes » et « stations » (aide, capacités, exemples) dans l'ordre ci-dessous ; un poste absent de « ordre » est ajouté automatiquement à la fin. « navigation » décrit le reste de l'interface (cible = sélecteur CSS dans la page). Changer « version » refait voir la visite à tout le monde.",
+    "version": "v1",
+    "ordre": [
+      "secretaire",
+      "assistant",
+      "courrier",
+      "marbre",
+      "radar",
+      "votes",
+      "compta"
+    ],
+    "navigation": [
+      {
+        "id": "interphone",
+        "emoji": "📞",
+        "titre": "L'Interphone",
+        "texte": "La messagerie de la rédaction : écrivez au rédacteur en chef, partagez un fichier, dictez un message au micro. La Secrétaire y annonce aussi les nouvelles enquêtes.",
+        "cible": ".tabs .tab[data-tab=\"interphone\"]"
+      },
+      {
+        "id": "classeur",
+        "emoji": "🗂️",
+        "titre": "Le Classeur",
+        "texte": "Tous les fichiers échangés (PDF, images, documents), rangés par catégorie. Il s'ouvre sur le bord droit de l'écran.",
+        "cible": ".clsr-h"
+      },
+      {
+        "id": "suivi",
+        "emoji": "✉️",
+        "titre": "Le Suivi",
+        "texte": "Toutes vos interviews d'un coup d'œil : par enquête, avec la prochaine action à faire, et par étape (à valider, envoyé, a répondu, cité).",
+        "cible": ".tabs .tab[data-tab=\"suivi\"]"
+      },
+      {
+        "id": "articles",
+        "emoji": "📰",
+        "titre": "L'onglet Articles",
+        "texte": "Les brouillons et les articles publiés. Sur chaque article : « ⚡ Préparer les interviews », puis « 📬 Voir les mails » pour suivre les réponses.",
+        "cible": ".tabs .tab[data-tab=\"articles\"]"
+      },
+      {
+        "id": "telephones",
+        "emoji": "☎️",
+        "titre": "Le téléphone des bureaux",
+        "texte": "Chaque employé virtuel a un ☎️ sur son bureau. Écrivez ou dictez une demande libre, par exemple « Prépare des questions pour Marie Dupont de l'EPFL » : il s'en occupe ou la transmet au bon collègue. Rien ne part sans votre validation.",
+        "cible": ".floor .tel-svg"
+      },
+      {
+        "id": "info",
+        "emoji": "ⓘ",
+        "titre": "Qui fait quoi ?",
+        "texte": "Le petit ⓘ en haut à droite de chaque salle rappelle le rôle de chaque bureau, avec des exemples de demandes. Pratique quand on a un doute.",
+        "cible": ".floor .info-svg"
+      },
+      {
+        "id": "parametres",
+        "emoji": "⚙️",
+        "titre": "Vos Paramètres",
+        "texte": "Votre signature de mail (français et anglais), les notifications sur votre téléphone, la langue de la dictée. Et le bouton « 🎓 Refaire l’onboarding » pour revoir ce guide quand vous voulez.",
+        "cible": ".top [data-act=\"parametres\"]"
+      }
+    ]
+  }
 }
