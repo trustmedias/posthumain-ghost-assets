@@ -2016,7 +2016,7 @@
         '<br>Dernière relève : ' + esc(bxQuand(b.derniere_releve)) + ' · dernier test : ' + esc(bxQuand(b.dernier_test)) + '</div>' +
         (b.statut === 'erreur' && b.derniere_erreur ? '<div class="bx-err">' + esc(b.derniere_erreur) + '</div>' : '') + '</div>' +
         '<div class="row bx-b"><button class="btn small" data-act="bx-retester" data-id="' + esc(b.id) + '">🔄 Re-tester</button><button class="btn small" data-act="bx-mdp" data-id="' + esc(b.id) + '">🔑 Mot de passe</button><button class="btn small" data-act="bx-changer-role" data-id="' + esc(b.id) + '">🎯 Rôle</button>' +
-        '<button class="btn small' + (b.actif ? ' red' : ' go') + '" data-act="bx-actif" data-id="' + esc(b.id) + '" data-on="' + (b.actif ? '0' : '1') + '">' + (b.actif ? '⏸️ Désactiver' : '▶️ Réactiver') + '</button></div></div>';
+        '<button class="btn small' + (b.actif ? ' red' : ' go') + '" data-act="bx-actif" data-id="' + esc(b.id) + '" data-on="' + (b.actif ? '0' : '1') + '">' + (b.actif ? '⏸️ Désactiver' : '▶️ Réactiver') + '</button>' + (b.actif ? '' : '<button class="btn small red" data-act="bx-supprimer" data-id="' + esc(b.id) + '">🗑️ Supprimer</button>') + '</div></div>';
       if (ed === 'mdp') x += '<div class="bx-f"><label for="bx-nmdp">Nouveau mot de passe de ' + esc(b.adresse) + '</label><input class="in" id="bx-nmdp" type="password" autocomplete="new-password" spellcheck="false"><div class="set-s">Il est d’abord testé (IMAP et SMTP, aucun mail envoyé) ; l’ancien reste en place s’il est refusé.</div><div class="row" style="gap:8px;margin-top:8px"><button class="btn go" data-act="bx-mdp-ok" data-id="' + esc(b.id) + '">Tester et enregistrer</button><button class="btn small" data-act="bx-mdp" data-id="' + esc(b.id) + '">Annuler</button></div></div>';
       if (ed === 'role') x += '<div class="bx-f"><label for="bx-nrole">Bureau</label><select class="in" id="bx-nrole">' + bxRoles().map(function (r) { return '<option value="' + esc(r.id) + '"' + (r.id === b.role ? ' selected' : '') + (r.actif ? '' : ' disabled') + '>' + esc(r.nom + (r.actif ? '' : ' — bientôt')) + '</option>'; }).join('') + '</select>' +
         '<label for="bx-nnom">Nom de l’expéditeur</label><input class="in" id="bx-nnom" value="' + esc(b.nom_affiche || '') + '" placeholder="ex. Trust Medias"><div class="row" style="gap:8px;margin-top:8px"><button class="btn go" data-act="bx-role-ok" data-id="' + esc(b.id) + '">Enregistrer</button><button class="btn small" data-act="bx-changer-role" data-id="' + esc(b.id) + '">Annuler</button></div></div>';
@@ -2101,6 +2101,14 @@
     confirmer(actif ? 'Réactiver ' + b.adresse + ' ?\n\nLe Courrier recommence à la relever et ' + bxRoleNom(b.role) + ' peut de nouveau répondre depuis elle.' : 'Désactiver ' + b.adresse + ' ?\n\nElle n’est plus relevée et plus aucune réponse ne part depuis elle. Son mot de passe reste dans le coffre et son courrier déjà reçu reste visible ; vous pourrez la réactiver.').then(function (ok) {
       if (!ok) return; S.clicking = ck;
       bxAction({ action: 'actif', id: id, actif: actif }, actif ? '▶️ ' + b.adresse + ' réactivée.' : '⏸️ ' + b.adresse + ' désactivée.');
+    });
+  }
+  function bxSupprimer(id) {
+    var b = ((S.bxListe || {}).boites || []).filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    var ck = S.clicking;
+    confirmer('Supprimer ' + b.adresse + ' du lab ?\n\nSes réglages et son mot de passe (coffre Vault) sont effacés définitivement. Le courrier déjà reçu reste visible. La boîte elle-même, chez le fournisseur, n’est pas touchée.').then(function (ok) {
+      if (!ok) return; S.clicking = ck;
+      bxAction({ action: 'supprimer', id: id }, '🗑️ ' + b.adresse + ' supprimée du lab.');
     });
   }
   // ---------- Équipe (23/10/2026) ----------
@@ -2524,6 +2532,7 @@
       case 'bx-mdp-ok': bxAction({ action: 'mot_de_passe', id: id, mdp: val('bx-nmdp') }, '🔑 Nouveau mot de passe vérifié et rangé dans le coffre.'); break;
       case 'bx-role-ok': bxAction({ action: 'role', id: id, role: val('bx-nrole'), nom_affiche: val('bx-nnom').trim() }, '🎯 Rôle enregistré.'); break;
       case 'bx-actif': bxActif(id, t.getAttribute('data-on') === '1'); break;
+      case 'bx-supprimer': bxSupprimer(id); break;
       case 'eq-nouveau': S.eqEdit = '__nouveau'; S.eqDraft = {}; paintPanel(); var ne = S.root.querySelector('#eq-email'); if (ne) ne.focus(); break;
       case 'eq-edit': S.eqEdit = S.eqEdit === id ? null : id; S.eqDraft = {}; paintPanel(); break;
       case 'eq-annuler': S.eqEdit = null; S.eqDraft = null; paintPanel(); break;

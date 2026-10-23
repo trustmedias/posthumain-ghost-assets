@@ -353,6 +353,15 @@ Deno.serve(async (req) => {
       await db.from("wl_boites").update({ actif: b.actif === true, releve_verrou: null, updated_at: new Date().toISOString() }).eq("id", box.id);
       return out({ ok: true, actif: b.actif === true });
     }
+    // Suppression (23/10/2026) : seulement une boîte déjà désactivée ; le mot de passe est effacé du coffre (Vault),
+    // le courrier déjà reçu reste dans wl_courrier.
+    if (b.action === "supprimer") {
+      if (box.actif) return out({ ok: false, why: "désactivez d’abord la boîte" });
+      if (box.secret_id) await db.rpc("wl_boite_secret_supprimer", { p_secret_id: box.secret_id });
+      const { error } = await db.from("wl_boites").delete().eq("id", box.id);
+      if (error) return out({ ok: false, why: error.message });
+      return out({ ok: true, supprime: box.id });
+    }
     return out({ ok: false, why: "action inconnue" }, 400);
   } catch (e) {
     return out({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) });
