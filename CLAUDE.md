@@ -25,7 +25,7 @@ et `exemples`. Les stations du plan sans IA (Courrier, Marbre, Radar, Votes) et 
 ont leur aide dans `stations`.
 
 Une nouvelle action `api('…')` dans app.js doit être l'exécuteur d'une capacité, ou figurer dans `interne`
-avec sa raison, sinon le test échoue.
+avec sa raison, sinon le test échoue. De même, toute action de `wl-tel` est l'exécuteur d'une capacité ou figure dans `interne_tel`.
 
 Exemple complet (poste « Documentaliste » + capacité « dossier_archives ») et description de tous les
 champs : **`CONTRIBUTING-writinglab.md`**.

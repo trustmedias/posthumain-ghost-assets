@@ -108,6 +108,11 @@ for (const id of STATIONS_PLAN) if (!stations.some((x) => x.id === id)) ko("stat
 const interne = Object.keys(cat.interne || {}).filter((k) => !k.startsWith("_"));
 for (const m of apiModes) if (!couverts.has(m) && !interne.includes(m)) ko("api('" + m + "') (writinglab/app.js) n'est ni l'exécuteur d'une capacité, ni dans « interne » avec sa raison");
 for (const m of interne) if (!apiModes.includes(m)) ko("« interne » liste api('" + m + "') qui n'existe plus dans writinglab/app.js : retirez-le");
+// --- chaque action de wl-tel est l'exécuteur d'une capacité ou une exception déclarée (interne_tel) ---
+const execTel = new Set(); for (const c of caps) { const E = c.executeur || {}; if (E.type === "tel") for (const k of ["action", "envoi", "ecarter", "lister"]) if (E[k]) execTel.add(E[k]); }
+const interneTel = Object.keys(cat.interne_tel || {}).filter((k) => !k.startsWith("_"));
+for (const a of new Set(telActions)) if (!execTel.has(a) && !interneTel.includes(a)) ko("wl-tel : action « " + a + " » ni exécuteur d'une capacité, ni dans « interne_tel » avec sa raison");
+for (const a of interneTel) if (!telActions.includes(a)) ko("« interne_tel » liste « " + a + " » qui n'existe plus dans wl-tel : retirez-le");
 // --- aucun poste codé en dur côté serveur ---
 if (/const POSTES: Record<string, Poste> = \{\s*\n\s*secretaire/.test(tel)) ko("wl-tel : POSTES encore codés en dur (doivent venir de catalogue.ts)");
 // --- copies à jour ---

@@ -342,6 +342,16 @@
     "inserer": "insertion validée dans Ghost : après la proposition de citations",
     "citation": "propositions de citations : déclenchées par la fiche ou la capacité « citations »"
   },
+  "interne_tel": {
+    "_pourquoi": "Actions de wl-tel appelées directement par la page (téléphone, fiche) qui ne sont pas l'exécuteur d'une capacité : chacune avec sa raison. Toute nouvelle action de wl-tel doit être un exécuteur (action, envoi, ecarter, lister) d'une capacité ou figurer ici, sinon le test échoue.",
+    "capacites": "ce que le serveur sait faire (import audio) et postes accessibles : ouverture du téléphone",
+    "historique": "fil du membre avec un poste : ouverture du téléphone",
+    "telephone": "requête libre au ☎️ d'un poste : Claude répond par une proposition (capacité du catalogue)",
+    "action_faite": "note sur le fil qu'une proposition a été exécutée",
+    "canal": "« Reçue par » choisi à la main dans la fiche",
+    "appel_traiter": "réponse par téléphone : structuration de la transcription (aucune écriture)",
+    "fiche_traitee": "« ✓ Marquer comme traitée » : réponse purement logistique, la fiche s'affiche en attente (statut réel inchangé)"
+  },
   "aiguillage": {
     "_pourquoi": "Règles d'aiguillage générées dans la fiche de poste de chaque IA (wl-tel) et dans l'aide ⓘ. contacts_interview : le poste qui écrit à toute personne qui a une fiche d'interview ; un poste qui a une boîte de courrier (mail) ne reçoit jamais ces demandes (vérifié aussi par le serveur avant une transmission).",
     "contacts_interview": "secretaire"

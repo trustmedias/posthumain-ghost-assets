@@ -135,5 +135,7 @@ avec ce poste uniquement dans le catalogue de test.
   - fonction présente dans `PAGE_EXEC`.
 - **Toute action `api('…')` de app.js** est l'exécuteur d'une capacité, ou figure dans `interne` avec sa raison :
   ce sont les boutons habituels (envoi validé, corrections de fiche…).
+- **Toute action de wl-tel** (`b.action === "…"`) est un exécuteur de capacité (`action`, `envoi`, `ecarter`, `lister`) ou
+  figure dans `interne_tel` avec sa raison (téléphone, canal, « ✓ Marquer comme traitée »…).
 - wl-tel n'a plus de postes codés en dur.
 - Les copies du catalogue (app.js, wl-tel/catalogue.ts) sont à jour.

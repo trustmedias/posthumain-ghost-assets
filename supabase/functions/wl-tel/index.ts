@@ -18,6 +18,7 @@
 //        fil (In-Reply-To = dernier message du contact, sinon notre mail ; References complètes ; copie dans « Envoyés »),
 //        depuis la boîte de la fiche, signature du membre dans la langue de la fiche ; historique « suite envoyée ». Statut inchangé.
 //  - suite_ecarter { fiche_id } / suites → brouillon écarté / brouillons et réponses envoyées dans le fil (pour la page)
+//  - fiche_traitee { fiche_id } → « ✓ Marquer comme traitée » : historique « réponse marquée traitée » (statut réel inchangé)
 // Rôles : une journaliste n'a que Secrétaire, Assistant, Comptable, et seulement ses fiches ; Julien (mk, sc) = rédacteur en chef.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
@@ -386,6 +387,18 @@ Deno.serve(async (req) => {
       if (!garderPreuve) await db.from("wl_fiches").update({ reponse_verifiee: true, reponse_preuve: JSON.stringify({ lien: "telephone", de: String(f.contact_email || "").toLowerCase(), recu_le: now.toISOString(), par: me.id, source, consentement: source === "appel" ? true : null, note: "réponse par téléphone : pas de preuve par les en-têtes de mail, pièces à vérifier" }) }).eq("fiche_id", f.fiche_id);
       await db.from("wl_appels").insert({ fiche_id: f.fiche_id, membre: me.id, source, consentement: source === "appel", transcription: String(b.transcription || "").slice(0, 60000) || null, resume: resume || null, reponses: reps });
       return out({ ok: true, fiche_id: f.fiche_id, reponse: texte });
+    }
+    // « ✓ Marquer comme traitée » (23/10/2026) : réponse purement logistique, sans contenu à citer. Seul l'historique change : la page
+    // affiche alors la fiche « en attente de réponse » ; statut réel, réponse, preuve et pièces restent intacts.
+    if (b.action === "fiche_traitee") {
+      let q = db.from("wl_fiches").select("fiche_id,statut,historique").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
+      const { data } = await q; const f = data && data[0];
+      if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
+      if (f.statut !== "a répondu") return out({ ok: false, why: "seule une fiche « a répondu » peut être marquée traitée" });
+      const hist = pj(f.historique) || []; hist.push({ t: new Date().toISOString(), e: "réponse marquée traitée", par: me.id });
+      const { error } = await db.from("wl_fiches").update({ historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
+      if (error) return out({ ok: false, why: "enregistrement impossible" }, 500);
+      return out({ ok: true });
     }
     // ---------- Réponse dans le fil d'une fiche d'interview (capacité du catalogue dont l'exécuteur est « suite_rediger ») ----------
     if (b.action === "suites") {
