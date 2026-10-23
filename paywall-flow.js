@@ -122,6 +122,8 @@
   }
 
   function markSubscriptionFlowStarted() {
+    // Nouveau clic d'abonnement : une ancienne annulation chez Stripe ne compte plus.
+    try { localStorage.removeItem(STRIPE_RETOUR_KEY); } catch (e) {}
     localStorage.setItem(
       SUBSCRIPTION_FLOW_STARTED_KEY,
       JSON.stringify({
@@ -146,11 +148,11 @@
     try { localStorage.removeItem(STRIPE_RETOUR_KEY); } catch (e) {}
   }
 
-  // Retour de Stripe (?stripe=cancel ou ?stripe=success dans l'adresse d'arrivée, que Portal efface ensuite de la barre)
+  // Annulation chez Stripe : Stripe renvoie sur l'article avec ?stripe=cancel (adresse d'arrivée, que Portal efface ensuite de la barre)
   const STRIPE_RETOUR_KEY = 'posthumain_stripe_retour';
   function noterRetourStripe() {
     var navUrl = ''; try { navUrl = performance.getEntriesByType('navigation')[0].name; } catch (e) {}
-    if (/[?&]stripe=(success|cancel)/.test(window.location.search + ' ' + navUrl) || /stripe\.com/.test(document.referrer)) {
+    if (/[?&]stripe=cancel/.test(window.location.search + ' ' + navUrl)) {
       try { localStorage.setItem(STRIPE_RETOUR_KEY, String(Date.now())); } catch (e) {}
     }
   }
@@ -277,9 +279,9 @@
       return;
     }
 
-    // Uniquement après un vrai passage par Stripe : Stripe renvoie sur l'article avec ?stripe=cancel (abandon) ou
-    // ?stripe=success ; ce retour est noté (voir noterRetourStripe) et la redirection se fait ensuite sur l'accueil.
-    if (!retourStripeRecent()) {
+    // Pas après une annulation chez Stripe : la personne n'a pas payé, « Votre accès est presque prêt » serait faux.
+    // Le filet de sécurité reste pour tous les autres cas (connexion pas faite après un clic d'abonnement).
+    if (retourStripeRecent()) {
       return;
     }
 
