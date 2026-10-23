@@ -262,8 +262,15 @@
       return;
     }
 
+    // Uniquement au vrai retour de Stripe (Portal efface ?stripe= de la barre d'adresse : on relit l'URL d'origine)
+    var navUrl = ''; try { navUrl = performance.getEntriesByType('navigation')[0].name; } catch (e) {}
+    if (!/[?&]stripe=(success|cancel)/.test(window.location.search + ' ' + navUrl) && !/stripe\.com/.test(document.referrer)) {
+      return;
+    }
+
     if (isGenericReturnPageAfterCheckout()) {
       markEmailCheckRedirected();
+      try { gtag('event', 'verification_email_redirection'); } catch (e) {}
       window.location.href = EMAIL_CHECK_PATH;
     }
   }
@@ -299,6 +306,7 @@
     // Si on est connecté ailleurs, on revient à l'article.
     // Cela couvre surtout les comptes gratuits / freemium.
     if (isLoggedIn) {
+      try { gtag('event', 'retour_article'); } catch (e) {}
       window.location.href = savedArticleUrl;
     }
   }
@@ -442,12 +450,9 @@
     if (shouldRememberArticleFromClick(target)) {
       rememberCurrentArticleBeforeSubscribe();
       markSubscriptionFlowStarted();
+      try { gtag('event', 'paywall_clic'); } catch (e) {}
     }
   }
-
-  document.addEventListener('pointerdown', function(e) {
-    rememberArticleAndMarkFlow(e.target);
-  }, true);
 
   document.addEventListener('click', function(e) {
     rememberArticleAndMarkFlow(e.target);
