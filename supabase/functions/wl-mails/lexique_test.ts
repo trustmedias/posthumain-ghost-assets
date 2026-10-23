@@ -60,6 +60,14 @@ Deno.test("validation des blocs", () => {
   ok(blocsValides([]), "mail vide refusé");
 });
 
+Deno.test("mise en page « carte » : un paragraphe qui n'est qu'un lien devient le bouton du Grand Format", () => {
+  const lex = JSON.parse(blocsVersLexical([{ t: "p", md: "[**Lire l'enquête →**](https://posthumain.com/e/)" }, { t: "p", md: "Voir [ici](https://posthumain.com/x/) et ailleurs" }], "carte"));
+  ok(/data-wl-bouton/.test(lex.root.children[0].html) && />Lire l&#39;enquête →<|>Lire l'enquête →</.test(lex.root.children[0].html), "bouton avec le texte du lien");
+  ok(!/data-wl-bouton/.test(lex.root.children[1].html), "un lien dans une phrase reste un lien");
+  const back = lexicalVersBlocs(JSON.stringify(lex));
+  eq(back.blocs[0], { t: "bouton", url: "https://posthumain.com/e/", label: "Lire l'enquête →" }, "relu comme bouton");
+});
+
 // Chaîne réelle de l'automation « Free member welcome flow » (23/10/2026) : attente 24 h → mail 1 → attente 168 h → mail 2
 const W1 = "6a3be58303d66a6735fd5c08", M1 = "6a3be51b07db2c00017282ae", W2 = "6a3d42691c00d35ab500d9d8", M2 = "6a3d42721c00d35ab500d9d9";
 const AUTO = { status: "active", actions: [

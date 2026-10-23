@@ -89,7 +89,12 @@ export function blocsVersLexical(blocs: Any[], miseEnPage: string): string {
     if (b.t === "raw") { ch.push(b.node); continue; }
     if (b.t === "bouton") { ch.push(htmlNoeud(boutonHtml(b.label, b.url))); continue; }
     if (carte) {
-      if (b.t === "p") ch.push(htmlNoeud('<p style="margin:0 0 14px 0;font-size:17px;line-height:1.6;color:#3c4043;">' + mdVersHtml(b.md) + "</p>"));
+      if (b.t === "p") {
+        // un paragraphe qui n'est qu'un lien (« Lire l'enquête → ») devient le bouton du Grand Format, comme dans le gabarit
+        const seul = mdVersInline(b.md), lien = seul.length === 1 && seul[0].type === "link" ? seul[0] : null;
+        if (lien && /^https:\/\//.test(lien.url)) { ch.push(htmlNoeud(boutonHtml(texteDe(lien).replace(/\s+/g, " ").trim(), lien.url))); continue; }
+        ch.push(htmlNoeud('<p style="margin:0 0 14px 0;font-size:17px;line-height:1.6;color:#3c4043;">' + mdVersHtml(b.md) + "</p>"));
+      }
       else if (b.t === "h") ch.push(htmlNoeud('<' + b.tag + ' style="margin:24px 0 10px 0;font-size:' + (b.tag === "h2" ? 22 : 19) + 'px;line-height:1.3;font-weight:800;color:' + INK + ';">' + mdVersHtml(b.md) + "</" + b.tag + ">"));
       else if (b.t === "ul" || b.t === "ol") ch.push(htmlNoeud("<" + b.t + ' style="margin:0 0 14px 0;padding:0 0 0 22px;font-size:17px;line-height:1.6;color:#3c4043;">' + b.items.map((it: string) => '<li style="margin:0 0 6px 0;">' + mdVersHtml(it) + "</li>").join("") + "</" + b.t + ">"));
       else if (b.t === "hr") ch.push(htmlNoeud('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr><td style="padding:12px 0 22px 0;"><div style="border-top:1px solid #e3e3e3;font-size:0;line-height:0;">&nbsp;</div></td></tr></table>'));
