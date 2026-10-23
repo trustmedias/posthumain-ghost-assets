@@ -183,7 +183,8 @@
   //  - Elle disparaît au toucher, au défilement, à Échap et à chaque clic (le clic ouvre souvent une fenêtre) ; après un toucher
   //    (souris émulée par l'écran tactile), elle s'efface seule au bout de 2 s.
   //  - Elle ne s'affiche pas tant qu'une fenêtre modale ([aria-modal="true"]) est ouverte, sauf sur un élément de cette fenêtre.
-  //  - Empilement : infobulle (tipZ, 65) < fenêtres et voiles (confirmation : cfmZ, 70 ; les labs placent les leurs au-dessus).
+  //  - Empilement : l'infobulle passe AU-DESSUS de tout (tipZ, 2147483100) : comme elle n'apparaît que sur un élément de la
+  //    fenêtre ouverte (jamais derrière une fenêtre), elle doit être lisible devant le voile flouté de cette fenêtre.
   L.masquerInfobulles = function () { var l = document.querySelectorAll('.tip.on'); for (var i = 0; i < l.length; i++) l[i].classList.remove('on'); };
   L.infobulle = function (opts) {
     var tactile = 0, minuteur = null;
@@ -308,7 +309,7 @@
       // mode clair (racine « #wl.wl-clair », « #vl.vl-clair ») : vert profond lisible sur le papier
       R + '.' + pre + '-clair .phl-porte-t{fill:#0a7a45}' + R + '.' + pre + '-clair .phl-porte-s{fill:rgba(31,26,18,.62)}' +
       R + '.' + pre + '-clair .phl-porte-f,' + R + '.' + pre + '-clair .phl-porte-halo{fill:#0fb565}' + R + '.' + pre + '-clair .phl-porte-f{stroke:rgba(10,60,30,.35)}';
-    var tip = R + ' .tip{position:fixed;z-index:' + (p.tipZ || 65) + ';pointer-events:none;max-width:300px;padding:10px 12px;border-radius:12px;background:' + (p.fondTip || '#f8f4ea') + ';color:' + (p.encreTip || '#1f1a12') + ';font-size:13px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}' + R + ' .tip.on{opacity:1}' +
+    var tip = R + ' .tip{position:fixed;z-index:' + (p.tipZ || 2147483100) + ';pointer-events:none;max-width:300px;padding:10px 12px;border-radius:12px;background:' + (p.fondTip || '#f8f4ea') + ';color:' + (p.encreTip || '#1f1a12') + ';font-size:13px;line-height:1.4;box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .12s}' + R + ' .tip.on{opacity:1}' +
       R + ' .tip b{display:block;font-size:13.5px;margin-bottom:3px;color:' + (p.encreTip || '#1f1a12') + '!important;font-weight:700}' + R + ' .tip span{display:block;color:' + (p.douxTip || '#5c5444') + '!important}' + R + ' .tip span.go{color:' + (p.goTip || '#1f6b45') + '!important;font-weight:600}';
     return { occupe: occupe, confirmer: confirmer, toast: toast, porte: porte, tip: tip };
   };
