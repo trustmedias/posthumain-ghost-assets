@@ -143,7 +143,22 @@
     localStorage.removeItem(LAST_PAYWALLED_ARTICLE_KEY);
     localStorage.removeItem(SUBSCRIPTION_FLOW_STARTED_KEY);
     localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
+    try { localStorage.removeItem(STRIPE_RETOUR_KEY); } catch (e) {}
   }
+
+  // Retour de Stripe (?stripe=cancel ou ?stripe=success dans l'adresse d'arrivée, que Portal efface ensuite de la barre)
+  const STRIPE_RETOUR_KEY = 'posthumain_stripe_retour';
+  function noterRetourStripe() {
+    var navUrl = ''; try { navUrl = performance.getEntriesByType('navigation')[0].name; } catch (e) {}
+    if (/[?&]stripe=(success|cancel)/.test(window.location.search + ' ' + navUrl) || /stripe\.com/.test(document.referrer)) {
+      try { localStorage.setItem(STRIPE_RETOUR_KEY, String(Date.now())); } catch (e) {}
+    }
+  }
+  function retourStripeRecent() {
+    var t = 0; try { t = Number(localStorage.getItem(STRIPE_RETOUR_KEY)) || 0; } catch (e) {}
+    return !!t && Date.now() - t < LAST_PAYWALLED_ARTICLE_MAX_AGE;
+  }
+  noterRetourStripe();
 
   function getSavedPaywalledArticleUrl() {
     const savedDataRaw = localStorage.getItem(LAST_PAYWALLED_ARTICLE_KEY);
@@ -262,9 +277,9 @@
       return;
     }
 
-    // Uniquement au vrai retour de Stripe (Portal efface ?stripe= de la barre d'adresse : on relit l'URL d'origine)
-    var navUrl = ''; try { navUrl = performance.getEntriesByType('navigation')[0].name; } catch (e) {}
-    if (!/[?&]stripe=(success|cancel)/.test(window.location.search + ' ' + navUrl) && !/stripe\.com/.test(document.referrer)) {
+    // Uniquement après un vrai passage par Stripe : Stripe renvoie sur l'article avec ?stripe=cancel (abandon) ou
+    // ?stripe=success ; ce retour est noté (voir noterRetourStripe) et la redirection se fait ensuite sur l'accueil.
+    if (!retourStripeRecent()) {
       return;
     }
 
