@@ -121,12 +121,20 @@ async function claude(system: string, messages: any[], tool: any, maxTokens = 25
   const key = env("ANTHROPIC_API_KEY"); if (!key) throw new Error("clé Anthropic absente");
   const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(55000),
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODELE, max_tokens: maxTokens, system, messages, tools: [tool], tool_choice: { type: "tool", name: tool.name } }) });
+    // tool_choice « tool » / « any » refusé par ce modèle : « auto » + consigne ferme dans le système, et repli sur le texte.
+    body: JSON.stringify({ model: MODELE, max_tokens: maxTokens, system: system + "\n\nIMPORTANT : réponds UNIQUEMENT en appelant l'outil « " + tool.name + " », sans texte autour.", messages, tools: [tool], tool_choice: { type: "auto" } }) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error("Claude " + r.status + " : " + court(j?.error?.message, 160));
   // deno-lint-ignore no-explicit-any
-  const t = (j.content || []).find((c: any) => c.type === "tool_use");
-  if (!t || !t.input) throw new Error("réponse de Claude illisible");
+  let t = (j.content || []).find((c: any) => c.type === "tool_use");
+  if (!t || !t.input) {
+    // deno-lint-ignore no-explicit-any
+    const txt = (j.content || []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("").trim();
+    const m = txt.match(/\{[\s\S]*\}/); let v = null; if (m) { try { v = JSON.parse(m[0]); } catch { v = null; } }
+    if (v) t = { input: v };
+    else if (txt && tool.name === "repondre") t = { input: { mode: "faire", message: txt.slice(0, 4000) } };
+    else throw new Error("réponse de Claude illisible");
+  }
   try {
     const u = j.usage || {}, tin = Number(u.input_tokens || 0), tout = Number(u.output_tokens || 0);
     await db.from("wl_couts").insert({ membre: qui || null, usage, modele: String(j.model || MODELE), tokens_in: tin, tokens_out: tout, cout_eur: Math.round(((tin * TARIF[0] + tout * TARIF[1]) / 1e6) * 0.92 * 1e5) / 1e5 });
@@ -150,7 +158,7 @@ function systemePoste(p: Poste, me: Membre, peutTransmettre: boolean, autres: Po
     "TON RÔLE : " + p.role,
     "TES ACTIONS (les seules que tu peux proposer) :\n" + p.actions.map((a) => "- " + ACTIONS_DOC[a]).join("\n"),
     peutTransmettre ? "SI CE N'EST PAS DE TON RESSORT : mode « transmettre », vers l'un de ces postes : " + autres.map((x) => x.id + " (" + x.nom + " : " + x.role.split(".")[0] + ")").join(" ; ") + ". La requête lui sera transmise automatiquement, une seule fois." : "La requête t'a été TRANSMISE par un autre poste : traite-la (mode « faire » ou « question »), tu ne peux pas la transmettre à nouveau. Si vraiment elle n'est pas faisable, dis-le simplement dans le message.",
-    "RÈGLES :\n- Jamais d'envoi ni de publication : tu produis seulement des propositions que le membre valide (brouillon, réponse à enregistrer, citations proposées).\n- Utilise uniquement les identifiants (article_id, fiche_id, mail_id) présents dans le contexte. Si la fiche ou le mail visé est ambigu ou absent, pose une question (mode « question ») en citant les possibilités.\n- N'invente aucun fait, aucune citation, aucune adresse : seulement ce qui est dans la requête ou le contexte.\n- Pour reponse_fiche : une réponse par question de la fiche quand le membre en a rapporté le contenu ; laisse de côté les questions sans réponse et dis-le.\n- Une simple information (un solde, un état) : mode « faire » sans action, la réponse est dans le message.\n- Réponds avec l'outil « repondre ».",
+    "RÈGLES :\n- Jamais d'envoi ni de publication : tu produis seulement des propositions que le membre valide (brouillon, réponse à enregistrer, citations proposées).\n- Utilise uniquement les identifiants (article_id, fiche_id, mail_id) présents dans le contexte. Si la fiche ou le mail visé est ambigu ou absent, pose une question (mode « question ») en citant les possibilités.\n- N'invente aucun fait, aucune citation, aucune adresse : seulement ce qui est dans la requête ou le contexte.\n- Si la demande relève d'une action d'un AUTRE poste (structurer une réponse d'interview ou des notes d'appel = l'Assistant ; rédiger un mail d'interview = la Secrétaire ; répondre à un mail reçu = Julien), transmets-la au lieu de répondre que tu ne peux pas.\n- Pour reponse_fiche : une réponse par question de la fiche quand le membre en a rapporté le contenu ; laisse de côté les questions sans réponse et dis-le ; les propos qui ne répondent à aucune question vont dans une entrée dont la question est « Complément ».\n- Une simple information (un solde, un état) : mode « faire » sans action, la réponse est dans le message.\n- Réponds avec l'outil « repondre ».",
   ].join("\n\n");
 }
 // deno-lint-ignore no-explicit-any
@@ -173,7 +181,7 @@ function valider(me: Membre, p: Poste, a: any, ctx: any): { ok: true; action: an
     case "chercher_contacts": if (!art(String(pr.article_id || ""))) return { ok: false, why: "article inconnu" }; return { ok: true, action: { type: a.type, params: { article_id: String(pr.article_id) } } };
     case "reponse_fiche": {
       const f = fiche(String(pr.fiche_id || "")); if (!f) return { ok: false, why: "fiche inconnue (ou pas la vôtre)" };
-      if (!["envoyé", "a répondu", "relance"].includes(String(f.statut))) return { ok: false, why: "la fiche n'attend pas de réponse (statut : " + f.statut + ")" };
+      if (!["envoyé", "a répondu", "relance", "inséré"].includes(String(f.statut))) return { ok: false, why: "la fiche n'attend pas de réponse (statut : " + f.statut + ")" };
       const reps = (Array.isArray(pr.reponses) ? pr.reponses : []).map((x: { question?: unknown; reponse?: unknown }) => ({ question: court(x && x.question, 600), reponse: String((x && x.reponse) || "").trim().slice(0, 6000) })).filter((x: { reponse: string }) => x.reponse).slice(0, 12);
       if (!reps.length && !String(pr.resume || "").trim()) return { ok: false, why: "réponse vide" };
       return { ok: true, action: { type: a.type, params: { fiche_id: f.fiche_id, contact: f.contact, resume: String(pr.resume || "").trim().slice(0, 3000), reponses: reps, citations: (Array.isArray(pr.citations) ? pr.citations : []).map((c: unknown) => court(c, 600)).filter(Boolean).slice(0, 6) } } };
@@ -215,7 +223,7 @@ async function repondrePoste(me: Membre, p: Poste, b: any, transmisPar: Poste | 
   const hist = fil.map((m) => (m.de === "moi" ? me.nom.split(" ")[0] : m.de) + " : " + court(m.texte, 500) + (m.action ? " [action " + (m.action.type || "") + (m.action.fait ? " exécutée" : " proposée") + "]" : "")).join("\n");
   const user = (hist ? "ÉCHANGES PRÉCÉDENTS (les plus récents en bas) :\n" + hist + "\n\n" : "") + "CONTEXTE DU LAB (JSON) :\n" + JSON.stringify(ctx) + "\n\n" +
     (transmisPar ? "REQUÊTE TRANSMISE PAR " + transmisPar.nom + (note ? " (note : " + note + ")" : "") + " :\n" : "REQUÊTE DE " + me.nom.toUpperCase() + " :\n") + String(b.texte || "").slice(0, 8000);
-  const out = await claude(systemePoste(p, me, peut, autres), [{ role: "user", content: user }], OUTIL_TEL(autres.map((x) => x.id), p.actions, peut), 3000, "telephone", me.id);
+  const out = await claude(systemePoste(p, me, peut, autres), [{ role: "user", content: user }], OUTIL_TEL(autres.map((x) => x.id), p.actions, peut), 8000, "telephone", me.id);
   return { out, ctx };
 }
 
@@ -277,7 +285,7 @@ Deno.serve(async (req) => {
       let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
       const { data: f0 } = await q; const f = f0 && f0[0];
       if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
-      if (!["envoyé", "a répondu", "relance"].includes(String(f.statut))) return out({ ok: false, why: "cette fiche n’attend pas de réponse (statut : " + f.statut + ")" });
+      if (!["envoyé", "a répondu", "relance", "inséré"].includes(String(f.statut))) return out({ ok: false, why: "cette fiche n’attend pas de réponse (statut : " + f.statut + ")" });
       const qs: string[] = (pj(f.questions) || []).map((x: unknown) => String(x || "")).filter(Boolean);
       if (b.action === "appel_traiter") {
         const tr = String(b.transcription || "").trim(); if (tr.length < 20) return out({ ok: false, why: "transcription trop courte" });
@@ -289,7 +297,7 @@ Deno.serve(async (req) => {
         const sys = "Tu es l’Assistant du Writinglab de Posthumain. Une journaliste a mené une interview PAR TÉLÉPHONE ; voici la transcription automatique (reconnaissance vocale : mots mal reconnus possibles, les deux voix mélangées) ou ses notes d'appel. Tu en tires un résumé et la réponse du contact à CHAQUE question de la fiche, dans l'ordre. N'invente rien : si une question n'a pas été abordée, laisse sa réponse vide et signale-la dans « manque ». Réponds avec l'outil « reponses ».";
         const user = "Article : " + (f.article_titre || "") + "\nContact : " + [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", ") + "\nLangue de l'interview : " + (f.langue === "en" ? "anglais" : "français") +
           "\nQuestions de la fiche :\n" + (qs.length ? qs.map((x, i) => (i + 1) + ". " + x).join("\n") : "(aucune question enregistrée : structure par thème)") + "\n\nTRANSCRIPTION / NOTES :\n" + tr.slice(0, 30000);
-        const r = await claude(sys, [{ role: "user", content: user }], outil, 4000, "telephone", me.id);
+        const r = await claude(sys, [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
         const reps = (Array.isArray(r.reponses) ? r.reponses : []).map((x: { question?: string; reponse?: string }) => ({ question: String(x.question || ""), reponse: String(x.reponse || "") }));
         return out({ ok: true, resume: String(r.resume || ""), reponses: reps, citations: Array.isArray(r.citations) ? r.citations.map(String).slice(0, 6) : [], manque: String(r.manque || ""), questions: qs });
       }
