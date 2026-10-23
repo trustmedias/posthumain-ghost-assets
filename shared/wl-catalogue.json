@@ -1,9 +1,10 @@
 {
-  "_lisezmoi": "CATALOGUE UNIQUE du Writinglab : les postes (employés IA) et leurs capacités. Source unique, lue par la page (copie intégrée dans writinglab/app.js) et par wl-tel (module généré supabase/functions/wl-tel/catalogue.ts). Après une modification : node scripts/wl-catalogue.mjs --ecrire (recopie) puis node scripts/wl-catalogue.mjs (test). Voir CONTRIBUTING-writinglab.md.",
+  "_lisezmoi": "CATALOGUE UNIQUE du Writinglab : les postes (employés IA) et leurs capacités. Source unique, lue par la page (copie intégrée dans writinglab/app.js) et par wl-tel (module généré supabase/functions/wl-tel/catalogue.ts). Après une modification : node scripts/wl-catalogue.mjs --ecrire (recopie) puis node scripts/wl-catalogue.mjs (test). Voir CONTRIBUTING-writinglab.md. Base de connaissances : « connaissances » liste les domaines (un onglet chacun dans Paramètres → Base de connaissances ; « defaut » = fiches GitHub writinglab/connaissances/ de pré-remplissage) ; chaque poste déclare le sien dans « connaissances » (ou null) et le reçoit au moment d'agir.",
   "version": 1,
   "postes": [
     {
       "id": "secretaire",
+      "connaissances": "redaction",
       "nom": "La Secrétaire",
       "emoji": "📮",
       "couleur": "#4aa8d8",
@@ -20,6 +21,7 @@
     },
     {
       "id": "assistant",
+      "connaissances": "redaction",
       "nom": "L’Assistant",
       "emoji": "🧠",
       "couleur": "#9a6bd8",
@@ -36,6 +38,7 @@
     },
     {
       "id": "mk",
+      "connaissances": "marketing",
       "nom": "Julien · Marketing",
       "emoji": "📣",
       "couleur": "#e0763a",
@@ -52,6 +55,7 @@
     },
     {
       "id": "sc",
+      "connaissances": "service_client",
       "nom": "Julien · Service client",
       "emoji": "🎧",
       "couleur": "#2bb3a3",
@@ -68,6 +72,7 @@
     },
     {
       "id": "compta",
+      "connaissances": null,
       "nom": "Le Comptable",
       "emoji": "🧮",
       "couleur": "#d8b24a",
@@ -465,5 +470,10 @@
         "cible": ".top [data-act=\"parametres\"]"
       }
     ]
-  }
+  },
+  "connaissances": [
+    { "id": "redaction", "nom": "Rédaction", "emoji": "✍️", "aide": "Ce que la Secrétaire et l'Assistant savent de Posthumain quand ils rédigent : ligne éditoriale, ton, règles d'écriture, informations utiles aux interviews.", "defaut": ["posthumain.md"] },
+    { "id": "service_client", "nom": "Service client", "emoji": "🎧", "aide": "Ce que Julien (service client) sait pour répondre aux abonnés : offres, prix, CGV, fonctionnement du compte Ghost.", "defaut": ["posthumain.md", "offres.md", "cgv.md"] },
+    { "id": "marketing", "nom": "Marketing", "emoji": "📣", "aide": "Ce que Julien (marketing) sait pour répondre aux marques et prospecter : offres partenaires, tarifs des articles sponsorisés, audience.", "defaut": ["posthumain.md", "offres.md", "annonceurs.md"] }
+  ]
 }

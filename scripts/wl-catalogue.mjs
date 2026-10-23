@@ -13,6 +13,7 @@ const F = {
   app: join(R, "writinglab/app.js"),
   tel: join(R, "supabase/functions/wl-tel/index.ts"),
   telCat: join(R, "supabase/functions/wl-tel/catalogue.ts"),
+  kbCat: join(R, "supabase/functions/wl-kb/catalogue.ts"),
 };
 const lire = (f) => readFileSync(f, "utf8");
 const cat = JSON.parse(lire(F.cat));
@@ -20,13 +21,17 @@ const compact = JSON.stringify(cat);
 const MARQ = /\/\*CATALOGUE-DEBUT\*\/[\s\S]*?\/\*CATALOGUE-FIN\*\//;
 const moduleTel = "// GÉNÉRÉ par scripts/wl-catalogue.mjs depuis shared/wl-catalogue.json : ne pas modifier à la main.\n" +
   "// deno-lint-ignore-file\nexport const CATALOGUE: any = " + JSON.stringify(cat) + ";\n";
+// wl-kb n'a besoin que des domaines de connaissances et du domaine de chaque poste (copie réduite, plus légère à déployer)
+const moduleKb = "// GÉNÉRÉ par scripts/wl-catalogue.mjs depuis shared/wl-catalogue.json (extrait : connaissances) : ne pas modifier à la main.\n" +
+  "// deno-lint-ignore-file\nexport const CATALOGUE: any = " + JSON.stringify({ connaissances: cat.connaissances || [], postes: (cat.postes || []).map((p) => ({ id: p.id, nom: p.nom, emoji: p.emoji, connaissances: p.connaissances ?? null })) }) + ";\n";
 
 if (process.argv.includes("--ecrire")) {
   const app = lire(F.app);
   if (!MARQ.test(app)) { console.error("Marqueurs /*CATALOGUE-DEBUT*/ … /*CATALOGUE-FIN*/ introuvables dans writinglab/app.js"); process.exit(1); }
   writeFileSync(F.app, app.replace(MARQ, () => "/*CATALOGUE-DEBUT*/" + compact + "/*CATALOGUE-FIN*/"));
   writeFileSync(F.telCat, moduleTel);
-  console.log("Catalogue recopié dans writinglab/app.js et supabase/functions/wl-tel/catalogue.ts. Lancez maintenant : node scripts/wl-catalogue.mjs");
+  writeFileSync(F.kbCat, moduleKb);
+  console.log("Catalogue recopié dans writinglab/app.js, supabase/functions/wl-tel/catalogue.ts et supabase/functions/wl-kb/catalogue.ts. Lancez maintenant : node scripts/wl-catalogue.mjs");
   process.exit(0);
 }
 
@@ -104,6 +109,21 @@ for (const st of stations) {
   if (postes.some((p) => p.id === st.id)) ko(n + " : même id qu'un poste IA");
 }
 for (const id of STATIONS_PLAN) if (!stations.some((x) => x.id === id)) ko("station du plan « " + id + " » sans aide dans « stations »");
+// --- base de connaissances : domaines (un onglet chacun dans Paramètres) et domaine de chaque poste ---
+const domaines = Array.isArray(cat.connaissances) ? cat.connaissances : (ko("« connaissances » (domaines de la base de connaissances) doit être une liste"), []);
+const domIds = new Set();
+for (const d of domaines) {
+  const n = "domaine de connaissances « " + (d.id || "?") + " »";
+  for (const k of ["id", "nom", "emoji", "aide"]) if (!d[k] || typeof d[k] !== "string") ko(n + " : champ obligatoire « " + k + " » manquant");
+  if (d.id && !/^[a-z][a-z0-9_]{1,30}$/.test(d.id)) ko(n + " : id en minuscules sans espace");
+  if (domIds.has(d.id)) ko(n + " : id en double"); domIds.add(d.id);
+  if (d.defaut != null && (!Array.isArray(d.defaut) || d.defaut.some((f) => !/^[a-z0-9_-]+\.md$/.test(String(f))))) ko(n + " : « defaut » = liste de fiches .md de writinglab/connaissances/");
+  for (const f of d.defaut || []) { try { lire(join(R, "writinglab/connaissances", f)); } catch { ko(n + " : fiche de pré-remplissage introuvable writinglab/connaissances/" + f); } }
+}
+for (const p of postes) {
+  if (!("connaissances" in p)) ko("poste « " + p.id + " » : « connaissances » manquant (id d'un domaine, ou null)");
+  else if (p.connaissances !== null && !domIds.has(p.connaissances)) ko("poste « " + p.id + " » : domaine de connaissances inconnu « " + p.connaissances + " »");
+}
 // --- visite guidée (onboarding) : ordre des bureaux (postes ou stations existants) et étapes de navigation complètes ---
 const ob = cat.onboarding;
 if (!ob || typeof ob !== "object") ko("« onboarding » (visite guidée des journalistes) manquant");
@@ -129,6 +149,8 @@ if (!m) ko("writinglab/app.js : marqueurs du catalogue introuvables");
 else if (m[0] !== "/*CATALOGUE-DEBUT*/" + compact + "/*CATALOGUE-FIN*/") ko("writinglab/app.js : copie du catalogue périmée → node scripts/wl-catalogue.mjs --ecrire");
 let telCat = ""; try { telCat = lire(F.telCat); } catch { /* absent */ }
 if (telCat !== moduleTel) ko("supabase/functions/wl-tel/catalogue.ts : copie périmée ou absente → node scripts/wl-catalogue.mjs --ecrire (puis redéployer wl-tel)");
+let kbCat = ""; try { kbCat = lire(F.kbCat); } catch { /* absent */ }
+if (kbCat !== moduleKb) ko("supabase/functions/wl-kb/catalogue.ts : copie périmée ou absente → node scripts/wl-catalogue.mjs --ecrire (puis redéployer wl-kb)");
 
 if (err.length) { console.error("✗ Catalogue du Writinglab : " + err.length + " problème(s)\n- " + err.join("\n- ")); process.exit(1); }
-console.log("✓ Catalogue du Writinglab : " + postes.length + " postes, " + caps.length + " capacités, " + apiModes.length + " actions de la page vérifiées (" + interne.length + " internes), copies à jour.");
+console.log("✓ Catalogue du Writinglab : " + postes.length + " postes, " + caps.length + " capacités, " + domaines.length + " domaines de connaissances, " + apiModes.length + " actions de la page vérifiées (" + interne.length + " internes), copies à jour.");

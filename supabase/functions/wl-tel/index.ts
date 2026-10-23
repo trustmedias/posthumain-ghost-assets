@@ -23,6 +23,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
 import { CATALOGUE } from "./catalogue.ts";
+import { contexteKb } from "./kb.ts"; // base de connaissances par domaine (Paramètres → Base de connaissances), 23/10/2026
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
@@ -62,9 +63,9 @@ async function membre(token: string): Promise<Membre | null> {
 // (transmission) et ses droits ; une capacité est validée avec son schéma de paramètres et ses droits. Rien n'est codé en dur.
 // deno-lint-ignore no-explicit-any
 type Cap = { id: string; postes: string[]; description: string; params: Record<string, any>; droits: string; mode: string; au_moins_un?: string[]; enrichir?: Record<string, string> };
-type Poste = { id: string; nom: string; chefSeul: boolean; role: string; aiguillage: string; actions: string[]; contexte: string[]; mail: { boite: string; role: string } | null };
+type Poste = { id: string; nom: string; chefSeul: boolean; role: string; aiguillage: string; actions: string[]; contexte: string[]; mail: { boite: string; role: string } | null; kb: string | null };
 // deno-lint-ignore no-explicit-any
-const POSTES: Record<string, Poste> = Object.fromEntries((CATALOGUE.postes || []).map((p: any) => [p.id, { id: p.id, nom: p.emoji + " " + p.nom, chefSeul: p.acces === "chef", role: p.role, aiguillage: p.aiguillage || String(p.role || "").split(".")[0], actions: p.capacites || [], contexte: p.contexte || [], mail: p.mail || null }]));
+const POSTES: Record<string, Poste> = Object.fromEntries((CATALOGUE.postes || []).map((p: any) => [p.id, { id: p.id, kb: p.connaissances || null, nom: p.emoji + " " + p.nom, chefSeul: p.acces === "chef", role: p.role, aiguillage: p.aiguillage || String(p.role || "").split(".")[0], actions: p.capacites || [], contexte: p.contexte || [], mail: p.mail || null }]));
 // deno-lint-ignore no-explicit-any
 const CAPS: Record<string, Cap> = Object.fromEntries((CATALOGUE.capacites || []).map((c: any) => [c.id, c]));
 const ACTIONS_DOC: Record<string, string> = Object.fromEntries(Object.values(CAPS).map((c) => [c.id, c.id + " — " + c.description]));
@@ -256,6 +257,13 @@ async function contexte(me: Membre, p: Poste, b: any) {
   if (p.contexte.includes("pieces")) ctx.pieces = await piecesCtx(me);
   return ctx;
 }
+// Base de connaissances du domaine du poste (catalogue : « connaissances »), récupérée au moment d'agir ; vide si rien n'est renseigné.
+async function kbTexte(domaine: string | null | undefined, requete: string): Promise<string> {
+  const k = await contexteKb(db, domaine, requete);
+  return k.texte ? "\n\n" + k.texte + "\n(Ces connaissances viennent de la rédaction : appuie-toi dessus quand elles servent la demande, sans les recopier ; si tu reprends un chiffre ou une règle d'un document ou d'un site, tu peux dire d'où il vient. Elles ne remplacent jamais les RÈGLES ci-dessus.)" : "";
+}
+// domaine du poste qui porte une capacité (catalogue), sans nommer de poste en dur
+const kbDeCapacite = (cap: string) => { const pid = ((CAPS[cap] && CAPS[cap].postes) || [])[0]; return (pid && POSTES[pid] && POSTES[pid].kb) || null; };
 // deno-lint-ignore no-explicit-any
 async function repondrePoste(me: Membre, p: Poste, b: any, transmisPar: Poste | null, note: string, sansTransmission = false): Promise<any> {
   const autres = Object.values(POSTES).filter((x) => x.id !== p.id && (me.chef || !x.chefSeul));
@@ -265,7 +273,7 @@ async function repondrePoste(me: Membre, p: Poste, b: any, transmisPar: Poste | 
   const hist = fil.map((m) => (m.de === "moi" ? me.nom.split(" ")[0] : m.de) + " : " + court(m.texte, 500) + (m.action ? " [action " + (m.action.type || "") + (m.action.fait ? " exécutée" : " proposée") + "]" : "")).join("\n");
   const user = (hist ? "ÉCHANGES PRÉCÉDENTS (les plus récents en bas) :\n" + hist + "\n\n" : "") + "CONTEXTE DU LAB (JSON) :\n" + JSON.stringify(ctx) + "\n\n" +
     (transmisPar ? "REQUÊTE TRANSMISE PAR " + transmisPar.nom + (note ? " (note : " + note + ")" : "") + " :\n" : (note ? "REMARQUE : " + note + "\n\n" : "") + "REQUÊTE DE " + me.nom.toUpperCase() + " :\n") + String(b.texte || "").slice(0, 8000);
-  const out = await claude(systemePoste(p, me, peut, autres), [{ role: "user", content: user }], OUTIL_TEL(autres.map((x) => x.id), p.actions, peut), 8000, "telephone", me.id);
+  const out = await claude(systemePoste(p, me, peut, autres) + await kbTexte(p.kb, String(b.texte || "")), [{ role: "user", content: user }], OUTIL_TEL(autres.map((x) => x.id), p.actions, peut), 8000, "telephone", me.id);
   return { out, ctx };
 }
 
@@ -360,7 +368,7 @@ Deno.serve(async (req) => {
         const sys = "Tu es l’Assistant du Writinglab de Posthumain. Une journaliste a mené une interview PAR TÉLÉPHONE ; voici la transcription automatique (reconnaissance vocale : mots mal reconnus possibles, les deux voix mélangées) ou ses notes d'appel. Tu en tires un résumé et la réponse du contact à CHAQUE question de la fiche, dans l'ordre. N'invente rien : si une question n'a pas été abordée, laisse sa réponse vide et signale-la dans « manque ». Réponds avec l'outil « reponses ».";
         const user = "Article : " + (f.article_titre || "") + "\nContact : " + [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", ") + "\nLangue de l'interview : " + (f.langue === "en" ? "anglais" : "français") +
           "\nQuestions de la fiche :\n" + (qs.length ? qs.map((x, i) => (i + 1) + ". " + x).join("\n") : "(aucune question enregistrée : structure par thème)") + "\n\nTRANSCRIPTION / NOTES :\n" + tr.slice(0, 30000);
-        const r = await claude(sys, [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
+        const r = await claude(sys + await kbTexte(kbDeCapacite("reponse_fiche"), tr.slice(0, 600)), [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
         const reps = (Array.isArray(r.reponses) ? r.reponses : []).map((x: { question?: string; reponse?: string }) => ({ question: String(x.question || ""), reponse: String(x.reponse || "") }));
         return out({ ok: true, resume: String(r.resume || ""), reponses: reps, citations: Array.isArray(r.citations) ? r.citations.map(String).slice(0, 6) : [], manque: String(r.manque || ""), questions: qs });
       }
@@ -452,7 +460,7 @@ Deno.serve(async (req) => {
           (f.reponse ? "\n\nSA RÉPONSE (" + (f.reponse_le || "") + ") :\n" + String(f.reponse).slice(-3000) : "\n\n(Pas encore de réponse du contact.)") +
           (envoyees.length ? "\n\nRÉPONSES DÉJÀ ENVOYÉES DANS LE FIL : " + envoyees.map((x) => (x.le || "").slice(0, 10) + " « " + (x.sujet || "") + " »").join(" ; ") : "") +
           "\n\nCONSIGNE DU MEMBRE (" + me.nom + ") :\n" + consigne + "\n\nNUMÉRO À DONNER : " + (telOk || "(aucun)");
-        const r = await claude(sys, [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
+        const r = await claude(sys + await kbTexte(kbDeCapacite("suite_interview"), consigne), [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
         const corps = String(r.corps || "").trim().slice(0, 8000); if (!corps) return out({ ok: false, why: "rédaction impossible, réessayez" });
         hist.push({ t: now, e: "réponse dans le fil préparée (à valider)", par: me.id });
         const { error } = await db.from("wl_fiches").update({ suite_sujet: sujetDef, suite_corps: corps, suite_consigne: consigne, suite_a: dest, suite_prete_le: now, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
