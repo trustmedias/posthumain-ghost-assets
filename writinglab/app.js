@@ -286,6 +286,8 @@
 #wl .feed .it .t{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:rgba(243,236,224,.45);min-width:78px;padding-top:2px}\
 #wl .doc{position:fixed;inset:0;z-index:12;background:rgba(5,4,3,.86);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch}#wl .doc.open{display:block}\
 #wl .prep{max-width:760px;margin:16px auto 80px;padding:20px 22px 22px;background:#14110c;border:1px solid rgba(0,255,119,.22);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(0,255,119,.08)}#wl .dtop .pp-x{margin-left:auto;flex:0 0 auto}#wl .pp-k{display:flex;align-items:center;gap:8px;font:700 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#00ff77}#wl .pp-dot{width:8px;height:8px;border-radius:50%;background:#00ff77;box-shadow:0 0 10px #00ff77;animation:wlPpPulse 1.1s ease-in-out infinite}#wl .pp-ti{margin:6px 0 14px;font-weight:800;font-size:19px;line-height:1.3;color:#f3ece0}#wl .pp-pg{margin:4px 0 12px}#wl .pp-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}#wl .pp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77);transition:width 1s linear}#wl .pp-pg.on .pp-bar i:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:wlPpScan 1.6s linear infinite}#wl .pp-meta{display:flex;justify-content:space-between;margin-top:6px;font:12px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .pp-el{color:#9fffc8;font-weight:700}#wl .pp-log{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:2px}#wl .pp-log li{display:grid;grid-template-columns:46px 26px 1fr;align-items:baseline;gap:6px;padding:7px 10px;border-radius:10px;transition:background .3s,opacity .3s}#wl .pp-log li.wait{opacity:.38}#wl .pp-log li.run{background:rgba(0,255,119,.07);box-shadow:inset 2px 0 0 #00ff77}#wl .pp-log li.ok .pp-lt:after{content:' ✓';color:#3dffa0;font-weight:800}#wl .pp-log li.ko{background:rgba(255,61,90,.1);box-shadow:inset 2px 0 0 #ff3d5a}#wl .pp-log li.run .pp-lt:after{content:'';display:inline-block;width:7px;height:14px;margin-left:6px;vertical-align:-2px;background:#00ff77;animation:wlPpCaret 1s steps(2) infinite}#wl .pp-s{font:11.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.45)}#wl .pp-ic{font-size:15px}#wl .pp-l{font-size:14.5px;line-height:1.4;color:#f3ece0}#wl .pp-l small{display:block;font-size:12.5px;color:rgba(243,236,224,.55)}#wl .pp-long{margin:6px 0;padding:9px 12px;border-radius:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.35);font-size:13.5px;line-height:1.5;color:#ffe0a3}#wl .prep p.muted{font-size:13px!important;line-height:1.5!important}#wl .pp-n{font-size:13px;margin:8px 0 0}#wl .pp-det summary{cursor:pointer;font-size:13px;color:rgba(243,236,224,.6);margin:2px 0 4px}#wl .pp-fin{margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(0,255,119,.08);border:1px solid rgba(0,255,119,.35);color:#c9ffe0;font-size:14.5px;line-height:1.5}#wl .pp-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:18px 0 4px}#wl .pp-h>b{font-size:16px;color:#f3ece0}#wl .pp-c.in{animation:wlPpIn .55s cubic-bezier(.2,.8,.2,1) both}#wl .dcard:focus-visible{outline:2px solid #00ff77;outline-offset:2px}@keyframes wlPpIn{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}@keyframes wlPpScan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@keyframes wlPpPulse{50%{opacity:.35}}@keyframes wlPpCaret{50%{opacity:0}}@media (max-width:720px){#wl .prep{margin:10px 8px 60px;padding:16px 14px 18px;border-radius:16px}#wl .pp-ti{font-size:17px}#wl .pp-log li{grid-template-columns:40px 22px 1fr;padding:7px 6px}}@media (prefers-reduced-motion:reduce){#wl .pp-c.in,#wl .pp-dot,#wl .pp-pg.on .pp-bar i:after,#wl .pp-log li.run .pp-lt:after{animation:none}}\
+#wl .qbox input,#wl .qbox input.in{padding-left:40px!important}#wl .qbox:before{left:13px!important;line-height:1;z-index:1}#wl .nom-l{color:inherit!important;text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}#wl .nom-l:hover{text-decoration:none;border-bottom-style:solid}#wl .nom-i{display:inline-block;margin-left:4px;font:700 10px/1 Inter,sans-serif;opacity:.6;vertical-align:2px;border-bottom:0}#wl .nom-i.li{padding:2px 3px;border-radius:3px;background:#0a66c2;color:#fff!important;opacity:.9}#wl .nom-l.nom-q .nom-i{font-size:10px}#wl .src-l{font-size:12.5px;color:#3dffa0!important;margin-left:6px;white-space:nowrap}#wl .paper .src-l,#wl .dcard .src-l{color:#0a7a45!important}#wl .src-w{margin:-6px 0 10px;font-family:Inter,sans-serif}#wl .pp-att{display:inline-block;animation:wlPpPulse 2.4s ease-in-out infinite}#wl .pp-log.r li{grid-template-columns:26px 1fr}#wl .pp-cts{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px}#wl .pp-ct{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-left:3px solid rgba(0,255,119,.5);animation:wlPpIn .45s cubic-bezier(.2,.8,.2,1) both}#wl .pp-ct.ok{border-left-color:#3dffa0}#wl .pp-ct.ko{border-left-color:#ff3d5a;background:rgba(255,61,90,.06)}#wl .pp-ct.deja{border-left-color:#7fb2ff;opacity:.8}#wl .pp-ct-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}#wl .pp-ct-h b{font-size:15px;color:#f3ece0}#wl .pp-ct-h>span{font-size:13px;color:rgba(243,236,224,.62)}#wl .pp-ct-m{font-size:12.5px;color:rgba(243,236,224,.6);margin-top:3px;word-break:break-word}#wl .pp-ct-s{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#wl .pp-ct-s span{font-size:12.5px;padding:3px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(243,236,224,.5)}#wl .pp-ct-s span.run{border-color:rgba(0,255,119,.55);color:#9fffc8;background:rgba(0,255,119,.08);animation:wlPpPulse 1.6s ease-in-out infinite}#wl .pp-ct-s span.ok{border-color:rgba(61,255,160,.4);color:#c9ffe0}#wl .pp-ct-s span.ok:before{content:'✓ ';font-weight:800}#wl .pp-ct-s span.ko{border-color:rgba(255,61,90,.5);color:#ffb3c0}#wl .pp-ct-e{margin-top:8px;font-size:13px;color:#ffb3c0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}#wl .enqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin:8px 0}#wl .enq{padding:12px 14px;border-radius:14px;background:#14110c;border:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;gap:7px;min-width:0}#wl .enq.flash{border-color:rgba(0,255,119,.6)}#wl .enq-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0!important}#wl .enq-t:hover{text-decoration:underline}#wl .enq>.tag{align-self:flex-start}#wl .eb{display:flex;gap:3px;height:8px}#wl .eb i{flex:1;border-radius:3px;background:#d9e5f6}#wl .eb i.a{background:#f6c56b}#wl .eb i.b{background:#8fb3ea}#wl .eb i.g{background:#4fdc8e}#wl .eb i.c{background:#18b45f}#wl .eb i.r{background:#ff7f8f}#wl .enq-l{font-size:13px;color:rgba(243,236,224,.75)}#wl .enq-n{font-size:13px;color:rgba(243,236,224,.85);line-height:1.6}#wl .enq-n .sep{margin:0 6px;opacity:.4}#wl .enq-a{gap:6px;margin-top:2px}#wl .seg.arts-seg{display:flex;flex-wrap:wrap;margin:4px 0 2px}#wl .seg.arts-seg button{flex:1 1 auto;white-space:nowrap}#wl .seg .n{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.08);font-size:12px}@media (max-width:720px){#wl .enqs{grid-template-columns:1fr}#wl .seg.arts-seg button{padding:7px 8px!important;font-size:12.5px!important}}\
+#wl .mb-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}#wl label.mb-chk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;font:500 12.5px Inter,system-ui,sans-serif!important;text-transform:none!important;letter-spacing:normal!important;color:rgba(243,236,224,.75);cursor:pointer}#wl label.mb-chk input{width:15px;height:15px;margin:0!important;accent-color:#18b45f}#wl .als{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px;margin:6px 0 10px}#wl .al{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);cursor:pointer;min-width:0}#wl .al:hover{border-color:rgba(0,255,119,.35)}#wl .al.sel{border-color:rgba(255,190,90,.6);background:rgba(255,190,90,.07)}#wl .al-v{flex:0 0 auto;width:44px;height:44px;border-radius:7px;object-fit:cover;display:block}#wl .al-v0{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);font-size:18px}#wl .al-c{flex:1;min-width:0}#wl .al-t{font-weight:650;font-size:13.5px;line-height:1.3;color:#f3ece0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#wl .al-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:3px}#wl .al-m .tag{font-size:10.5px!important;padding:1px 6px!important}#wl .al-d{font-size:11.5px;color:rgba(243,236,224,.5);margin-left:2px}#wl .al-a{flex:0 0 auto;display:flex;align-items:center;gap:4px}#wl .al-i{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.12);text-decoration:none!important;font-size:14px}#wl .al-i:hover{border-color:rgba(0,255,119,.45)}#wl .btn.small.al-b{min-width:30px;height:30px;padding:0 7px!important;font-size:12.5px!important;white-space:nowrap}@media (max-width:720px){#wl .als{grid-template-columns:1fr}}\
 #wl .dtop{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(11,10,8,.92);border-bottom:1px solid rgba(255,190,90,.18)}\
 #wl .dtop .em{font-size:24px}#wl .dtop .nm{font-weight:800;font-size:15px;line-height:1.2}#wl .dtop .st{font-size:12px;color:rgba(243,236,224,.6)}\
 #wl .dtop .x{margin-left:auto;cursor:pointer;font-size:24px;color:rgba(243,236,224,.75);padding:2px 10px}\
@@ -558,8 +560,8 @@
     ds.slice(0, max).forEach(function (d, i) {
       var cx = X + (i % cols) * CW, cy = Y + Math.floor(i / cols) * CH;
       if (d.iv) { // enquête premium sans demande d'interview : case au micro, clic = préparer les interviews
-        var pv = prepEtat(d.iv.id), enCours = !!(pv && pv.etat === 'cours');
-        s += '<g class="case" data-act="' + (enCours ? 'voir-mails' : 'express') + '" data-id="' + esc(d.iv.id) + '" data-tip="' + esc(d.iv.titre + (enCours ? '|⏳ préparation des interviews en cours|les mails arrivent dans 1 à 2 minutes' : '|🎙️ interviews pas encore préparées|aucune demande pour l’instant')) + '" data-tip-act="' + (enCours ? 'Cliquer pour suivre la préparation' : 'Cliquer pour préparer les interviews') + '" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="rgba(255,176,32,.08)" stroke="rgba(255,176,32,.55)" stroke-dasharray="4 3"/>' +
+        var pv = prepEtat(d.iv.id), prepVa = enCours(pv);
+        s += '<g class="case" data-act="' + (prepVa ? 'voir-mails' : 'express') + '" data-id="' + esc(d.iv.id) + '" data-tip="' + esc(d.iv.titre + (prepVa ? '|⏳ préparation des interviews en cours|les mails arrivent dans 1 à 2 minutes' : '|🎙️ interviews pas encore préparées|aucune demande pour l’instant')) + '" data-tip-act="' + (prepVa ? 'Cliquer pour suivre la préparation' : 'Cliquer pour préparer les interviews') + '" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="rgba(255,176,32,.08)" stroke="rgba(255,176,32,.55)" stroke-dasharray="4 3"/>' +
           '<g transform="translate(' + (CW / 2) + ',' + (CH / 2 - 4) + ')"><rect x="-7" y="-18" width="14" height="22" rx="7" fill="#d9d2c3" stroke="#6b5f4a"/><path d="M-11 -2 a11 11 0 0 0 22 0" fill="none" stroke="#d9d2c3" stroke-width="2.5"/><rect x="-1.5" y="9" width="3" height="7" fill="#d9d2c3"/><rect x="-7" y="15" width="14" height="3" rx="1.5" fill="#d9d2c3"/></g>' +
           '<g transform="translate(' + (CW - 14) + ',14)"><circle r="10" fill="#ffb020" filter="url(#glow)"/><text y="4" text-anchor="middle" font-size="11" font-weight="800" fill="#2a1a00">!</text></g></g>';
         return;
@@ -759,131 +761,265 @@
       (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
       '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) || n || prepEtat(a.id) ? '<div style="margin-top:8px">' + btnMails(a.id) + '</div>' : '') + '</div></div></div>';
   }
+  // Onglet Articles (23/10/2026) : « Tous les brouillons » listait aussi les publiés. Trois onglets compacts (brouillons, programmés,
+  // publiés) et une recherche qui filtre les trois (titre, auteur).
+  var ART_ST = [['draft', '📝 Brouillons'], ['scheduled', '🗓️ Programmés'], ['published', '✅ Publiés']];
+  function artsFiltres() {
+    var q = norm(S.qArt || '').trim();
+    return artsRecents().filter(function (a) { return !q || q.split(/\s+/).every(function (m) { return norm(a.titre + ' ' + (a.auteurs || []).join(' ')).indexOf(m) >= 0; }); });
+  }
+  function artsRes() {
+    var l = artsFiltres(), grp = function (st) { return l.filter(function (a) { return (st === 'draft' ? ['scheduled', 'published'].indexOf(a.statut) < 0 : a.statut === st); }); };
+    var onglets = ART_ST.filter(function (x) { return x[0] !== 'scheduled' || grp('scheduled').length; });
+    var cur = onglets.some(function (x) { return x[0] === S.artTab; }) ? S.artTab : 'draft', liste = grp(cur);
+    return '<div class="seg arts-seg" role="tablist">' + onglets.map(function (x) { return '<button type="button" role="tab" aria-selected="' + (x[0] === cur) + '" class="' + (x[0] === cur ? 'on' : '') + '" data-act="art-tab" data-id="' + x[0] + '">' + x[1] + ' <span class="n">' + grp(x[0]).length + '</span></button>'; }).join('') + '</div>' +
+      (String(S.qArt || '').trim() ? '<p class="muted" style="margin:2px 0 0">' + l.length + ' article' + pl(l.length) + ' trouvé' + pl(l.length) + ' pour « ' + esc(S.qArt) + ' »</p>' : '') +
+      '<div class="arts">' + (liste.map(artCard).join('') || '<div class="muted">' + (String(S.qArt || '').trim() ? 'Aucun article ne correspond.' : cur === 'draft' ? 'Aucun brouillon dans Ghost.' : cur === 'scheduled' ? 'Rien de programmé.' : 'Aucun article publié récemment.') + '</div>') + '</div>';
+  }
   function viewArticles() {
-    var as = artsRecents();
     if (D().ghost && D().ghost !== 'ok') return '<div class="box warn" style="margin-top:14px">⚠️ ' + esc(D().ghost) + '</div>';
     var iv = aInterviewer();
-    return (iv.length ? '<h3 id="a-interviewer" style="margin-top:16px">🎙️ À interviewer (' + iv.length + ')</h3><p class="muted">Enquêtes premium sans aucune demande d’interview. « Préparer les interviews » : l’Assistant trouve 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Vous n’avez plus qu’à les relire et les valider (1 à 2 minutes de préparation).</p><div class="arts">' + iv.map(artCard).join('') + '</div><h3 style="margin-top:22px">📰 Tous les brouillons</h3>' : '') +
-      '<p class="muted" style="margin-top:14px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations. Brouillons et articles programmés de Ghost :</p><div class="arts">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon dans Ghost.</div>') + '</div>';
+    return (iv.length ? '<h3 id="a-interviewer" style="margin-top:16px">🎙️ À interviewer (' + iv.length + ')</h3><p class="muted">Enquêtes premium sans aucune demande d’interview. « Préparer les interviews » : l’Assistant trouve 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Vous n’avez plus qu’à les relire et les valider. Tout se suit en direct dans la fenêtre « Interviews ».</p><div class="arts">' + iv.map(artCard).join('') + '</div><h3 style="margin-top:22px">📰 Les articles de Ghost</h3>' : '<h3 style="margin-top:16px">📰 Les articles de Ghost</h3>') +
+      '<p class="muted" style="margin-top:6px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations.</p>' +
+      '<div class="qbox"><input class="in" id="wl-qa" type="search" value="' + esc(S.qArt || '') + '" placeholder="Chercher un article (titre, auteur)…" autocomplete="off" enterkeyhint="search" aria-label="Chercher un article"></div><div id="wl-art-res">' + artsRes() + '</div>';
   }
-  // ================= Fenêtre « Préparation des interviews » (23/10/2026) =================
-  // La préparation express est UN seul appel (n8n → Claude avec recherche web, 1 à 2 minutes, sans flux intermédiaire) :
-  // les étapes affichées pendant l'attente sont rythmées sur la durée habituelle (aucune exécution ni lecture en plus),
-  // puis remplacées par le résultat réel : les cartes des mails (le même composant que chez la Secrétaire) apparaissent.
-  // La fenêtre se ferme et se rouvre à volonté (bouton « Voir les mails ») ; la préparation continue derrière.
-  var PREP_ETAPES = [[0, '📖', 'Lecture de l’article', ''], [5, '🔗', 'Repérage des études et des sources citées', ''],
-    [12, '🔎', 'Recherche des auteurs et des chercheurs', 'recherche web'], [35, '🏛️', 'Vérification sur les pages des labos et des universités', ''],
-    [55, '📧', 'Adresses professionnelles publiées', 'jamais devinées : sans adresse publiée, la fiche dit où la trouver'],
-    [72, '❓', 'Écriture des questions d’interview', '4 à 5 par personne'], [88, '✍️', 'Rédaction des mails', 'dans la langue de chaque chercheur'],
-    [104, '🗂️', 'Rangement des fiches chez la Secrétaire', '']];
-  var PREP_LS = 'wl-prep-cours', PREP_TTL = 300000;
+
+  // ================= Fenêtre « Interviews » : préparation express suivie en direct (23/10/2026) =================
+  // La page enchaîne les actions qui existent déjà, et montre chaque étape RÉELLE dès qu'elle aboutit :
+  //   1. api('contacts') : l'Assistant cherche les chercheurs (recherche web) → leurs lignes apparaissent (nom, institution, adresse) ;
+  //   2. pour chacun, api('questions') → « questions prêtes » ; 3. api('rediger', express) → la fiche « à valider » est créée, sa carte apparaît.
+  // Les contacts avancent en parallèle (3 au plus) ; un échec n'arrête pas les autres (« Réessayer ce contact »).
+  // Mêmes règles que l'ancienne express en un appel : 3 personnes au plus, d'abord celles dont l'adresse est publiée, adresse vérifiée,
+  // case « Article publié », réponse sous 48 h, trace « préparé en express » (n8n : « Mail — statut de l'article », « Fiche — case publié »).
+  // L'état est gardé dans ce navigateur : après un rechargement, ce qui était fini reste fini, ce qui était en route côté serveur
+  // (un mail en rédaction) est attendu, le reste se reprend d'un clic, sans refaire les fiches déjà créées.
+  var PREP_LS = 'wl-prep-v2', PREP_MAX = 3, PREP_GARDE = 1800000;
+  var okMail = function (s) { return /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(String(s || '').trim()); };
   function prepFiches(id) {
     var rang = function (f) { return f.statut === 'brouillon' ? 0 : relancePrete(f) ? 1 : f.statut === 'a répondu' ? 2 : estRebond(f) ? 3 : f.statut === 'envoyé' ? 4 : 5; };
     return D().fiches.filter(function (f) { return f.article_id === id && f.statut !== 'archivé'; }).sort(function (a, b) { return rang(a) - rang(b); });
   }
-  function prepSauver() { var o = {}; Object.keys(S.preps || {}).forEach(function (k) { if (S.preps[k].etat === 'cours') o[k] = S.preps[k].t0; }); LS.set(PREP_LS, Object.keys(o).length ? JSON.stringify(o) : null); }
-  // Après un rechargement de page : la préparation lancée continue côté n8n ; on la suit jusqu'à l'arrivée des fiches (temps réel).
+  function prepSauver() {
+    var o = {}; Object.keys(S.preps || {}).forEach(function (k) { var p = S.preps[k]; o[k] = { t0: p.t0, publie: p.publie, etat: p.etat, why: p.why || '', fin: p.fin || 0, trouves: p.trouves || 0,
+      contacts: (p.contacts || []).map(function (c) { return { nom: c.nom, profil_url: c.profil_url || '', role: c.role, institution: c.institution, email: c.email, source_email: c.source_email, ou_trouver: c.ou_trouver, langue: c.langue, pourquoi: c.pourquoi, deja: c.deja || '', etat: c.etat, why: c.why || '', questions: c.questions || null, fiche_id: c.fiche_id || '', t: c.t || 0 }; }) }; });
+    LS.set(PREP_LS, Object.keys(o).length ? JSON.stringify(o) : null);
+  }
+  // Après un rechargement : rien ne tourne plus dans la page. Une recherche ou des questions en cours sont perdues (à reprendre) ;
+  // un mail en rédaction continue côté n8n : on l'attend 3 minutes (sa fiche arrive par le temps réel), puis on propose de le refaire.
   function prepRelire() {
     if (S.preps) return; S.preps = {};
     var o = null; try { o = JSON.parse(LS.get(PREP_LS) || 'null'); } catch (e) { o = null; }
-    Object.keys(o || {}).forEach(function (k) { if (Date.now() - Number(o[k]) < PREP_TTL) S.preps[k] = { t0: Number(o[k]), etat: 'cours', orphelin: true }; });
+    Object.keys(o || {}).forEach(function (k) {
+      var p = o[k]; if (!p || Date.now() - Number(p.t0) > PREP_GARDE) return;
+      if (p.etat === 'contacts') { p.etat = 'ko'; p.why = 'la page a été rechargée pendant la recherche des chercheurs'; p.fin = Date.now(); }
+      (p.contacts || []).forEach(function (c) { if (c.etat === 'questions' || c.etat === 'attente') { c.etat = 'ko'; c.why = 'interrompu par le rechargement de la page'; } else if (c.etat === 'mail') c.serveur = true; });
+      S.preps[k] = p;
+    });
+    prepSauver();
   }
+  function enCours(p) { return !!p && (p.etat === 'contacts' || p.etat === 'cours'); }
+  // Rapproche les contacts de leurs fiches (temps réel), clôt la préparation quand chaque contact est fini.
   function prepEtat(id) {
     prepRelire();
     var p = S.preps[id]; if (!p) return null;
-    if (p.etat === 'cours' && p.orphelin) {
-      if (S.data && prepFiches(id).length) { p.etat = 'ok'; p.fin = Date.now(); p.anim = true; p.n = prepFiches(id).length; prepSauver(); }
-      else if (Date.now() - p.t0 > PREP_TTL) { delete S.preps[id]; prepSauver(); return null; }
-    }
+    var fs = S.data ? D().fiches.filter(function (f) { return f.article_id === id; }) : [];
+    (p.contacts || []).forEach(function (c) {
+      var f = fs.filter(function (x) { return (c.fiche_id && x.fiche_id === c.fiche_id) || (!c.fiche_id && c.etat === 'mail' && ((c.email && String(x.contact.email || '').toLowerCase() === c.email) || norm(x.contact.nom) === norm(c.nom))); })[0];
+      if (f) { c.fiche_id = f.fiche_id; if (c.etat === 'mail' || c.etat === 'cree') c.etat = 'ok'; }
+      if (c.etat === 'mail' && c.serveur && Date.now() - (c.t || 0) > 180000) { c.etat = 'ko'; c.serveur = false; c.why = 'le mail n’est pas arrivé après le rechargement de la page'; }
+    });
+    if (p.etat === 'cours' && !S.prepVif && (p.contacts || []).every(function (c) { return ['ok', 'ko', 'deja'].indexOf(c.etat) >= 0; })) { p.etat = 'ok'; p.fin = p.fin || Date.now(); prepSauver(); }
     return p;
   }
+  function prepOcc() {
+    // Lampes du plan : l'Assistant cherche / écrit les questions, la Secrétaire rédige.
+    var cherche = 0, qs = 0, ml = 0;
+    Object.keys(S.preps || {}).forEach(function (k) { var p = S.preps[k]; if (p.etat === 'contacts') cherche++; (p.contacts || []).forEach(function (c) { if (c.etat === 'questions') qs++; if (c.etat === 'mail' && !c.serveur) ml++; }); });
+    S.prepOcc = S.prepOcc || {};
+    var poser = function (k, v) { if (v) { S.busy[k] = v; S.prepOcc[k] = 1; } else if (S.prepOcc[k]) { delete S.busy[k]; delete S.prepOcc[k]; } };
+    poser('assistant', cherche ? 'cherche les chercheurs' : qs ? 'écrit les questions (' + qs + ')' : '');
+    poser('secretaire', ml ? 'rédige ' + ml + ' mail' + pl(ml) : '');
+  }
+  function prepMaj() { prepSauver(); prepOcc(); paintFloor(); if (S.doc && S.doc.kind === 'prep') paintDoc(); if (!S.doc || S.doc.kind !== 'prep') render(); }
   // Bouton des listes (Articles, file « à interviewer », Interphone) : préparer, suivre la préparation ou voir les mails.
   function btnMails(id) {
     var p = prepEtat(id), n = prepFiches(id).length;
-    if (p && p.etat === 'cours') return '<button class="btn small amber" data-act="voir-mails" data-id="' + esc(id) + '">⏳ Préparation en cours · voir</button>';
+    if (enCours(p)) return '<button class="btn small amber" data-act="voir-mails" data-id="' + esc(id) + '">⏳ Préparation en cours · voir</button>';
     if (n) return '<button class="btn small" data-act="voir-mails" data-id="' + esc(id) + '">📬 Voir les mails (' + n + ')</button>';
-    if (p && p.etat === 'ko') return '<button class="btn small red" data-act="voir-mails" data-id="' + esc(id) + '">⚠️ Préparation échouée · voir</button>';
+    if (p && p.etat === 'ko') return '<button class="btn small red" data-act="voir-mails" data-id="' + esc(id) + '">⚠️ Préparation interrompue · voir</button>';
     return '<button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button>';
   }
-  function mmss(ms) { var s = Math.max(0, Math.floor(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
-  // État affiché à l'instant t : étape en cours, pourcentage de la barre, temps écoulé.
-  function prepVue(p) {
-    var t = ((p.etat === 'cours' ? Date.now() : (p.fin || Date.now())) - p.t0) / 1000, cur = 0;
-    PREP_ETAPES.forEach(function (e, i) { if (t >= e[0]) cur = i; });
-    var pct = p.etat === 'ok' ? 100 : Math.min(96, Math.round(100 * (1 - Math.exp(-t / 50))));
-    return { t: t, cur: cur, pct: pct, long: p.etat === 'cours' && t > 130 };
+  // Même bouton en version icône pour les lignes compactes du Marbre.
+  function btnMailsCourt(id) {
+    var p = prepEtat(id), n = prepFiches(id).length, b = function (act, cls, ic, lib) { return '<button class="btn small al-b ' + cls + '" data-act="' + act + '" data-id="' + esc(id) + '" title="' + esc(lib) + '" aria-label="' + esc(lib) + '"' + (act === 'express' && S.busy.assistant ? ' disabled' : '') + '>' + ic + '</button>'; };
+    if (enCours(p)) return b('voir-mails', 'amber', '⏳', 'Préparation des interviews en cours : voir');
+    if (n) return b('voir-mails', '', '📬 ' + n, 'Voir les mails (' + n + ')');
+    if (p && p.etat === 'ko') return b('voir-mails', 'red', '⚠️', 'Préparation interrompue : voir');
+    return b('express', 'go', '⚡', 'Préparer les interviews');
   }
-  function prepClasse(p, v, i) { return p.etat === 'ok' || i < v.cur ? 'ok' : i === v.cur ? (p.etat === 'ko' ? 'ko' : 'run') : 'wait'; }
-  function docPrep(id) {
-    var a = art(id), p = prepEtat(id), fs = prepFiches(id), titre = (a && a.titre) || (fs[0] && fs[0].article_titre) || 'Enquête';
-    var nb = fs.filter(function (f) { return f.statut === 'brouillon'; }).length;
-    var st = p && p.etat === 'cours' ? 'préparation express en cours' : fs.length ? fs.length + ' demande' + pl(fs.length) + ' d’interview' + (nb ? ' · ' + nb + ' à valider' : '') : p && p.etat === 'ko' ? 'préparation interrompue' : 'aucune demande pour l’instant';
-    var h = '<div class="dtop"><span class="em">📬</span><div style="min-width:0"><div class="nm">Interviews</div><div class="st">' + esc(st) + '</div></div><span style="flex:1"></span><button type="button" class="btn small pp-x" data-act="close-doc" aria-label="Fermer la fenêtre">✕ Fermer</button></div>';
-    h += '<div class="prep" role="dialog" aria-modal="true" aria-label="Interviews de l’article"><div class="pp-k">' + (p && p.etat === 'cours' ? '<i class="pp-dot"></i>' : '') + (p && Date.now() - (p.fin || Date.now()) < 600000 ? 'préparation des interviews' : 'interviews de l’article') + '</div><div class="pp-ti">' + esc(titre) + '</div>';
-    if (p && (p.etat === 'cours' || ((p.etat === 'ok' || p.etat === 'ko') && Date.now() - (p.fin || 0) < 600000))) {
-      var v = prepVue(p);
-      h += '<div class="pp-pg' + (p.etat === 'cours' ? ' on' : '') + '"><div class="pp-bar"><i style="width:' + v.pct + '%"></i></div><div class="pp-meta"><span class="pp-el">' + mmss(v.t * 1000) + '</span><span>' +
-        (p.etat === 'ok' ? '✓ terminé' : p.etat === 'ko' ? '✕ interrompu' : 'compter 1 à 2 minutes') + '</span></div></div>' + (p.etat === 'ok' ? '<details class="pp-det"><summary>Les étapes de la préparation</summary>' : '') + '<ol class="pp-log">' +
-        PREP_ETAPES.map(function (e, i) { return '<li class="' + prepClasse(p, v, i) + '" data-i="' + i + '"><span class="pp-s">' + mmss(e[0] * 1000) + '</span><span class="pp-ic">' + e[1] + '</span><span class="pp-l"><span class="pp-lt">' + esc(e[2]) + '</span>' + (e[3] ? '<small>' + esc(e[3]) + '</small>' : '') + '</span></li>'; }).join('') + '</ol>' + (p.etat === 'ok' ? '</details>' : '') +
-        '<p class="pp-long"' + (v.long ? '' : ' hidden') + '>La recherche web prend parfois un peu plus longtemps que d’habitude. Rien n’est perdu : les mails arrivent ici dès qu’ils sont prêts.</p>';
-      if (p.etat === 'cours') h += '<p class="muted pp-n">Vous pouvez fermer cette fenêtre : la préparation continue. Le bouton « ⏳ Préparation en cours · voir », dans la liste des articles, la rouvre.</p>';
-      if (p.etat === 'ko') h += '<div class="box warn" style="margin:12px 0">⚠️ La préparation n’a pas abouti : ' + esc(p.why || 'erreur inconnue') + '.<div class="row" style="margin-top:10px"><button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>↻ Réessayer</button></div></div>';
-      if (p.etat === 'ok') h += '<div class="pp-fin">✅ ' + (fs.length ? fs.length + ' mail' + pl(fs.length) + ' prêt' + pl(fs.length) + ' : ' + esc(fs.map(function (f) { return f.contact.nom; }).filter(Boolean).join(', ')) : 'aucun chercheur avec une adresse publiée n’a été trouvé') + '</div>';
-    }
-    if (fs.length) {
-      h += '<div class="pp-h"><b>Les mails</b>' + avancement(fs) + '</div><p class="muted" style="margin:2px 0 10px">Touchez une carte pour relire, corriger et envoyer le mail. Une carte bleue est partie ; verte, le chercheur a répondu.</p><div class="dos pp-cards">' +
-        fs.map(function (f, i) {
-          var x = f.statut === 'brouillon' ? '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>' : f.statut === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + '</div>' : f.statut === 'a répondu' ? '<div class="su">réponse reçue ' + esc(when(f.reponse_le)) + '</div>' : '';
-          return '<div class="pp-c' + (p && p.anim ? ' in' : '') + '" style="animation-delay:' + (i * 0.18).toFixed(2) + 's">' + dcard(f, x) + '</div>';
-        }).join('') + '</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn small" data-act="dossier-sec" data-id="' + esc(id) + '">📮 Ouvrir le dossier chez la Secrétaire</button></div>';
-    } else if (!p || p.etat === 'ok') {
-      h += '<p class="muted" style="margin-top:14px">Aucune demande d’interview pour cet article.</p>' + (a ? '<div class="row"><button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button></div>' : '');
-    }
-    if (p && p.anim) setTimeout(function () { p.anim = false; }, 2600);
+  function mmss(ms) { var s = Math.max(0, Math.floor(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  // Barre : 40 % pour la recherche (qui avance doucement pendant l'attente), puis questions et mail de chaque contact.
+  function prepPct(p) {
+    if (p.etat === 'ok') return 100;
+    if (p.etat === 'contacts' || !(p.contacts || []).length) return Math.min(38, Math.round(38 * (1 - Math.exp(-(Date.now() - p.t0) / 40000))));
+    var cs = p.contacts, part = 60 / cs.length, v = 40;
+    cs.forEach(function (c) { v += ['ok', 'ko', 'deja'].indexOf(c.etat) >= 0 ? part : c.etat === 'mail' ? part * 0.5 : c.etat === 'questions' ? part * 0.15 : 0; });
+    return Math.min(99, Math.round(v));
+  }
+  var PREP_ATTENTE = ['lit l’article', 'repère les études citées', 'cherche leurs auteurs', 'vérifie les pages des labos et des universités', 'cherche les adresses publiées'];
+  function prepEtape(cls, ic, txt, sous, extra) { return '<li class="' + cls + '"><span class="pp-ic">' + ic + '</span><span class="pp-l"><span class="pp-lt">' + txt + '</span>' + (sous ? '<small>' + sous + '</small>' : '') + (extra || '') + '</span></li>'; }
+  function prepLigneContact(id, c, k) {
+    var st = function (e) { return c.etat === 'ko' ? (e === c.koA ? 'ko' : (e === 'q' && c.questions) ? 'ok' : 'wait') : e === 'q' ? (c.etat === 'questions' ? 'run' : c.etat === 'attente' ? 'wait' : 'ok') : (c.etat === 'mail' ? 'run' : ['ok', 'cree'].indexOf(c.etat) >= 0 ? 'ok' : 'wait'); };
+    var adr = (c.email ? '✉️ ' + esc(c.email) : '🔍 adresse à trouver' + (c.ou_trouver ? ' : ' + esc(String(c.ou_trouver).slice(0, 120)) : '')) + (c.email ? sourceAdresse(c.source_email) : '');
+    var h = '<div class="pp-ct ' + (c.etat === 'ok' ? 'ok' : c.etat === 'ko' ? 'ko' : c.etat === 'deja' ? 'deja' : 'run') + '"><div class="pp-ct-h"><b>' + nomLien(c.nom, c.profil_url, c.institution) + '</b><span>' + esc([c.role, c.institution].filter(Boolean).join(', ')) + '</span></div>' +
+      '<div class="pp-ct-m">' + adr + (c.deja ? ' · <span class="tag a">déjà contacté : ' + esc(c.deja) + '</span>' : '') + '</div>';
+    if (c.etat === 'deja') return h + '<div class="pp-ct-s"><span class="ok">✓ une fiche existe déjà pour cet article : pas de doublon</span></div></div>';
+    h += '<div class="pp-ct-s"><span class="' + st('q') + '">❓ questions' + (c.questions ? ' (' + c.questions.length + ')' : '') + '</span><span class="' + st('m') + '">✍️ mail' + (c.serveur && c.etat === 'mail' ? ' (en route côté serveur)' : '') + '</span>' +
+      (c.etat === 'ok' ? '<span class="ok">📮 à valider</span>' : '') + '</div>';
+    if (c.etat === 'ko') h += '<div class="pp-ct-e">⚠️ ' + esc(c.why || 'erreur') + ' <button class="btn small" data-act="prep-retry" data-id="' + esc(id + '|' + k) + '">↻ Réessayer ce contact</button></div>';
     return h + '</div>';
   }
-  // Mise à jour en place, chaque seconde, pendant la préparation (pas de repeint complet : rien ne saute à l'écran).
+  function docPrep(id) {
+    var a = art(id), p = prepEtat(id), fs = prepFiches(id), titre = (a && a.titre) || (fs[0] && fs[0].article_titre) || 'Enquête';
+    var nb = fs.filter(function (f) { return f.statut === 'brouillon'; }).length, vivant = p && (enCours(p) || Date.now() - (p.fin || 0) < 900000 || p.etat === 'ko');
+    var st = enCours(p) ? 'préparation express en cours' : fs.length ? fs.length + ' demande' + pl(fs.length) + ' d’interview' + (nb ? ' · ' + nb + ' à valider' : '') : p && p.etat === 'ko' ? 'préparation interrompue' : 'aucune demande pour l’instant';
+    var h = '<div class="dtop"><span class="em">📬</span><div style="min-width:0"><div class="nm">Interviews</div><div class="st">' + esc(st) + '</div></div><span style="flex:1"></span><button type="button" class="btn small pp-x" data-act="close-doc" aria-label="Fermer la fenêtre">✕ Fermer</button></div>';
+    h += '<div class="prep" role="dialog" aria-modal="true" aria-label="Interviews de l’article"><div class="pp-k">' + (enCours(p) ? '<i class="pp-dot"></i>' : '') + (vivant ? 'préparation des interviews' : 'interviews de l’article') + '</div><div class="pp-ti">' + esc(titre) + '</div>';
+    if (vivant) {
+      var fin = p.etat === 'ok' || p.etat === 'ko', cs = p.contacts || [], nOk = cs.filter(function (c) { return c.etat === 'ok'; }).length, nKo = cs.filter(function (c) { return c.etat === 'ko'; }).length;
+      h += '<div class="pp-pg' + (enCours(p) ? ' on' : '') + '"><div class="pp-bar"><i style="width:' + prepPct(p) + '%"></i></div><div class="pp-meta"><span class="pp-el">' + mmss((fin ? (p.fin || Date.now()) : Date.now()) - p.t0) + '</span><span>' +
+        (p.etat === 'ok' ? (nKo ? '✓ terminé · ' + nKo + ' à reprendre' : '✓ terminé') : p.etat === 'ko' ? '✕ interrompu' : p.etat === 'contacts' ? 'recherche : souvent 40 s à 1 min 30' : nOk + ' / ' + cs.length + ' mails prêts') + '</span></div></div><ol class="pp-log r">';
+      var att = PREP_ATTENTE[Math.floor((Date.now() - p.t0) / 7000) % PREP_ATTENTE.length];
+      h += prepEtape(p.etat === 'contacts' ? 'run' : cs.length ? 'ok' : 'ko', '🔎', 'Recherche des chercheurs', p.etat === 'contacts' ? '<span class="pp-att">L’Assistant ' + esc(att) + '…</span>' : cs.length ? esc(cs.length + ' retenu' + pl(cs.length) + (p.trouves > cs.length ? ' sur ' + p.trouves + ' trouvés' : '') + ' · d’abord les adresses publiées') : esc(p.why || 'personne de sûr trouvé'));
+      h += '</ol>';
+      if (cs.length) h += '<div class="pp-cts">' + cs.map(function (c, k) { return prepLigneContact(id, c, k); }).join('') + '</div>';
+      if (p.etat === 'ko' && !cs.length) h += '<div class="box warn" style="margin:12px 0">⚠️ ' + esc(p.why || 'La recherche n’a pas abouti') + '.<div class="row" style="margin-top:10px"><button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>↻ Relancer la recherche</button></div></div>';
+      if (nKo > 1 && !enCours(p)) h += '<div class="row" style="margin:8px 0"><button class="btn small" data-act="prep-retry" data-id="' + esc(id + '|*') + '">↻ Reprendre les ' + nKo + ' contacts interrompus</button></div>';
+      if (enCours(p)) h += '<p class="muted pp-n">Vous pouvez fermer cette fenêtre : la préparation continue tant que cette page reste ouverte. « ⏳ Préparation en cours · voir », dans la liste des articles, la rouvre.</p>';
+    }
+    if (fs.length) {
+      S.prepVu = S.prepVu || {}; var neuves = 0;
+      h += '<div class="pp-h"><b>Les mails</b>' + avancement(fs) + '</div><p class="muted" style="margin:2px 0 10px">Touchez une carte pour relire, corriger et envoyer le mail. Une carte bleue est partie ; verte, le chercheur a répondu.</p><div class="dos pp-cards">' +
+        fs.map(function (f) {
+          var x = f.statut === 'brouillon' ? '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>' : f.statut === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + '</div>' : f.statut === 'a répondu' ? '<div class="su">réponse reçue ' + esc(when(f.reponse_le)) + '</div>' : '';
+          var neuf = vivant && !S.prepVu[f.fiche_id]; if (neuf) neuves++;
+          return '<div class="pp-c' + (neuf ? ' in' : '') + '" style="animation-delay:' + (neuf ? (neuves - 1) * 0.18 : 0).toFixed(2) + 's">' + dcard(f, x) + '</div>';
+        }).join('') + '</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn small" data-act="dossier-sec" data-id="' + esc(id) + '">📮 Ouvrir le dossier chez la Secrétaire</button></div>';
+      setTimeout(function () { fs.forEach(function (f) { S.prepVu[f.fiche_id] = 1; }); }, 50);
+    } else if (!p) {
+      h += '<p class="muted" style="margin-top:14px">Aucune demande d’interview pour cet article.</p>' + (a ? '<div class="row"><button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button></div>' : '');
+    }
+    return h + '</div>';
+  }
+  // Chaque seconde pendant la recherche : chrono, barre et phrase d'attente mis à jour en place (rien ne saute à l'écran).
   function majPrep() {
     prepRelire();
-    var cours = Object.keys(S.preps).filter(function (k) { var p = prepEtat(k); return p && p.etat === 'cours'; });
-    if (!cours.length) { clearInterval(S.prepTick); S.prepTick = null; }
+    if (!Object.keys(S.preps).some(function (k) { return enCours(S.preps[k]); })) { clearInterval(S.prepTick); S.prepTick = null; }
+    Object.keys(S.preps).forEach(function (k) { var p = S.preps[k]; if (p.etat === 'cours' && (p.contacts || []).some(function (c) { return c.serveur; })) { var av = JSON.stringify(p.contacts.map(function (c) { return c.etat; })); prepEtat(k); if (JSON.stringify(p.contacts.map(function (c) { return c.etat; })) !== av) prepMaj(); } });
     if (!S.doc || S.doc.kind !== 'prep' || document.hidden) return;
-    var p = prepEtat(S.doc.id), el = S.root.querySelector('.doc .prep');
-    if (!p || !el) return;
-    if (p.etat !== 'cours' || !el.querySelector('.pp-pg.on')) { paintDoc(); return; }
-    var v = prepVue(p), b = el.querySelector('.pp-bar i'), e = el.querySelector('.pp-el'), lg = el.querySelector('.pp-long');
-    if (b) b.style.width = v.pct + '%'; if (e) e.textContent = mmss(v.t * 1000); if (lg) lg.hidden = !v.long;
-    Array.prototype.forEach.call(el.querySelectorAll('.pp-log li'), function (li) { var c = prepClasse(p, v, Number(li.getAttribute('data-i'))); if (li.className !== c) li.className = c; });
+    var p = S.preps[S.doc.id], el = S.root.querySelector('.doc .prep'); if (!p || !el || !enCours(p)) return;
+    var b = el.querySelector('.pp-bar i'), e = el.querySelector('.pp-el'), at = el.querySelector('.pp-att');
+    if (b) b.style.width = prepPct(p) + '%'; if (e) e.textContent = mmss(Date.now() - p.t0);
+    if (at) { var t = 'L’Assistant ' + PREP_ATTENTE[Math.floor((Date.now() - p.t0) / 7000) % PREP_ATTENTE.length] + '…'; if (at.textContent !== t) at.textContent = t; }
   }
   function prepTicker() { if (!S.prepTick) S.prepTick = setInterval(majPrep, 1000); }
   function voirMails(id) {
     if (!S.doc) S.prepOpener = document.activeElement;
     openDoc('prep', id);
-    var p = prepEtat(id); if (p && p.etat === 'cours') prepTicker();
+    if (enCours(prepEtat(id))) prepTicker();
     setTimeout(function () { var x = S.root.querySelector('.doc .pp-x'); if (x) x.focus({ preventScroll: true }); }, 30);
+  }
+  // Un contact : questions (si pas déjà faites), puis le mail. Erreurs gardées sur la ligne du contact.
+  function prepContact(id, p, c) {
+    var contact = { nom: c.nom, email: c.email, role: c.role, institution: c.institution, langue: c.langue, pourquoi: c.pourquoi, source_email: c.source_email, ou_trouver: c.ou_trouver, profil_url: c.profil_url };
+    var etape = function (q) {
+      c.etat = 'mail'; c.t = Date.now(); c.serveur = false; prepMaj();
+      return api('rediger', { article_id: id, contact: contact, questions: q, type: 'interview', publie: p.publie, express: true }).then(function (r) {
+        c.fiche_id = r.fiche_id || ''; c.etat = 'ok'; prepMaj(); if (!S.rtOk) refresh(true);
+      }, function (e) { c.etat = 'ko'; c.koA = 'm'; c.why = e.message; prepMaj(); });
+    };
+    if (c.questions && c.questions.length) return etape(c.questions);
+    c.etat = 'questions'; c.why = ''; prepMaj();
+    return api('questions', { article_id: id, contact: contact, nb: 5 }).then(function (r) {
+      var q = (r.questions || []).map(function (x) { return String((x && x.q) || x || '').trim(); }).filter(Boolean).slice(0, 5);
+      if (!q.length) throw new Error('aucune question proposée');
+      c.questions = q; return etape(q);
+    }, function (e) { c.etat = 'ko'; c.koA = 'q'; c.why = e.message; prepMaj(); });
+  }
+  function prepFile(id, p, liste) {
+    var file = liste.slice(), actifs = 0;
+    return new Promise(function (fini) {
+      var suivant = function () {
+        if (!file.length && !actifs) return fini();
+        while (actifs < PREP_MAX && file.length) { actifs++; prepContact(id, p, file.shift()).then(function () { actifs--; suivant(); }); }
+      };
+      suivant();
+    });
+  }
+  function prepConclure(id, p) {
+    p.etat = 'ok'; p.fin = Date.now(); prepMaj();
+    var ok = (p.contacts || []).filter(function (c) { return c.etat === 'ok'; }).length, ko = (p.contacts || []).filter(function (c) { return c.etat === 'ko'; }).length;
+    if (!(S.doc && S.doc.kind === 'prep' && S.doc.id === id)) toast('⚡ ' + ok + ' mail' + pl(ok) + ' prêt' + pl(ok) + (ko ? ', ' + ko + ' à reprendre' : '') + ' : touchez « 📬 Voir les mails ».', !!ko && !ok);
   }
   function lancerPrep(id, publie) {
     prepRelire();
-    var p = S.preps[id] = { t0: Date.now(), etat: 'cours' }; prepSauver();
+    var p = S.preps[id] = { t0: Date.now(), publie: publie !== false, etat: 'contacts', contacts: [] }; S.prepVif = (S.prepVif || 0) + 1;
     S.art = id; LS.set('wl-article', id); pubOubli('x:' + id);
-    voirMails(id); prepTicker(); render(); // les boutons des listes passent à « Préparation en cours · voir »
-    work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true, publie: publie })).then(function (r) {
-      p.etat = 'ok'; p.fin = Date.now(); p.n = r.n || 0; p.anim = true; prepSauver();
-      var ouvert = S.doc && S.doc.kind === 'prep' && S.doc.id === id;
-      return refresh(true).then(function () {
-        if (S.doc && S.doc.kind === 'prep') paintDoc();
-        if (!ouvert) toast('⚡ ' + p.n + ' mail' + pl(p.n) + ' prêt' + pl(p.n) + ' : touchez « 📬 Voir les mails » pour les relire.');
+    prepMaj(); voirMails(id); prepTicker();
+    api('contacts', { article_id: id }).then(function (r) {
+      var l = (r.contacts || []).filter(function (c) { return c && c.nom; });
+      var avec = l.filter(function (c) { return okMail(c.email); }), sans = l.filter(function (c) { return !okMail(c.email); });
+      var pick = (avec.length ? avec : sans).slice(0, 3), dejaIci = D().fiches.filter(function (f) { return f.article_id === id && f.statut !== 'archivé'; });
+      p.trouves = l.length;
+      p.contacts = pick.map(function (c) {
+        var em = okMail(c.email) ? String(c.email).trim().toLowerCase() : '';
+        var ici = dejaIci.filter(function (f) { return (em && String(f.contact.email || '').toLowerCase() === em) || norm(f.contact.nom) === norm(c.nom); })[0];
+        var ail = em ? dejaContacte(em).filter(function (f) { return f.article_id !== id; })[0] : null;
+        return { nom: String(c.nom).slice(0, 160), profil_url: /^https?:\/\//i.test(String(c.profil_url || '').trim()) ? String(c.profil_url).trim().slice(0, 500) : '', role: String(c.role || '').slice(0, 200), institution: String(c.institution || '').slice(0, 200), email: em, source_email: String(c.source_email || '').slice(0, 300),
+          ou_trouver: String(c.ou_trouver || '').slice(0, 300), langue: c.langue === 'en' ? 'en' : 'fr', pourquoi: String(c.pourquoi || '').slice(0, 400),
+          deja: ail ? (ail.envoye_le ? 'le ' + day(ail.envoye_le) + ' pour « ' + (ail.article_titre || 'un autre article') + ' »' : 'pour « ' + (ail.article_titre || 'un autre article') + ' »') : '',
+          etat: ici ? 'deja' : 'attente', fiche_id: ici ? ici.fiche_id : '' };
       });
-    }, function (e) {
-      p.etat = 'ko'; p.fin = Date.now(); p.why = (e && e.message) || 'erreur inconnue'; prepSauver();
-      render();
-    });
+      if (!p.contacts.length) { p.etat = 'ko'; p.fin = Date.now(); p.why = 'personne de sûr trouvé pour cet article : passez par l’Assistant'; prepMaj(); return; }
+      p.etat = 'cours'; prepMaj();
+      return prepFile(id, p, p.contacts.filter(function (c) { return c.etat === 'attente'; })).then(function () { prepConclure(id, p); });
+    }, function (e) { p.etat = 'ko'; p.fin = Date.now(); p.why = e.message; prepMaj(); }).then(function () { S.prepVif = Math.max(0, (S.prepVif || 1) - 1); prepMaj(); });
   }
+  // « Réessayer ce contact » (ou « Reprendre » : tous ceux qui sont en échec). Les fiches déjà créées ne sont jamais refaites.
+  function reprendrePrep(cle) {
+    var x = String(cle).split('|'), id = x[0], p = prepEtat(id); if (!p) return;
+    var liste = (p.contacts || []).filter(function (c, k) { return c.etat === 'ko' && (x[1] === '*' || String(k) === x[1]); });
+    if (!liste.length) return;
+    liste.forEach(function (c) { c.etat = 'attente'; c.why = ''; });
+    p.etat = 'cours'; p.fin = 0; S.prepVif = (S.prepVif || 0) + 1; prepMaj(); prepTicker();
+    prepFile(id, p, liste).then(function () { S.prepVif = Math.max(0, S.prepVif - 1); if ((p.contacts || []).every(function (c) { return c.etat !== 'attente' && c.etat !== 'questions' && c.etat !== 'mail'; })) prepConclure(id, p); });
+  }
+  // Nom du chercheur cliquable (23/10/2026) : la page de profil trouvée par la recherche (LinkedIn, labo, université…), gardée dans
+  // l'historique de la fiche par n8n. Sans page enregistrée (fiches anciennes) : une recherche Google ciblée, marquée comme telle (🔎).
+  // Le clic sur le nom n'ouvre pas la fiche (data-stop) ; liens http(s) seulement (PHL.url).
+  function liensFiche(f) {
+    var h = (f && f.historique) || [], pr = '', src = '';
+    for (var i = h.length - 1; i >= 0; i--) { var e = h[i] || {}; if (!pr && e.profil) pr = e.profil; if (!src && e.source) src = e.source;
+      if (!src) { var m = String(e.e || '').match(/\(adresse : (https?:\/\/[^\s)]+)\)/); if (m) src = m[1]; } }
+    return { profil: pr, source: src };
+  }
+  function hote(u) { var m = String(u || '').match(/^https?:\/\/([^\/?#]+)/i); return m ? m[1].replace(/^www\./, '') : ''; }
+  function nomLien(nom, profil, institution) {
+    if (!nom) return esc('(sans nom)');
+    if (/^https?:\/\//i.test(String(profil || '').trim())) {
+      var li = /linkedin\.com/i.test(profil);
+      return '<a class="nom-l" href="' + url(profil) + '" target="_blank" rel="noopener" data-stop="1" data-tip="' + esc((li ? 'Profil LinkedIn' : 'Page trouvée par la recherche') + '|' + hote(profil) + '|') + '" data-tip-act="Ouvre dans un nouvel onglet">' + esc(nom) + '<span class="nom-i' + (li ? ' li' : '') + '">' + (li ? 'in' : '↗') + '</span></a>';
+    }
+    var q = 'https://www.google.com/search?q=' + encodeURIComponent('"' + nom + '"' + (institution ? ' ' + institution : ''));
+    return '<a class="nom-l nom-q" href="' + url(q) + '" target="_blank" rel="noopener" data-stop="1" data-tip="' + esc('Recherche Google|« ' + nom + (institution ? ' » · ' + institution : ' »') + '|aucune page de profil enregistrée pour ce contact') + '" data-tip-act="Ouvre la recherche dans un nouvel onglet">' + esc(nom) + '<span class="nom-i">🔎</span></a>';
+  }
+  function nomFiche(f) { return nomLien(f.contact.nom, liensFiche(f).profil, f.contact.institution); }
+  function sourceAdresse(src) { return /^https?:\/\//i.test(String(src || '')) ? ' <a class="src-l" href="' + url(src) + '" target="_blank" rel="noopener" data-stop="1">📧 adresse trouvée sur ' + esc(hote(src)) + '</a>' : ''; }
   function dcard(f, extra) {
     var s = STATUTS[f.statut] || ['·', f.statut, ''];
     var og = origine(f);
     return '<div class="dcard ' + s[2] + '" tabindex="0" role="button" data-act="' + (f.statut === 'brouillon' ? 'open-valid' : 'open-fiche') + '" data-id="' + esc(f.fiche_id) + '"><div class="k">' + s[0] + ' ' + esc(s[1]) + ' · ' + og[0] + ' ' + og[1] + (D().me.chef ? ' · ' + esc(qui(f)) : '') + '</div>' +
-      '<div class="ti">' + esc(f.contact.nom || '(sans nom)') + '</div><div class="su">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + '</div>' +
+      '<div class="ti">' + nomFiche(f) + '</div><div class="su">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + '</div>' +
       '<div class="su">📰 ' + esc(f.article_titre || 'sans article') + '</div>' + (extra || '') +
       (relancePrete(f) ? '<div class="su">⏰ <b>relance prête à valider</b></div>' : '') + (relanceInfo(f) ? '<div class="su">🔁 ' + esc(relanceInfo(f)) + '</div>' : '') +
       (estRebond(f) && f.statut !== 'rebond' ? '<div class="su"><b>✉️ adresse invalide</b></div>' : '') + '</div>';
@@ -896,15 +1032,38 @@
     var q = vide ? '' : '<div class="qbox"><input class="in" id="wl-q" type="search" value="' + esc(S.qSuivi || '') + '" placeholder="Chercher un chercheur, une institution, un article, un objet de mail…" autocomplete="off" enterkeyhint="search"></div>';
     return intro + porteeHTML() + q + '<div id="wl-suivi-res">' + suiviRes() + '</div>';
   }
+  // Suivi « par enquête » (23/10/2026) : une carte compacte par article (titre → Ghost, barre segmentée aux couleurs des cartes de la
+  // Secrétaire, ligne de progression, prochaine action). Triées par urgence (mails à valider, réponses à citer, relances, adresses
+  // invalides), puis par date.
+  function urgence(fs) {
+    var c = function (st) { return fs.filter(function (f) { return f.statut === st; }).length; };
+    return c('brouillon') * 100 + c('a répondu') * 60 + fs.filter(relancePrete).length * 40 + fs.filter(estRebond).length * 30 + c('envoyé');
+  }
+  function enquetes(ds) { return ds.slice().sort(function (a, b) { return (urgence(b.fiches) - urgence(a.fiches)) || b.maj.localeCompare(a.maj); }); }
+  function carteEnquete(d) {
+    var fs = d.fiches, c = function (st) { return fs.filter(function (f) { return f.statut === st; }).length; }, a = d.id && art(d.id);
+    var ordre = ['inséré', 'a répondu', 'envoyé', 'brouillon', 'rebond'], tri = fs.slice().sort(function (x, y) { return ordre.indexOf(estRebond(x) ? 'rebond' : x.statut) - ordre.indexOf(estRebond(y) ? 'rebond' : y.statut); });
+    var barre = '<div class="eb" aria-hidden="true">' + tri.map(function (f) { var k = estRebond(f) ? 'r' : (STATUTS[f.statut] || [, , ''])[2]; return '<i class="' + (f.statut === 'inséré' ? 'c' : k) + '"></i>'; }).join('') + '</div>';
+    var parties = fs.filter(function (f) { return ['envoyé', 'a répondu', 'inséré'].indexOf(f.statut) >= 0; }).length;
+    var ligne = [fs.length + ' contact' + pl(fs.length), parties ? parties + ' mail' + pl(parties) + ' parti' + pl(parties) : '', c('a répondu') + c('inséré') ? (c('a répondu') + c('inséré')) + ' réponse' + pl(c('a répondu') + c('inséré')) : '', c('inséré') ? c('inséré') + ' cité' + pl(c('inséré')) : ''].filter(Boolean).join(' · ');
+    var nrel = fs.filter(relancePrete), nreb = fs.filter(estRebond), rep1 = fs.filter(function (f) { return f.statut === 'a répondu'; });
+    var act = c('brouillon') ? '<button class="btn small go" data-act="voir-mails" data-id="' + esc(d.id) + '">🟠 Valider ' + c('brouillon') + ' mail' + pl(c('brouillon')) + '</button>'
+      : rep1.length ? '<button class="btn small go" data-act="open-fiche" data-id="' + esc(rep1[0].fiche_id) + '">📬 Insérer la citation de ' + esc(rep1[0].contact.nom) + '</button>'
+      : nrel.length ? '<button class="btn small amber" data-act="open-fiche" data-id="' + esc(nrel[0].fiche_id) + '">⏰ Relance prête : ' + esc(nrel[0].contact.nom) + '</button>'
+      : nreb.length ? '<button class="btn small red" data-act="open-fiche" data-id="' + esc(nreb[0].fiche_id) + '">✉️ Adresse invalide : ' + esc(nreb[0].contact.nom) + '</button>' : '';
+    var titre = a ? '<a class="enq-t" href="' + url(a.editeur) + '" target="_blank" rel="noopener" data-stop="1" data-tip="' + esc(a.titre + '|' + (a.statut === 'published' ? 'publié' : a.statut === 'scheduled' ? 'programmé' : 'brouillon') + ' · ouvrir dans Ghost|') + '">' + esc(a.titre) + ' <span class="nom-i">↗</span></a>' : '<span class="enq-t">' + esc(d.titre) + '</span>';
+    return '<div class="enq" id="dossier-' + esc(d.id || 'sans') + '">' + titre + (a ? '<span class="tag ' + (a.statut === 'published' ? 'g' : a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'published' ? 'publié' : a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>' : '') +
+      barre + '<div class="enq-l">' + esc(ligne) + '</div><div class="enq-n">' + fs.map(function (f) { return nomFiche(f); }).join('<span class="sep">·</span>') + '</div>' +
+      '<div class="row enq-a">' + act + (d.id ? '<button class="btn small" data-act="voir-mails" data-id="' + esc(d.id) + '">📬 Voir les mails</button>' : '') + '</div></div>';
+  }
   function suiviRes() {
     var cols = [['brouillon', '🟠 À valider'], ['envoyé', '📨 Envoyés'], ['a répondu', '📬 Réponses'], ['inséré', '✅ Cités']];
     var list = vuesQ(), qq = String(S.qSuivi || '').trim();
     if (list.some(estRebond)) cols.push(['rebond', '✉️ Adresses invalides']);
     var bySt = function (st) { return list.filter(function (f) { return f.statut === st; }); };
     var ds = dossiers(list);
-    var dosHTML = (qq ? '<p class="muted">' + list.length + ' fiche' + pl(list.length) + ' trouvée' + pl(list.length) + ' pour « ' + esc(qq) + ' »</p>' : '') + (ds.length ? '<h3 style="margin-top:14px">🗂️ Dossiers par enquête</h3>' + ds.map(function (d) {
-      return '<div class="dossier" id="dossier-' + esc(d.id || 'sans') + '"><div class="dh"><b>📰 ' + esc(d.titre) + '</b>' + avancement(d.fiches) + '</div><div class="muted" style="font-size:12.5px">' + esc(d.fiches.map(function (f) { return f.contact.nom; }).join(' · ')) + ' — ' + origines(d.fiches) + (d.id && art(d.id) ? ' · <a href="#" data-act="pick-art" data-id="' + esc(d.id) + '">en faire l’article en cours</a>' : '') + '</div></div>';
-    }).join('') + '<h3 style="margin-top:18px">Par étape</h3>' : '');
+    var dosHTML = (qq ? '<p class="muted">' + list.length + ' fiche' + pl(list.length) + ' trouvée' + pl(list.length) + ' pour « ' + esc(qq) + ' »</p>' : '') +
+      (ds.length ? '<h3 style="margin-top:14px">📰 Par enquête</h3><p class="muted" style="margin-top:0">Une carte par article : où en sont les demandes, et la prochaine chose à faire.</p><div class="enqs">' + enquetes(ds).map(carteEnquete).join('') + '</div><h3 style="margin-top:18px">Par étape</h3>' : '');
     return dosHTML + '<div class="kan" style="margin-top:14px">' + cols.map(function (c) {
       var fs = bySt(c[0]);
       return '<div class="col"><h4>' + c[1] + ' <span class="tag">' + fs.length + '</span></h4><div class="dos">' + (fs.map(function (f) {
@@ -1180,9 +1339,9 @@
     else h += '<div class="row"><button class="btn" data-act="find-contacts"' + (busy ? ' disabled' : '') + '>🔎 Trouver les chercheurs de l’article</button><button class="btn small" data-act="contact-new">＋ Saisir un contact</button></div><p class="muted">La recherche prend une trentaine de secondes : l’Assistant vérifie sur le web qui a mené les travaux cités, et ne donne une adresse que si elle est publiée officiellement.</p>';
     if (S.contacts && S.contacts.length && !S.contact) {
       h += S.contacts.map(function (c, i) {
-        return '<div class="ct"><b>' + esc(c.nom) + '</b> <span class="tag">' + esc(c.langue === 'en' ? 'anglais' : 'français') + '</span><div class="w">' + esc([c.role, c.institution].filter(Boolean).join(', ')) + '</div>' +
+        return '<div class="ct"><b>' + nomLien(c.nom, c.profil_url, c.institution) + '</b> <span class="tag">' + esc(c.langue === 'en' ? 'anglais' : 'français') + '</span><div class="w">' + esc([c.role, c.institution].filter(Boolean).join(', ')) + '</div>' +
           '<div class="w">' + esc(c.pourquoi || '') + '</div>' +
-          '<div class="w">' + (c.email ? '✉️ ' + esc(c.email) + (c.source_email ? ' · <a href="' + url(c.source_email) + '" target="_blank" rel="noopener">source</a>' : '') : '✉️ adresse non publiée · ' + esc(c.ou_trouver || '')) + '</div>' +
+          '<div class="w">' + (c.email ? '✉️ ' + esc(c.email) + sourceAdresse(c.source_email) : '✉️ adresse non publiée · ' + esc(c.ou_trouver || '')) + '</div>' +
           (function (dj) { return dj.length ? '<div class="w" style="color:#ffd27a">⚠️ Déjà contacté ' + (dj[0].envoye_le ? 'le ' + esc(day(dj[0].envoye_le)) : '(mail non envoyé)') + ' pour « ' + esc(dj[0].article_titre || 'sans article') + ' »' + (dj.length > 1 ? ' et ' + (dj.length - 1) + ' autre' + pl(dj.length - 1) : '') + '</div>' : ''; })(dejaContacte(c.email)) +
           '<div class="row" style="margin-top:8px"><button class="btn small go" data-act="contact-pick" data-i="' + i + '">Choisir</button></div></div>';
       }).join('');
@@ -1331,12 +1490,39 @@
           (chef && x.id && x.statut === 'drafted' && !x.ghost_supprime ? '<button class="btn small go" data-act="mb-approuver" data-id="' + esc(x.id) + '">✅ Approuver</button>' : '') +
           (chef && x.id && x.statut === 'drafted' ? '<button class="btn small" data-act="mb-ecarter" data-id="' + esc(x.id) + '" title="Ne pas publier ce brouillon (le post Ghost n’est pas supprimé)">🗑️ Écarter</button>' : '') + '</div></div>';
       }).join('') + (bs.some(function (x) { return !x.rapport; }) ? '<p class="cz-s">Les brouillons créés avant le 22/10/2026 n’ont pas de rapport détaillé : il est resté dans le message Telegram « Brouillon prêt ».</p>' : '') : '<p class="muted">Aucun brouillon de l’Usine en attente.</p>');
-      var pu = M.publies || [];
-      h += '<div class="cz-t">🌙 Publiés aujourd’hui (' + pu.length + ')</div>' + (pu.length ? pu.map(function (p) { return '<div class="cz-l"><a href="' + esc(p.url) + '" target="_blank" rel="noopener"><b>' + esc(p.titre) + '</b></a><div class="cz-s">' + esc(when(p.publie_le)) + (p.visibilite && p.visibilite !== 'public' ? ' · ' + esc(p.visibilite) : '') + '</div></div>'; }).join('') : '<p class="muted">Rien de publié depuis minuit.</p>');
     }
-    var as = artsRecents();
-    h += '<div class="cz-t">🗂️ Tous les brouillons Ghost</div><p class="muted">Choisissez l’article sur lequel vous travaillez : l’Assistant s’en sert et les citations y seront insérées.</p><div class="arts" style="grid-template-columns:1fr">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon.</div>') + '</div>';
+    h += '<div id="wl-mb-listes">' + mbListes() + '</div>';
     return h + '</div>';
+  }
+  // Listes du Marbre (23/10/2026) : « 📝 Brouillons » (case « Inclure les brouillons de l'Usine », cochée par défaut ; décochée, on retire
+  // SEULEMENT les posts écrits par l'Usine, quel que soit l'auteur des autres), « ✅ Publiés aujourd'hui », puis « 📚 Tous les articles »
+  // avec recherche. Lignes compactes (vignette, titre sur 2 lignes, badges, date courte, actions en icônes).
+  // Origine Usine : GhostPostId des sujets du Radar (wl-radar, usine_ids + brouillons en attente) ; c'est le seul signal fiable.
+  function mbUsine() { var M = S.marbre || {}, o = {}; (M.usine_ids || []).forEach(function (x) { o[x] = 1; }); (M.brouillons || []).forEach(function (x) { if (x.ghost_id) o[x.ghost_id] = 1; }); return o; }
+  function mbInclureUsine() { try { return localStorage.getItem('wl-mb-usine') !== '0'; } catch (e) { return true; } }
+  function dateCourte(d) { if (!d) return ''; var t = new Date(d), j = new Date(); return t.toDateString() === j.toDateString() ? t.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : t.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); }
+  function artLigne(a, us) {
+    var n = D().fiches.filter(function (f) { return f.article_id === a.id; }).length, st = a.statut === 'published' ? ['g', 'publié'] : a.statut === 'scheduled' ? ['b', 'programmé'] : ['a', 'brouillon'];
+    var prim = premium(a) || n || prepEtat(a.id) ? btnMailsCourt(a.id) : '';
+    return '<div class="al' + (a.id === S.art ? ' sel' : '') + '" data-act="pick-art" data-id="' + esc(a.id) + '" data-tip="' + esc(a.titre + '|touchez pour en faire l’article en cours|') + '">' +
+      (a.image ? '<img class="al-v" loading="lazy" alt="" src="' + esc(a.image) + '">' : '<span class="al-v al-v0">📰</span>') +
+      '<div class="al-c"><div class="al-t">' + esc(a.titre) + '</div><div class="al-m"><span class="tag ' + st[0] + '">' + st[1] + '</span>' + (us[a.id] ? '<span class="tag">🏭 Usine</span>' : '') + (premium(a) ? '<span class="tag">💎</span>' : '') +
+      (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') + '<span class="al-d">' + esc(dateCourte(a.statut === 'published' ? a.publie_le : a.maj)) + '</span></div></div>' +
+      '<div class="al-a">' + prim + '<a class="al-i" href="' + url(a.editeur) + '" target="_blank" rel="noopener" data-stop="1" title="Ouvrir dans Ghost" aria-label="Ouvrir dans Ghost">✏️</a></div></div>';
+  }
+  function mbListes() {
+    var M = S.marbre || {}, us = mbUsine(), inc = mbInclureUsine(), as = artsRecents();
+    var brs = as.filter(function (a) { return a.statut !== 'published'; }), visibles = inc ? brs : brs.filter(function (a) { return !us[a.id]; });
+    var nU = brs.filter(function (a) { return us[a.id]; }).length;
+    var debut = new Date(); debut.setHours(0, 0, 0, 0);
+    var pubs = as.filter(function (a) { return a.statut === 'published' && a.publie_le && new Date(a.publie_le) >= debut; });
+    (M.publies || []).forEach(function (p) { if (!pubs.some(function (a) { return a.id === p.id; })) pubs.push({ id: p.id, titre: p.titre, statut: 'published', publie_le: p.publie_le, image: p.image, visibilite: p.visibilite, editeur: p.editeur || p.url, auteurs: [] }); });
+    var q = norm(S.qMb || '').trim(), tous = as.filter(function (a) { return !q || q.split(/\s+/).every(function (m) { return norm(a.titre + ' ' + (a.auteurs || []).join(' ')).indexOf(m) >= 0; }); });
+    return '<div class="cz-t mb-h"><span>📝 Brouillons (' + visibles.length + ')</span><label class="mb-chk" data-stop="1"><input type="checkbox" id="wl-mb-usine"' + (inc ? ' checked' : '') + '> Inclure les brouillons de l’Usine' + (nU ? ' (' + nU + ')' : '') + '</label></div>' +
+      '<div class="als">' + (visibles.map(function (a) { return artLigne(a, us); }).join('') || '<div class="muted">' + (inc ? 'Aucun brouillon.' : 'Aucun brouillon hors Usine.') + '</div>') + '</div>' +
+      '<div class="cz-t">✅ Publiés aujourd’hui (' + pubs.length + ')</div><div class="als">' + (pubs.map(function (a) { return artLigne(a, us); }).join('') || '<div class="muted">Rien de publié depuis minuit.</div>') + '</div>' +
+      '<div class="cz-t">📚 Tous les articles (' + as.length + ')</div><div class="qbox"><input class="in" id="wl-qmb" type="search" value="' + esc(S.qMb || '') + '" placeholder="Chercher un article (titre, auteur)…" autocomplete="off" enterkeyhint="search" aria-label="Chercher un article"></div>' +
+      '<div class="als" id="wl-mb-tous">' + (tous.map(function (a) { return artLigne(a, us); }).join('') || '<div class="muted">Aucun article ne correspond.</div>') + '</div>';
   }
   // Rapport détaillé du brouillon (enregistré par l'Usine depuis le 22/10/2026) : alertes en évidence, puis le reste replié.
   function mbLiens(t) { return esc(t).replace(/https?:\/\/[^\s<>"')]+/g, function (u) { return '<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>'; }); }
@@ -1462,7 +1648,7 @@
     var og = origine(f);
     var h = '<div class="dtop"><span class="em">📮</span><div><div class="nm">Mail à valider</div><div class="st">' + og[0] + ' ' + (og[1] === 'Express' ? 'préparé en express' : og[1] === 'Assistant' ? 'questions de l’Assistant, mail de la Secrétaire' : 'rédigé par la Secrétaire') + ' · lancé par ' + esc(qui(f)) + ' · ' + esc(when(f.maj)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     h += '<div class="paper"><div class="kick">Relisez, corrigez si besoin, puis validez</div>' +
-      '<div class="meta">À : <b>' + esc(f.contact.nom) + '</b> ' + (okMail ? '&lt;' + esc(f.contact.email) + '&gt;' : '<span class="tag a">adresse manquante</span>') + '<br>📰 ' + esc(f.article_titre || 'sans article') + ' · ' + (f.langue === 'en' ? 'en anglais' : 'en français') + '</div>';
+      '<div class="meta">À : <b>' + nomFiche(f) + '</b> ' + (okMail ? '&lt;' + esc(f.contact.email) + '&gt;' + sourceAdresse(liensFiche(f).source) : '<span class="tag a">adresse manquante</span>') + '<br>📰 ' + esc(f.article_titre || 'sans article') + ' · ' + (f.langue === 'en' ? 'en anglais' : 'en français') + '</div>';
     h += dejaHTML(dejaContacte(f.contact.email, f.fiche_id));
     if (!okMail) h += '<div class="warn">Il manque l’adresse e-mail du contact.<label>Adresse e-mail</label><input class="pin" id="wl-v-email" type="email" inputmode="email" placeholder="prenom.nom@universite.edu"><div class="acts"><button data-act="v-email" data-id="' + esc(f.fiche_id) + '">Enregistrer l’adresse</button></div></div>';
     h += '<label>Objet</label><input class="pin sub" id="wl-v-sujet" value="' + esc(ed.sujet) + '">' +
@@ -1481,7 +1667,7 @@
     var w = membre(f.redacteur);
     var h = '<div class="dtop"><span class="em">🗂️</span><div><div class="nm">' + esc(f.contact.nom) + '</div><div class="st">' + esc((STATUTS[f.statut] || ['', f.statut])[1]) + ' · fiche de ' + esc(w.nom) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     var rw = peut(f);
-    h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + ' · ' + origine(f).join(' ') + ' · lancée par ' + esc(qui(f)) + '</div><h1>' + esc(f.contact.nom) + '</h1>' + parcoursHTML(f) + (rw ? '' : lectureSeule('fiche de ' + membre(f.redacteur).nom)) +
+    h += '<div class="paper"><div class="kick">Fiche contact ' + tagStatut(f) + ' · ' + origine(f).join(' ') + ' · lancée par ' + esc(qui(f)) + '</div><h1>' + nomFiche(f) + '</h1>' + (liensFiche(f).source ? '<div class="src-w">' + sourceAdresse(liensFiche(f).source) + '</div>' : '') + parcoursHTML(f) + (rw ? '' : lectureSeule('fiche de ' + membre(f.redacteur).nom)) +
       '<div class="meta">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + (f.contact.email ? '<br>✉️ ' + esc(f.contact.email) : '') + '<br>📰 ' + esc(f.article_titre || 'sans article') + (relanceInfo(f) ? '<br>🔁 ' + esc(relanceInfo(f)) : '') + '</div>';
     if (estRebond(f)) h += '<div class="rebond">✉️ <b>Adresse invalide</b> : le mail n’a pas été distribué' + (f.rebond_le ? ' (' + esc(when(f.rebond_le)) + ')' : '') + '.' + (f.rebond_motif ? '<br><span style="opacity:.85">Motif : ' + esc(f.rebond_motif) + '</span>' : '') +
       '<br>Vérifiez l’adresse (page de l’institution, dernière publication), puis écrivez-lui à nouveau depuis la Secrétaire (« Écrire à quelqu’un ») avec la bonne adresse.</div>';
@@ -1898,6 +2084,8 @@
       case 'close-panel': closePanel(); break;
       case 'close-doc': fermerDoc(); break;
       case 'voir-mails': masquerTip(); voirMails(id); break;
+      case 'art-tab': S.artTab = id; var ra2 = S.root.querySelector('#wl-art-res'); if (ra2) { ra2.innerHTML = artsRes(); markBusy(); } break;
+      case 'prep-retry': reprendrePrep(id); break;
       case 'open-valid': openDoc('valid', id); break;
       case 'open-fiche': openDoc('fiche', id); break;
       case 'open-aide': openDoc('aide', ''); break;
@@ -1962,7 +2150,7 @@
       case 'find-contacts':
         work('assistant', 'cherche les chercheurs', api('contacts', { article_id: S.art })).then(function (r) { S.contacts = r.contacts || []; saveDraft(); paintPanel(); if (!S.contacts.length) toast('Personne de sûr trouvé : saisissez un contact.'); });
         break;
-      case 'contact-pick': var c = S.contacts[i]; S.contact = { nom: c.nom || '', email: c.email || '', role: c.role || '', institution: c.institution || '', langue: c.langue === 'en' ? 'en' : 'fr' }; saveDraft(); paintPanel(); break;
+      case 'contact-pick': var c = S.contacts[i]; S.contact = { nom: c.nom || '', email: c.email || '', role: c.role || '', institution: c.institution || '', langue: c.langue === 'en' ? 'en' : 'fr', profil_url: c.profil_url || '', source_email: c.source_email || '', pourquoi: c.pourquoi || '', ou_trouver: c.ou_trouver || '' }; saveDraft(); paintPanel(); break;
       case 'contact-new': S.contact = { nom: '', email: '', role: '', institution: '', langue: 'fr' }; saveDraft(); paintPanel(); break;
       case 'contact-clear': S.contact = null; saveDraft(); paintPanel(); break;
       case 'propose-q':
@@ -2188,7 +2376,7 @@
       case 'express':
         var ax = art(id); if (!ax) { toast('Enquête introuvable dans Ghost.', true); break; }
         var ck7 = S.clicking, pub7 = true; // case « Article publié » : dans la confirmation uniquement (23/10/2026)
-        var pe7 = prepEtat(id); if (pe7 && pe7.etat === 'cours') { voirMails(id); break; } // déjà en route : on suit la préparation
+        var pe7 = prepEtat(id); if (enCours(pe7)) { voirMails(id); break; } // déjà en route : on suit la préparation
         confirmerPub('Préparer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.', pub7).then(function (rc) { if (!rc.ok) return; S.clicking = ck7; setTimeout(function () { S.clicking = null; }, 0);
           lancerPrep(id, rc.publie); // fenêtre de préparation : étapes en direct, puis les cartes des mails
         });
@@ -2220,6 +2408,9 @@
     var t = e.target, k;
     if (t.classList && t.classList.contains('pub-in')) { S.pub = S.pub || {}; S.pub[t.getAttribute('data-pub')] = !!t.checked; return; }
     if (t.id === 'wl-msg') { S.msgDraft = t.value; return; }
+    if (t.id === 'wl-mb-usine') { try { localStorage.setItem('wl-mb-usine', t.checked ? '1' : '0'); } catch (e) {} var lm = S.root.querySelector('#wl-mb-listes'); if (lm) { lm.innerHTML = mbListes(); markBusy(); } return; }
+    if (t.id === 'wl-qmb') { S.qMb = t.value; var tm = S.root.querySelector('#wl-mb-tous'); if (tm) { var tmp = document.createElement('div'); tmp.innerHTML = mbListes(); var nt = tmp.querySelector('#wl-mb-tous'); if (nt) tm.innerHTML = nt.innerHTML; markBusy(); } return; }
+    if (t.id === 'wl-qa') { S.qArt = t.value; var ra = S.root.querySelector('#wl-art-res'); if (ra) { ra.innerHTML = artsRes(); markBusy(); } return; }
     if (t.id === 'wl-q') { S.qSuivi = t.value; var rq = S.root.querySelector('#wl-suivi-res'); if (rq) { rq.innerHTML = suiviRes(); markBusy(); } return; }
     if (t.id === 'wl-qc') { S.qCour = t.value; var rc2 = S.root.querySelector('#wl-cour-res'); if (rc2) { rc2.innerHTML = courrierRes(); markBusy(); } return; }
     if ((t.id === 'wl-r-sujet' || t.id === 'wl-r-corps') && S.doc) { S.rEdit = S.rEdit || {}; S.rEdit[S.doc.id] = { sujet: val('wl-r-sujet'), corps: val('wl-r-corps') }; return; }
@@ -2256,9 +2447,9 @@
     var w = r.querySelector('.wrap');
     var ae = document.activeElement, composing = ae && w.contains(ae) && ae.id === 'wl-msg';
     var gx = PHL.lireDefilement(w, ['.floor', '.kan']);
-    var qf = ae && w.contains(ae) && ae.id === 'wl-q' ? { a: ae.selectionStart, b: ae.selectionEnd } : null;
+    var qf = ae && w.contains(ae) && (ae.id === 'wl-q' || ae.id === 'wl-qa') ? { id: ae.id, a: ae.selectionStart, b: ae.selectionEnd } : null;
     if (!composing) w.innerHTML = S.tab === 'articles' ? viewArticles() : S.tab === 'suivi' ? viewSuivi() : S.tab === 'interphone' ? viewInterphone() : viewBureau();
-    if (qf) { var nq = w.querySelector('#wl-q'); if (nq) { nq.focus({ preventScroll: true }); try { nq.setSelectionRange(qf.a, qf.b); } catch (e) {} } }
+    if (qf) { var nq = w.querySelector('#' + qf.id); if (nq) { nq.focus({ preventScroll: true }); try { nq.setSelectionRange(qf.a, qf.b); } catch (e) {} } }
     PHL.remettreDefilement(w, gx);
     if (S.tab === 'interphone') { var ms = D().messages; if (ms.length) LS.set('wl-vu', String(ms[ms.length - 1].le)); r.querySelector('.tabs').innerHTML = tabs(); }
     paintPanel(); paintDoc(); markBusy();

@@ -242,10 +242,16 @@ Deno.serve(async (req) => {
           ghost(`posts/?filter=${encodeURIComponent(`status:published+published_at:>'${minuitZurich()}'`)}&limit=20&order=published_at%20desc&fields=${CHAMPS_POST}`).catch((e) => ({ erreur: String(e.message || e) })),
         ]);
         const brouillons = ((dr as any).posts || []).filter((p: any) => !p.email_only && !/^\s*TEST\s*[—–-]/.test(p.title || "")).map((p: any) => ({ id: "", titre: p.title, type: "", statut: "", post: post(p), social: null }));
-        return out({ ok: true, chef, airtable_absent: true, brouillons, publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
+        return out({ ok: true, chef, airtable_absent: true, brouillons, usine_ids: [], publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
           erreur_ghost: (dr as any).erreur || (pub as any).erreur || "", at: new Date().toISOString() });
       }
-      const r = await air("Radar" + q("OR({Status}='drafted',{Status}='approved')", "&maxRecords=15" + SORT_CREE));
+      // usine_ids (23/10/2026) : les posts Ghost écrits par l'Usine (GhostPostId du Radar, 100 plus récents, tous statuts), pour que la
+      // page puisse masquer les brouillons de l'Usine (« Inclure les brouillons de l'Usine »). Une seule page Airtable, champ unique.
+      const [r, us] = await Promise.all([
+        air("Radar" + q("OR({Status}='drafted',{Status}='approved')", "&maxRecords=15" + SORT_CREE)),
+        air("Radar" + q("NOT({GhostPostId}='')", "&pageSize=100&fields%5B%5D=GhostPostId" + SORT_CREE)).catch(() => ({ records: [] })),
+      ]);
+      const usine_ids = [...new Set(((us as any).records || []).map((x: any) => String(x.fields?.GhostPostId || "")).filter((x: string) => /^[a-f0-9]{24}$/.test(x)))];
       const recs = (r.records || []).map(sujet).filter((s: any) => s.ghost_id);
       const ids = recs.map((s: any) => s.ghost_id).filter((x: string) => /^[a-f0-9]{24}$/.test(x));
       const [posts, soc, pub] = await Promise.all([
@@ -261,7 +267,7 @@ Deno.serve(async (req) => {
         .filter((x: any) => !x.post || x.post.statut === "draft" || x.post.statut === "scheduled")
         // Post Ghost introuvable alors que la requête Ghost a réussi : il a été supprimé à la main (22/10/2026).
         .map((x: any) => ({ ...x, ghost_supprime: !x.post && !(posts as any).erreur && /^[a-f0-9]{24}$/.test(x.ghost_id) }));
-      return out({ ok: true, chef, brouillons, publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
+      return out({ ok: true, chef, brouillons, usine_ids, publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
         erreur_ghost: (posts as any).erreur || (pub as any).erreur || "", at: new Date().toISOString() });
     }
     // Approuver (= lien « Approuver » de Telegram, mais authentifié) : publié au batch du soir (~18 h 30).
