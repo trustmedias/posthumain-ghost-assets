@@ -271,6 +271,19 @@ Deno.serve(async (req) => {
       return out({ ok: true, fil });
     }
 
+    // Canal de la réponse choisi à la main dans la fiche (23/10/2026) : « Reçue par : e-mail / téléphone / en personne ».
+    if (b.action === "canal") {
+      const c = String(b.canal || "");
+      if (c && !["email", "telephone", "email+telephone", "personne"].includes(c)) return out({ ok: false, why: "canal inconnu" }, 400);
+      let q = db.from("wl_fiches").select("fiche_id,historique").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
+      const { data } = await q; const f = data && data[0];
+      if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
+      const hist = pj(f.historique) || []; hist.push({ t: new Date().toISOString(), e: "canal de la réponse : " + ({ email: "e-mail", telephone: "téléphone", "email+telephone": "e-mail et téléphone", personne: "en personne" }[c] || "non précisé"), par: me.id });
+      const { error } = await db.from("wl_fiches").update({ reponse_canal: c || null, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
+      if (error) return out({ ok: false, why: "enregistrement impossible" }, 500);
+      return out({ ok: true, canal: c || null });
+    }
+
     if (b.action === "action_faite") {
       const id = Number(b.id); if (!id) return out({ ok: false, why: "id" }, 400);
       const { data } = await db.from("wl_tel").select("id,action").eq("id", id).eq("membre", me.id).limit(1);
