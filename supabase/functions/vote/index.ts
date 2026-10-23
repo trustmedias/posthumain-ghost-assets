@@ -1,4 +1,4 @@
-// Posthumain — vote : « Votez pour la prochaine enquête premium » (posthumain.com/vote), 22/10/2026.
+// Posthumain — vote : « Votez pour une de nos prochaines enquêtes premium » (posthumain.com/vote), 22/10/2026.
 // Tout le système tourne ici (aucune exécution n8n) : état public, propositions, votes, modération et fusion IA,
 // clôture mensuelle (appelée par pg_cron via l'action « tick », idempotente), écriture du gagnant dans Airtable Radar,
 // vue « Rédaction » et publication de la page Ghost /vote.
@@ -21,10 +21,15 @@ const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
 const AIRTABLE_BASE = "appPc2y4ts9tVZCjQ"; // base « Radar » de l'Usine (identifiant non secret ; le jeton, lui, est un secret Supabase)
+// 23/10/2026 : thématiques alignées sur les tags réellement les plus utilisés sur posthumain.com (12 derniers mois :
+// intelligence artificielle, informatique/tech, cybersécurité/surveillance, business/économie/finance, travail/emploi,
+// société & comportement, robotique, médecine/santé/biotech/longévité, science/énergie/espace).
 const THEMES: Record<string, string> = {
-  ia: "Intelligence artificielle", cerveau: "Cerveau & neurosciences", vivant: "Génétique & vivant", sante: "Santé & longévité",
-  energie: "Énergie & climat", espace: "Espace", cyber: "Cybersécurité & dangers", societe: "Travail & société", futurs: "Futurs",
+  ia: "Intelligence artificielle", tech: "Tech & informatique", cyber: "Cybersécurité & surveillance", business: "Business, économie & finance",
+  travail: "Travail & emploi", societe: "Société & comportement", robotique: "Robotique", sante: "Santé, médecine & cerveau", science: "Sciences, énergie & espace",
 };
+// anciennes clés (première version du 22/10) → nouvelles : les propositions et votes déjà faits restent valables
+const THEMES_ANCIENS: Record<string, string> = { cerveau: "sante", vivant: "sante", energie: "science", espace: "science", futurs: "societe" };
 const MAX_AVANT_IA = 5; // les 5 premières propositions entrent telles quelles ; l'IA tranche à la 6e
 
 // ---------------------------------------------------------------------------- outils
@@ -188,7 +193,7 @@ async function fusion(tourId: number) {
       try {
         const out = await claude("claude-opus-5-5", "medium",
           "Tu es le rédacteur en chef de Posthumain, média francophone d'enquêtes sur l'IA, les technologies, la génétique, les neurosciences et les futurs humains, lu par un grand public curieux (pas des spécialistes). " +
-          "Les abonnés premium ont proposé des sujets pour la prochaine enquête premium. Ton rôle : en tirer EXACTEMENT 3 sujets d'enquête soumis au vote. " +
+          "Les abonnés premium ont proposé des sujets pour une prochaine enquête premium. Ton rôle : en tirer EXACTEMENT 3 sujets d'enquête soumis au vote. " +
           "Fusionne les propositions qui se recoupent, garde les idées les plus fortes et fascinantes, tiens compte des votes déjà reçus (une proposition très votée doit rester reconnaissable), et reformule chaque sujet en un titre accrocheur mais honnête (pas de promesse que l'enquête ne pourra pas tenir, pas de point d'exclamation, 90 caractères max) " +
           "et une description d'une phrase (200 caractères max) qui dit ce que l'enquête va révéler. Chaque proposition peut alimenter AU PLUS un sujet ; une proposition faible ou hors-sujet peut n'être rattachée à aucun. Chaque sujet doit avoir au moins une proposition source. " +
           "thematique = une de ces clés : " + Object.keys(THEMES).join(", ") + ". " +
@@ -197,7 +202,7 @@ async function fusion(tourId: number) {
         const s = Array.isArray(out?.sujets) ? out.sujets : [];
         const vus = new Set<number>();
         const net = s.slice(0, 3).map((x: { titre: unknown; description: unknown; thematique: unknown; sources: unknown }) => ({
-          titre: propre(x.titre, 160), description: propre(x.description, 400), thematique: THEMES[String(x.thematique)] ? String(x.thematique) : "futurs",
+          titre: propre(x.titre, 160), description: propre(x.description, 400), thematique: THEMES[String(x.thematique)] ? String(x.thematique) : (THEMES_ANCIENS[String(x.thematique)] || "societe"),
           sources: (Array.isArray(x.sources) ? x.sources : []).map(Number).filter((n: number) => ids.has(n) && !vus.has(n) && (vus.add(n), true)),
         }));
         if (net.length !== 3 || net.some((x: { titre: string; sources: number[] }) => x.titre.length < 8 || !x.sources.length)) throw new Error("l'IA n'a pas rendu 3 sujets valides");
@@ -417,9 +422,9 @@ async function publierPage() {
   if (!h.ok) throw new Error("page.html introuvable (" + h.status + ")");
   const html = (await h.text()).replaceAll("{{COMMIT}}", commit);
   const lexical = JSON.stringify({ root: { children: [{ type: "html", version: 1, html }], direction: null, format: "", indent: 0, type: "root", version: 1 } });
-  const page = { title: "Votez pour la prochaine enquête premium", slug: "vote", lexical, status: "published", visibility: "public",
-    custom_excerpt: "Chaque mois, les abonnés premium de Posthumain proposent et choisissent le sujet de la prochaine enquête.",
-    meta_title: "Votez pour la prochaine enquête premium — Posthumain", meta_description: "Proposez un sujet, votez : chaque mois, l'enquête premium la plus demandée par nos abonnés est menée par la rédaction." };
+  const page = { title: "Votez pour une de nos prochaines enquêtes premium", slug: "vote", lexical, status: "published", visibility: "public",
+    custom_excerpt: "Chaque mois, les abonnés premium de Posthumain proposent des sujets et votent : le plus demandé devient une enquête de la rédaction.",
+    meta_title: "Votez pour une de nos prochaines enquêtes premium — Posthumain", meta_description: "Proposez un sujet, votez : chaque mois, le sujet le plus demandé par nos abonnés premium devient une enquête de la rédaction." };
   let ex = null;
   try { ex = (await ghost(`/pages/slug/vote/?fields=id,updated_at`))?.pages?.[0] || null; } catch (_) { ex = null; }
   const out = ex
@@ -477,7 +482,7 @@ Deno.serve(async (req) => {
     if (action === "proposer") {
       if (role !== "premium") return json({ ok: false, why: role === "visiteur" ? "connexion" : "premium" }, 403, h);
       if (phase(t) !== "propositions") return json({ ok: false, why: "Les propositions sont fermées pour ce tour : votez parmi les sujets." }, 409, h);
-      const them = String(b.thematique || ""), titre = propre(b.titre, 140), detail = propre(b.detail, 600);
+      const them = THEMES_ANCIENS[String(b.thematique || "")] || String(b.thematique || ""), titre = propre(b.titre, 140), detail = propre(b.detail, 600);
       if (!THEMES[them]) return json({ ok: false, why: "Choisissez d'abord une thématique." }, 400, h);
       if (titre.length < 8) return json({ ok: false, why: "Décrivez votre sujet en une phrase (8 caractères au moins)." }, 400, h);
       if (await limite("m:" + email, "proposer", 5, 60) || await limite(cleIp, "proposer", 15, 60)) return json({ ok: false, why: "Trop d'essais : réessayez dans une heure." }, 429, h);

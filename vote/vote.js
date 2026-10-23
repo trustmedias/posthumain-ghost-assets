@@ -1,4 +1,4 @@
-/* Posthumain — page /vote : « Votez pour la prochaine enquête premium ».
+/* Posthumain — page /vote : « Votez pour une de nos prochaines enquêtes premium ».
    Tout passe par la fonction Supabase « vote » (aucune exécution n8n). Identité vérifiée côté serveur
    (jeton membre Ghost + statut lu dans Ghost) : cette page n'affiche que ce que le serveur autorise. */
 (function () {
@@ -149,14 +149,14 @@
   function rendre() {
     var d = S.d;
     if (!d || !d.tour) {
-      root.innerHTML = '<div class="phv-surtitre">Vote du mois</div><h1 class="phv-titre">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>' +
+      root.innerHTML = '<div class="phv-surtitre">Vote du mois</div><h1 class="phv-titre">Le sujet d’une de nos prochaines enquêtes premium, c’est vous qui le choisissez.</h1>' +
         (S.alerte ? '<div class="phv-alerte ko">' + esc(S.alerte.t) + '</div>' : '<div class="phv-gris">Chargement du vote…</div>');
       majCompte();
       return;
     }
     var t = d.tour, role = d.role, cible = phaseCible(t), h = '<div class="phv-grille"><aside class="phv-rail">';
     h += '<div class="phv-surtitre">Vote de ' + esc(t.mois_txt) + (t.test ? ' (tour de test)' : '') + '</div>';
-    h += '<h1 class="phv-titre phv-dec">Le sujet de la prochaine enquête premium, c’est vous qui le choisissez.</h1>';
+    h += '<h1 class="phv-titre phv-dec">Le sujet d’une de nos prochaines enquêtes premium, c’est vous qui le choisissez.</h1>';
     h += '<div class="phv-chapo">Chaque mois, les abonnés premium proposent des sujets et votent. Le plus demandé devient une enquête de la rédaction, publiée pour tous les abonnés.</div>';
 
     // compte à rebours
@@ -331,7 +331,7 @@
     var f = document.createElement('div');
     f.className = 'phv phv-fond'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'phv-f-titre');
     f.innerHTML = '<div class="phv-fenetre"><button type="button" class="phv-fermer" aria-label="Fermer">✕</button>' +
-      '<h2 id="phv-f-titre">' + (visiteur ? 'Votez pour la prochaine enquête premium' : 'Le vote est réservé aux abonnés premium') + '</h2>' +
+      '<h2 id="phv-f-titre">' + (visiteur ? 'Votez pour une de nos prochaines enquêtes premium' : 'Le vote est réservé aux abonnés premium') + '</h2>' +
       '<div class="phv-h2-sous">' + (visiteur ? 'Proposer et voter est réservé aux abonnés premium. Créez votre compte, puis passez premium pour faire entendre votre voix.' : 'Débloquez le vote et tout ce que la rédaction réserve à ses abonnés.') + '</div>' +
       '<ul class="phv-avantages">' + av.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>' +
       '<div class="phv-prix">' + esc(prix) + '</div>' +
