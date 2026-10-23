@@ -8,16 +8,15 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { PNG } from "npm:pngjs@7.0.0";
 import { Buffer } from "node:buffer";
+import { equipe, parEmail, viderCacheEquipe } from "./equipe.ts";
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
-const EQUIPE: Record<string, { id: string; nom: string; role: "chef" | "journaliste"; email?: string }> = {
-  "jonathan.paiano@outlook.com": { id: "jonathan", nom: "Jonathan Paiano", role: "chef" },
-  "valisoan2915@gmail.com": { id: "valisoa", nom: "Valisoa Rasolofo", role: "journaliste" },
-};
-const PAR_ID: Record<string, { id: string; nom: string; role: string }> = Object.fromEntries(Object.values(EQUIPE).map((w) => [w.id, w]));
+// Équipe (23/10/2026) : table wl_equipe via equipe.ts. Rôle « chef » = rédacteur en chef ; tout autre rôle = journaliste.
+// Cette fonction gère aussi l'équipe (Paramètres → Équipe, rédacteur en chef uniquement) : liste, ajout, modification, (dés)activation.
+const BOITES = ["jonathan", "valisoa"]; // boîtes personnelles @posthumain.com branchées (subs@ et redaction@ sont celles de Julien)
 
 // Parties (23/10/2026). IDE : numéro d'entreprise suisse de Trust Medias, à renseigner ; vide = mention absente (jamais de « à compléter »).
 export const IDE = "";
@@ -82,8 +81,8 @@ async function membre(token: string) {
   const ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64u(parts[2]), new TextEncoder().encode(parts[0] + "." + parts[1]));
   if (!ok || !payload.exp || payload.exp * 1000 < Date.now()) return null;
   if (payload.iss && !/^https:\/\/(posthumain\.com|the-last-journal\.ghost\.io)\//.test(String(payload.iss))) return null;
-  const sub = String(payload.sub || "").toLowerCase(), w = EQUIPE[sub];
-  return w ? { ...w, email: sub } : null;
+  const w = await parEmail(db, String(payload.sub || ""));
+  return w ? { id: w.id, nom: w.nom, role: w.chef ? "chef" : "journaliste", email: w.email, test: w.test } : null;
 }
 // Nom tapé : majuscules, accents, espaces et tirets tolérés ; tout le reste doit correspondre au nom de l'équipe.
 const normNom = (s: string) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-\u2010\u2011\u2019']/g, " ").replace(/\s+/g, " ").trim();
@@ -122,6 +121,36 @@ async function enregistrer(req: Request, b: any, id: string, nomAttendu: string,
   return { ok: true, consentement: data, signe_le_zurich: zurich(data.signe_le), encre: sig.encre };
 }
 
+// Ajout / modification d'un membre : tout est revérifié ici (le navigateur ne décide de rien).
+// deno-lint-ignore no-explicit-any
+async function enregistrerMembre(b: any, emailChef: string) {
+  const email = String(b.email || "").toLowerCase().trim(), ancien = String(b.ancien_email || "").toLowerCase().trim();
+  const nom = String(b.nom || "").replace(/\s+/g, " ").trim().slice(0, 80), titre = String(b.titre || "").replace(/\s+/g, " ").trim().slice(0, 80);
+  const role = b.role === "chef" ? "chef" : "journaliste", boite = b.boite ? String(b.boite) : null;
+  if (!/^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(email) || email.length > 200) return { ok: false, why: "adresse e-mail invalide" };
+  if (nom.length < 3 || !/\s/.test(nom)) return { ok: false, why: "indiquez le prénom et le nom" };
+  if (boite && !BOITES.includes(boite)) return { ok: false, why: "boîte d’envoi inconnue" };
+  const l = await equipe(db, true), cur = l.find((x) => x.email === (ancien || email));
+  if (!cur && l.some((x) => x.email === email)) return { ok: false, why: "cette adresse fait déjà partie de l’équipe" };
+  if (cur && ancien && ancien !== email && l.some((x) => x.email === email)) return { ok: false, why: "cette adresse fait déjà partie de l’équipe" };
+  if (boite && l.some((x) => x.email !== (cur ? cur.email : "") && x.actif && x.boite === boite)) return { ok: false, why: "cette boîte d’envoi appartient déjà à un autre membre actif" };
+  if (cur && cur.email === emailChef && role !== "chef") return { ok: false, why: "vous ne pouvez pas retirer votre propre rôle de rédacteur en chef" };
+  const sig = String(b.signature || "").slice(0, 1000), sigEn = String(b.signature_en || "").slice(0, 1000);
+  const row: Record<string, unknown> = { email, nom, titre: titre || (role === "chef" ? "Rédacteur en chef" : "Journaliste"), role: cur && cur.role === "redaction" && role === "journaliste" ? "redaction" : role, boite,
+    signature: sig || nom + "\n" + (titre || "Journaliste") + ", Posthumain\nhttps://posthumain.com", signature_en: sigEn || nom + "\nJournalist, Posthumain\nhttps://posthumain.com", test: b.test === true, updated_at: new Date().toISOString() };
+  if (cur) {
+    const { error } = await db.from("wl_equipe").update(row).eq("email", cur.email);
+    if (error) return { ok: false, why: error.message };
+    return { ok: true, email, modifie: true };
+  }
+  // Identifiant interne (fiches, pièces, factures) : tiré du prénom, unique, jamais réutilisé.
+  const base = nom.split(" ")[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20) || "membre";
+  let id = base, n = 2; while (l.some((x) => x.id === id)) id = base + n++;
+  const { error } = await db.from("wl_equipe").insert({ ...row, id, actif: true });
+  if (error) return { ok: false, why: error.message };
+  return { ok: true, email, id, cree: true };
+}
+
 Deno.serve(async (req) => {
   const h = { ...cors(req), "Content-Type": "application/json", "Cache-Control": "no-store" };
   if (req.method === "OPTIONS") return new Response(null, { headers: h });
@@ -156,9 +185,37 @@ Deno.serve(async (req) => {
       if (!chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
       const { data, error } = await db.from("wl_consentements").select(CHAMPS).order("signe_le", { ascending: false }).limit(200);
       if (error) return out({ ok: false, why: error.message });
-      const journalistes = Object.values(PAR_ID).filter((w) => w.role === "journaliste").map((w) => ({ id: w.id, nom: w.nom }));
+      const journalistes = (await equipe(db, true)).filter((w) => !w.chef).map((w) => ({ id: w.id, nom: w.nom, actif: w.actif, test: w.test }));
       return out({ ok: true, version: VERSION, titre: TITRE, texte: TEXTE, hash: await HASH, journalistes, editeur: EDITEUR,
         consentements: (data || []).map((r: any) => ({ ...r, signe_le_zurich: zurich(r.signe_le) })) });
+    }
+    // ---------- Équipe (rédacteur en chef) ----------
+    if (b.action === "equipe_liste") {
+      if (!chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+      const [l, { data: cs }] = await Promise.all([equipe(db, true), db.from("wl_consentements").select("journaliste_id,signe_le,texte_version").eq("test", false).eq("texte_version", VERSION)]);
+      const sig: Record<string, string> = {}; for (const c of cs || []) sig[c.journaliste_id] = c.signe_le;
+      return out({ ok: true, version: VERSION, boites: BOITES, membres: l.map((m) => ({ email: m.email, id: m.id, nom: m.nom, titre: m.titre, role: m.chef ? "chef" : "journaliste", boite: m.boite, signature: m.signature, signature_en: m.signature_en, actif: m.actif, test: m.test,
+        engagement: m.chef ? null : (sig[m.id] ? { signe_le: sig[m.id], signe_le_zurich: zurich(sig[m.id]) } : false) })) });
+    }
+    if (b.action === "equipe_enregistrer") {
+      if (!chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+      const r = await enregistrerMembre(b, me.email || "");
+      if (r.ok) viderCacheEquipe();
+      return out(r);
+    }
+    if (b.action === "equipe_actif") {
+      if (!chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+      const email = String(b.email || "").toLowerCase().trim();
+      if (email === me.email) return out({ ok: false, why: "vous ne pouvez pas vous désactiver vous-même" });
+      const l = await equipe(db, true), m = l.find((x) => x.email === email);
+      if (!m) return out({ ok: false, why: "membre introuvable" }, 404);
+      const actif = b.actif === true;
+      if (!actif && m.chef && l.filter((x) => x.chef && x.actif).length <= 1) return out({ ok: false, why: "il doit rester au moins un rédacteur en chef actif" });
+      if (actif && m.boite && l.some((x) => x.email !== email && x.actif && x.boite === m.boite)) return out({ ok: false, why: "sa boîte d’envoi est déjà utilisée par un membre actif" });
+      const { error } = await db.from("wl_equipe").update({ actif, updated_at: new Date().toISOString() }).eq("email", email);
+      if (error) return out({ ok: false, why: error.message });
+      viderCacheEquipe();
+      return out({ ok: true, email, actif });
     }
     return out({ ok: false, why: "action inconnue" }, 400);
   } catch (e) {

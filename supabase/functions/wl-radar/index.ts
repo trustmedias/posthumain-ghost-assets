@@ -21,13 +21,13 @@
 // Secrets Supabase : jeton Airtable (AIRTABLE_TOKEN, ou AIRTABLE_API_KEY / AIRTABLE_PAT / POSTHUMAIN_AIRTABLE_TOKEN),
 // clé Admin Ghost GHOST_ADMIN_API_KEY (format id:secret) et, facultatif, GHOST_ADMIN_API_URL.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { parEmail, type Membre } from "./equipe.ts";
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
-const EQUIPE: Record<string, string> = { "jonathan.paiano@outlook.com": "jonathan", "valisoan2915@gmail.com": "valisoa" };
-const CHEF = "jonathan";
+// Équipe (23/10/2026) : table wl_equipe via equipe.ts (cache 60 s) ; le rédacteur en chef = rôle « chef ».
 const AIRTABLE_BASE = "appPc2y4ts9tVZCjQ"; // base « Radar » de l'Usine (identifiant non secret)
 const USINE_TELEGRAM_WEBHOOK = "https://trustmedias.app.n8n.cloud/webhook/posthumain-enquete";
 const JONATHAN_CHAT = 8382186188; // chat Telegram autorisé par l'Usine (non secret : seul filtre du webhook)
@@ -44,7 +44,7 @@ function cors(req: Request) {
 const b64u = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(s.length / 4) * 4, "=")), (c) => c.charCodeAt(0));
 const b64uEnc = (b: Uint8Array | string) => btoa(typeof b === "string" ? b : String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 let jwksCache: { at: number; keys: any[] } | null = null;
-async function membre(token: string): Promise<string | null> {
+async function membre(token: string): Promise<Membre | null> {
   const parts = String(token || "").split(".");
   if (parts.length !== 3) return null;
   let header: any, payload: any;
@@ -58,7 +58,7 @@ async function membre(token: string): Promise<string | null> {
   const ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64u(parts[2]), new TextEncoder().encode(parts[0] + "." + parts[1]));
   if (!ok || !payload.exp || payload.exp * 1000 < Date.now()) return null;
   if (payload.iss && !/^https:\/\/(posthumain\.com|the-last-journal\.ghost\.io)\//.test(String(payload.iss))) return null;
-  return EQUIPE[String(payload.sub || "").toLowerCase()] || null;
+  return await parEmail(db, String(payload.sub || ""));
 }
 
 // ---------- Airtable ----------
@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
   }
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
-  const chef = qui === CHEF;
+  const chef = !!qui.chef;
   const ecrit = ["choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar"];
   if (ecrit.includes(String(b.action)) && !chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
   try {

@@ -14,12 +14,12 @@
 // limites de débit par membre et par IP, modération IA, CORS limité à posthumain.com.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.9.6";
+import { parEmail as membreEquipe, chefs } from "./equipe.ts"; // équipe : table wl_equipe (cache 60 s), 23/10/2026
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
-const EQUIPE: Record<string, string> = { "jonathan.paiano@outlook.com": "jonathan", "valisoan2915@gmail.com": "valisoa" };
 const AIRTABLE_BASE = "appPc2y4ts9tVZCjQ"; // base « Radar » de l'Usine (identifiant non secret ; le jeton, lui, est un secret Supabase)
 const THEMES: Record<string, string> = {
   ia: "Intelligence artificielle", cerveau: "Cerveau & neurosciences", vivant: "Génétique & vivant", sante: "Santé & longévité",
@@ -219,7 +219,8 @@ async function fusion(tourId: number) {
 }
 
 // ---------------------------------------------------------------------------- Interphone + push (rédaction)
-async function annoncer(texte: string, titrePush: string, msgPush: string, qui: string[] = ["jonathan"]) {
+async function annoncer(texte: string, titrePush: string, msgPush: string, qui: string[] | null = null) {
+  if (!qui) qui = await chefs(db).catch(() => ["jonathan"]);
   try { await db.from("wl_messages").insert({ auteur: "vote", nom: "🗳️ Les votes du public", texte: texte.slice(0, 1500) }); } catch (_) { /* jamais bloquant */ }
   const key = env("WEBPUSHR_KEY"), token = env("WEBPUSHR_TOKEN");
   if (!key || !token) return;
@@ -452,7 +453,7 @@ Deno.serve(async (req) => {
   const email = await emailDuJeton(req);
   let m: Membre | null = null;
   if (email) { try { m = await membre(email); } catch (e) { console.warn("ghost", String(e)); if (action !== "etat") return json({ ok: false, why: "Ghost ne répond pas, réessayez dans un instant." }, 503, h); } }
-  const equipe = !!email && !!EQUIPE[email];
+  const equipe = !!email && !!(await membreEquipe(db, email).catch(() => null)); // membre actif de wl_equipe
   let role = !email ? "visiteur" : m?.premium ? "premium" : "gratuit";
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || req.headers.get("cf-connecting-ip") || "";
   const cleIp = "ip:" + (await sha("vote|" + ip)).slice(0, 24);

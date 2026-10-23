@@ -100,7 +100,8 @@
     return '<div class="row" style="gap:6px;margin:4px 0 10px"><span class="chip' + (moi ? ' art' : '') + '" data-act="portee" data-id="moi">👤 Mes fiches</span><span class="chip' + (moi ? '' : ' art') + '" data-act="portee" data-id="tous">👥 Toute la rédaction</span></div>';
   }
   function relancable(f) { return f.statut === 'envoyé' && f.envoye_le && Date.now() - new Date(f.envoye_le).getTime() > 3 * 864e5; }
-  function membre(id) { return (D().equipe || []).filter(function (w) { return w.id === id; })[0] || { nom: id || '?' }; }
+  // Équipe (23/10/2026) : un membre désactivé garde son nom dans l'historique, suivi de « (inactif) ».
+  function membre(id) { var w = (D().equipe || []).filter(function (x) { return x.id === id; })[0]; if (!w) return { nom: id || '?' }; return w.actif === false ? Object.assign({}, w, { nom: w.nom + ' (inactif)' }) : w; }
   var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'rebond': ['✉️', 'adresse invalide', 'r'], 'envoi_en_cours': ['⏳', 'envoi en cours…', 'a'], 'relance_en_cours': ['⏳', 'relance en cours…', 'b'], 'archivé': ['🗄️', 'archivé', ''] };
   // Relances : quand un chercheur ne répond pas, les coulisses préparent une relance (dans le même fil) à valider ici.
   // Rebond : le serveur du chercheur a refusé le mail (adresse invalide) → la fiche passe en « adresse invalide ».
@@ -289,7 +290,7 @@
 #wl .prep{max-width:760px;margin:16px auto 80px;padding:20px 22px 22px;background:#14110c;border:1px solid rgba(0,255,119,.22);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(0,255,119,.08)}#wl .dtop .pp-x{margin-left:auto;flex:0 0 auto}#wl .pp-k{display:flex;align-items:center;gap:8px;font:700 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#00ff77}#wl .pp-dot{width:8px;height:8px;border-radius:50%;background:#00ff77;box-shadow:0 0 10px #00ff77;animation:wlPpPulse 1.1s ease-in-out infinite}#wl .pp-ti{margin:6px 0 14px;font-weight:800;font-size:19px;line-height:1.3;color:#f3ece0}#wl .pp-pg{margin:4px 0 12px}#wl .pp-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}#wl .pp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77);transition:width 1s linear}#wl .pp-pg.on .pp-bar i:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:wlPpScan 1.6s linear infinite}#wl .pp-meta{display:flex;justify-content:space-between;margin-top:6px;font:12px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .pp-el{color:#9fffc8;font-weight:700}#wl .pp-log{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:2px}#wl .pp-log li{display:grid;grid-template-columns:46px 26px 1fr;align-items:baseline;gap:6px;padding:7px 10px;border-radius:10px;transition:background .3s,opacity .3s}#wl .pp-log li.wait{opacity:.38}#wl .pp-log li.run{background:rgba(0,255,119,.07);box-shadow:inset 2px 0 0 #00ff77}#wl .pp-log li.ok .pp-lt:after{content:' ✓';color:#3dffa0;font-weight:800}#wl .pp-log li.ko{background:rgba(255,61,90,.1);box-shadow:inset 2px 0 0 #ff3d5a}#wl .pp-log li.run .pp-lt:after{content:'';display:inline-block;width:7px;height:14px;margin-left:6px;vertical-align:-2px;background:#00ff77;animation:wlPpCaret 1s steps(2) infinite}#wl .pp-s{font:11.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.45)}#wl .pp-ic{font-size:15px}#wl .pp-l{font-size:14.5px;line-height:1.4;color:#f3ece0}#wl .pp-l small{display:block;font-size:12.5px;color:rgba(243,236,224,.55)}#wl .pp-long{margin:6px 0;padding:9px 12px;border-radius:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.35);font-size:13.5px;line-height:1.5;color:#ffe0a3}#wl .prep p.muted{font-size:13px!important;line-height:1.5!important}#wl .pp-n{font-size:13px;margin:8px 0 0}#wl .pp-det summary{cursor:pointer;font-size:13px;color:rgba(243,236,224,.6);margin:2px 0 4px}#wl .pp-fin{margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(0,255,119,.08);border:1px solid rgba(0,255,119,.35);color:#c9ffe0;font-size:14.5px;line-height:1.5}#wl .pp-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:18px 0 4px}#wl .pp-h>b{font-size:16px;color:#f3ece0}#wl .pp-c.in{animation:wlPpIn .55s cubic-bezier(.2,.8,.2,1) both}#wl .dcard:focus-visible{outline:2px solid #00ff77;outline-offset:2px}@keyframes wlPpIn{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}@keyframes wlPpScan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@keyframes wlPpPulse{50%{opacity:.35}}@keyframes wlPpCaret{50%{opacity:0}}@media (max-width:720px){#wl .prep{margin:10px 8px 60px;padding:16px 14px 18px;border-radius:16px}#wl .pp-ti{font-size:17px}#wl .pp-log li{grid-template-columns:40px 22px 1fr;padding:7px 6px}}@media (prefers-reduced-motion:reduce){#wl .pp-c.in,#wl .pp-dot,#wl .pp-pg.on .pp-bar i:after,#wl .pp-log li.run .pp-lt:after{animation:none}}\
 #wl .qbox input,#wl .qbox input.in{padding-left:40px!important}#wl .qbox:before{left:13px!important;line-height:1;z-index:1}#wl .nom-l{color:inherit!important;text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}#wl .nom-l:hover{text-decoration:none;border-bottom-style:solid}#wl .nom-i{display:inline-block;margin-left:4px;font:700 10px/1 Inter,sans-serif;opacity:.6;vertical-align:2px;border-bottom:0}#wl .nom-i.li{padding:2px 3px;border-radius:3px;background:#0a66c2;color:#fff!important;opacity:.9}#wl .nom-l.nom-q .nom-i{font-size:10px}#wl .src-l{font-size:12.5px;color:#3dffa0!important;margin-left:6px;white-space:nowrap}#wl .paper .src-l,#wl .dcard .src-l{color:#0a7a45!important}#wl .src-w{margin:-6px 0 10px;font-family:Inter,sans-serif}#wl .pp-att{display:inline-block;animation:wlPpPulse 2.4s ease-in-out infinite}#wl .pp-log.r li{grid-template-columns:26px 1fr}#wl .pp-cts{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px}#wl .pp-ct{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-left:3px solid rgba(0,255,119,.5);animation:wlPpIn .45s cubic-bezier(.2,.8,.2,1) both}#wl .pp-ct.ok{border-left-color:#3dffa0}#wl .pp-ct.ko{border-left-color:#ff3d5a;background:rgba(255,61,90,.06)}#wl .pp-ct.deja{border-left-color:#7fb2ff;opacity:.8}#wl .pp-ct-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}#wl .pp-ct-h b{font-size:15px;color:#f3ece0}#wl .pp-ct-h>span{font-size:13px;color:rgba(243,236,224,.62)}#wl .pp-ct-m{font-size:12.5px;color:rgba(243,236,224,.6);margin-top:3px;word-break:break-word}#wl .pp-ct-s{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#wl .pp-ct-s span{font-size:12.5px;padding:3px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(243,236,224,.5)}#wl .pp-ct-s span.run{border-color:rgba(0,255,119,.55);color:#9fffc8;background:rgba(0,255,119,.08);animation:wlPpPulse 1.6s ease-in-out infinite}#wl .pp-ct-s span.ok{border-color:rgba(61,255,160,.4);color:#c9ffe0}#wl .pp-ct-s span.ok:before{content:'✓ ';font-weight:800}#wl .pp-ct-s span.ko{border-color:rgba(255,61,90,.5);color:#ffb3c0}#wl .pp-ct-e{margin-top:8px;font-size:13px;color:#ffb3c0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}#wl .enqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin:8px 0}#wl .enq{padding:12px 14px;border-radius:14px;background:#14110c;border:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;gap:7px;min-width:0}#wl .enq.flash{border-color:rgba(0,255,119,.6)}#wl .enq-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0!important}#wl .enq-t:hover{text-decoration:underline}#wl .enq>.tag{align-self:flex-start}#wl .eb{display:flex;gap:3px;height:8px}#wl .eb i{flex:1;border-radius:3px;background:#d9e5f6}#wl .eb i.a{background:#f6c56b}#wl .eb i.b{background:#8fb3ea}#wl .eb i.g{background:#4fdc8e}#wl .eb i.c{background:#18b45f}#wl .eb i.r{background:#ff7f8f}#wl .enq-l{font-size:13px;color:rgba(243,236,224,.75)}#wl .enq-n{font-size:13px;color:rgba(243,236,224,.85);line-height:1.6}#wl .enq-n .sep{margin:0 6px;opacity:.4}#wl .enq-a{gap:6px;margin-top:2px}#wl .seg.arts-seg{display:flex;flex-wrap:wrap;margin:4px 0 2px}#wl .seg.arts-seg button{flex:1 1 auto;white-space:nowrap}#wl .seg .n{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.08);font-size:12px}@media (max-width:720px){#wl .enqs{grid-template-columns:1fr}#wl .seg.arts-seg button{padding:7px 8px!important;font-size:12.5px!important}}\
 #wl .mb-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}#wl label.mb-chk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;font:500 12.5px Inter,system-ui,sans-serif!important;text-transform:none!important;letter-spacing:normal!important;color:rgba(243,236,224,.75);cursor:pointer}#wl label.mb-chk input{width:15px;height:15px;margin:0!important;accent-color:#18b45f}#wl .als{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px;margin:6px 0 10px}#wl .al{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);cursor:pointer;min-width:0}#wl .al:hover{border-color:rgba(0,255,119,.35)}#wl .al.sel{border-color:rgba(255,190,90,.6);background:rgba(255,190,90,.07)}#wl .al-v{flex:0 0 auto;width:44px;height:44px;border-radius:7px;object-fit:cover;display:block}#wl .al-v0{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);font-size:18px}#wl .al-c{flex:1;min-width:0}#wl .al-t{font-weight:650;font-size:13.5px;line-height:1.3;color:#f3ece0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#wl .al-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:3px}#wl .al-m .tag{font-size:10.5px!important;padding:1px 6px!important}#wl .al-d{font-size:11.5px;color:rgba(243,236,224,.5);margin-left:2px}#wl .al-a{flex:0 0 auto;display:flex;align-items:center;gap:4px}#wl .al-i{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.12);text-decoration:none!important;font-size:14px}#wl .al-i:hover{border-color:rgba(0,255,119,.45)}#wl .btn.small.al-b{min-width:30px;height:30px;padding:0 7px!important;font-size:12.5px!important;white-space:nowrap}@media (max-width:720px){#wl .als{grid-template-columns:1fr}}\
-#wl.wl-verrou>.top,#wl.wl-verrou>.tabs,#wl.wl-verrou>.wrap,#wl.wl-verrou>.panel,#wl.wl-verrou>.panelbg,#wl.wl-verrou>.doc{filter:blur(18px) saturate(.6);pointer-events:none;user-select:none}#wl .cs-bg{position:fixed;inset:0;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(5,4,3,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}#wl .cs{max-width:720px;margin:12px auto 40px;padding:26px 26px 22px;border-radius:18px;background:#14110c;border:1px solid rgba(0,255,119,.25);box-shadow:0 30px 90px rgba(0,0,0,.6)}#wl .cs-k{font:700 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#00ff77}#wl .cs-t{margin:8px 0 2px!important;font:800 24px/1.2 Inter,system-ui,sans-serif!important;color:#f3ece0!important;letter-spacing:normal!important;text-transform:none!important}#wl .cs-v{font:12.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .cs-x{margin:16px 0;padding:16px 18px;border-radius:12px;background:#f8f4ea;color:#1f1a12;max-height:46vh;overflow:auto;font:15px/1.6 Georgia,'Iowan Old Style',serif}#wl .cs-x p{margin:0 0 10px}#wl .cs-h{margin:14px 0 4px!important;font:700 13px Inter,sans-serif!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#6b604c!important}#wl .cs-ol{margin:0 0 6px;padding-left:26px}#wl .cs-ol li{margin:3px 0}#wl .cs-who{font-size:13.5px;color:rgba(243,236,224,.75);margin:6px 0 10px}#wl label.cs-chk{display:flex!important;gap:10px;align-items:flex-start;margin:10px 0!important;padding:12px 14px!important;border-radius:12px;border:1px solid rgba(0,255,119,.35);background:rgba(0,255,119,.06);font:600 15px/1.4 Inter,sans-serif!important;color:#f3ece0!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer}#wl label.cs-chk input{width:20px;height:20px;margin:0!important;flex:0 0 auto;accent-color:#18b45f}#wl .cs-l{display:block;margin:14px 0 6px!important;font:600 13px Inter,sans-serif!important;color:rgba(243,236,224,.85)!important;text-transform:none!important;letter-spacing:normal!important}#wl input.cs-in{width:100%!important;box-sizing:border-box;padding:12px 14px!important;border-radius:10px!important;border:1px solid #3a3020!important;background:#16120d!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font:17px Inter,sans-serif!important}#wl .cs-pad{position:relative;border-radius:12px;background:#fff;border:2px dashed #c9bfa8;overflow:hidden}#wl .cs-pad canvas{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair}#wl .cs-ligne{position:absolute;left:18px;right:18px;bottom:42px;border-bottom:1px solid #d8cdb5;pointer-events:none}#wl .btn.cs-eff{position:absolute;right:8px;top:8px;background:#f3ece0!important;color:#1f1a12!important;-webkit-text-fill-color:#1f1a12!important;border-color:#d8cdb5!important}#wl .cs-err{min-height:20px;margin:10px 0 4px;color:#ff9aa8;font-size:13.5px}#wl .btn.cs-go{display:block;width:100%!important;box-sizing:border-box;padding:14px!important;font-size:16px!important;margin-top:6px}#wl .btn.cs-go[disabled]{opacity:.4}#wl .cs-pied{margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(243,236,224,.55)}#wl .cs-ap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:-8px -8px 16px;padding:10px 12px;border-radius:12px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.5);color:#ffe0a3;font-size:13.5px}#wl .cs-fait{text-align:center}#wl .cs-ok-ic{font-size:44px;margin:14px 0 4px}#wl .cs-date{font-size:17px;color:#f3ece0;margin:10px 0 4px}#wl .cs-j{margin:12px 0 4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .cs-jn{font-weight:700;margin-bottom:6px}#wl .cs-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.035)}#wl .cs-sigmini{width:120px;height:40px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid #d8cdb5}@media (max-width:720px){#wl .cs-bg{padding:8px}#wl .cs{padding:18px 16px 16px;margin:6px auto 30px;border-radius:16px}#wl .cs-t{font-size:20px!important}#wl .cs-x{max-height:42vh;font-size:14.5px;padding:12px 14px}}\
+#wl.wl-verrou>.top,#wl.wl-verrou>.tabs,#wl.wl-verrou>.wrap,#wl.wl-verrou>.panel,#wl.wl-verrou>.panelbg,#wl.wl-verrou>.doc{filter:blur(18px) saturate(.6);pointer-events:none;user-select:none}#wl .cs-bg{position:fixed;inset:0;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(5,4,3,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}#wl .cs{max-width:720px;margin:12px auto 40px;padding:26px 26px 22px;border-radius:18px;background:#14110c;border:1px solid rgba(0,255,119,.25);box-shadow:0 30px 90px rgba(0,0,0,.6)}#wl .cs-k{font:700 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#00ff77}#wl .cs-t{margin:8px 0 2px!important;font:800 24px/1.2 Inter,system-ui,sans-serif!important;color:#f3ece0!important;letter-spacing:normal!important;text-transform:none!important}#wl .cs-v{font:12.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .cs-x{margin:16px 0;padding:16px 18px;border-radius:12px;background:#f8f4ea;color:#1f1a12;max-height:46vh;overflow:auto;font:15px/1.6 Georgia,'Iowan Old Style',serif}#wl .cs-x p{margin:0 0 10px}#wl .cs-h{margin:14px 0 4px!important;font:700 13px Inter,sans-serif!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#6b604c!important}#wl .cs-ol{margin:0 0 6px;padding-left:26px}#wl .cs-ol li{margin:3px 0}#wl .cs-who{font-size:13.5px;color:rgba(243,236,224,.75);margin:6px 0 10px}#wl label.cs-chk{display:flex!important;gap:10px;align-items:flex-start;margin:10px 0!important;padding:12px 14px!important;border-radius:12px;border:1px solid rgba(0,255,119,.35);background:rgba(0,255,119,.06);font:600 15px/1.4 Inter,sans-serif!important;color:#f3ece0!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer}#wl label.cs-chk input{width:20px;height:20px;margin:0!important;flex:0 0 auto;accent-color:#18b45f}#wl .cs-l{display:block;margin:14px 0 6px!important;font:600 13px Inter,sans-serif!important;color:rgba(243,236,224,.85)!important;text-transform:none!important;letter-spacing:normal!important}#wl input.cs-in{width:100%!important;box-sizing:border-box;padding:12px 14px!important;border-radius:10px!important;border:1px solid #3a3020!important;background:#16120d!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font:17px Inter,sans-serif!important}#wl .cs-pad{position:relative;border-radius:12px;background:#fff;border:2px dashed #c9bfa8;overflow:hidden}#wl .cs-pad canvas{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair}#wl .cs-ligne{position:absolute;left:18px;right:18px;bottom:42px;border-bottom:1px solid #d8cdb5;pointer-events:none}#wl .btn.cs-eff{position:absolute;right:8px;top:8px;background:#f3ece0!important;color:#1f1a12!important;-webkit-text-fill-color:#1f1a12!important;border-color:#d8cdb5!important}#wl .cs-err{min-height:20px;margin:10px 0 4px;color:#ff9aa8;font-size:13.5px}#wl .btn.cs-go{display:block;width:100%!important;box-sizing:border-box;padding:14px!important;font-size:16px!important;margin-top:6px}#wl .btn.cs-go[disabled]{opacity:.4}#wl .cs-pied{margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(243,236,224,.55)}#wl .cs-ap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:-8px -8px 16px;padding:10px 12px;border-radius:12px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.5);color:#ffe0a3;font-size:13.5px}#wl .cs-fait{text-align:center}#wl .cs-ok-ic{font-size:44px;margin:14px 0 4px}#wl .cs-date{font-size:17px;color:#f3ece0;margin:10px 0 4px}#wl .cs-j{margin:12px 0 4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .cs-jn{font-weight:700;margin-bottom:6px}#wl .cs-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.035)}#wl .cs-sigmini{width:120px;height:40px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid #d8cdb5}#wl .tag.eq-test{background:rgba(255,176,32,.18)!important;color:#ffc861!important;border-color:rgba(255,176,32,.55)!important;font-weight:800;letter-spacing:.06em}#wl .eq-m{margin:10px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .eq-m.off{opacity:.62}#wl .eq-h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}#wl .eq-b{gap:6px;flex-wrap:wrap;margin:0}#wl .eq-f{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}#wl .eq-ft{font-weight:800;margin-bottom:4px}#wl .eq-f label{display:block;margin:10px 0 4px;font-size:13px;font-weight:600}#wl .eq-f .in{width:100%;box-sizing:border-box}#wl .eq-f textarea.in{min-height:66px;font:14px/1.45 Inter,system-ui,sans-serif;resize:vertical}#wl .eq-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}#wl .eq-f label.eq-chk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}#wl .eq-f label.eq-chk input{width:18px;height:18px;margin:0}#wl #wl-equipe>.eq-f{padding:12px;border-radius:12px;background:rgba(0,255,119,.05);border:1px solid rgba(0,255,119,.25)}@media (max-width:560px){#wl .eq-2{grid-template-columns:1fr}#wl .eq-h>div:first-child{flex:1 1 100%!important}}@media (max-width:720px){#wl .cs-bg{padding:8px}#wl .cs{padding:18px 16px 16px;margin:6px auto 30px;border-radius:16px}#wl .cs-t{font-size:20px!important}#wl .cs-x{max-height:42vh;font-size:14.5px;padding:12px 14px}}\
 #wl .dtop{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(11,10,8,.92);border-bottom:1px solid rgba(255,190,90,.18)}\
 #wl .dtop .em{font-size:24px}#wl .dtop .nm{font-weight:800;font-size:15px;line-height:1.2}#wl .dtop .st{font-size:12px;color:rgba(243,236,224,.6)}\
 #wl .dtop .x{margin-left:auto;cursor:pointer;font-size:24px;color:rgba(243,236,224,.75);padding:2px 10px}\
@@ -389,12 +390,13 @@
   function rooms() { return ROOMS; }
   function people() {
     var eq = D().equipe || [];
-    var js = eq.filter(function (w) { return w.role !== 'chef'; }).slice(0, 3);
-    var chef = eq.filter(function (w) { return w.role === 'chef'; })[0] || { id: 'chef', nom: 'Le rédacteur en chef', titre: 'Rédacteur en chef' };
+    // 23/10/2026 : un bureau par journaliste ACTIVE (3 postes au plus) ; inactive = plus de bureau ; aucune = « poste à attribuer ».
+    var js = eq.filter(function (w) { return w.role !== 'chef' && w.actif !== false; }).slice(0, 3);
+    var chef = eq.filter(function (w) { return w.role === 'chef' && w.actif !== false; })[0] || { id: 'chef', nom: 'Le rédacteur en chef', titre: 'Rédacteur en chef' };
     var xs = js.length === 3 ? [130, 310, 490] : js.length === 2 ? [190, 430] : [310];
     var list = [];
     if (!js.length) list.push({ key: 'j:vide', kind: 'journaliste', vide: true, nom: 'Poste de la journaliste', titre: 'à attribuer', emoji: '✍️', hue: 330, x: 310, y: 215 });
-    js.forEach(function (w, i) { list.push({ key: 'j:' + w.id, id: w.id, kind: 'journaliste', nom: w.nom, titre: w.titre, emoji: '✍️', hue: [330, 300, 15][i], x: xs[i], y: 215 }); });
+    js.forEach(function (w, i) { list.push({ key: 'j:' + w.id, id: w.id, kind: 'journaliste', nom: w.nom, titre: w.titre, test: !!w.test, emoji: '✍️', hue: [330, 300, 15][i], x: xs[i], y: 215 }); });
     list.push({ key: 'secretaire', kind: 'secretaire', nom: 'La Secrétaire', titre: 'Rédige, fait valider, envoie', emoji: '📮', hue: 200, x: 1100, y: 215 });
     list.push({ key: 'assistant', kind: 'assistant', nom: 'L’Assistant', titre: 'Questions et contacts', emoji: '🧠', hue: 265, x: 1460, y: 215 });
     list.push({ key: 'chef', id: chef.id, kind: 'chef', nom: chef.nom, titre: chef.titre || 'Rédacteur en chef', emoji: '🧐', hue: 40, x: 250, y: 950 });
@@ -463,7 +465,7 @@
     else if (p.kind === 'compta') deco = '<rect x="-60" y="-22" width="22" height="28" rx="3" fill="#2d2a24" stroke="rgba(255,255,255,.25)"/><rect x="-57" y="-19" width="16" height="6" fill="#9fe8b4"/><rect x="-57" y="-10" width="4" height="4" fill="#ccc"/><rect x="-51" y="-10" width="4" height="4" fill="#ccc"/><rect x="-45" y="-10" width="4" height="4" fill="#ffb020"/><rect x="34" y="-20" width="24" height="18" rx="2" fill="#5b1f1f"/><rect x="37" y="-17" width="18" height="2" fill="#e8c27a"/>';
     else if (p.kind === 'assistant') deco = '<rect x="-58" y="-20" width="8" height="26" fill="#7a3b2a"/><rect x="-49" y="-20" width="7" height="26" fill="#2a5a7a"/><rect x="-41" y="-20" width="8" height="26" fill="#3b7a2a"/>';
     else if (p.kind === 'chef') deco = '<rect x="-70" y="-24" width="40" height="14" rx="3" fill="#b8913e"/><text x="-50" y="-13.5" text-anchor="middle" font-size="8.5" font-weight="800" fill="#1f1a12">CHEF</text><circle cx="62" cy="-8" r="7" fill="#4a3426"/><circle cx="62" cy="-8" r="4" fill="#2a1a10"/>';
-    else deco = '<circle cx="46" cy="-6" r="6" fill="#4a3426"/><circle cx="46" cy="-6" r="3.5" fill="#2a1a10"/>';
+    else deco = '<circle cx="46" cy="-6" r="6" fill="#4a3426"/><circle cx="46" cy="-6" r="3.5" fill="#2a1a10"/>' + (p.test ? '<g class="testtag"><rect x="-62" y="-24" width="40" height="14" rx="3" fill="#ffb020"/><text x="-42" y="-13.5" text-anchor="middle" font-size="8.5" font-weight="800" fill="#1f1a12">TEST</text></g>' : '');
     return '<g class="ag ' + st + '" data-ag="' + esc(p.key) + '" transform="translate(' + p.x + ',' + p.y + ')">' +
       '<rect x="-100" y="-70" width="200" height="200" rx="14" fill="transparent"/>' +
       (glow ? '<ellipse cx="0" cy="0" rx="' + (big ? 100 : 80) + '" ry="60" fill="url(#halo-' + st + ')"/>' : '') +
@@ -530,7 +532,9 @@
   // Arrière-salle : sur la table du Comptable, une caisse par journaliste avec son solde de pièces ; animation quand il en distribue.
   // Qui gagne des pièces : les rédactrices, plus le rédacteur en chef s'il a activé le « mode récompense (test) » dans ses Paramètres.
   function testRec() { return !!(S.pieces && S.pieces.recompense_test); }
-  function gagnants() { return (D().equipe || []).filter(function (w) { return w.role !== 'chef' || testRec(); }); }
+  function gagnants() { var so = (S.pieces && S.pieces.soldes) || {}; return (D().equipe || []).filter(function (w) { return (w.role !== 'chef' || testRec()) && (w.actif !== false || (so[w.id] || 0) > 0); }); }
+  function estTestM(id) { return !!membre(id).test; }
+  function tagTest(id) { return estTestM(id) ? ' <span class="tag eq-test">TEST</span>' : ''; }
   function caissesSVG() {
     var js = gagnants().slice(0, 3);
     var so = (S.pieces && S.pieces.soldes) || {}, X0 = 1500, Y0 = 965, cp = P('compta') || { x: 1230, y: 950 };
@@ -1591,12 +1595,12 @@
     var me = D().me, h = head('🧐', 'Bureau du rédacteur en chef', me.chef ? 'Votre bureau' : esc(P('chef').nom));
     if (!me.chef) return h + '<div class="pb"><p class="muted">Pour lui écrire, passez par l’interphone.</p><button class="btn" data-act="tab" data-tab="interphone">📞 Interphone</button></div>';
     h += '<div class="pb"><p class="muted">Toute la rédaction d’un coup d’œil : qui a écrit à qui, ce qui attend une validation, ce qui a été cité.</p><div class="row" style="margin:0 0 6px"><button class="btn go" data-act="bord">📊 Tableau de bord</button></div>';
-    var eq = (D().equipe || []).filter(function (w) { return w.role !== 'chef'; });
+    var eq = (D().equipe || []).filter(function (w) { return w.role !== 'chef' && w.actif !== false; });
     h += '<h3>L’équipe</h3>' + ((eq.length ? eq : []).map(function (w) {
       var fs = D().fiches.filter(function (f) { return f.redacteur === w.id; });
       var c = function (st) { return fs.filter(function (f) { return f.statut === st; }).length; };
-      return '<div class="card" data-act="open-ag" data-ag="j:' + esc(w.id) + '"><div class="h"><span class="em">✍️</span><span style="flex:1">' + esc(w.nom) + '</span>' + (w.branchee ? '<span class="tag g">boîte branchée</span>' : '<span class="tag a">boîte à brancher</span>') + '</div><div class="s">🟠 ' + c('brouillon') + ' à valider · 📨 ' + c('envoyé') + ' envoyés · 📬 ' + c('a répondu') + ' réponses · ✅ ' + c('inséré') + ' cités</div></div>';
-    }).join('') || '<div class="box warn">Aucune journaliste n’a encore accès au lab : ajoutez son adresse de membre Ghost dans le nœud « Accès » du workflow.</div>');
+      return '<div class="card" data-act="open-ag" data-ag="j:' + esc(w.id) + '"><div class="h"><span class="em">✍️</span><span style="flex:1">' + esc(w.nom) + tagTest(w.id) + '</span>' + (w.test ? '<span class="tag a">aucun envoi</span>' : w.branchee ? '<span class="tag g">boîte branchée</span>' : '<span class="tag a">boîte à brancher</span>') + '</div><div class="s">🟠 ' + c('brouillon') + ' à valider · 📨 ' + c('envoyé') + ' envoyés · 📬 ' + c('a répondu') + ' réponses · ✅ ' + c('inséré') + ' cités</div></div>';
+    }).join('') || '<div class="box warn">Aucune journaliste n’a encore accès au lab : ajoutez-la dans ⚙️ Paramètres → 👥 Équipe.</div>');
     var mf = D().fiches.filter(function (f) { return f.redacteur === me.id; });
     if (mf.length) h += '<h3>Vos propres fiches (' + mf.length + ')</h3><div class="dos">' + mf.slice(0, 10).map(function (f) { return dcard(f); }).join('') + '</div>';
     var ev = events().slice(0, 25);
@@ -1947,6 +1951,90 @@
     else if (a === 'quitter' && S.consApercu) { S.consApercu = false; consVerrou(false); if (D().me.chef) openPanel('parametres'); }
     else if (a === 'suppr-test') consApi({ action: 'supprimer_test' }).then(function (r) { toast(r && r.ok ? '🗑️ ' + r.supprimes + ' signature' + pl(r.supprimes) + ' de test supprimée' + pl(r.supprimes) + '.' : '⚠️ ' + ((r && r.why) || 'impossible'), !(r && r.ok)); S.consListe = null; });
   }
+  // ---------- Équipe (23/10/2026) ----------
+  // Source unique de l'accès au lab : table wl_equipe (Supabase), gérée ici par le rédacteur en chef via wl-consent
+  // (equipe_liste / equipe_enregistrer / equipe_actif ; tout est revérifié côté serveur). n8n et toutes les fonctions la lisent
+  // (cache d'une minute au plus). Pas de suppression : un membre se désactive (il perd l'accès et son bureau, son historique reste).
+  var EQ_ROLES = { chef: 'Rédacteur en chef', journaliste: 'Journaliste' };
+  function testBloque() { if (!D().me.test) return false; toast('🧪 Compte de test : l’envoi de mails est désactivé. Rien n’est parti.', true); return true; }
+  function chargerEquipe() {
+    if (S.eqLd) return; S.eqLd = true;
+    consApi({ action: 'equipe_liste' }).then(function (r) { S.eqLd = false; S.eqListe = r || { ok: false, why: 'réponse vide' }; if (S.panel === 'parametres') paintPanel(); });
+  }
+  function eqJournActifs(sauf) { return ((S.eqListe || {}).membres || []).filter(function (m) { return m.actif && m.role !== 'chef' && m.email !== sauf; }).length; }
+  function eqSection() {
+    var L = S.eqListe;
+    var h = '<div class="set" id="wl-equipe"><div class="set-h"><div><b>👥 Équipe</b><div class="set-s">Qui a accès au Writinglab. Une seule liste pour tout le lab : un changement s’applique partout en une minute au plus.</div></div></div>' +
+      '<div class="row" style="gap:8px;margin:10px 0 4px;flex-wrap:wrap"><button class="btn small go" data-act="eq-nouveau">➕ Ajouter un membre</button><button class="btn small" data-act="eq-recharger">↻ Actualiser</button></div>';
+    if (!L) { chargerEquipe(); return h + '<p class="muted">Chargement…</p></div>'; }
+    if (!L.ok) return h + '<p class="muted">⚠️ ' + esc(L.why || 'indisponible') + '</p></div>';
+    var ms = L.membres || [];
+    if (S.eqEdit === '__nouveau') h += eqForm(null, L);
+    h += ms.map(function (m) {
+      var eng = m.engagement === null ? '' : m.engagement ? '<span class="tag g">🔏 engagement signé le ' + esc(m.engagement.signe_le_zurich) + '</span>' : '<span class="tag a">🔏 engagement pas encore signé</span>';
+      return '<div class="eq-m' + (m.actif ? '' : ' off') + '"><div class="eq-h"><div style="min-width:0;flex:1"><b>' + esc(m.nom) + '</b>' + (m.test ? ' <span class="tag eq-test">TEST</span>' : '') + (m.actif ? ' <span class="tag g">actif</span>' : ' <span class="tag">inactif</span>') +
+        '<div class="set-s">' + esc(EQ_ROLES[m.role] || m.role) + (m.titre && m.titre !== EQ_ROLES[m.role] ? ' · ' + esc(m.titre) : '') + '<br>' + esc(m.email) + '<br>Boîte d’envoi : ' + (m.boite ? '<b>' + esc(m.boite) + '</b>' : 'aucune (pas d’envoi de mails)') + '</div>' + (eng ? '<div style="margin-top:6px">' + eng + '</div>' : '') + '</div>' +
+        '<div class="row eq-b"><button class="btn small" data-act="eq-edit" data-id="' + esc(m.email) + '">' + (S.eqEdit === m.email ? '✕ Fermer' : '✏️ Modifier') + '</button>' +
+        (m.id === D().me.id ? '' : '<button class="btn small' + (m.actif ? ' red' : ' go') + '" data-act="eq-actif" data-id="' + esc(m.email) + '" data-on="' + (m.actif ? '0' : '1') + '">' + (m.actif ? '⏸️ Désactiver' : '▶️ Réactiver') + '</button>') + '</div></div>' +
+        (S.eqEdit === m.email ? eqForm(m, L) : '') + '</div>';
+    }).join('');
+    h += '<details class="cz-d"><summary>Comment ajouter quelqu’un</summary><p>1. « ➕ Ajouter un membre » : son adresse e-mail, son nom, son rôle, sa boîte d’envoi s’il en a une.<br>' +
+      '2. La personne se connecte sur <b>posthumain.com</b> avec <b>cette adresse e-mail</b> : un simple compte membre gratuit suffit (aucun rôle dans l’administration Ghost). Si elle n’a pas encore de compte, elle s’inscrit gratuitement sur posthumain.com avec cette adresse.<br>' +
+      '3. Elle ouvre <b>posthumain.com/writinglab</b> et signe l’engagement de confidentialité à sa première connexion.</p>' +
+      '<p>Sur le plan, chaque journaliste active a son bureau (3 postes au plus) ; désactivée, elle perd son bureau et son accès, mais son historique reste visible avec la mention « (inactif) ». Un compte de test fonctionne normalement, sans jamais envoyer de mail, et reste hors des totaux du Comptable.</p></details>';
+    return h + '</div>';
+  }
+  function eqForm(m, L) {
+    var d = S.eqDraft || {}, v = function (k, def) { return d[k] != null ? d[k] : def; };
+    var role = v('role', m ? m.role : 'journaliste'), boite = v('boite', m ? (m.boite || '') : ''), test = v('test', m ? !!m.test : false);
+    var prises = {}; (L.membres || []).forEach(function (x) { if (x.actif && x.boite && (!m || x.email !== m.email)) prises[x.boite] = x.nom; });
+    var opt = function (val, txt, on, off) { return '<option value="' + esc(val) + '"' + (on ? ' selected' : '') + (off ? ' disabled' : '') + '>' + esc(txt) + '</option>'; };
+    return '<div class="eq-f">' + (m ? '' : '<div class="eq-ft">Nouveau membre</div>') +
+      '<label for="eq-email">Adresse e-mail de son compte membre posthumain.com</label><input class="in" id="eq-email" type="email" autocomplete="off" spellcheck="false" placeholder="prenom.nom@exemple.com" value="' + esc(v('email', m ? m.email : '')) + '">' +
+      '<label for="eq-nom">Prénom et nom</label><input class="in" id="eq-nom" autocomplete="off" value="' + esc(v('nom', m ? m.nom : '')) + '">' +
+      '<label for="eq-titre">Titre</label><input class="in" id="eq-titre" autocomplete="off" placeholder="Journaliste" value="' + esc(v('titre', m ? m.titre : '')) + '">' +
+      '<div class="eq-2"><div><label for="eq-role">Rôle</label><select class="in" id="eq-role">' + opt('journaliste', 'Journaliste', role !== 'chef') + opt('chef', 'Rédacteur en chef', role === 'chef') + '</select></div>' +
+      '<div><label for="eq-boite">Boîte d’envoi</label><select class="in" id="eq-boite">' + opt('', 'Aucune (pas d’envoi de mails)', !boite) + (L.boites || []).map(function (b) { return opt(b, b + '@ (posthumain.com)' + (prises[b] ? ' — déjà à ' + prises[b] : ''), boite === b, !!prises[b]); }).join('') + '</select></div></div>' +
+      '<label for="eq-sig">Modèle de signature (français)</label><textarea class="in" id="eq-sig" rows="3" placeholder="Laisser vide : prénom nom, titre, Posthumain, posthumain.com">' + esc(v('sig', m ? m.signature : '')) + '</textarea>' +
+      '<label for="eq-sigen">Modèle de signature (anglais)</label><textarea class="in" id="eq-sigen" rows="3" placeholder="Laisser vide : prénom nom, Journalist, Posthumain, posthumain.com">' + esc(v('sigen', m ? m.signature_en : '')) + '</textarea>' +
+      '<div class="set-s">Signature de départ de ses mails ; la personne peut ensuite la personnaliser dans ses propres Paramètres.</div>' +
+      '<label class="chk eq-chk"><input type="checkbox" id="eq-test"' + (test ? ' checked' : '') + '> 🧪 Compte de test <span class="set-s">badge TEST, aucun envoi de mails, hors totaux du Comptable</span></label>' +
+      '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn go" data-act="eq-save" data-id="' + esc(m ? m.email : '') + '">' + (m ? '💾 Enregistrer' : '➕ Ajouter à l’équipe') + '</button><button class="btn small" data-act="eq-annuler">Annuler</button></div></div>';
+  }
+  var EQ_4E = 'Le plan n’a que 3 postes : ce membre aura accès au lab mais pas de bureau.';
+  function eqEnregistrer(ancien) {
+    var ms = (S.eqListe || {}).membres || [], cur = ms.filter(function (x) { return x.email === ancien; })[0];
+    var tc = S.root.querySelector('#eq-test');
+    var b = { action: 'equipe_enregistrer', ancien_email: ancien, email: val('eq-email').trim(), nom: val('eq-nom').trim(), titre: val('eq-titre').trim(), role: val('eq-role'), boite: val('eq-boite'), signature: val('eq-sig').trim(), signature_en: val('eq-sigen').trim(), test: !!(tc && tc.checked) };
+    if (!/^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(b.email)) { toast('⚠️ Adresse e-mail invalide.', true); return; }
+    if (b.nom.length < 3 || !/\s/.test(b.nom)) { toast('⚠️ Indiquez le prénom et le nom.', true); return; }
+    var dejaPoste = cur && cur.actif && cur.role !== 'chef', quatrieme = b.role !== 'chef' && (!cur || cur.actif) && !dejaPoste && eqJournActifs(ancien) >= 3;
+    var ck = S.clicking;
+    var go = function () {
+      S.clicking = ck;
+      consApi(b).then(function (r) {
+        if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); return; }
+        toast(r.cree ? '👥 ' + b.nom + ' ajouté' + (b.role === 'chef' ? '' : 'e') + ' à l’équipe : connexion sur posthumain.com avec ' + b.email + '.' : '💾 ' + b.nom + ' : modifications enregistrées.');
+        S.eqEdit = null; S.eqDraft = null; S.eqListe = null; S.consListe = null; paintPanel(); refresh(true);
+      });
+    };
+    if (quatrieme) confirmer(EQ_4E + '\n\nEnregistrer quand même ?').then(function (ok) { if (ok) go(); }); else go();
+  }
+  function eqActif(email, actif) {
+    var ms = (S.eqListe || {}).membres || [], m = ms.filter(function (x) { return x.email === email; })[0];
+    if (!m) return;
+    var ck = S.clicking;
+    var txt = actif ? 'Réactiver ' + m.nom + ' ?\n\nIl ou elle retrouve l’accès au Writinglab' + (m.role !== 'chef' ? ' et son bureau sur le plan.' : '.') + (m.role !== 'chef' && eqJournActifs(email) >= 3 ? '\n\n' + EQ_4E : '')
+      : 'Désactiver ' + m.nom + ' ?\n\nIl ou elle perd immédiatement l’accès au Writinglab et son bureau sur le plan. Rien n’est supprimé : son historique reste visible avec la mention « (inactif) », et vous pourrez la réactiver.';
+    confirmer(txt).then(function (ok) {
+      if (!ok) return; S.clicking = ck;
+      consApi({ action: 'equipe_actif', email: email, actif: actif }).then(function (r) {
+        if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; }
+        toast(actif ? '▶️ ' + m.nom + ' réactivé' + (m.role === 'chef' ? '' : 'e') + '.' : '⏸️ ' + m.nom + ' désactivé' + (m.role === 'chef' ? '' : 'e') + ' : plus d’accès au lab.');
+        S.eqListe = null; S.consListe = null; paintPanel(); refresh(true);
+      });
+    });
+  }
   // Paramètres (rédacteur en chef) : engagements signés, statut de chaque journaliste, certificat imprimable, aperçu de l'écran.
   function chargerConsentements() {
     if (S.consLd) return; S.consLd = true;
@@ -1966,10 +2054,10 @@
     };
     h += (L.journalistes || []).map(function (j) {
       var s = vrais.filter(function (c) { return c.journaliste_id === j.id; });
-      return '<div class="cs-j"><div class="cs-jn">✍️ ' + esc(j.nom) + (s.some(function (c) { return c.texte_version === L.version; }) ? ' <span class="tag g">✓ signé (' + esc(L.version) + ')</span>' : ' <span class="tag a">⏳ pas encore signé' + (s.length ? ' en ' + esc(L.version) : '') + '</span>') + '</div>' + s.map(ligne).join('') + '</div>';
+      return '<div class="cs-j"><div class="cs-jn">✍️ ' + esc(j.nom) + (j.test ? ' <span class="tag eq-test">TEST</span>' : '') + (j.actif === false ? ' <span class="tag">inactif</span>' : '') + (s.some(function (c) { return c.texte_version === L.version; }) ? ' <span class="tag g">✓ signé (' + esc(L.version) + ')</span>' : ' <span class="tag a">⏳ pas encore signé' + (s.length ? ' en ' + esc(L.version) : '') + '</span>') + '</div>' + s.map(ligne).join('') + '</div>';
     }).join('');
     if (tests.length) h += '<div class="cs-j"><div class="cs-jn">🧪 Signatures de test (aperçu)</div>' + tests.map(ligne).join('') + '<button class="btn small red" data-act="cons-suppr-test" style="margin-top:6px">🗑️ Supprimer les signatures de test</button></div>';
-    return h + '<p class="set-s" style="margin-top:8px">Texte en vigueur : ' + esc(L.titre) + ' · empreinte SHA-256 ' + esc(String(L.hash).slice(0, 16)) + '…</p></div>';
+    return h + '<div class="set-s" style="margin-top:8px">Texte en vigueur : ' + esc(L.titre) + ' · empreinte SHA-256 ' + esc(String(L.hash).slice(0, 16)) + '…</div></div>';
   }
   // Certificat : page imprimable (Imprimer → PDF) avec le texte complet, les parties, la signature et les preuves techniques.
   function consCertificat(id) {
@@ -2021,6 +2109,7 @@
         WEBMAILS.map(function (g, k) { var on = g[1].every(function (d) { return wm.indexOf(d) >= 0; }); return '<label class="chk"><input type="checkbox" data-wm="' + k + '"' + (on ? ' checked' : '') + '> ' + esc(g[0]) + ' <span class="set-s">' + esc(g[1].join(', ')) + '</span></label>'; }).join('') + '</div>';
     }
     if (me.chef) h += '<div class="set' + (P.recompense ? ' hot' : '') + '"><div class="set-h"><div><b>🧪 Mode récompense (test)</b><div class="set-s">Vous gagnez des pièces comme une rédactrice (votre caisse apparaît chez le Comptable) : comptabiliser, demander le paiement, cocher la facture, tout fonctionne pour vous-même et les notifications vous arrivent.</div></div>' + sw('set-rec', !!P.recompense) + '</div></div>';
+    if (me.chef) h += eqSection();
     if (me.chef) h += consSection();
     var adr = ({ jonathan: 'jonathan.paiano@posthumain.com', valisoa: 'valisoa.rasolofo@posthumain.com' })[me.id] || '';
     h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div></div>';
@@ -2046,7 +2135,7 @@
     return '<div class="bars">' + rows.map(function (r) { return '<div class="bar"><span class="lb">' + esc(r[0]) + '</span><span><i style="width:' + Math.round(100 * r[1] / mx) + '%"></i></span><em>' + esc(fmt(r[1])) + '</em></div>'; }).join('') + '</div>';
   }
   function bordHTML() {
-    var fs = D().fiches || [], mc = moisDe(Date.now());
+    var fs = (D().fiches || []).filter(function (f) { return !estTestM(f.redacteur); }), mc = moisDe(Date.now()); // comptes de test hors totaux (23/10/2026)
     var env = fs.filter(function (f) { return f.envoye_le; }), envM = env.filter(function (f) { return moisDe(f.envoye_le) === mc; });
     var rep = env.filter(function (f) { return f.reponse_le; });
     var delais = rep.map(function (f) { return new Date(f.reponse_le) - new Date(f.envoye_le); }).filter(function (x) { return x > 0; });
@@ -2101,7 +2190,7 @@
     gagnants().forEach(function (w) {
       var so = (r.soldes || {})[w.id] || 0, mien = w.id === me.id, demande = (r.demandes || {})[w.id] === r.mois;
       var peutDemander = mien && so > 0 && Number(r.jour) >= 25 && !demande;
-      h += '<div class="caisse"><div class="cz-h"><span>Caisse de <b>' + esc(w.nom) + '</b></span>' + (demande && so ? '<span class="tag a">💶 paiement demandé</span>' : '') + '</div>' +
+      h += '<div class="caisse"><div class="cz-h"><span>Caisse de <b>' + esc(membre(w.id).nom) + '</b>' + tagTest(w.id) + '</span>' + (demande && so ? '<span class="tag a">💶 paiement demandé</span>' : '') + '</div>' + (w.test ? '<div class="cz-s">🧪 Compte de test : ses pièces et factures ne comptent pas dans les totaux.</div>' : '') +
         '<div class="cz-n">🪙 ' + so + '<small>' + (so ? '≈ ' + eurTxt(so * tx) : 'vide') + '</small></div><div class="cz-s">' + totalPieces(w.id) + ' pièces gagnées depuis le début · ' + eurTxt(tx) + ' la pièce</div>' +
         '<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">' +
         (me.chef ? '<button class="btn go" data-act="pc-conv" data-id="' + esc(w.id) + '"' + (so ? '' : ' disabled data-off="1"') + '>📒 Comptabiliser' + (so ? ' ' + eurTxt(so * tx) : '') + '</button><button class="btn small" data-act="pc-raz" data-id="' + esc(w.id) + '"' + (so ? '' : ' disabled data-off="1"') + '>↺ Remettre à zéro</button>' : '') +
@@ -2259,6 +2348,12 @@
       case 'close-doc': fermerDoc(); break;
       case 'voir-mails': masquerTip(); voirMails(id); break;
       case 'cons-apercu': consApercu(); break;
+      case 'eq-nouveau': S.eqEdit = '__nouveau'; S.eqDraft = {}; paintPanel(); var ne = S.root.querySelector('#eq-email'); if (ne) ne.focus(); break;
+      case 'eq-edit': S.eqEdit = S.eqEdit === id ? null : id; S.eqDraft = {}; paintPanel(); break;
+      case 'eq-annuler': S.eqEdit = null; S.eqDraft = null; paintPanel(); break;
+      case 'eq-recharger': S.eqListe = null; paintPanel(); break;
+      case 'eq-save': eqEnregistrer(id || ''); break;
+      case 'eq-actif': eqActif(id, t.getAttribute('data-on') === '1'); break;
       case 'cons-recharger': S.consListe = null; paintPanel(); break;
       case 'cons-cert': consCertificat(id); break;
       case 'cons-suppr-test': consApi({ action: 'supprimer_test' }).then(function (r) { toast(r && r.ok ? '🗑️ ' + r.supprimes + ' signature' + pl(r.supprimes) + ' de test supprimée' + pl(r.supprimes) + '.' : '⚠️ ' + ((r && r.why) || 'impossible'), !(r && r.ok)); S.consListe = null; paintPanel(); }); break;
@@ -2378,6 +2473,7 @@
         work('secretaire', 'réécrit le mail', api('rediger', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '', type: (fiche(id) || {}).questions && fiche(id).questions.length ? 'interview' : 'libre', consigne: val('wl-v-consigne'), publie: pubDe(t, 'v:' + id, pubFiche(fiche(id))) })).then(function () { forget(id); pubOubli('v:' + id); if (document.activeElement) document.activeElement.blur(); return refresh(true); }).then(function () { paintDoc(); toast('✏️ Nouvelle version prête.'); });
         break;
       case 'v-send':
+        if (testBloque()) break;
         var f1 = fiche(id), sujet = val('wl-v-sujet').trim(), corps = val('wl-v-corps').trim();
         if (!sujet || !corps) { toast('Objet ou message vide.', true); break; }
         var ck4 = S.clicking; confirmer('Envoyer ce mail à ' + f1.contact.nom + ' (' + f1.contact.email + ') ?').then(function (ok) { if (!ok) return; S.clicking = ck4; setTimeout(function () { S.clicking = null; }, 0);
@@ -2399,6 +2495,7 @@
         work('secretaire', 'prépare la relance', api('rediger', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '', type: 'relance' })).then(function () { return refresh(true); }).then(function () { openDoc('valid', id); toast('🔁 Relance prête : relisez-la.'); });
         break;
       case 'r-send':
+        if (testBloque()) break;
         var fr = fiche(id), rs = val('wl-r-sujet').trim(), rc = val('wl-r-corps').trim();
         if (!fr) break;
         if (!rs || !rc) { toast('Objet ou message vide.', true); break; }
@@ -2584,6 +2681,7 @@
   }
   function onInput(e) {
     var t = e.target, k;
+    if (t.id && /^eq-/.test(t.id)) { S.eqDraft = S.eqDraft || {}; S.eqDraft[t.id.slice(3)] = t.type === 'checkbox' ? !!t.checked : t.value; return; }
     if (t.classList && t.classList.contains('pub-in')) { S.pub = S.pub || {}; S.pub[t.getAttribute('data-pub')] = !!t.checked; return; }
     if (t.id === 'wl-msg') { S.msgDraft = t.value; return; }
     if (t.id === 'wl-mb-usine') { try { localStorage.setItem('wl-mb-usine', t.checked ? '1' : '0'); } catch (e) {} var lm = S.root.querySelector('#wl-mb-listes'); if (lm) { lm.innerHTML = mbListes(); markBusy(); } return; }
@@ -2669,7 +2767,7 @@
     return h + fs.map(function (f) {
       var paye = f.statut === 'payee', ed = S.faEdit === f.id, d = f.details || {};
       var lg = (f.lignes || []).map(function (l) { return esc(l.libelle) + (l.qte != null ? ' × ' + l.qte : '') + ' : ' + eurTxt(Number(l.total)); }).join('<br>');
-      var x = '<div class="cz-l"><div class="cz-h"><span><b>' + esc(moisTxt(f.mois)) + '</b>' + (me.chef ? ' · ' + esc(membre(f.membre).nom) : '') + '</span>' + (paye ? '<span class="tag g">✅ payée ' + esc(when(f.payee_le)) + '</span>' : '<span class="tag a">à payer</span>') + '</div>' +
+      var x = '<div class="cz-l"><div class="cz-h"><span><b>' + esc(moisTxt(f.mois)) + '</b>' + (me.chef ? ' · ' + esc(f.nom || membre(f.membre).nom) : '') + (f.test ? ' <span class="tag eq-test">TEST · hors totaux</span>' : '') + '</span>' + (paye ? '<span class="tag g">✅ payée ' + esc(when(f.payee_le)) + '</span>' : '<span class="tag a">à payer</span>') + '</div>' +
         '<div class="cz-n" style="font-size:24px">' + eurTxt(Number(f.total)) + '<small>N° ' + esc(f.numero) + '</small></div><div class="cz-s" style="margin-top:4px">' + lg + '</div>' +
         '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">' + (f.url ? '<a class="btn small" href="' + esc(f.url) + '" target="_blank" rel="noopener" data-stop="1">📄 Ouvrir le PDF</a>' : '') +
         (me.chef && !paye ? '<button class="btn small go" data-act="fa-payer" data-id="' + f.id + '">💸 Marquer comme payée</button><button class="btn small" data-act="fa-edit" data-id="' + f.id + '">✏️ Ajuster</button>' : '') + '</div>';
