@@ -48,7 +48,7 @@
       l + '-logo small{display:block;margin-top:4px;font:500 12px Inter,system-ui,sans-serif;letter-spacing:.06em;color:rgba(' + c.texteRgb + ',.55);text-shadow:none}' +
       l + '-plan{width:100%;height:auto;overflow:visible}' +
       l + '-plan .cor{fill:' + c.couloir + ';opacity:0;animation:' + K + 'fade .5s .1s forwards}' +
-      l + '-plan .rm rect{fill:' + c.piece + ';stroke:' + c.bordPiece + ';stroke-width:1.2;stroke-dasharray:520;stroke-dashoffset:520;animation:' + K + 'draw .9s var(--d) ease-out forwards}' +
+      l + '-plan .rm rect{fill:' + c.piece + ';stroke:' + c.bordPiece + ';stroke-width:1.2;stroke-dasharray:100;stroke-dashoffset:100;animation:' + K + 'draw .9s var(--d) ease-out forwards}' +
       l + '-plan .rm text{font:600 6.5px ui-monospace,monospace;letter-spacing:.12em;fill:rgba(' + c.texteRgb + ',.45);opacity:0;animation:' + K + 'fade .4s calc(var(--d) + .5s) forwards}' +
       l + '-plan .pp{transform:translate(260px,130px) scale(.4);opacity:0;animation:' + K + 'walk .85s var(--d) cubic-bezier(.3,.7,.2,1) forwards}' +
       l + '-plan .pp circle{fill:' + c.perso + ';stroke:rgba(0,255,119,.55);stroke-width:1}' +
@@ -83,7 +83,7 @@
   function planSVG(pl) {
     var s = '<rect class="cor" x="' + pl.couloir[0] + '" y="' + pl.couloir[1] + '" width="' + pl.couloir[2] + '" height="' + pl.couloir[3] + '" rx="3"/>';
     pl.pieces.forEach(function (r, i) {
-      s += '<g class="rm" style="--d:' + (i * 0.08).toFixed(2) + 's"><rect x="' + r[0] + '" y="' + r[1] + '" width="' + r[2] + '" height="' + r[3] + '" rx="6"/><text x="' + (r[0] + 7) + '" y="' + (r[1] + 13) + '">' + esc(r[4]) + '</text></g>';
+      s += '<g class="rm" style="--d:' + (i * 0.08).toFixed(2) + 's"><rect pathLength="100" x="' + r[0] + '" y="' + r[1] + '" width="' + r[2] + '" height="' + r[3] + '" rx="6"/><text x="' + (r[0] + 7) + '" y="' + (r[1] + 13) + '">' + esc(r[4]) + '</text></g>';
     });
     pl.gens.forEach(function (g, i) {
       s += '<g class="pp" style="--x:' + g[0] + 'px;--y:' + g[1] + 'px;--d:' + (0.9 + i * 0.22).toFixed(2) + 's"><rect class="dk" x="-20" y="6" width="40" height="11" rx="2"/><circle r="14"/><text y="5">' + g[2] + '</text><circle class="on" cx="12" cy="-11" r="3.5"/></g>';
