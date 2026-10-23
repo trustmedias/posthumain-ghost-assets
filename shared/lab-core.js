@@ -108,6 +108,7 @@
       var parts = String(msg).split('\n\n'), titre = parts.shift(), detail = parts.join('\n\n');
       var danger = opts.danger != null ? !!opts.danger : /archiv|abandon|ne plus|supprim/i.test(titre);
       var ok = opts.ok || (/^Envoyer/i.test(titre) ? 'Envoyer' : /^Insérer/i.test(titre) ? 'Insérer' : /^Lancer/i.test(titre) ? 'Lancer' : /^Préparer/i.test(titre) ? 'Préparer' : /archiv/i.test(titre) ? 'Archiver' : 'Confirmer');
+      L.masquerInfobulles();
       var bg = document.createElement('div'); bg.className = 'cfm-bg';
       bg.innerHTML = '<div class="cfm' + (danger ? ' danger' : '') + '" role="dialog" aria-modal="true"><div class="cfm-ic">' + (danger ? '⚠️' : '✅') + '</div><div class="cfm-t">' + L.esc(titre) + '</div>' + (detail ? '<div class="cfm-d">' + L.esc(detail).replace(/\n/g, '<br>') + '</div>' : '') +
         '<div class="cfm-a"><button type="button" class="btn" data-cfm="0">Annuler</button><button type="button" class="btn ' + (danger ? 'red' : 'go') + '" data-cfm="1">' + L.esc(ok) + '</button></div></div>';
@@ -176,13 +177,30 @@
 
   // ---------- infobulle ----------
   // Éléments data-tip="titre|ligne|ligne" (+ data-tip-act : ligne d'action en vert). Placée près de la souris sans sortir de l'écran.
-  // opts : root() ; defaut : ligne d'action par défaut. Retourne { suivre(e), masquer() } à brancher sur mousemove / mouseleave.
+  // opts : root() ; defaut : ligne d'action par défaut ; bloque() facultatif (true = pas d'infobulle). Retourne { suivre(e), masquer() }
+  // à brancher sur mousemove / mouseleave.
+  // 23/10/2026 : une infobulle ne reste jamais collée ni au-dessus d'une fenêtre.
+  //  - Elle disparaît au toucher, au défilement, à Échap et à chaque clic (le clic ouvre souvent une fenêtre) ; après un toucher
+  //    (souris émulée par l'écran tactile), elle s'efface seule au bout de 2 s.
+  //  - Elle ne s'affiche pas tant qu'une fenêtre modale ([aria-modal="true"]) est ouverte, sauf sur un élément de cette fenêtre.
+  //  - Empilement : infobulle (tipZ, 65) < fenêtres et voiles (confirmation : cfmZ, 70 ; les labs placent les leurs au-dessus).
+  L.masquerInfobulles = function () { var l = document.querySelectorAll('.tip.on'); for (var i = 0; i < l.length; i++) l[i].classList.remove('on'); };
   L.infobulle = function (opts) {
-    function masquer() { var r = opts.root(), t = r && r.querySelector('.tip'); if (t) t.classList.remove('on'); }
+    var tactile = 0, minuteur = null;
+    function masquer() { clearTimeout(minuteur); var r = opts.root(), t = r && r.querySelector('.tip'); if (t) t.classList.remove('on'); }
+    function fenetreSans(el) {
+      var r = opts.root(), l = r ? r.querySelectorAll('[aria-modal="true"]') : [];
+      for (var i = 0; i < l.length; i++) if (l[i].getClientRects().length && !l[i].contains(el)) return true;
+      return false;
+    }
+    document.addEventListener('touchstart', function () { tactile = Date.now(); masquer(); }, { capture: true, passive: true });
+    window.addEventListener('scroll', masquer, { capture: true, passive: true });
+    document.addEventListener('click', masquer, true);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') masquer(); }, true);
     function suivre(e) {
       var r = opts.root(); if (!r) return;
       var el = e.target && e.target.closest && e.target.closest('[data-tip]'), t = r.querySelector('.tip');
-      if (!el) { if (t) t.classList.remove('on'); return; }
+      if (!el || (opts.bloque && opts.bloque()) || fenetreSans(el)) { if (t) t.classList.remove('on'); return; }
       if (!t) { t = document.createElement('div'); t.className = 'tip'; r.appendChild(t); }
       var parts = String(el.getAttribute('data-tip')).split('|');
       var html = '<b>' + L.esc(parts[0]) + '</b>' + parts.slice(1).filter(Boolean).map(function (x) { return '<span>' + L.esc(x) + '</span>'; }).join('') + '<span class="go" style="margin-top:4px">' + (el.getAttribute('data-tip-act') || opts.defaut || '') + '</span>';
@@ -191,6 +209,7 @@
       if (x + w > window.innerWidth - 8) x = e.clientX - w - 16;
       if (y + h > window.innerHeight - 8) y = e.clientY - h - 16;
       t.style.left = Math.max(8, x) + 'px'; t.style.top = Math.max(8, y) + 'px'; t.classList.add('on');
+      clearTimeout(minuteur); if (Date.now() - tactile < 1500) minuteur = setTimeout(masquer, 2000);
     }
     return { suivre: suivre, masquer: masquer };
   };
@@ -268,7 +287,7 @@
       '@keyframes ' + pre + 'spin{to{transform:rotate(360deg)}}' +
       R + '.' + pre + "-loading .top::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent," + acc + ',transparent);background-size:40% 100%;background-repeat:no-repeat;animation:' + pre + 'bar 1.1s ease-in-out infinite}' +
       '@keyframes ' + pre + 'bar{from{background-position:-40% 0}to{background-position:140% 0}}';
-    var confirmer = R + ' .cfm-bg{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:' + (p.voile || 'rgba(5,4,3,.62)') + ';backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}' + R + ' .cfm-bg.on{opacity:1}' +
+    var confirmer = R + ' .cfm-bg{position:fixed;inset:0;z-index:' + (p.cfmZ || 70) + ';display:flex;align-items:center;justify-content:center;padding:16px;background:' + (p.voile || 'rgba(5,4,3,.62)') + ';backdrop-filter:blur(3px);opacity:0;transition:opacity .18s}' + R + ' .cfm-bg.on{opacity:1}' +
       R + ' .cfm{width:min(440px,100%);background:' + (p.fondCarte || '#14110c') + ';border:1px solid rgba(' + rgb + ',.35);border-radius:18px;padding:22px 22px 18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(8px) scale(.98);transition:transform .18s}' + R + ' .cfm-bg.on .cfm{transform:none}' +
       R + ' .cfm.danger{border-color:rgba(255,80,80,.45)}' + R + ' .cfm-ic{font-size:26px;margin-bottom:8px}' + R + ' .cfm-t{font-weight:700;font-size:16.5px;line-height:1.35}' +
       R + ' .cfm-d{margin-top:10px;font-size:13.5px;line-height:1.55;color:rgba(' + tx + ',.7)}' + R + ' .cfm-a{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}' +
