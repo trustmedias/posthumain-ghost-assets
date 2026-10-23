@@ -43,7 +43,8 @@ const caps = Array.isArray(cat.capacites) ? cat.capacites : (ko("« capacites »
 const ids = new Set();
 for (const p of postes) {
   const n = "poste « " + (p.id || "?") + " »";
-  for (const k of ["id", "nom", "emoji", "couleur", "acces", "role"]) if (!p[k] || typeof p[k] !== "string") ko(n + " : champ obligatoire « " + k + " » manquant");
+  for (const k of ["id", "nom", "emoji", "couleur", "acces", "role", "aide", "aiguillage"]) if (!p[k] || typeof p[k] !== "string") ko(n + " : champ obligatoire « " + k + " » manquant" + (k === "aide" ? " (phrase pour les humains, affichée par le bouton ⓘ)" : k === "aiguillage" ? " (ce qu'on transmet à ce poste, pour l'aiguillage des autres IA)" : ""));
+  if (!Array.isArray(p.exemples) || p.exemples.length < 2 || p.exemples.some((x) => typeof x !== "string" || !x.trim())) ko(n + " : « exemples » = au moins 2 phrases à dire au ☎️ (aide ⓘ)");
   if (p.id && !/^[a-z][a-z0-9_]{1,30}$/.test(p.id)) ko(n + " : id en minuscules sans espace (a-z, 0-9, _)");
   if (ids.has(p.id)) ko(n + " : id en double"); ids.add(p.id);
   if (p.acces && !["chef", "tous"].includes(p.acces)) ko(n + " : acces = « chef » ou « tous »");
@@ -64,6 +65,8 @@ for (const c of caps) {
   const n = "capacité « " + (c.id || "?") + " »";
   if (!c.id) ko(n + " : id manquant"); if (capIds.has(c.id)) ko(n + " : id en double"); capIds.add(c.id);
   if (!c.description) ko(n + " : description (pour l'IA) manquante");
+  for (const k of ["aide", "fournir"]) if (!c[k] || typeof c[k] !== "string") ko(n + " : « " + k + " » manquant (aide ⓘ pour les humains" + (k === "fournir" ? " : ce qu'il faut fournir" : "") + ")");
+  if (!Array.isArray(c.exemples) || c.exemples.length < 2 || c.exemples.some((x) => typeof x !== "string" || !x.trim())) ko(n + " : « exemples » = au moins 2 phrases à dire au ☎️ (aide ⓘ)");
   if (!Array.isArray(c.postes) || !c.postes.length) ko(n + " : « postes » (qui la porte) manquant");
   else for (const pid of c.postes) {
     const p = postes.find((x) => x.id === pid);
@@ -79,7 +82,7 @@ for (const c of caps) {
   }
   const E = c.executeur || {};
   if (E.type === "api") { if (!apiModes.includes(E.mode)) ko(n + " : exécuteur api('" + E.mode + "') introuvable dans writinglab/app.js"); couverts.add(E.mode); }
-  else if (E.type === "tel") { if (!telActions.includes(E.action)) ko(n + " : exécuteur wl-tel « " + E.action + " » introuvable dans supabase/functions/wl-tel/index.ts"); }
+  else if (E.type === "tel") { for (const k of ["action", "envoi", "ecarter", "lister"]) if ((k === "action" || E[k]) && !telActions.includes(E[k])) ko(n + " : exécuteur wl-tel (" + k + ") « " + E[k] + " » introuvable dans supabase/functions/wl-tel/index.ts"); }
   else if (E.type === "page") { if (!pageExec.includes(E.fonction)) ko(n + " : exécuteur de page « " + E.fonction + " » absent de PAGE_EXEC (writinglab/app.js)"); }
   else ko(n + " : exécuteur de type inconnu (api | tel | page)");
   for (const x of E.couvre || []) couverts.add(x);
@@ -87,6 +90,20 @@ for (const c of caps) {
   if (!c.carte || !c.carte.titre || !c.carte.bouton) ko(n + " : « carte » { titre, bouton } manquante (affichage au téléphone)");
 }
 for (const p of postes) for (const id of p.capacites || []) if (!capIds.has(id)) ko("poste « " + p.id + " » : capacité inexistante « " + id + " »");
+// --- aiguillage : le poste qui écrit aux contacts d'interview existe et n'est pas un poste « courrier » ---
+const ag = cat.aiguillage || {};
+if (!ag.contacts_interview) ko("« aiguillage.contacts_interview » manquant (poste qui écrit aux contacts d'interview)");
+else { const pc = postes.find((x) => x.id === ag.contacts_interview); if (!pc) ko("aiguillage.contacts_interview : poste inexistant « " + ag.contacts_interview + " »"); else if (pc.mail) ko("aiguillage.contacts_interview : « " + pc.id + " » est un poste de courrier"); }
+// --- stations et bureaux humains du plan (aide ⓘ) ---
+const STATIONS_PLAN = ["chef", "journaliste", "courrier", "marbre", "radar", "votes"];
+const stations = Array.isArray(cat.stations) ? cat.stations : (ko("« stations » doit être une liste (bureaux humains et stations du plan, pour l'aide ⓘ)"), []);
+for (const st of stations) {
+  const n = "station « " + (st.id || "?") + " »";
+  for (const k of ["id", "nom", "emoji", "aide"]) if (!st[k] || typeof st[k] !== "string") ko(n + " : champ obligatoire « " + k + " » manquant");
+  if (!Array.isArray(st.actions) || !st.actions.length) ko(n + " : « actions » (ce que fait son panneau) manquantes");
+  if (postes.some((p) => p.id === st.id)) ko(n + " : même id qu'un poste IA");
+}
+for (const id of STATIONS_PLAN) if (!stations.some((x) => x.id === id)) ko("station du plan « " + id + " » sans aide dans « stations »");
 // --- chaque action de la page est une capacité ou une exception déclarée ---
 const interne = Object.keys(cat.interne || {}).filter((k) => !k.startsWith("_"));
 for (const m of apiModes) if (!couverts.has(m) && !interne.includes(m)) ko("api('" + m + "') (writinglab/app.js) n'est ni l'exécuteur d'une capacité, ni dans « interne » avec sa raison");

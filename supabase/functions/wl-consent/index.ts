@@ -136,8 +136,12 @@ async function enregistrerMembre(b: any, emailChef: string) {
   if (boite && l.some((x) => x.email !== (cur ? cur.email : "") && x.actif && x.boite === boite)) return { ok: false, why: "cette boîte d’envoi appartient déjà à un autre membre actif" };
   if (cur && cur.email === emailChef && role !== "chef") return { ok: false, why: "vous ne pouvez pas retirer votre propre rôle de rédacteur en chef" };
   const sig = String(b.signature || "").slice(0, 1000), sigEn = String(b.signature_en || "").slice(0, 1000);
+  // Téléphone (23/10/2026, facultatif) : donné aux contacts d'interview seulement quand le membre le demande (wl-tel, suite_interview).
+  const telephone = String(b.telephone || "").replace(/[^\d+().\s\/-]/g, "").replace(/\s+/g, " ").trim().slice(0, 30);
+  if (telephone && telephone.replace(/\D/g, "").length < 6) return { ok: false, why: "numéro de téléphone invalide" };
   const row: Record<string, unknown> = { email, nom, titre: titre || (role === "chef" ? "Rédacteur en chef" : "Journaliste"), role: cur && cur.role === "redaction" && role === "journaliste" ? "redaction" : role, boite,
     signature: sig || nom + "\n" + (titre || "Journaliste") + ", Posthumain\nhttps://posthumain.com", signature_en: sigEn || nom + "\nJournalist, Posthumain\nhttps://posthumain.com", test: b.test === true, updated_at: new Date().toISOString() };
+  if (b.telephone !== undefined) row.telephone = telephone || null; // champ absent (ancienne page) : numéro inchangé
   if (cur) {
     const { error } = await db.from("wl_equipe").update(row).eq("email", cur.email);
     if (error) return { ok: false, why: error.message };
@@ -194,7 +198,8 @@ Deno.serve(async (req) => {
       if (!chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
       const [l, { data: cs }] = await Promise.all([equipe(db, true), db.from("wl_consentements").select("journaliste_id,signe_le,texte_version").eq("test", false).eq("texte_version", VERSION)]);
       const sig: Record<string, string> = {}; for (const c of cs || []) sig[c.journaliste_id] = c.signe_le;
-      return out({ ok: true, version: VERSION, boites: BOITES, membres: l.map((m) => ({ email: m.email, id: m.id, nom: m.nom, titre: m.titre, role: m.chef ? "chef" : "journaliste", boite: m.boite, signature: m.signature, signature_en: m.signature_en, actif: m.actif, test: m.test,
+      const { data: tels } = await db.from("wl_equipe").select("email,telephone"); const telDe: Record<string, string> = {}; for (const t of tels || []) telDe[String(t.email).toLowerCase()] = t.telephone || "";
+      return out({ ok: true, version: VERSION, boites: BOITES, membres: l.map((m) => ({ email: m.email, id: m.id, nom: m.nom, titre: m.titre, role: m.chef ? "chef" : "journaliste", boite: m.boite, signature: m.signature, signature_en: m.signature_en, telephone: telDe[m.email] || "", actif: m.actif, test: m.test,
         engagement: m.chef ? null : (sig[m.id] ? { signe_le: sig[m.id], signe_le_zurich: zurich(sig[m.id]) } : false) })) });
     }
     if (b.action === "equipe_enregistrer") {

@@ -12,6 +12,12 @@
 //  - appel_traiter { fiche_id, transcription } → l'Assistant tire résumé + réponses par question (aucune écriture)
 //  - appel_enregistrer { fiche_id, resume, reponses, transcription, source: appel|notes, consentement }
 //        → réponse de la fiche « reçue par téléphone le … » ; pièces éventuelles « à vérifier » (motif « réponse par téléphone »).
+//  - suite_rediger { fiche_id, consigne, telephone? } → réponse dans le FIL de la fiche d'interview, rédigée par la Secrétaire,
+//        gardée en brouillon dans la fiche (suite_sujet / suite_corps), rien n'est envoyé
+//  - suite_envoyer { fiche_id, sujet, corps, valide: true } → après « Valider et envoyer » dans la fiche : envoi par wl-mail dans le
+//        fil (In-Reply-To = dernier message du contact, sinon notre mail ; References complètes ; copie dans « Envoyés »),
+//        depuis la boîte de la fiche, signature du membre dans la langue de la fiche ; historique « suite envoyée ». Statut inchangé.
+//  - suite_ecarter { fiche_id } / suites → brouillon écarté / brouillons et réponses envoyées dans le fil (pour la page)
 // Rôles : une journaliste n'a que Secrétaire, Assistant, Comptable, et seulement ses fiches ; Julien (mk, sc) = rédacteur en chef.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
@@ -22,6 +28,8 @@ const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
 const MODELE = "claude-sonnet-5-5";
+// Boîtes historiques (mêmes adresses que n8n et wl-mail) ; les boîtes ajoutées depuis le lab sont lues dans wl_boites.
+const ADRESSES: Record<string, string> = { jonathan: "jonathan.paiano@posthumain.com", valisoa: "valisoa.rasolofo@posthumain.com", subs: "subs@posthumain.com", redaction: "redaction@posthumain.com" };
 function cors(req: Request) {
   const o = req.headers.get("origin") || "";
   return { "Access-Control-Allow-Origin": ORIGINES.includes(o) ? o : ORIGINES[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Vary": "Origin" };
@@ -53,12 +61,28 @@ async function membre(token: string): Promise<Membre | null> {
 // (transmission) et ses droits ; une capacité est validée avec son schéma de paramètres et ses droits. Rien n'est codé en dur.
 // deno-lint-ignore no-explicit-any
 type Cap = { id: string; postes: string[]; description: string; params: Record<string, any>; droits: string; mode: string; au_moins_un?: string[]; enrichir?: Record<string, string> };
-type Poste = { id: string; nom: string; chefSeul: boolean; role: string; actions: string[]; contexte: string[]; mail: { boite: string; role: string } | null };
+type Poste = { id: string; nom: string; chefSeul: boolean; role: string; aiguillage: string; actions: string[]; contexte: string[]; mail: { boite: string; role: string } | null };
 // deno-lint-ignore no-explicit-any
-const POSTES: Record<string, Poste> = Object.fromEntries((CATALOGUE.postes || []).map((p: any) => [p.id, { id: p.id, nom: p.emoji + " " + p.nom, chefSeul: p.acces === "chef", role: p.role, actions: p.capacites || [], contexte: p.contexte || [], mail: p.mail || null }]));
+const POSTES: Record<string, Poste> = Object.fromEntries((CATALOGUE.postes || []).map((p: any) => [p.id, { id: p.id, nom: p.emoji + " " + p.nom, chefSeul: p.acces === "chef", role: p.role, aiguillage: p.aiguillage || String(p.role || "").split(".")[0], actions: p.capacites || [], contexte: p.contexte || [], mail: p.mail || null }]));
 // deno-lint-ignore no-explicit-any
 const CAPS: Record<string, Cap> = Object.fromEntries((CATALOGUE.capacites || []).map((c: any) => [c.id, c]));
 const ACTIONS_DOC: Record<string, string> = Object.fromEntries(Object.values(CAPS).map((c) => [c.id, c.id + " — " + c.description]));
+// Aiguillage (catalogue.aiguillage) : le poste qui écrit aux contacts d'interview ; les postes « courrier » (avec une boîte) ne les reçoivent jamais.
+const POSTE_CONTACTS: string = (CATALOGUE.aiguillage && CATALOGUE.aiguillage.contacts_interview) || "";
+const sansAccent = (s: unknown) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const MOTS_VIDES = new Set(["monsieur", "madame", "docteur", "professeur", "prof", "mme", "mlle", "dr", "pr", "de", "du", "des", "la", "le", "van", "von", "der"]);
+// La requête cite-t-elle une personne qui a une fiche d'interview ? (nom de famille ou prénom de plus de 3 lettres, accents ignorés)
+// deno-lint-ignore no-explicit-any
+function ficheCitee(texte: string, ctx: any): any {
+  const t = " " + sansAccent(texte).replace(/[^a-z0-9]+/g, " ") + " ";
+  const l = (ctx.fiches || ctx.contacts_fiches || []) as { fiche_id: string; contact: string; nom?: string }[];
+  for (const f of l) {
+    const nom = sansAccent(f.nom || String(f.contact || "").split(",")[0]).replace(/[^a-z0-9]+/g, " ").trim();
+    const mots = nom.split(" ").filter((w) => w.length > 3 && !MOTS_VIDES.has(w));
+    if (mots.length && mots.some((w) => t.includes(" " + w + " "))) return f;
+  }
+  return null;
+}
 
 // ---------- Contexte (lu en base, filtré selon le rôle) ----------
 // deno-lint-ignore no-explicit-any
@@ -76,7 +100,7 @@ async function fichesVisibles(me: Membre, articleId: string, texte: string): Pro
 // deno-lint-ignore no-explicit-any
 function ficheCtx(f: any) {
   const qs = pj(f.questions);
-  return { fiche_id: f.fiche_id, contact: [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", "), email: f.contact_email || "", langue: f.langue || "fr",
+  return { fiche_id: f.fiche_id, nom: f.contact_nom || "", contact: [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", "), email: f.contact_email || "", langue: f.langue || "fr",
     statut: f.statut, article_id: f.article_id, article: court(f.article_titre, 90), redacteur: f.redacteur, questions: Array.isArray(qs) ? qs.slice(0, 8).map((x: unknown) => court(x, 220)) : [],
     reponse: f.reponse ? court(f.reponse, 400) : "" };
 }
@@ -146,9 +170,22 @@ function systemePoste(p: Poste, me: Membre, peutTransmettre: boolean, autres: Po
     "Tu parles avec " + me.nom + " (" + (me.chef ? "rédacteur en chef" : "journaliste") + "), qui t'appelle au « téléphone » de ton bureau avec une requête libre, écrite ou dictée (la dictée peut contenir des mots mal reconnus).",
     "TON RÔLE : " + p.role,
     "TES ACTIONS (les seules que tu peux proposer) :\n" + p.actions.map((a) => "- " + ACTIONS_DOC[a]).join("\n"),
-    peutTransmettre ? "SI CE N'EST PAS DE TON RESSORT : mode « transmettre », vers l'un de ces postes : " + autres.map((x) => x.id + " (" + x.nom + " : " + x.role.split(".")[0] + ")").join(" ; ") + ". La requête lui sera transmise automatiquement, une seule fois." : "La requête t'a été TRANSMISE par un autre poste : traite-la (mode « faire » ou « question »), tu ne peux pas la transmettre à nouveau. Si vraiment elle n'est pas faisable, dis-le simplement dans le message.",
-    "RÈGLES :\n- Jamais d'envoi ni de publication : tu produis seulement des propositions que le membre valide (brouillon, réponse à enregistrer, citations proposées).\n- Utilise uniquement les identifiants (article_id, fiche_id, mail_id) présents dans le contexte. Si la fiche ou le mail visé est ambigu ou absent, pose une question (mode « question ») en citant les possibilités.\n- N'invente aucun fait, aucune citation, aucune adresse : seulement ce qui est dans la requête ou le contexte.\n- Si la demande relève d'une action d'un AUTRE poste (structurer une réponse d'interview ou des notes d'appel = l'Assistant ; rédiger un mail d'interview = la Secrétaire ; répondre à un mail reçu = Julien), transmets-la au lieu de répondre que tu ne peux pas.\n- Pour reponse_fiche : une réponse par question de la fiche quand le membre en a rapporté le contenu ; laisse de côté les questions sans réponse et dis-le ; les propos qui ne répondent à aucune question vont dans une entrée dont la question est « Complément ».\n- Une simple information (un solde, un état) : mode « faire » sans action, la réponse est dans le message.\n- Réponds avec l'outil « repondre ».",
-  ].join("\n\n");
+    peutTransmettre ? "SI CE N'EST PAS DE TON RESSORT : mode « transmettre », vers le poste compétent :\n" + autres.map((x) => "- " + x.id + " (" + x.nom + ") : " + x.aiguillage).join("\n") + "\nLa requête lui sera transmise automatiquement, une seule fois." : "La requête t'a été TRANSMISE par un autre poste : traite-la (mode « faire » ou « question »), tu ne peux pas la transmettre à nouveau. Si elle n'est pas de ton ressort, dis-le clairement et indique précisément quel poste appeler (☎️ de son bureau) : ne renvoie jamais la balle sans solution.",
+    reglesAiguillage(p, peutTransmettre, autres),
+    "RÈGLES :\n- Jamais d'envoi ni de publication : tu produis seulement des propositions que le membre valide (brouillon, réponse à enregistrer, citations proposées).\n- Utilise uniquement les identifiants (article_id, fiche_id, mail_id) présents dans le contexte. Si la fiche ou le mail visé est ambigu ou absent, pose une question (mode « question ») en citant les possibilités.\n- N'invente aucun fait, aucune citation, aucune adresse, aucun numéro : seulement ce qui est dans la requête ou le contexte.\n- Si la demande relève d'un AUTRE poste, transmets-la (ou indique quel poste appeler) au lieu de répondre que tu ne peux pas.\n- Pour reponse_fiche : une réponse par question de la fiche quand le membre en a rapporté le contenu ; laisse de côté les questions sans réponse et dis-le ; les propos qui ne répondent à aucune question vont dans une entrée dont la question est « Complément ».\n- Une simple information (un solde, un état) : mode « faire » sans action, la réponse est dans le message.\n- Réponds avec l'outil « repondre ».",
+  ].filter(Boolean).join("\n\n");
+}
+// Règles d'aiguillage générées depuis le catalogue (postes, aiguillage.contacts_interview, paramètre « telephone » des capacités).
+function reglesAiguillage(p: Poste, peut: boolean, autres: Poste[]): string {
+  const ci = POSTES[POSTE_CONTACTS], courrier = Object.values(POSTES).filter((x) => x.mail).map((x) => x.nom);
+  const r: string[] = [];
+  if (ci) r.push("CONTACTS D'INTERVIEW : une personne citée qui a une fiche (« fiches » ou « contacts_fiches » du contexte : compare le nom cité, même approximatif ou mal dicté, aux noms des fiches) est un contact d'interview, jamais un mail du Courrier. " +
+    (ci.id === p.id ? "Tout mail à lui écrire (répondre à son mail, remercier, proposer un appel ou une autre formule, fixer un rendez-vous, donner notre numéro) est pour TOI : propose l'action adaptée sur SA fiche, ne transmets pas." : "Tout mail à lui écrire (répondre à son mail, remercier, proposer un appel, fixer un rendez-vous, donner notre numéro) relève de " + ci.nom + (peut && autres.some((x) => x.id === ci.id) ? " : transmets-lui." : " : indique au membre d'appeler " + ci.nom + ".")) +
+    (courrier.length && !p.mail ? " Ne transmets JAMAIS une telle demande à " + courrier.join(" ni à ") + " (ils ne gèrent que les mails de leur courrier)." : ""));
+  if (p.mail) r.push("TON COURRIER : tu ne traites que les mails présents dans « courrier » du contexte. Si la personne citée n'y est pas, dis-le clairement (« ce contact n'est pas dans mon courrier ») ; si elle a une fiche, précise que c'est un contact d'interview" +
+    (ci ? (peut ? " et transmets à " + ci.nom : " et indique d'appeler " + ci.nom + " (☎️ de son bureau)") : "") + ". Ne réponds jamais seulement que le courrier est vide : donne toujours la solution.");
+  if (p.actions.some((a) => CAPS[a] && CAPS[a].params && CAPS[a].params.telephone)) r.push("NUMÉRO DE TÉLÉPHONE : le numéro du membre est « moi.telephone » dans le contexte (vide = non renseigné). Quand il faut donner notre numéro (le membre le demande, ou le contact l'a demandé pour un appel que le membre souhaite), mets-le dans le paramètre « telephone ». S'il est vide et que la requête n'en donne pas, pose la question (mode « question ») en demandant le numéro à donner : n'invente jamais de numéro.");
+  return r.join("\n\n");
 }
 // Validation générique d'une capacité proposée par Claude : porteur, droits, schéma des paramètres, existence des éléments visés.
 // deno-lint-ignore no-explicit-any
@@ -205,7 +242,10 @@ async function contexte(me: Membre, p: Poste, b: any) {
   const articleId = String(b.article_id || "");
   // deno-lint-ignore no-explicit-any
   const ctx: any = { date: new Date().toLocaleString("fr-CH", { timeZone: "Europe/Zurich" }), article_en_cours: articles.find((a: { id: string }) => a.id === articleId) || (articleId ? { id: articleId } : null), articles };
+  const { data: eqTel } = await db.from("wl_equipe").select("telephone").eq("id", me.id).limit(1);
+  ctx.moi = { nom: me.nom, telephone: String((eqTel && eqTel[0] && eqTel[0].telephone) || "") };
   if (p.contexte.includes("fiches") || b.fiche_id) ctx.fiches = (await fichesVisibles(me, articleId, String(b.texte || ""))).map(ficheCtx);
+  else ctx.contacts_fiches = (await fichesVisibles(me, articleId, String(b.texte || ""))).map((f) => ({ fiche_id: f.fiche_id, nom: f.contact_nom, statut: f.statut }));
   if (b.fiche_id && ctx.fiches && !ctx.fiches.some((f: { fiche_id: string }) => f.fiche_id === b.fiche_id)) {
     let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id)).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
     const { data } = await q; if (data && data[0]) ctx.fiches.unshift(ficheCtx(data[0]));
@@ -216,14 +256,14 @@ async function contexte(me: Membre, p: Poste, b: any) {
   return ctx;
 }
 // deno-lint-ignore no-explicit-any
-async function repondrePoste(me: Membre, p: Poste, b: any, transmisPar: Poste | null, note: string): Promise<any> {
+async function repondrePoste(me: Membre, p: Poste, b: any, transmisPar: Poste | null, note: string, sansTransmission = false): Promise<any> {
   const autres = Object.values(POSTES).filter((x) => x.id !== p.id && (me.chef || !x.chefSeul));
-  const peut = !transmisPar;
+  const peut = !transmisPar && !sansTransmission;
   const ctx = await contexte(me, p, b);
   const fil = transmisPar ? [] : await filDe(me, p.id);
   const hist = fil.map((m) => (m.de === "moi" ? me.nom.split(" ")[0] : m.de) + " : " + court(m.texte, 500) + (m.action ? " [action " + (m.action.type || "") + (m.action.fait ? " exécutée" : " proposée") + "]" : "")).join("\n");
   const user = (hist ? "ÉCHANGES PRÉCÉDENTS (les plus récents en bas) :\n" + hist + "\n\n" : "") + "CONTEXTE DU LAB (JSON) :\n" + JSON.stringify(ctx) + "\n\n" +
-    (transmisPar ? "REQUÊTE TRANSMISE PAR " + transmisPar.nom + (note ? " (note : " + note + ")" : "") + " :\n" : "REQUÊTE DE " + me.nom.toUpperCase() + " :\n") + String(b.texte || "").slice(0, 8000);
+    (transmisPar ? "REQUÊTE TRANSMISE PAR " + transmisPar.nom + (note ? " (note : " + note + ")" : "") + " :\n" : (note ? "REMARQUE : " + note + "\n\n" : "") + "REQUÊTE DE " + me.nom.toUpperCase() + " :\n") + String(b.texte || "").slice(0, 8000);
   const out = await claude(systemePoste(p, me, peut, autres), [{ role: "user", content: user }], OUTIL_TEL(autres.map((x) => x.id), p.actions, peut), 8000, "telephone", me.id);
   return { out, ctx };
 }
@@ -254,6 +294,14 @@ Deno.serve(async (req) => {
       const fil: unknown[] = [await ajout({ de: "moi", texte: texte.slice(0, 8000) })];
       let { out: r, ctx } = await repondrePoste(me, p, b, null, "");
       let qui = p;
+      // Garde-fou d'aiguillage : une personne qui a une fiche d'interview n'est jamais transmise à un poste « courrier ».
+      if (r.mode === "transmettre") {
+        const c0 = POSTES[String(r.transmettre_a || "")], fc = c0 && c0.mail ? ficheCitee(texte, ctx) : null;
+        if (fc && POSTE_CONTACTS) {
+          if (POSTE_CONTACTS === p.id) ({ out: r, ctx } = await repondrePoste(me, p, b, null, "ne transmets pas : " + (fc.nom || fc.contact) + " a une fiche d'interview (fiche_id " + fc.fiche_id + "), ce n'est pas un mail du Courrier ; c'est à toi de proposer l'action sur sa fiche.", true));
+          else if (posteOk(POSTE_CONTACTS)) { r.transmettre_a = POSTE_CONTACTS; r.note_transmission = (r.note_transmission ? r.note_transmission + " " : "") + "(" + (fc.nom || fc.contact) + " a une fiche d'interview : fiche_id " + fc.fiche_id + ")"; }
+        }
+      }
       if (r.mode === "transmettre") {
         const cible = posteOk(String(r.transmettre_a || ""));
         if (!cible || cible.id === p.id) {
@@ -338,6 +386,113 @@ Deno.serve(async (req) => {
       if (!garderPreuve) await db.from("wl_fiches").update({ reponse_verifiee: true, reponse_preuve: JSON.stringify({ lien: "telephone", de: String(f.contact_email || "").toLowerCase(), recu_le: now.toISOString(), par: me.id, source, consentement: source === "appel" ? true : null, note: "réponse par téléphone : pas de preuve par les en-têtes de mail, pièces à vérifier" }) }).eq("fiche_id", f.fiche_id);
       await db.from("wl_appels").insert({ fiche_id: f.fiche_id, membre: me.id, source, consentement: source === "appel", transcription: String(b.transcription || "").slice(0, 60000) || null, resume: resume || null, reponses: reps });
       return out({ ok: true, fiche_id: f.fiche_id, reponse: texte });
+    }
+    // ---------- Réponse dans le fil d'une fiche d'interview (capacité du catalogue dont l'exécuteur est « suite_rediger ») ----------
+    if (b.action === "suites") {
+      let q = db.from("wl_fiches").select("fiche_id,suite_sujet,suite_corps,suite_consigne,suite_a,suite_prete_le,suites").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(400);
+      if (!me.chef) q = q.eq("redacteur", me.id);
+      const [{ data }, { data: eqTel }] = await Promise.all([q, db.from("wl_equipe").select("telephone").eq("id", me.id).limit(1)]);
+      const l: Record<string, unknown> = {};
+      for (const f of data || []) { const env0 = Array.isArray(f.suites) ? f.suites : (pj(f.suites) || []); if (f.suite_corps || env0.length) l[f.fiche_id] = { sujet: f.suite_sujet || "", corps: f.suite_corps || "", consigne: f.suite_consigne || "", a: f.suite_a || "", prete_le: f.suite_prete_le, envoyees: env0 }; }
+      return out({ ok: true, suites: l, telephone: String((eqTel && eqTel[0] && eqTel[0].telephone) || "") });
+    }
+    if (b.action === "suite_rediger" || b.action === "suite_envoyer" || b.action === "suite_ecarter") {
+      let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
+      const { data: f0 } = await q; const f = f0 && f0[0];
+      if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
+      // deno-lint-ignore no-explicit-any
+      const capS: any = Object.values(CAPS).find((c: any) => c.executeur && c.executeur.action === "suite_rediger");
+      const statuts: string[] = (capS && capS.params && capS.params.fiche_id && capS.params.fiche_id.statuts) || ["envoyé", "a répondu", "relance", "inséré"];
+      const hist = pj(f.historique) || [], now = new Date().toISOString();
+      if (b.action === "suite_ecarter") {
+        hist.push({ t: now, e: "réponse dans le fil écartée", par: me.id });
+        await db.from("wl_fiches").update({ suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_prete_le: null, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
+        return out({ ok: true });
+      }
+      if (!statuts.includes(String(f.statut))) return out({ ok: false, why: "pas de réponse dans le fil possible pour cette fiche (statut : " + f.statut + ")" });
+      const mid = (s: unknown) => { const v = String(s || "").trim(); return /^<[^<>\s]+@[^<>\s]+>$/.test(v) ? v : ""; };
+      const emailOk = (e: string) => /^[^\s@<>]+@[^\s@<>]+\.[a-z]{2,}$/i.test(e);
+      const pv = pj(f.reponse_preuve) || {}, contact = String(f.contact_email || "").trim().toLowerCase(), de = String(pv.de || "").trim().toLowerCase();
+      const dom = (e: string) => e.split("@")[1] || "";
+      // On répond à la personne qui a écrit (autre adresse du même domaine que le contact, déjà validée dans la preuve), sinon au contact.
+      const dest = de && emailOk(de) && pv.lien !== "telephone" && (de === contact || dom(de) === dom(contact)) ? de : contact;
+      if (!emailOk(dest)) return out({ ok: false, why: "adresse e-mail du contact manquante ou invalide" });
+      const base = String(f.mail_sujet || "").trim();
+      const sujetDef = (/^\s*(re|tr|fwd?)\s*:/i.test(base) ? base : "Re: " + base).slice(0, 300);
+      // deno-lint-ignore no-explicit-any
+      const envoyees: any[] = Array.isArray(f.suites) ? f.suites : (pj(f.suites) || []);
+      const { data: eqRows } = await db.from("wl_equipe").select("id,nom,boite,signature,signature_en,telephone,actif").or("id.eq." + String(f.redacteur || "_") + (f.boite ? ",boite.eq." + String(f.boite) : ""));
+      const boite = String(f.boite || ((eqRows || []).find((x) => x.id === f.redacteur) || {}).boite || "");
+      const owner = (eqRows || []).find((x) => x.boite === boite && x.actif !== false) || (eqRows || []).find((x) => x.id === f.redacteur) || { id: f.redacteur, nom: "", signature: "", signature_en: "" };
+      if (b.action === "suite_rediger") {
+        const consigne = String(b.consigne || "").trim().slice(0, 1500); if (consigne.length < 3) return out({ ok: false, why: "dites ce qu’il faut lui répondre" });
+        const tel = String(b.telephone || "").replace(/[^\d+().\s\/-]/g, "").replace(/\s+/g, " ").trim().slice(0, 30);
+        const telOk = tel.replace(/\D/g, "").length >= 6 ? tel : "";
+        const en = f.langue === "en";
+        const outil = { name: "mail", description: "Le texte de la réponse.", input_schema: { type: "object", additionalProperties: false, required: ["corps"], properties: { corps: { type: "string", description: "Texte du mail : formule d'appel, message, formule de politesse courte, SANS signature ni nom." } } } };
+        const sys = "Tu es la Secrétaire du Writinglab de Posthumain (média suisse francophone sur la science et la technologie, posthumain.com). Tu rédiges une réponse courte dans le FIL d'une demande d'interview, au nom de " + (owner.nom || me.nom) + ". " +
+          "Langue : " + (en ? "anglais" : "français") + ". Vouvoiement, ton cordial et professionnel, 3 à 8 phrases, naturel (pas de formules creuses). Suis fidèlement la consigne du membre : n'ajoute aucun engagement, aucune date, aucun fait qui n'y est pas. " +
+          "Réponds au dernier message du contact s'il y en a un, sans le recopier. " + (telOk ? "Donne ce numéro de téléphone tel quel : " + telOk + "." : "Ne mentionne aucun numéro de téléphone et n'en invente aucun.") +
+          " Commence par la formule d'appel avec le nom du contact (« Bonjour Monsieur X, » / « Dear Dr X, »), termine par une formule de politesse courte, SANS signature ni nom : la signature est ajoutée à l'envoi. Réponds avec l'outil « mail ».";
+        const user = "Contact : " + [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", ") + "\nArticle : " + (f.article_titre || "") +
+          "\n\nNOTRE PREMIER MAIL (objet : " + base + ") :\n" + String(f.mail_corps || "").slice(0, 2500) +
+          (f.reponse ? "\n\nSA RÉPONSE (" + (f.reponse_le || "") + ") :\n" + String(f.reponse).slice(-3000) : "\n\n(Pas encore de réponse du contact.)") +
+          (envoyees.length ? "\n\nRÉPONSES DÉJÀ ENVOYÉES DANS LE FIL : " + envoyees.map((x) => (x.le || "").slice(0, 10) + " « " + (x.sujet || "") + " »").join(" ; ") : "") +
+          "\n\nCONSIGNE DU MEMBRE (" + me.nom + ") :\n" + consigne + "\n\nNUMÉRO À DONNER : " + (telOk || "(aucun)");
+        const r = await claude(sys, [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
+        const corps = String(r.corps || "").trim().slice(0, 8000); if (!corps) return out({ ok: false, why: "rédaction impossible, réessayez" });
+        hist.push({ t: now, e: "réponse dans le fil préparée (à valider)", par: me.id });
+        const { error } = await db.from("wl_fiches").update({ suite_sujet: sujetDef, suite_corps: corps, suite_consigne: consigne, suite_a: dest, suite_prete_le: now, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
+        if (error) return out({ ok: false, why: "enregistrement impossible" }, 500);
+        return out({ ok: true, fiche_id: f.fiche_id, sujet: sujetDef, corps, a: dest });
+      }
+      // suite_envoyer : seulement après « Valider et envoyer » dans la fiche
+      if (b.valide !== true) return out({ ok: false, why: "la réponse doit être relue et validée" });
+      if (me.test) return out({ ok: false, why: "compte de test : l’envoi de mails est désactivé" });
+      if (!mid(f.message_id)) return out({ ok: false, why: "pas de fil : le premier mail n’a pas d’identifiant" });
+      const sujet = String(b.sujet || f.suite_sujet || sujetDef).trim().slice(0, 300), corps = String(b.corps || f.suite_corps || "").trim().slice(0, 20000);
+      if (!sujet || !corps) return out({ ok: false, why: "objet ou message vide" });
+      let adr = ADRESSES[boite] || "";
+      if (!adr && boite) { const { data: bx } = await db.from("wl_boites").select("adresse,actif").eq("id", boite).limit(1); if (bx && bx[0] && bx[0].actif) adr = String(bx[0].adresse || ""); }
+      if (!adr) return out({ ok: false, why: "aucune boîte Posthumain pour cette fiche" });
+      // Fil : on répond au dernier message connu du contact (Message-ID gardé dans la preuve), sinon à notre dernier envoi.
+      const repId = mid(pv.reponse_message_id);
+      const irt = repId || (envoyees.length ? mid(envoyees[envoyees.length - 1].message_id) : "") || mid(f.message_id);
+      const refs = [...new Set([mid(f.message_id), mid(pv.en_reponse_a), repId, ...envoyees.map((x) => mid(x.message_id))].filter(Boolean))];
+      // Signature : la même que pour le premier mail et les relances (wl-push « signatures »), dans la langue de la fiche.
+      const langue = f.langue === "en" ? "en" : "fr";
+      let sigHtml = "";
+      try {
+        const rs = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-push", { method: "POST", signal: AbortSignal.timeout(8000), headers: { "Content-Type": "application/json", origin: SITE }, body: JSON.stringify({ token: String(b.token || ""), action: "signatures" }) });
+        const js = await rs.json().catch(() => null); if (js && js.ok && js.signatures && js.signatures[owner.id]) sigHtml = String(js.signatures[owner.id][langue] || "");
+      } catch (_) { sigHtml = ""; }
+      const escH = (t: string) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+      if (!sigHtml) sigHtml = String((langue === "en" ? (owner.signature_en || owner.signature) : owner.signature) || "").split("\n").map(escH).join("<br>");
+      const sigTxt = sigHtml.replace(/<br\s*\/?>/gi, "\n").replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, (_m, h, t) => t === h ? t : t + " (" + h + ")").replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ").trim();
+      let lignes = corps.replace(/\s+$/, "").split("\n");
+      if (owner.nom) { for (let i = Math.max(0, lignes.length - 8); i < lignes.length; i++) { if (lignes[i].trim().replace(/\*/g, "") === owner.nom) { lignes = lignes.slice(0, i); break; } } }
+      const texte = lignes.join("\n").replace(/\s+$/, "");
+      const html = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#1f1a12">' + escH(texte).replace(/\n/g, "<br>") + (sigHtml ? '<br><br><div style="color:#444">' + sigHtml + "</div>" : "") + "</div>";
+      const nomQ = (s: unknown) => String(s || "").replace(/["<>\r\n]/g, "").trim();
+      const from = (nomQ(owner.nom) ? '"' + nomQ(owner.nom) + ' – Posthumain" ' : "") + "<" + adr + ">";
+      const to = (nomQ(f.contact_nom) ? '"' + nomQ(f.contact_nom) + '" ' : "") + "<" + dest + ">";
+      // Verrou : un seul envoi à la fois (deux clics, deux onglets) ; libéré après l'envoi ou au bout de 3 minutes.
+      const lim = new Date(Date.now() - 180000).toISOString();
+      const { data: lk } = await db.from("wl_fiches").update({ suite_verrou: now }).eq("fiche_id", f.fiche_id).or("suite_verrou.is.null,suite_verrou.lt." + lim).select("fiche_id");
+      if (!lk || !lk.length) return out({ ok: false, why: "cette réponse est déjà en cours d’envoi" });
+      // deno-lint-ignore no-explicit-any
+      let rm: any = null;
+      try {
+        const rr = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-mail", { method: "POST", signal: AbortSignal.timeout(58000), headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
+          body: JSON.stringify({ from, to, sujet, corps: sigTxt ? texte + "\n\n" + sigTxt : texte, html, in_reply_to: irt, references: refs.join(" "), attachments: [] }) });
+        rm = await rr.json().catch(() => null);
+      } catch (e) { rm = { ok: false, why: court((e as Error)?.message || e, 120) }; }
+      if (!rm || !rm.ok) { await db.from("wl_fiches").update({ suite_verrou: null }).eq("fiche_id", f.fiche_id); return out({ ok: false, why: "envoi impossible : " + ((rm && rm.why) || "erreur") }); }
+      hist.push({ t: now, e: "suite envoyée", par: me.id });
+      envoyees.push({ le: now, a: dest, sujet, message_id: String(rm.message_id || ""), par: me.id });
+      await db.from("wl_fiches").update({ suites: envoyees.slice(-30), suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_prete_le: null, suite_verrou: null, historique: JSON.stringify(hist.slice(-60)), updated_at: now }).eq("fiche_id", f.fiche_id);
+      return out({ ok: true, fiche_id: f.fiche_id, a: dest });
     }
     return out({ ok: false, why: "action inconnue" }, 400);
   } catch (e) {
