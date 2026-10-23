@@ -676,15 +676,34 @@
   }
   function rangee(p) { return p.y < CORR[0] ? 0 : p.y < CORR[1] ? 1 : 2; }
   function sortie(p, C) { return C > p.y ? p.y + 120 : p.y - 80; } // bord du poste côté couloir
-  function cable(a, b, live, voie) {
-    if (!a || !b) return '';
+  function cheminCable(a, b, voie) {
     // trois rangées : même rangée = par le couloir voisin (sous la rangée 1, au-dessus des rangées 2 et 3) ; sinon par le couloir entre les deux
     var ra = rangee(a), rb = rangee(b), C = (ra === rb ? CORR[Math.max(0, ra - 1)] : CORR[Math.min(ra, rb)]) + (voie || 0); // voie : décalage dans le couloir, pour que deux fils ne se confondent pas
     var sx = a.x, sy = sortie(a, C), ex = b.x, ey = sortie(b, C);
-    var d;
-    if (ra === rb) { var dn = C > a.y, yy = dn ? C - 2 : C + 2; d = 'M' + sx + ' ' + sy + ' V' + (yy + (dn ? -10 : 10)) + ' Q' + sx + ' ' + yy + ' ' + (sx + (ex > sx ? 10 : -10)) + ' ' + yy + ' H' + (ex + (ex > sx ? -10 : 10)) + ' Q' + ex + ' ' + yy + ' ' + ex + ' ' + (yy + (dn ? -10 : 10)) + ' V' + ey; }
-    else d = 'M' + sx + ' ' + sy + ' V' + C + ' H' + ex + ' V' + ey;
-    return trace(d, live);
+    if (ra === rb) { var dn = C > a.y, yy = dn ? C - 2 : C + 2; return 'M' + sx + ' ' + sy + ' V' + (yy + (dn ? -10 : 10)) + ' Q' + sx + ' ' + yy + ' ' + (sx + (ex > sx ? 10 : -10)) + ' ' + yy + ' H' + (ex + (ex > sx ? -10 : 10)) + ' Q' + ex + ' ' + yy + ' ' + ex + ' ' + (yy + (dn ? -10 : 10)) + ' V' + ey; }
+    return 'M' + sx + ' ' + sy + ' V' + C + ' H' + ex + ' V' + ey;
+  }
+  function cable(a, b, live, voie) { return a && b ? trace(cheminCable(a, b, voie), live) : ''; }
+  // Transmission au téléphone (23/10/2026) : quand un poste passe une requête à un autre, le chemin entre LES DEUX bureaux
+  // s'allume (bleu) et une impulsion va de la source vers la destination pendant quelques secondes. Générique : n'importe quelle
+  // paire de bureaux du plan (postes du catalogue compris), même routage par couloirs que les autres câbles.
+  var TRANSIT_MS = 9000;
+  function transmettreAnim(de, vers) {
+    if (!de || !vers || de === vers) return;
+    S.transits = (S.transits || []).filter(function (t) { return !(t.de === de && t.vers === vers); }).concat([{ de: de, vers: vers, fin: Date.now() + TRANSIT_MS }]);
+    paintFloor(); clearTimeout(S.transitT); S.transitT = setTimeout(paintFloor, TRANSIT_MS + 200);
+  }
+  function transitsSVG() {
+    var now = Date.now(), s = '';
+    S.transits = (S.transits || []).filter(function (t) { return t.fin > now; });
+    S.transits.forEach(function (t) {
+      var a = P(t.de), b = P(t.vers); if (!a || !b) return;
+      var d = cheminCable(a, b, 8);
+      s += '<g class="transit" data-de="' + esc(t.de) + '" data-vers="' + esc(t.vers) + '"><path class="cable" d="' + d + '" stroke="rgba(0,0,0,.6)" stroke-width="8"/>' +
+        '<path class="cable live" d="' + d + '" stroke="#3fd0ff" stroke-width="4" stroke-dasharray="10 8" filter="url(#glow)"><animate attributeName="stroke-dashoffset" from="36" to="0" dur=".7s" repeatCount="indefinite"/></path>' +
+        '<g filter="url(#glow)"><circle r="9" fill="#e6f9ff" stroke="#3fd0ff" stroke-width="2.5"/><text y="4" text-anchor="middle" font-size="10">☎️</text><animateMotion dur="1.8s" repeatCount="indefinite" path="' + d + '"/></g></g>';
+    });
+    return s;
   }
   function trace(d, live) {
     var s = '<path class="cable" d="' + d + '" stroke="rgba(0,0,0,.6)" stroke-width="7"/>';
@@ -762,6 +781,7 @@
         if (live) s += '<g filter="url(#glow)"><rect x="-16" y="-11" width="32" height="22" rx="3" fill="#e2ffef" stroke="#00ff77" stroke-width="2"/><path d="M-16 -11 l16 12 l16 -12" stroke="#1d6b45" stroke-width="2" fill="none"/><animateMotion dur="2.8s" fill="freeze" path="' + path + '"/></g>';
       });
     }
+    s += transitsSVG();
     s += plaques + etagereSVG() + caissesSVG();
     pp.forEach(function (p) { s += p.device ? deviceSVG(p) : deskSVG(p); });
     // bout du couloir : la porte vers le Videolab (navigation d'un lab à l'autre, façon RPG)
@@ -2026,10 +2046,12 @@
   }
   function consPeindre(html) { var bg = consVerrou(true); bg.innerHTML = html; bg.scrollTop = 0; return bg; }
   // Au chargement : seulement pour les journalistes (le serveur confirme le rôle). Échec réseau = l'écran reste fermé (« Réessayer »).
-  function consVerifier() {
+  function consVerifier(essai) {
     if (D().me.chef) return;
     consPeindre('<div class="cs"><div class="cs-k">🔏 Posthumain · Writinglab</div><p class="muted" style="margin-top:14px">Vérification de votre engagement de confidentialité…</p></div>');
     consApi({ action: 'etat' }).then(function (e) {
+      // jeton Ghost expiré ou réseau coupé : un nouvel essai automatique avec un jeton neuf avant d'afficher « Accès en attente »
+      if ((!e || !e.ok) && !essai) { setTimeout(function () { consVerifier(true); }, 1200); return; }
       if (!e || !e.ok) { consPeindre('<div class="cs"><div class="cs-k">🔏 Posthumain · Writinglab</div><h1 class="cs-t">Accès en attente</h1><p class="cs-err">⚠️ ' + esc((e && e.why) || 'le serveur ne répond pas') + '.</p><p class="muted">Le Writinglab s’ouvrira dès que votre engagement de confidentialité aura pu être vérifié. Si cela persiste, prévenez Jonathan Paiano.</p><div class="row" style="margin-top:14px"><button type="button" class="btn go" data-cs="reessayer">↻ Réessayer</button></div></div>'); return; }
       if (!e.requis || e.signe) { consVerrou(false); return; }
       S.consEtat = e; consFormulaire(false);
@@ -2368,6 +2390,7 @@
       T.fil = (T.fil || []).filter(function (m) { return m.id !== 'tmp'; });
       if (!r || !r.ok) { T.fil.push({ id: 'err' + Date.now(), de: k, texte: '⚠️ ' + ((r && r.why) || 'pas de réponse, réessayez'), created_at: new Date().toISOString() }); T.brouillon = txt; telPeindre(true); return; }
       T.fil = T.fil.concat(r.fil || []); telPeindre();
+      (r.fil || []).forEach(function (m) { if (m && m.action && m.action.type === 'transmission' && m.action.params) transmettreAnim(m.de, m.action.params.vers); });
       var der = (r.fil || [])[(r.fil || []).length - 1];
       var cd = der && der.action && catCap(der.action.type);
       if (cd && (cd.mode === 'brouillon' || cd.mode === 'immediat') && catDroit(cd) && !(cd.executeur && cd.executeur.pas_auto_si === 'brouillon_mail' && mailBrouillonExiste(der.action.params.mail_id))) telExec(der.id);

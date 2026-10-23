@@ -167,7 +167,10 @@ Deno.serve(async (req) => {
   try {
     if (b.action === "etat") {
       const requis = me.role === "journaliste";
-      const { data } = requis ? await db.from("wl_consentements").select("id,signe_le,texte_version,nom_saisi").eq("journaliste_id", me.id).eq("texte_version", VERSION).limit(1) : { data: [] };
+      // 23/10/2026 : une lecture en erreur ne doit JAMAIS ressembler à « pas encore signé » (l'écran reviendrait à une journaliste
+      // qui a signé) : on répond ok:false, la page affiche « Accès en attente » + Réessayer.
+      const { data, error } = requis ? await db.from("wl_consentements").select("id,signe_le,texte_version,nom_saisi").eq("journaliste_id", me.id).eq("texte_version", VERSION).limit(1) : { data: [], error: null };
+      if (error) return out({ ok: false, why: "lecture de votre engagement impossible pour le moment, réessayez" }, 503);
       const s = data && data[0];
       return out({ ok: true, requis, signe: s ? { ...s, signe_le_zurich: zurich(s.signe_le) } : null, version: VERSION, titre: TITRE, texte: TEXTE, hash: await HASH, nom: me.nom, id: me.id, email: me.email, editeur: EDITEUR });
     }
