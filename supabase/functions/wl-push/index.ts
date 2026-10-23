@@ -146,6 +146,16 @@ Deno.serve(async (req) => {
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const moi = await parId(db, qui), estChef = !!(moi && moi.chef), CHEF = (await chefs(db))[0];
   for (const m of await equipe(db)) NOMS[m.id] = m.nom;
+  // Interphone (24/10/2026) : numéro du dernier message lu par ce membre, gardé ici (avant : seulement dans le navigateur,
+  // le compteur de l'onglet revenait après une reconnexion). { action: "vu" } lit, { action: "vu", id } avance (jamais en arrière).
+  if (b.action === "vu") {
+    const cle = "interphone_vu_" + qui;
+    const { data: v0 } = await db.from("wl_reglages").select("valeur").eq("cle", cle).limit(1);
+    let vu = Number((v0 && v0[0] && v0[0].valeur) || 0) || 0;
+    const id = Math.floor(Number(b.id) || 0);
+    if (id > vu) { vu = id; await db.from("wl_reglages").upsert({ cle, valeur: String(vu), updated_at: new Date().toISOString() }, { onConflict: "cle" }); }
+    return out({ ok: true, vu });
+  }
   if (b.action === "dictee") {
     const t = String(b.texte || "").trim();
     if (!t) return out({ ok: false, why: "texte vide" }, 400);

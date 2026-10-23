@@ -90,6 +90,7 @@ function lireCfg(b: any): { ok: true; cfg: Cfg; fournisseur: string; offre: stri
 function humain(e: any, quoi: "IMAP" | "SMTP", hote: string, port: number) {
   const m = String((e && (e.responseText || e.response || e.message)) || e || "");
   const code = String((e && (e.code || e.serverResponseCode)) || "");
+  if (/^timeout : /.test(m)) return "Relève " + quoi + " bloquée à l’étape « " + m.slice(10) + " » (le serveur " + hote + " ne répond plus) : nouvel essai dans 2 minutes.";
   if ((e && e.authenticationFailed) || code === "EAUTH" || /AUTHENTICATIONFAILED|authentication failed|invalid credentials|LOGIN failed|\b535\b|auth(entication)? (failed|error)|incorrect (password|username)/i.test(m))
     return "Mot de passe refusé par le serveur " + quoi + " (vérifiez le mot de passe et l’identifiant, et que l’accès " + quoi + " externe est autorisé pour cette adresse).";
   if (/ENOTFOUND|getaddrinfo|Name or service not known|dns/i.test(code + " " + m)) return "Serveur " + quoi + " « " + hote + " » introuvable : vérifiez son nom.";
@@ -200,6 +201,13 @@ async function trier(box: any, raw: Uint8Array, adresses: string[]) {
   return { mail_id, row: { mail_id, boite: box.id, de_email, de_nom, sujet, texte, recu_le, categorie, motif, abonne, statut: "nouveau", message_id, refs,
     membre_id: mem ? mem.id : "", pieces_upload: pieces, historique: JSON.stringify([{ t: recu_le, e: "reçu", par: "courrier" }]) } };
 }
+// 24/10/2026 : chaque étape a un délai maximum. Avant, une relève pouvait rester bloquée (IMAP muet) jusqu'à ce que la fonction
+// soit coupée : aucune erreur écrite, verrou jamais levé, boîte jamais relevée (info@trustmedias.com, 23/10). Le dernier mail
+// traité est aussi enregistré au fur et à mesure : une relève coupée ne repart pas de zéro.
+function etape<T>(nom: string, p: Promise<T>, ms = 25000): Promise<T> {
+  let t: number | undefined;
+  return Promise.race([p, new Promise<T>((_, rej) => { t = setTimeout(() => rej(new Error("timeout : " + nom)), ms); })]).finally(() => clearTimeout(t));
+}
 // deno-lint-ignore no-explicit-any
 async function releverBoite(box: any, adresses: string[]) {
   const now = new Date().toISOString(), avant = new Date(Date.now() - 3 * 60e3).toISOString();
@@ -208,27 +216,41 @@ async function releverBoite(box: any, adresses: string[]) {
   let dernier = box.dernier_uid == null ? null : Number(box.dernier_uid), validite = box.uid_validity, nouveaux = 0, ignores = 0;
   const c = new ImapFlow({ host: box.imap_host, port: box.imap_port, secure: box.imap_port === 993, auth: { user: box.identifiant || box.adresse, pass: await lireSecret(box.secret_id) }, logger: false, ...DELAIS });
   try {
-    await c.connect();
-    const lock = await c.getMailboxLock("INBOX");
+    await etape("connexion", c.connect());
+    const lock = await etape("ouverture de la boîte de réception", c.getMailboxLock("INBOX"));
     try {
       // deno-lint-ignore no-explicit-any
       const mb: any = c.mailbox;
       if (validite != null && String(mb.uidValidity) !== String(validite)) dernier = null; // boîte recréée côté serveur : on repart des 3 derniers jours
       validite = Number(mb.uidValidity);
       let uids: number[];
-      if (dernier == null) uids = ((await c.search({ since: new Date(Date.now() - 3 * 864e5) }, { uid: true })) || []).slice(-15); // première relève : 3 derniers jours, 15 mails au plus
-      else uids = ((await c.search({ uid: (dernier + 1) + ":*" }, { uid: true })) || []).filter((u: number) => u > (dernier as number));
-      uids = uids.sort((a, b) => a - b).slice(0, 20);
+      if (dernier == null) uids = ((await etape("recherche des mails", c.search({ since: new Date(Date.now() - 3 * 864e5) }, { uid: true }))) || []).slice(-15); // première relève : 3 derniers jours, 15 mails au plus
+      else uids = ((await etape("recherche des mails", c.search({ uid: (dernier + 1) + ":*" }, { uid: true }))) || []).filter((u: number) => u > (dernier as number));
+      uids = uids.sort((a, b) => a - b).slice(0, 8); // 8 mails par passage au plus (toutes les 2 minutes), pour rester loin du délai de la fonction
       if (!uids.length && dernier == null) dernier = Math.max(0, Number(mb.uidNext || 1) - 1);
       const deja = new Set<string>();
+      // Un passage précédent coupé net sur un mail (trop lourd à lire ou à trier) : on le saute, sinon la boîte resterait bloquée dessus.
+      const coupe = box.releve_en_cours == null ? null : Number(box.releve_en_cours);
       for (const uid of uids) {
-        const m = await c.fetchOne(String(uid), { source: true, size: true }, { uid: true });
-        if (!m || !m.source || (m.size && m.size > 25 * 1024 * 1024)) { dernier = uid; ignores++; continue; }
-        const t = await trier(box, new Uint8Array(m.source), adresses);
+        if (coupe != null && uid === coupe) { dernier = uid; ignores++; await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); continue; }
+        await db.from("wl_boites").update({ releve_en_cours: uid }).eq("id", box.id);
+        // 24/10/2026 : d'abord l'enveloppe et les en-têtes de tri (léger) ; un mail automatique ou une newsletter est écarté sans
+        // télécharger son contenu. Ensuite seulement le mail, limité à 600 Ko (la lecture d'un gros mail entier bloquait la relève).
+        const e = await etape("lecture d'un en-tête", c.fetchOne(String(uid), { envelope: true, size: true, headers: ["list-unsubscribe", "list-id", "precedence", "auto-submitted"] }, { uid: true }), 20000);
+        const exp = String((e && e.envelope && e.envelope.from && e.envelope.from[0] && e.envelope.from[0].address) || "").toLowerCase();
+        const hd = e && e.headers ? new TextDecoder().decode(e.headers) : "";
+        if (!e || (exp && (adresses.includes(exp) || AUTO.test(exp) || DOMS.test(exp.split("@")[1] || ""))) || /^(list-unsubscribe|list-id)\s*:/im.test(hd) || /^precedence\s*:\s*(bulk|list|junk)/im.test(hd) || /^auto-submitted\s*:\s*auto-/im.test(hd)) {
+          dernier = uid; ignores++; await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); continue;
+        }
+        const MAX = 600 * 1024, gros = !!(e.size && e.size > MAX);
+        const m = await etape("lecture d'un mail", c.fetchOne(String(uid), { source: gros ? { start: 0, maxLength: MAX } : true }, { uid: true }), 40000);
+        if (!m || !m.source) { dernier = uid; ignores++; continue; }
+        const t = await etape("tri d'un mail", trier(box, new Uint8Array(m.source), adresses), 30000);
+        if (gros && t.row) { t.row.texte = (t.row.texte ? t.row.texte + "\n\n" : "") + "[Mail volumineux (" + Math.round(Number(e.size) / 1024 / 1024 * 10) / 10 + " Mo) : pièces jointes non récupérées, voir la boîte " + box.adresse + ".]"; t.row.pieces_upload = []; }
         if (t.row && !deja.has(t.mail_id)) {
           const { data: ex } = await db.from("wl_courrier").select("mail_id").eq("mail_id", t.mail_id).limit(1);
           if (!ex || !ex.length) {
-            await wlDb({ action: "upsert", table: "courrier", row: t.row }); // push, temps réel (wl_signal), pièces jointes : comme le chemin n8n
+            await etape("rangement d'un mail", wlDb({ action: "upsert", table: "courrier", row: t.row }), 40000); // push, temps réel (wl_signal), pièces jointes : comme le chemin n8n
             nouveaux++;
             if (t.row.categorie === "demande") {
               const r = role(box.role);
@@ -238,16 +260,17 @@ async function releverBoite(box: any, adresses: string[]) {
           deja.add(t.mail_id);
         } else ignores++;
         dernier = uid;
+        await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); // progression gardée
       }
     } finally { lock.release(); }
-    await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, derniere_releve: new Date().toISOString(), statut: "ok", derniere_erreur: null, erreur_depuis: null, releve_verrou: null }).eq("id", box.id);
+    await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, derniere_releve: new Date().toISOString(), statut: "ok", derniere_erreur: null, erreur_depuis: null, releve_verrou: null, releve_en_cours: null }).eq("id", box.id);
     return { id: box.id, nouveaux, ignores };
   } catch (e) {
     const why = humain(e, "IMAP", box.imap_host, box.imap_port);
-    await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, statut: "erreur", derniere_erreur: why, erreur_depuis: box.erreur_depuis || new Date().toISOString(), releve_verrou: null }).eq("id", box.id);
+    await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, statut: "erreur", derniere_erreur: why, erreur_depuis: box.erreur_depuis || new Date().toISOString(), releve_verrou: null }).eq("id", box.id); // releve_en_cours gardé : le mail fautif sera sauté au prochain passage
     await wlDb({ action: "alerte", cle: "wl-boites:" + box.id, titre: "relève " + box.adresse, texte: "La boîte " + box.adresse + " n’a pas pu être relevée : " + why + " (Paramètres → Boîtes mail de la rédaction)." }).catch(() => null);
     return { id: box.id, erreur: why };
-  } finally { try { await c.logout(); } catch (_) { /* déjà fermé */ } }
+  } finally { try { await etape("déconnexion", c.logout(), 5000); } catch (_) { try { c.close(); } catch (_e) { /* déjà fermé */ } } }
 }
 async function releverTout() {
   const { data } = await db.from("wl_boites").select("*").eq("actif", true).not("secret_id", "is", null);
@@ -260,7 +283,7 @@ async function releverTout() {
 
 // ---------- API ----------
 // deno-lint-ignore no-explicit-any
-const pub = (r: any) => { const o = { ...r }; delete o.secret_id; delete o.releve_verrou; delete o.uid_validity; delete o.dernier_uid; return o; };
+const pub = (r: any) => { const o = { ...r }; delete o.secret_id; delete o.releve_verrou; delete o.releve_en_cours; delete o.uid_validity; delete o.dernier_uid; return o; };
 async function liste() {
   const [{ data: bs }, { data: cs }] = await Promise.all([
     db.from("wl_boites").select(CHAMPS).order("created_at"),

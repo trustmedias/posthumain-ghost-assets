@@ -288,6 +288,57 @@ async function brouillonsFinis() {
   } catch (_) { return null; }
 }
 
+// ---------- 🧠 Proposer un sujet à l'Usine (24/10/2026) ----------
+// L'assistant propose jusqu'à 3 titres et 3 angles pour une idée de sujet (Radar → « Proposer un sujet », sujet du vote, ☎️ de
+// l'Assistant). Recherche web facultative (outil web_search d'Anthropic) pour un premier tour d'horizon : ce qu'on trouve, si le
+// sujet vaut un article, et un angle renforcé par ce qu'on a trouvé. Rien n'est écrit dans le Radar : on choisit, puis on met en file.
+const MODELE_SUJET = "claude-sonnet-5-5";
+const SYS_SUJET = "Tu es le rédacteur en chef adjoint de Posthumain, média français par abonnement (IA, technologies, science, cerveau, futur humain) "
+  + "lu par un grand public curieux, pas par des spécialistes. On te confie une idée de sujet pour l'Usine à articles. Propose EXACTEMENT 3 titres et 3 angles, différents entre eux.\n"
+  + "Titres : en français, accrocheurs mais honnêtes (le contenu doit tenir la promesse), 110 caractères au plus, jamais à la première personne (« J'ai testé… » interdit), "
+  + "pas de point final. Un titre de type guide, liste (« les 7… »), comparatif ou test n'est permis que si l'angle livre vraiment ce format.\n"
+  + "Angles : 2 à 4 phrases chacun : la question centrale, ce que l'article apporte de neuf ou d'utile au lecteur, ce qu'il doit absolument traiter. "
+  + "Donne à chaque angle un nom court (3 à 6 mots).\n"
+  + "Si on te donne déjà un angle, garde-le comme premier angle (amélioré si besoin) et propose deux alternatives. Respecte la consigne du rédacteur en chef si elle est donnée.\n"
+  + "Si la recherche web est disponible, fais 2 à 4 recherches rapides : ce qui est récent et vérifiable, les chiffres clés, les sources sérieuses. Dis en une ou deux phrases si le sujet vaut un article "
+  + "(intérêt fort, moyen ou faible, et pourquoi) et, si la recherche te permet un angle plus intéressant que l'idée de départ, dis-le dans « note » (« En faisant la recherche, je peux proposer un angle plus intéressant : … ») "
+  + "et place cet angle en premier. Sans recherche, ne cite aucun fait daté que tu ne connais pas avec certitude.\n"
+  + "Réponds UNIQUEMENT par un objet JSON, sans texte autour : {\"titres\":[\"…\",\"…\",\"…\"],\"angles\":[{\"nom\":\"…\",\"texte\":\"…\"},{…},{…}],"
+  + "\"interet\":\"fort|moyen|faible|inconnu\",\"pourquoi\":\"…\",\"note\":\"…\",\"sources\":[{\"titre\":\"…\",\"url\":\"https://…\"}]}";
+const TYPES_SUJET: Record<string, string> = { actu: "article d'actualité gratuit (court, factuel, utile)", "actu-premium": "actualité avec une dernière partie réservée aux abonnés (la stratégie Posthumain)", premium: "enquête premium payante (article de fond, 3 000 mots et plus)" };
+async function claudeSujet(user: string, web: boolean) {
+  const key = env("ANTHROPIC_API_KEY"); if (!key) throw new Error("clé Anthropic absente");
+  const body: any = { model: MODELE_SUJET, max_tokens: 6000, thinking: { type: "adaptive" }, output_config: { effort: web ? "medium" : "low" }, system: SYS_SUJET, messages: [{ role: "user", content: user }] };
+  if (web) body.tools = [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }];
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(110000),
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const j: any = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error("Claude " + r.status + " : " + String(j?.error?.message || "").slice(0, 160)), { statut: r.status });
+  return j;
+}
+async function proposerSujet(b: any, qui: string) {
+  const titre = txt(b.titre, 300).trim(), angle = txt(b.angle, 3000).trim(), lien = txt(b.url, 1000).trim(), consigne = txt(b.consigne, 1500).trim();
+  if (titre.length < 4) throw new Error("donnez au moins une idée de sujet ou un titre");
+  if (lien && !/^https?:\/\//i.test(lien)) throw new Error("lien invalide (http ou https)");
+  const type = TYPES_SUJET[String(b.type)] ? String(b.type) : "actu";
+  let web = !!b.web, webIndispo = false;
+  const user = "Idée de sujet : " + titre + "\nFormat visé : " + TYPES_SUJET[type] + (angle ? "\nAngle déjà envisagé : " + angle : "") + (lien ? "\nLien source : " + lien : "")
+    + (consigne ? "\nConsigne du rédacteur en chef : " + consigne : "") + "\nDate du jour : " + new Date().toISOString().slice(0, 10) + (web ? "\nRecherche web : disponible." : "\nRecherche web : non demandée.");
+  let j: any;
+  try { j = await claudeSujet(user, web); }
+  catch (e) { if (!web) throw e; webIndispo = true; web = false; j = await claudeSujet(user.replace("Recherche web : disponible.", "Recherche web : indisponible."), false); }
+  const texte = (j.content || []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("").trim();
+  const a = texte.indexOf("{"), z = texte.lastIndexOf("}");
+  let o: any = null; try { o = JSON.parse(texte.slice(a, z + 1)); } catch { o = null; }
+  if (!o) throw new Error("réponse de l'assistant illisible, réessayez");
+  const u = j.usage || {}, tin = Number(u.input_tokens || 0), tout = Number(u.output_tokens || 0), nbWeb = Number(u.server_tool_use?.web_search_requests || 0);
+  try { await db.from("wl_couts").insert({ membre: qui, usage: "sujet_usine", modele: String(j.model || MODELE_SUJET), tokens_in: tin, tokens_out: tout, cout_eur: Math.round((((tin * 2 + tout * 10) / 1e6) + nbWeb * 0.01) * 0.92 * 1e5) / 1e5 }); } catch (_) { /* comptage facultatif */ }
+  const sources = (Array.isArray(o.sources) ? o.sources : []).filter((x: any) => x && /^https?:\/\//.test(String(x.url || ""))).slice(0, 6).map((x: any) => ({ titre: txt(x.titre || x.url, 160), url: txt(x.url, 600) }));
+  return { ok: true, web, web_indisponible: webIndispo, recherches: nbWeb,
+    titres: liste(o.titres, 3, 160), angles: (Array.isArray(o.angles) ? o.angles : []).slice(0, 3).map((x: any) => ({ nom: txt(x && x.nom, 80), texte: txt(x && (x.texte || x), 1200) })).filter((x: any) => x.texte.trim()),
+    interet: ["fort", "moyen", "faible"].includes(String(o.interet)) ? String(o.interet) : "inconnu", pourquoi: txt(o.pourquoi, 600), note: txt(o.note, 800), sources };
+}
+
 Deno.serve(async (req) => {
   const h = { ...cors(req), "Content-Type": "application/json", "Cache-Control": "no-store" };
   if (req.method === "OPTIONS") return new Response(null, { headers: h });
@@ -307,7 +358,7 @@ Deno.serve(async (req) => {
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const chef = !!qui.chef;
-  const ecrit = ["choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar", "lancer_usine", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
+  const ecrit = ["proposer", "preciser", "choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar", "lancer_usine", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
   if (ecrit.includes(String(b.action)) && !chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
   try {
     // État de configuration (aucune valeur de secret n'est renvoyée).
@@ -365,6 +416,26 @@ Deno.serve(async (req) => {
       if (lien) fields.URL = lien;
       const r = await air("Radar", { method: "POST", body: JSON.stringify({ fields, typecast: true }) });
       return out({ ok: true, sujet: sujet(r), file: await file() });
+    }
+    // 🧠 L'assistant propose titres et angles (24/10/2026) : rien n'est écrit.
+    if (b.action === "proposer") return out(await proposerSujet(b, qui.id));
+    // Préciser un sujet déjà dans le Radar (sujet voté par le public, sujet du jour) avant l'Usine : titre, angle, lien, format.
+    // Le lien d'un sujet voté (posthumain.com/vote…) est gardé (il identifie le vote) : un lien source part alors dans l'angle.
+    if (b.action === "preciser") {
+      const s = await lireUn(String(b.id));
+      if (s.statut !== "new" && s.statut !== "skipped") return out({ ok: false, why: "déjà pris par l’Usine (" + s.statut + ")" });
+      const fields: Record<string, unknown> = { Choisir: true, Status: "new" };
+      const titre = String(b.titre || "").trim().slice(0, 300), angle = String(b.angle || "").trim().slice(0, 3000), lien = String(b.url || "").trim().slice(0, 1000);
+      if (lien && !/^https?:\/\//i.test(lien)) return out({ ok: false, why: "lien invalide (http ou https)" }, 400);
+      if (titre.length >= 6) fields.Title = titre;
+      if (angle || b.angle === "") fields.Angle = angle + (lien && s.vote ? (angle ? "\n\n" : "") + "Source à exploiter : " + lien : "");
+      else if (lien && s.vote) fields.Angle = (s.angle ? s.angle + "\n\n" : "") + "Source à exploiter : " + lien;
+      if (lien && !s.vote) fields.URL = lien;
+      const t = String(b.type || "");
+      if (t === "actu-premium") { fields.Type = "actu"; fields.ActuPremium = true; }
+      else if (t === "premium") { fields.Type = "premium"; fields.ActuPremium = false; }
+      else if (t === "actu") { fields.Type = "actu"; fields.ActuPremium = false; }
+      return out({ ok: true, sujet: await patch(s.id, fields), file: await file() });
     }
     // Réordonne la file (généralise /inverser) : ids dans l'ordre voulu → Priorite décroissante.
     if (b.action === "ordre") {

@@ -34,7 +34,7 @@
       "contexte": ["fiches"],
       "mail": null,
       "plan": { "x": 1460, "y": 215, "teinte": 265 },
-      "capacites": ["chercher_contacts", "questions", "reponse_fiche", "citations", "ouvrir"]
+      "capacites": ["chercher_contacts", "questions", "reponse_fiche", "citations", "sujet_usine", "ouvrir"]
     },
     {
       "id": "mk",
@@ -331,6 +331,28 @@
       "carte": { "titre": "✉️ Mail marketing à modifier", "bouton": "✉️ Ouvrir l'éditeur" }
     },
     {
+      "id": "sujet_usine",
+      "nom": "🏭 Proposer un sujet à l'Usine",
+      "postes": ["assistant"],
+      "description": "ouvre le formulaire « Proposer un sujet à l'Usine » du Radar, pré-rempli, et demande tout de suite jusqu'à 3 titres et 3 angles (avec une recherche web si on la demande : tour d'horizon, intérêt du sujet, angle renforcé par ce qui a été trouvé). Rien n'est mis en file ni envoyé à l'Usine : le rédacteur en chef choisit, corrige, puis clique lui-même « Mettre en file » ou « Envoyer à l'Usine maintenant ». Paramètres : titre (l'idée ou le titre, fidèle à la demande), angle? (s'il en donne un), lien? (URL source http/https s'il en donne une), format? (actu, actu-premium ou premium ; actu par défaut, premium pour une enquête), recherche? (oui s'il demande de chercher sur le web ou de vérifier si le sujet vaut le coup, sinon non), aide? (non seulement s'il veut mettre le sujet tel quel, sans propositions), consigne? (ce qu'il attend des titres et des angles)",
+      "aide": "Prépare un sujet pour l'Usine à articles : à partir d'un titre (et, si vous voulez, d'un angle et d'un lien), l'Assistant propose jusqu'à 3 titres et 3 angles, avec une recherche web facultative pour voir si le sujet vaut le coup. Vous choisissez, puis vous le mettez en file ou l'envoyez à l'Usine tout de suite.",
+      "fournir": "une idée ou un titre ; facultatif : un angle, un lien source, le format (actu, actu-premium, enquête premium) et si vous voulez une recherche web",
+      "exemples": ["Propose-moi un sujet pour l'Usine sur les lunettes connectées de Meta, avec une recherche web.", "Ajoute à l'Usine : « L'IA qui détecte Alzheimer dans la voix », angle : ce que ça change pour les familles.", "Trouve-moi trois angles pour une enquête premium sur les implants cérébraux."],
+      "params": {
+        "titre": { "type": "texte", "requis": true, "long": 300 },
+        "angle": { "type": "texte", "long": 3000 },
+        "lien": { "type": "texte", "long": 1000 },
+        "format": { "type": "choix", "valeurs": ["actu", "actu-premium", "premium"] },
+        "recherche": { "type": "choix", "valeurs": ["oui", "non"] },
+        "aide": { "type": "choix", "valeurs": ["oui", "non"] },
+        "consigne": { "type": "texte", "long": 1500 }
+      },
+      "droits": "chef",
+      "mode": "clic",
+      "executeur": { "type": "page", "fonction": "sujetUsine", "resultat": "formulaire du Radar ouvert" },
+      "carte": { "titre": "🏭 Sujet pour l'Usine : {p.titre}", "bouton": "🧠 Ouvrir et proposer des angles" }
+    },
+    {
       "id": "ouvrir",
       "nom": "↗ Ouvrir une fiche, un mail ou un panneau",
       "postes": ["secretaire", "assistant", "mk", "sc", "compta"],
@@ -381,7 +403,9 @@
     "choisir": "« Écrire celui-ci » (rédacteur en chef)",
     "decocher": "« Retirer de la file » (rédacteur en chef)",
     "ordre": "▲ ▼ dans la file (rédacteur en chef)",
-    "imposer": "« Imposer un sujet » (rédacteur en chef)",
+    "imposer": "« Proposer un sujet à l'Usine » → « Mettre en file » pour un nouveau sujet (rédacteur en chef)",
+    "proposer": "« Proposer un sujet à l'Usine » → « Demander titres et angles à l'assistant » (3 titres, 3 angles, recherche web facultative ; rien n'est écrit) — aussi lancé par la capacité sujet_usine de l'Assistant (exécuteur page sujetUsine)",
+    "preciser": "« Préparer titre et angle » d'un sujet déjà dans le Radar (sujet voté par le public, sujet du jour), puis mise en file (rédacteur en chef)",
     "ecarter": "sujet du public : « Ne pas l'écrire » (rédacteur en chef)",
     "remettre": "sujet du public : « Le remettre » (rédacteur en chef)",
     "relancer_radar": "« Relancer le Radar » (rédacteur en chef, confirmation)",
@@ -440,7 +464,7 @@
       "nom": "Le Radar",
       "emoji": "📡",
       "aide": "Les sujets du jour repérés et notés par le Radar ; sans choix, l'Usine prend le sujet le mieux noté.",
-      "actions": ["Choisir ou retirer des sujets de la file", "Mettre un sujet en file (prioritaire)", "📡 Relancer le Radar (rédacteur en chef)", "🔄 Actualiser", "🏭 Lancer l'Usine maintenant, comme /usine (rédacteur en chef ; pas deux fois en 12 minutes)", "⚠️ Alertes de l'Usine : aucun candidat, anti-doublon, échecs, crédits OpenAI, pannes, avec « marquer lu » (rédacteur en chef)"],
+      "actions": ["Choisir ou retirer des sujets de la file", "🧠 Proposer un sujet à l'Usine : titre, angle, lien ; l'Assistant propose 3 titres et 3 angles (recherche web facultative) ; mettre en file ou envoyer à l'Usine maintenant (rédacteur en chef)", "🧠 Préparer titre et angle d'un sujet voté par le public ou d'un sujet du jour avant l'Usine","📡 Relancer le Radar (rédacteur en chef)", "🔄 Actualiser", "🏭 Lancer l'Usine maintenant, comme /usine (rédacteur en chef ; pas deux fois en 12 minutes)", "⚠️ Alertes de l'Usine : aucun candidat, anti-doublon, échecs, crédits OpenAI, pannes, avec « marquer lu » (rédacteur en chef)"],
       "acces": "tous"
     },
     {
