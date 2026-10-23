@@ -15,6 +15,7 @@
 // Rôles : une journaliste n'a que Secrétaire, Assistant, Comptable, et seulement ses fiches ; Julien (mk, sc) = rédacteur en chef.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
+import { CATALOGUE } from "./catalogue.ts";
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
@@ -47,29 +48,17 @@ async function membre(token: string): Promise<Membre | null> {
   return await parEmail(db, String(payload.sub || ""));
 }
 
-// ---------- Postes : ce que chacun sait VRAIMENT faire dans le lab ----------
-type Poste = { id: string; nom: string; chefSeul: boolean; role: string; actions: string[] };
-const POSTES: Record<string, Poste> = {
-  secretaire: { id: "secretaire", nom: "📮 La Secrétaire", chefSeul: false, actions: ["rediger_interview", "ouvrir"],
-    role: "Tu rédiges les mails de demande d'interview (à partir d'un article, d'un contact et de questions) : le mail arrive « à valider » dans la fiche, rien ne part sans le clic « Valider et envoyer » du membre. Tu prépares aussi les relances des demandes restées sans réponse (elles apparaissent chez toi, à valider) et tu suis l'état des fiches (à valider, envoyé, a répondu, citée)." },
-  assistant: { id: "assistant", nom: "🧠 L’Assistant", chefSeul: false, actions: ["chercher_contacts", "questions", "reponse_fiche", "citations", "ouvrir"],
-    role: "Tu lis l'article en cours, tu proposes qui interroger (recherche des chercheurs et de leur adresse publiée) et quelles questions poser. Quand un contact a répondu (par mail, par téléphone, ou d'après les notes d'un membre), tu structures sa réponse : un résumé et la réponse à chaque question de la fiche, à enregistrer dans la fiche après validation. Tu proposes ensuite les citations à placer dans l'article (le membre valide chaque emplacement avant l'insertion dans Ghost)." },
-  mk: { id: "mk", nom: "📣 Julien · Marketing", chefSeul: true, actions: ["proposer_reponse", "ouvrir"],
-    role: "Tu gères le courrier de redaction@posthumain.com (et des boîtes confiées au Marketing) : partenariats, articles sponsorisés, publicité, presse. Tu rédiges une proposition de réponse à un mail reçu : elle reste en brouillon, le rédacteur en chef la relit et l'envoie lui-même (« Valider et envoyer »). Tu suis aussi les campagnes de prospection." },
-  sc: { id: "sc", nom: "🎧 Julien · Service client", chefSeul: true, actions: ["proposer_reponse", "ouvrir"],
-    role: "Tu gères le courrier de subs@posthumain.com (et des boîtes confiées au Service client) : abonnements Ghost, paiements, accès au compte (lien magique), résiliation, remboursement, en t'appuyant sur les CGV de Posthumain. Tu rédiges une proposition de réponse à un mail reçu : elle reste en brouillon, le rédacteur en chef la relit et l'envoie lui-même." },
-  compta: { id: "compta", nom: "🧮 Le Comptable", chefSeul: false, actions: ["ouvrir"],
-    role: "Tu tiens le registre des pièces (récompenses des journalistes) : soldes, pièces acquises ou « à vérifier » et leur motif, conversion en euros au taux réglé, demandes de paiement (à partir du 25 du mois), factures. Tu réponds aux questions à partir des chiffres fournis ; tu ne modifies rien toi-même : les décisions (valider, annuler, convertir) se prennent dans ton panneau." },
-};
-const ACTIONS_DOC: Record<string, string> = {
-  rediger_interview: "rediger_interview — params { article_id, contact: { nom, email, role, institution, langue: 'fr'|'en' }, questions: [texte…] (3 à 6), consigne? } : la Secrétaire rédige le mail d'interview, la fiche arrive « à valider ».",
-  chercher_contacts: "chercher_contacts — params { article_id } : recherche des chercheurs à interroger pour cet article.",
-  questions: "questions — params { article_id, contact: { nom, role, institution, langue }, angle? } : propose des questions d'interview pour ce contact.",
-  reponse_fiche: "reponse_fiche — params { fiche_id, resume, reponses: [{ question, reponse }], citations?: [texte…] } : réponse structurée du contact à enregistrer dans SA fiche (marquée « reçue par téléphone » ; le membre valide d'un clic). N'invente rien : seulement ce que le membre a rapporté.",
-  citations: "citations — params { fiche_id } : ouvre la fiche (qui a déjà une réponse) et propose les emplacements des citations dans l'article.",
-  proposer_reponse: "proposer_reponse — params { mail_id, consigne } : rédige la proposition de réponse à ce mail (brouillon à valider).",
-  ouvrir: "ouvrir — params { cible: 'fiche'|'mail'|'panneau', id } : ouvre l'élément dans le lab (fiche_id, mail_id, ou poste pour un panneau).",
-};
+// ---------- Postes et capacités : catalogue unique (shared/wl-catalogue.json → catalogue.ts, généré) ----------
+// Un poste déclaré au catalogue obtient automatiquement ici sa fiche de poste pour l'IA, ses capacités, sa place dans l'aiguillage
+// (transmission) et ses droits ; une capacité est validée avec son schéma de paramètres et ses droits. Rien n'est codé en dur.
+// deno-lint-ignore no-explicit-any
+type Cap = { id: string; postes: string[]; description: string; params: Record<string, any>; droits: string; mode: string; au_moins_un?: string[]; enrichir?: Record<string, string> };
+type Poste = { id: string; nom: string; chefSeul: boolean; role: string; actions: string[]; contexte: string[]; mail: { boite: string; role: string } | null };
+// deno-lint-ignore no-explicit-any
+const POSTES: Record<string, Poste> = Object.fromEntries((CATALOGUE.postes || []).map((p: any) => [p.id, { id: p.id, nom: p.emoji + " " + p.nom, chefSeul: p.acces === "chef", role: p.role, actions: p.capacites || [], contexte: p.contexte || [], mail: p.mail || null }]));
+// deno-lint-ignore no-explicit-any
+const CAPS: Record<string, Cap> = Object.fromEntries((CATALOGUE.capacites || []).map((c: any) => [c.id, c]));
+const ACTIONS_DOC: Record<string, string> = Object.fromEntries(Object.values(CAPS).map((c) => [c.id, c.id + " — " + c.description]));
 
 // ---------- Contexte (lu en base, filtré selon le rôle) ----------
 // deno-lint-ignore no-explicit-any
@@ -91,9 +80,9 @@ function ficheCtx(f: any) {
     statut: f.statut, article_id: f.article_id, article: court(f.article_titre, 90), redacteur: f.redacteur, questions: Array.isArray(qs) ? qs.slice(0, 8).map((x: unknown) => court(x, 220)) : [],
     reponse: f.reponse ? court(f.reponse, 400) : "" };
 }
-async function courrierBureau(k: string) {
-  const { data: bx } = await db.from("wl_boites").select("id,role").eq("role", k);
-  const boites = [k === "mk" ? "redaction" : "subs"].concat((bx || []).map((b) => String(b.id)));
+async function courrierBureau(mail: { boite: string; role: string }) {
+  const { data: bx } = await db.from("wl_boites").select("id,role").eq("role", mail.role);
+  const boites = [mail.boite].concat((bx || []).map((b) => String(b.id)));
   const { data } = await db.from("wl_courrier").select("mail_id,boite,de_nom,de_email,sujet,texte,categorie,statut,abonne,brouillon_corps,recu_le").in("boite", boites).not("statut", "in", "(répondu,archivé)").order("recu_le", { ascending: false }).limit(15);
   return (data || []).map((m) => ({ mail_id: m.mail_id, de: (m.de_nom || "") + " <" + m.de_email + ">", sujet: court(m.sujet, 140), categorie: m.categorie, abonne: m.abonne, brouillon: !!m.brouillon_corps, recu_le: m.recu_le, extrait: court(m.texte, 350) }));
 }
@@ -161,42 +150,54 @@ function systemePoste(p: Poste, me: Membre, peutTransmettre: boolean, autres: Po
     "RÈGLES :\n- Jamais d'envoi ni de publication : tu produis seulement des propositions que le membre valide (brouillon, réponse à enregistrer, citations proposées).\n- Utilise uniquement les identifiants (article_id, fiche_id, mail_id) présents dans le contexte. Si la fiche ou le mail visé est ambigu ou absent, pose une question (mode « question ») en citant les possibilités.\n- N'invente aucun fait, aucune citation, aucune adresse : seulement ce qui est dans la requête ou le contexte.\n- Si la demande relève d'une action d'un AUTRE poste (structurer une réponse d'interview ou des notes d'appel = l'Assistant ; rédiger un mail d'interview = la Secrétaire ; répondre à un mail reçu = Julien), transmets-la au lieu de répondre que tu ne peux pas.\n- Pour reponse_fiche : une réponse par question de la fiche quand le membre en a rapporté le contenu ; laisse de côté les questions sans réponse et dis-le ; les propos qui ne répondent à aucune question vont dans une entrée dont la question est « Complément ».\n- Une simple information (un solde, un état) : mode « faire » sans action, la réponse est dans le message.\n- Réponds avec l'outil « repondre ».",
   ].join("\n\n");
 }
+// Validation générique d'une capacité proposée par Claude : porteur, droits, schéma des paramètres, existence des éléments visés.
 // deno-lint-ignore no-explicit-any
 function valider(me: Membre, p: Poste, a: any, ctx: any): { ok: true; action: any } | { ok: false; why: string } {
   if (!a || !a.type) return { ok: true, action: null };
-  if (!p.actions.includes(a.type)) return { ok: false, why: "action hors du rôle de ce poste" };
+  const cap = CAPS[a.type];
+  if (!cap || !p.actions.includes(a.type) || !(cap.postes || []).includes(p.id)) return { ok: false, why: "action hors du rôle de ce poste" };
+  if ((cap.droits === "chef" && !me.chef) || (cap.droits === "journaliste" && me.chef)) return { ok: false, why: "action réservée " + (cap.droits === "chef" ? "au rédacteur en chef" : "aux journalistes") };
   const pr = a.params && typeof a.params === "object" ? a.params : {};
   const fiche = (id: string) => (ctx.fiches || []).find((f: { fiche_id: string }) => f.fiche_id === id);
   const art = (id: string) => (ctx.articles || []).some((x: { id: string }) => x.id === id) || (ctx.fiches || []).some((f: { article_id: string }) => f.article_id === id);
-  switch (a.type) {
-    case "rediger_interview": case "questions": {
-      if (!art(String(pr.article_id || ""))) return { ok: false, why: "article inconnu" };
-      const c = pr.contact || {}; if (!String(c.nom || "").trim()) return { ok: false, why: "contact sans nom" };
-      const contact = { nom: court(c.nom, 120), email: String(c.email || "").trim().slice(0, 160), role: court(c.role, 200), institution: court(c.institution, 200), langue: c.langue === "en" ? "en" : "fr" };
-      if (a.type === "questions") return { ok: true, action: { type: a.type, params: { article_id: String(pr.article_id), contact, angle: court(pr.angle, 300) } } };
-      const qs = (Array.isArray(pr.questions) ? pr.questions : []).map((q: unknown) => court(q, 600)).filter(Boolean).slice(0, 8);
-      if (!qs.length) return { ok: false, why: "aucune question" };
-      return { ok: true, action: { type: a.type, params: { article_id: String(pr.article_id), contact, questions: qs, consigne: court(pr.consigne, 500) } } };
+  // deno-lint-ignore no-explicit-any
+  const out: Record<string, any> = {}, refs: Record<string, any> = {};
+  for (const [nom, d] of Object.entries(cap.params || {})) {
+    const v = pr[nom], vide = v == null || v === "" || (Array.isArray(v) && !v.length);
+    if (vide) {
+      if (d.requis) return { ok: false, why: d.type === "contact" ? "contact sans nom" : d.type === "liste" ? "aucune question" : nom + " manquant" };
+      if (d.type === "texte") out[nom] = ""; else if (d.type === "liste" || d.type === "qr") out[nom] = [];
+      continue;
     }
-    case "chercher_contacts": if (!art(String(pr.article_id || ""))) return { ok: false, why: "article inconnu" }; return { ok: true, action: { type: a.type, params: { article_id: String(pr.article_id) } } };
-    case "reponse_fiche": {
-      const f = fiche(String(pr.fiche_id || "")); if (!f) return { ok: false, why: "fiche inconnue (ou pas la vôtre)" };
-      if (!["envoyé", "a répondu", "relance", "inséré"].includes(String(f.statut))) return { ok: false, why: "la fiche n'attend pas de réponse (statut : " + f.statut + ")" };
-      const reps = (Array.isArray(pr.reponses) ? pr.reponses : []).map((x: { question?: unknown; reponse?: unknown }) => ({ question: court(x && x.question, 600), reponse: String((x && x.reponse) || "").trim().slice(0, 6000) })).filter((x: { reponse: string }) => x.reponse).slice(0, 12);
-      if (!reps.length && !String(pr.resume || "").trim()) return { ok: false, why: "réponse vide" };
-      return { ok: true, action: { type: a.type, params: { fiche_id: f.fiche_id, contact: f.contact, resume: String(pr.resume || "").trim().slice(0, 3000), reponses: reps, citations: (Array.isArray(pr.citations) ? pr.citations : []).map((c: unknown) => court(c, 600)).filter(Boolean).slice(0, 6) } } };
-    }
-    case "citations": { const f = fiche(String(pr.fiche_id || "")); if (!f) return { ok: false, why: "fiche inconnue (ou pas la vôtre)" }; if (!f.reponse) return { ok: false, why: "la fiche n'a pas encore de réponse" }; return { ok: true, action: { type: a.type, params: { fiche_id: f.fiche_id } } }; }
-    case "proposer_reponse": { const m = (ctx.courrier || []).find((x: { mail_id: string }) => x.mail_id === String(pr.mail_id || "")); if (!m) return { ok: false, why: "mail inconnu" }; return { ok: true, action: { type: a.type, params: { mail_id: m.mail_id, sujet: m.sujet, consigne: court(pr.consigne, 800) } } }; }
-    case "ouvrir": {
-      const c = String(pr.cible || ""), id = String(pr.id || "");
-      if (c === "fiche" && fiche(id)) return { ok: true, action: { type: a.type, params: { cible: c, id } } };
-      if (c === "mail" && (ctx.courrier || []).some((x: { mail_id: string }) => x.mail_id === id)) return { ok: true, action: { type: a.type, params: { cible: c, id } } };
-      if (c === "panneau" && POSTES[id] && (me.chef || !POSTES[id].chefSeul)) return { ok: true, action: { type: a.type, params: { cible: c, id } } };
-      return { ok: false, why: "élément à ouvrir introuvable" };
-    }
+    if (d.type === "article") { if (!art(String(v))) return { ok: false, why: "article inconnu" }; out[nom] = String(v); }
+    else if (d.type === "fiche") {
+      const f = fiche(String(v)); if (!f) return { ok: false, why: "fiche inconnue (ou pas la vôtre)" };
+      if (Array.isArray(d.statuts) && !d.statuts.includes(String(f.statut))) return { ok: false, why: "la fiche n'attend pas de réponse (statut : " + f.statut + ")" };
+      if (d.avec_reponse && !f.reponse) return { ok: false, why: "la fiche n'a pas encore de réponse" };
+      out[nom] = f.fiche_id; refs.fiche = f;
+    } else if (d.type === "mail") {
+      const m = (ctx.courrier || []).find((x: { mail_id: string }) => x.mail_id === String(v)); if (!m) return { ok: false, why: "mail inconnu" };
+      out[nom] = m.mail_id; refs.mail = m;
+    } else if (d.type === "contact") {
+      const c = typeof v === "object" ? v : {}; if (!String(c.nom || "").trim()) return { ok: false, why: "contact sans nom" };
+      out[nom] = { nom: court(c.nom, 120), email: String(c.email || "").trim().slice(0, 160), role: court(c.role, 200), institution: court(c.institution, 200), langue: c.langue === "en" ? "en" : "fr" };
+    } else if (d.type === "liste") {
+      const l = (Array.isArray(v) ? v : []).map((q: unknown) => court(q, d.long || 600)).filter(Boolean).slice(0, d.max || 12);
+      if (!l.length && d.requis) return { ok: false, why: "aucune question" }; out[nom] = l;
+    } else if (d.type === "qr") {
+      out[nom] = (Array.isArray(v) ? v : []).map((x: { question?: unknown; reponse?: unknown }) => ({ question: court(x && x.question, 600), reponse: String((x && x.reponse) || "").trim().slice(0, 6000) })).filter((x: { reponse: string }) => x.reponse).slice(0, d.max || 12);
+    } else if (d.type === "texte") out[nom] = d.brut ? String(v).trim().slice(0, d.long || 3000) : court(v, d.long || 500);
+    else if (d.type === "choix") { if (!(d.valeurs || []).includes(String(v))) return { ok: false, why: nom + " invalide" }; out[nom] = String(v); }
+    else if (d.type === "cible") out[nom] = String(v);
   }
-  return { ok: false, why: "action inconnue" };
+  if (cap.au_moins_un && !cap.au_moins_un.some((k) => out[k] && (Array.isArray(out[k]) ? out[k].length : String(out[k]).trim()))) return { ok: false, why: "réponse vide" };
+  for (const [nom, d] of Object.entries(cap.params || {})) if (d.type === "cible") {
+    const c = String(out.cible || ""), id = String(out[nom] || "");
+    const ok = (c === "fiche" && fiche(id)) || (c === "mail" && (ctx.courrier || []).some((x: { mail_id: string }) => x.mail_id === id)) || (c === "panneau" && POSTES[id] && (me.chef || !POSTES[id].chefSeul));
+    if (!ok) return { ok: false, why: "élément à ouvrir introuvable" };
+  }
+  for (const [k, chemin] of Object.entries(cap.enrichir || {})) { const [o, ch] = chemin.split("."); if (refs[o]) out[k] = refs[o][ch]; }
+  return { ok: true, action: { type: a.type, params: out } };
 }
 // deno-lint-ignore no-explicit-any
 async function contexte(me: Membre, p: Poste, b: any) {
@@ -204,14 +205,14 @@ async function contexte(me: Membre, p: Poste, b: any) {
   const articleId = String(b.article_id || "");
   // deno-lint-ignore no-explicit-any
   const ctx: any = { date: new Date().toLocaleString("fr-CH", { timeZone: "Europe/Zurich" }), article_en_cours: articles.find((a: { id: string }) => a.id === articleId) || (articleId ? { id: articleId } : null), articles };
-  if (["secretaire", "assistant"].includes(p.id) || b.fiche_id) ctx.fiches = (await fichesVisibles(me, articleId, String(b.texte || ""))).map(ficheCtx);
+  if (p.contexte.includes("fiches") || b.fiche_id) ctx.fiches = (await fichesVisibles(me, articleId, String(b.texte || ""))).map(ficheCtx);
   if (b.fiche_id && ctx.fiches && !ctx.fiches.some((f: { fiche_id: string }) => f.fiche_id === b.fiche_id)) {
     let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id)).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
     const { data } = await q; if (data && data[0]) ctx.fiches.unshift(ficheCtx(data[0]));
   }
   if (b.fiche_id) ctx.fiche_ouverte = String(b.fiche_id);
-  if (p.id === "mk" || p.id === "sc") ctx.courrier = await courrierBureau(p.id);
-  if (p.id === "compta") ctx.pieces = await piecesCtx(me);
+  if (p.contexte.includes("courrier") && p.mail) ctx.courrier = await courrierBureau(p.mail);
+  if (p.contexte.includes("pieces")) ctx.pieces = await piecesCtx(me);
   return ctx;
 }
 // deno-lint-ignore no-explicit-any

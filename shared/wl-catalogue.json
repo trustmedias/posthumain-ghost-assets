@@ -1,0 +1,206 @@
+{
+  "_lisezmoi": "CATALOGUE UNIQUE du Writinglab : les postes (employés IA) et leurs capacités. Source unique, lue par la page (copie intégrée dans writinglab/app.js) et par wl-tel (module généré supabase/functions/wl-tel/catalogue.ts). Après une modification : node scripts/wl-catalogue.mjs --ecrire (recopie) puis node scripts/wl-catalogue.mjs (test). Voir CONTRIBUTING-writinglab.md.",
+  "version": 1,
+  "postes": [
+    {
+      "id": "secretaire",
+      "nom": "La Secrétaire",
+      "emoji": "📮",
+      "couleur": "#4aa8d8",
+      "acces": "tous",
+      "titre": "Rédige, fait valider, envoie",
+      "role": "Tu rédiges les mails de demande d'interview (à partir d'un article, d'un contact et de questions) : le mail arrive « à valider » dans la fiche, rien ne part sans le clic « Valider et envoyer » du membre. Tu prépares aussi les relances des demandes restées sans réponse (elles apparaissent chez toi, à valider) et tu suis l'état des fiches (à valider, envoyé, a répondu, citée).",
+      "contexte": ["fiches"],
+      "mail": null,
+      "plan": { "x": 1100, "y": 215, "teinte": 200 },
+      "capacites": ["rediger_interview", "ouvrir"]
+    },
+    {
+      "id": "assistant",
+      "nom": "L’Assistant",
+      "emoji": "🧠",
+      "couleur": "#9a6bd8",
+      "acces": "tous",
+      "titre": "Questions et contacts",
+      "role": "Tu lis l'article en cours, tu proposes qui interroger (recherche des chercheurs et de leur adresse publiée) et quelles questions poser. Quand un contact a répondu (par mail, par téléphone, ou d'après les notes d'un membre), tu structures sa réponse : un résumé et la réponse à chaque question de la fiche, à enregistrer dans la fiche après validation. Tu proposes ensuite les citations à placer dans l'article (le membre valide chaque emplacement avant l'insertion dans Ghost).",
+      "contexte": ["fiches"],
+      "mail": null,
+      "plan": { "x": 1460, "y": 215, "teinte": 265 },
+      "capacites": ["chercher_contacts", "questions", "reponse_fiche", "citations", "ouvrir"]
+    },
+    {
+      "id": "mk",
+      "nom": "Julien · Marketing",
+      "emoji": "📣",
+      "couleur": "#e0763a",
+      "acces": "chef",
+      "titre": "redaction@posthumain.com",
+      "role": "Tu gères le courrier de redaction@posthumain.com (et des boîtes confiées au Marketing) : partenariats, articles sponsorisés, publicité, presse. Tu rédiges une proposition de réponse à un mail reçu : elle reste en brouillon, le rédacteur en chef la relit et l'envoie lui-même (« Valider et envoyer »). Tu suis aussi les campagnes de prospection.",
+      "contexte": ["courrier"],
+      "mail": { "boite": "redaction", "adresse": "redaction@posthumain.com", "role": "mk" },
+      "plan": { "x": 930, "y": 950, "teinte": 20 },
+      "capacites": ["proposer_reponse", "ouvrir"]
+    },
+    {
+      "id": "sc",
+      "nom": "Julien · Service client",
+      "emoji": "🎧",
+      "couleur": "#2bb3a3",
+      "acces": "chef",
+      "titre": "subs@posthumain.com",
+      "role": "Tu gères le courrier de subs@posthumain.com (et des boîtes confiées au Service client) : abonnements Ghost, paiements, accès au compte (lien magique), résiliation, remboursement, en t'appuyant sur les CGV de Posthumain. Tu rédiges une proposition de réponse à un mail reçu : elle reste en brouillon, le rédacteur en chef la relit et l'envoie lui-même.",
+      "contexte": ["courrier"],
+      "mail": { "boite": "subs", "adresse": "subs@posthumain.com", "role": "sc" },
+      "plan": { "x": 630, "y": 950, "teinte": 175 },
+      "capacites": ["proposer_reponse", "ouvrir"]
+    },
+    {
+      "id": "compta",
+      "nom": "Le Comptable",
+      "emoji": "🧮",
+      "couleur": "#d8b24a",
+      "acces": "tous",
+      "titre": "Les pièces de la rédaction",
+      "role": "Tu tiens le registre des pièces (récompenses des journalistes) : soldes, pièces acquises ou « à vérifier » et leur motif, conversion en euros au taux réglé, demandes de paiement (à partir du 25 du mois), factures. Tu réponds aux questions à partir des chiffres fournis ; tu ne modifies rien toi-même : les décisions (valider, annuler, convertir) se prennent dans ton panneau.",
+      "contexte": ["pieces"],
+      "mail": null,
+      "plan": { "x": 1230, "y": 950, "teinte": 45 },
+      "capacites": ["ouvrir"]
+    }
+  ],
+  "capacites": [
+    {
+      "id": "rediger_interview",
+      "postes": ["secretaire"],
+      "description": "la Secrétaire rédige le mail d'interview, la fiche arrive « à valider ». Paramètres : article_id, contact { nom, email, role, institution, langue: 'fr'|'en' }, questions [texte…] (3 à 6), consigne?",
+      "params": {
+        "article_id": { "type": "article", "requis": true },
+        "contact": { "type": "contact", "requis": true },
+        "questions": { "type": "liste", "requis": true, "max": 8, "long": 600 },
+        "consigne": { "type": "texte", "long": 500 }
+      },
+      "droits": "tous",
+      "mode": "brouillon",
+      "executeur": {
+        "type": "api", "mode": "rediger", "bureau": "secretaire", "libelle": "rédige le mail",
+        "donnees": { "article_id": "$p.article_id", "contact": "$p.contact", "questions": "$p.questions", "type": "interview", "consigne": "$p.consigne", "publie": true },
+        "rafraichir": true, "resultat": "mail rédigé, à valider dans la fiche",
+        "lien": { "act": "open-valid", "id": "$r.fiche_id", "libelle": "📮 Relire le mail à valider" }
+      },
+      "carte": { "titre": "✍️ Mail d’interview pour {p.contact.nom}", "liste": "p.questions", "bouton": "✍️ Faire rédiger le mail" }
+    },
+    {
+      "id": "chercher_contacts",
+      "postes": ["assistant"],
+      "description": "recherche des chercheurs à interroger pour cet article. Paramètres : article_id",
+      "params": { "article_id": { "type": "article", "requis": true } },
+      "droits": "tous",
+      "mode": "immediat",
+      "executeur": {
+        "type": "api", "mode": "contacts", "bureau": "assistant", "libelle": "cherche les chercheurs",
+        "donnees": { "article_id": "$p.article_id" },
+        "liste": { "chemin": "contacts", "format": "{nom} · {institution} · {email}" },
+        "resultat": "{n} chercheur(s) trouvé(s)", "resultat_vide": "personne de sûr trouvé"
+      },
+      "carte": { "titre": "🔎 Chercheurs à interroger", "bouton": "🔎 Chercher" }
+    },
+    {
+      "id": "questions",
+      "postes": ["assistant"],
+      "description": "propose des questions d'interview pour ce contact. Paramètres : article_id, contact { nom, role, institution, langue }, angle?",
+      "params": {
+        "article_id": { "type": "article", "requis": true },
+        "contact": { "type": "contact", "requis": true },
+        "angle": { "type": "texte", "long": 300 }
+      },
+      "droits": "tous",
+      "mode": "immediat",
+      "executeur": {
+        "type": "api", "mode": "questions", "bureau": "assistant", "libelle": "prépare les questions",
+        "donnees": { "article_id": "$p.article_id", "contact": "$p.contact", "angle": "$p.angle" },
+        "liste": { "chemin": "questions", "format": "{q}" },
+        "resultat": "{n} question(s) proposée(s)",
+        "suite": { "capacite": "rediger_interview", "poste": "secretaire", "texte": "Je rédige le mail avec ces questions.", "libelle": "✍️ Faire rédiger le mail avec ces questions",
+          "params": { "article_id": "$p.article_id", "contact": "$p.contact", "questions": "$l.q", "consigne": "" } }
+      },
+      "carte": { "titre": "❓ Questions pour {p.contact.nom}", "bouton": "❓ Proposer les questions" }
+    },
+    {
+      "id": "reponse_fiche",
+      "postes": ["assistant"],
+      "description": "réponse structurée du contact à enregistrer dans SA fiche (marquée « reçue par téléphone » ; le membre valide d'un clic). N'invente rien : seulement ce que le membre a rapporté. Paramètres : fiche_id, resume, reponses [{ question, reponse }], citations? [texte…]",
+      "params": {
+        "fiche_id": { "type": "fiche", "requis": true, "statuts": ["envoyé", "a répondu", "relance", "inséré"] },
+        "resume": { "type": "texte", "long": 3000, "brut": true },
+        "reponses": { "type": "qr", "max": 12 },
+        "citations": { "type": "liste", "max": 6, "long": 600 }
+      },
+      "au_moins_un": ["reponses", "resume"],
+      "enrichir": { "contact": "fiche.contact" },
+      "droits": "tous",
+      "mode": "clic",
+      "executeur": {
+        "type": "tel", "action": "appel_enregistrer",
+        "donnees": { "fiche_id": "$p.fiche_id", "resume": "$p.resume", "reponses": "$p.reponses", "transcription": "$requete", "source": "notes" },
+        "rafraichir": true, "resultat": "réponse enregistrée dans la fiche (reçue par téléphone)",
+        "toast": "📞 Réponse enregistrée dans la fiche. Vous pouvez placer les citations.",
+        "lien": { "act": "open-fiche", "id": "$p.fiche_id", "libelle": "🗂️ Ouvrir la fiche" }
+      },
+      "carte": { "titre": "📞 Réponse de {p.contact} à enregistrer dans sa fiche", "texte": "{p.resume}", "liste": "p.reponses", "format": "{question}\n{reponse}",
+        "note": "Elle sera marquée « reçue par téléphone » : pas de preuve par mail, les pièces éventuelles passent « à vérifier » au Comptable.", "bouton": "✅ Enregistrer dans la fiche" }
+    },
+    {
+      "id": "citations",
+      "postes": ["assistant"],
+      "description": "ouvre la fiche (qui a déjà une réponse) et propose les emplacements des citations dans l'article. Paramètres : fiche_id",
+      "params": { "fiche_id": { "type": "fiche", "requis": true, "avec_reponse": true } },
+      "droits": "tous",
+      "mode": "clic",
+      "executeur": { "type": "page", "fonction": "citations", "couvre": ["citation", "inserer"], "resultat": "fiche ouverte" },
+      "carte": { "titre": "✅ Citations à placer dans l’article", "bouton": "✅ Ouvrir la fiche et proposer les emplacements" }
+    },
+    {
+      "id": "proposer_reponse",
+      "postes": ["mk", "sc"],
+      "description": "rédige la proposition de réponse à ce mail (brouillon à valider). Paramètres : mail_id, consigne",
+      "params": { "mail_id": { "type": "mail", "requis": true }, "consigne": { "type": "texte", "long": 800 } },
+      "enrichir": { "sujet": "mail.sujet" },
+      "droits": "chef",
+      "mode": "brouillon",
+      "executeur": {
+        "type": "api", "mode": "proposer", "bureau": "$bureau_mail", "libelle": "rédige une réponse",
+        "donnees": { "mail_id": "$p.mail_id", "consigne": "$p.consigne" },
+        "pas_auto_si": "brouillon_mail",
+        "rafraichir": true, "resultat": "réponse rédigée, à relire avant envoi",
+        "lien": { "act": "open-mail", "id": "$p.mail_id", "libelle": "✉️ Relire et envoyer" }
+      },
+      "carte": { "titre": "✉️ Réponse à « {p.sujet} »", "texte": "Consigne : {p.consigne}", "bouton": "✉️ Rédiger la réponse" }
+    },
+    {
+      "id": "ouvrir",
+      "postes": ["secretaire", "assistant", "mk", "sc", "compta"],
+      "description": "ouvre l'élément dans le lab (fiche_id, mail_id, ou poste pour un panneau). Paramètres : cible 'fiche'|'mail'|'panneau', id",
+      "params": { "cible": { "type": "choix", "requis": true, "valeurs": ["fiche", "mail", "panneau"] }, "id": { "type": "cible", "requis": true } },
+      "droits": "tous",
+      "mode": "clic",
+      "executeur": { "type": "page", "fonction": "ouvrir", "resultat": "ouvert" },
+      "carte": { "titre": "↗ Ouvrir", "bouton": "↗ Ouvrir" }
+    }
+  ],
+  "interne": {
+    "_pourquoi": "Actions de la page (api('…') vers le webhook n8n) qui ne sont PAS des capacités de poste : déclenchées par les boutons habituels du lab, avec validation humaine. Toute nouvelle action doit être une capacité ci-dessus ou figurer ici avec sa raison.",
+    "etat": "lecture de l'état du lab (chargement de la page)",
+    "envoyer": "envoi d'un mail d'interview validé : bouton « Valider et envoyer » seulement",
+    "repondre": "envoi d'une réponse de Julien validée : bouton « Valider et envoyer » seulement",
+    "relance_envoyer": "envoi d'une relance validée : bouton de la fiche seulement",
+    "relance_ignorer": "mise de côté d'une relance : bouton de la fiche",
+    "maj": "corrections d'une fiche (mail, contact, réponse collée, archivage) : formulaires de la fiche",
+    "classer": "classement d'un mail du Courrier : boutons du mail",
+    "ecrire": "message dans l'Interphone : composer de l'Interphone",
+    "reformuler": "reformulation d'une question : panneau de l'Assistant",
+    "prospect": "campagnes de prospection : panneau de Julien Marketing",
+    "chapo": "mention des experts en début d'article : bloc de la fiche après insertion",
+    "inserer": "insertion validée dans Ghost : après la proposition de citations",
+    "citation": "propositions de citations : déclenchées par la fiche ou la capacité « citations »"
+  }
+}

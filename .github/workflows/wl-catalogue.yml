@@ -1,0 +1,15 @@
+name: Catalogue du Writinglab
+on:
+  push:
+    paths: ["shared/wl-catalogue.json", "writinglab/app.js", "supabase/functions/wl-tel/**", "scripts/wl-catalogue.mjs"]
+  pull_request:
+    paths: ["shared/wl-catalogue.json", "writinglab/app.js", "supabase/functions/wl-tel/**", "scripts/wl-catalogue.mjs"]
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/wl-catalogue.mjs
