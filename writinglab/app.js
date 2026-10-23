@@ -174,6 +174,7 @@
       }
       var premier = !S.data;
       S.data = d; render(); chargerPieces();
+      if (premier) consVerifier(); // engagement de confidentialité : écran bloquant tant que le serveur n'a pas confirmé la signature
       if (premier && window.WL_LOADER) setTimeout(window.WL_LOADER.fin, 250); // l'écran de chargement s'efface quand la rédaction est en place
     }, function (e) { if (window.WL_LOADER) window.WL_LOADER.fin(); if (!silent) toast('⚠️ ' + e.message, true); });
   }
@@ -288,6 +289,7 @@
 #wl .prep{max-width:760px;margin:16px auto 80px;padding:20px 22px 22px;background:#14110c;border:1px solid rgba(0,255,119,.22);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(0,255,119,.08)}#wl .dtop .pp-x{margin-left:auto;flex:0 0 auto}#wl .pp-k{display:flex;align-items:center;gap:8px;font:700 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#00ff77}#wl .pp-dot{width:8px;height:8px;border-radius:50%;background:#00ff77;box-shadow:0 0 10px #00ff77;animation:wlPpPulse 1.1s ease-in-out infinite}#wl .pp-ti{margin:6px 0 14px;font-weight:800;font-size:19px;line-height:1.3;color:#f3ece0}#wl .pp-pg{margin:4px 0 12px}#wl .pp-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}#wl .pp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77);transition:width 1s linear}#wl .pp-pg.on .pp-bar i:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:wlPpScan 1.6s linear infinite}#wl .pp-meta{display:flex;justify-content:space-between;margin-top:6px;font:12px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .pp-el{color:#9fffc8;font-weight:700}#wl .pp-log{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:2px}#wl .pp-log li{display:grid;grid-template-columns:46px 26px 1fr;align-items:baseline;gap:6px;padding:7px 10px;border-radius:10px;transition:background .3s,opacity .3s}#wl .pp-log li.wait{opacity:.38}#wl .pp-log li.run{background:rgba(0,255,119,.07);box-shadow:inset 2px 0 0 #00ff77}#wl .pp-log li.ok .pp-lt:after{content:' ✓';color:#3dffa0;font-weight:800}#wl .pp-log li.ko{background:rgba(255,61,90,.1);box-shadow:inset 2px 0 0 #ff3d5a}#wl .pp-log li.run .pp-lt:after{content:'';display:inline-block;width:7px;height:14px;margin-left:6px;vertical-align:-2px;background:#00ff77;animation:wlPpCaret 1s steps(2) infinite}#wl .pp-s{font:11.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.45)}#wl .pp-ic{font-size:15px}#wl .pp-l{font-size:14.5px;line-height:1.4;color:#f3ece0}#wl .pp-l small{display:block;font-size:12.5px;color:rgba(243,236,224,.55)}#wl .pp-long{margin:6px 0;padding:9px 12px;border-radius:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.35);font-size:13.5px;line-height:1.5;color:#ffe0a3}#wl .prep p.muted{font-size:13px!important;line-height:1.5!important}#wl .pp-n{font-size:13px;margin:8px 0 0}#wl .pp-det summary{cursor:pointer;font-size:13px;color:rgba(243,236,224,.6);margin:2px 0 4px}#wl .pp-fin{margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(0,255,119,.08);border:1px solid rgba(0,255,119,.35);color:#c9ffe0;font-size:14.5px;line-height:1.5}#wl .pp-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:18px 0 4px}#wl .pp-h>b{font-size:16px;color:#f3ece0}#wl .pp-c.in{animation:wlPpIn .55s cubic-bezier(.2,.8,.2,1) both}#wl .dcard:focus-visible{outline:2px solid #00ff77;outline-offset:2px}@keyframes wlPpIn{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}@keyframes wlPpScan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@keyframes wlPpPulse{50%{opacity:.35}}@keyframes wlPpCaret{50%{opacity:0}}@media (max-width:720px){#wl .prep{margin:10px 8px 60px;padding:16px 14px 18px;border-radius:16px}#wl .pp-ti{font-size:17px}#wl .pp-log li{grid-template-columns:40px 22px 1fr;padding:7px 6px}}@media (prefers-reduced-motion:reduce){#wl .pp-c.in,#wl .pp-dot,#wl .pp-pg.on .pp-bar i:after,#wl .pp-log li.run .pp-lt:after{animation:none}}\
 #wl .qbox input,#wl .qbox input.in{padding-left:40px!important}#wl .qbox:before{left:13px!important;line-height:1;z-index:1}#wl .nom-l{color:inherit!important;text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}#wl .nom-l:hover{text-decoration:none;border-bottom-style:solid}#wl .nom-i{display:inline-block;margin-left:4px;font:700 10px/1 Inter,sans-serif;opacity:.6;vertical-align:2px;border-bottom:0}#wl .nom-i.li{padding:2px 3px;border-radius:3px;background:#0a66c2;color:#fff!important;opacity:.9}#wl .nom-l.nom-q .nom-i{font-size:10px}#wl .src-l{font-size:12.5px;color:#3dffa0!important;margin-left:6px;white-space:nowrap}#wl .paper .src-l,#wl .dcard .src-l{color:#0a7a45!important}#wl .src-w{margin:-6px 0 10px;font-family:Inter,sans-serif}#wl .pp-att{display:inline-block;animation:wlPpPulse 2.4s ease-in-out infinite}#wl .pp-log.r li{grid-template-columns:26px 1fr}#wl .pp-cts{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px}#wl .pp-ct{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-left:3px solid rgba(0,255,119,.5);animation:wlPpIn .45s cubic-bezier(.2,.8,.2,1) both}#wl .pp-ct.ok{border-left-color:#3dffa0}#wl .pp-ct.ko{border-left-color:#ff3d5a;background:rgba(255,61,90,.06)}#wl .pp-ct.deja{border-left-color:#7fb2ff;opacity:.8}#wl .pp-ct-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}#wl .pp-ct-h b{font-size:15px;color:#f3ece0}#wl .pp-ct-h>span{font-size:13px;color:rgba(243,236,224,.62)}#wl .pp-ct-m{font-size:12.5px;color:rgba(243,236,224,.6);margin-top:3px;word-break:break-word}#wl .pp-ct-s{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#wl .pp-ct-s span{font-size:12.5px;padding:3px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(243,236,224,.5)}#wl .pp-ct-s span.run{border-color:rgba(0,255,119,.55);color:#9fffc8;background:rgba(0,255,119,.08);animation:wlPpPulse 1.6s ease-in-out infinite}#wl .pp-ct-s span.ok{border-color:rgba(61,255,160,.4);color:#c9ffe0}#wl .pp-ct-s span.ok:before{content:'✓ ';font-weight:800}#wl .pp-ct-s span.ko{border-color:rgba(255,61,90,.5);color:#ffb3c0}#wl .pp-ct-e{margin-top:8px;font-size:13px;color:#ffb3c0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}#wl .enqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin:8px 0}#wl .enq{padding:12px 14px;border-radius:14px;background:#14110c;border:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;gap:7px;min-width:0}#wl .enq.flash{border-color:rgba(0,255,119,.6)}#wl .enq-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0!important}#wl .enq-t:hover{text-decoration:underline}#wl .enq>.tag{align-self:flex-start}#wl .eb{display:flex;gap:3px;height:8px}#wl .eb i{flex:1;border-radius:3px;background:#d9e5f6}#wl .eb i.a{background:#f6c56b}#wl .eb i.b{background:#8fb3ea}#wl .eb i.g{background:#4fdc8e}#wl .eb i.c{background:#18b45f}#wl .eb i.r{background:#ff7f8f}#wl .enq-l{font-size:13px;color:rgba(243,236,224,.75)}#wl .enq-n{font-size:13px;color:rgba(243,236,224,.85);line-height:1.6}#wl .enq-n .sep{margin:0 6px;opacity:.4}#wl .enq-a{gap:6px;margin-top:2px}#wl .seg.arts-seg{display:flex;flex-wrap:wrap;margin:4px 0 2px}#wl .seg.arts-seg button{flex:1 1 auto;white-space:nowrap}#wl .seg .n{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.08);font-size:12px}@media (max-width:720px){#wl .enqs{grid-template-columns:1fr}#wl .seg.arts-seg button{padding:7px 8px!important;font-size:12.5px!important}}\
 #wl .mb-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}#wl label.mb-chk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;font:500 12.5px Inter,system-ui,sans-serif!important;text-transform:none!important;letter-spacing:normal!important;color:rgba(243,236,224,.75);cursor:pointer}#wl label.mb-chk input{width:15px;height:15px;margin:0!important;accent-color:#18b45f}#wl .als{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px;margin:6px 0 10px}#wl .al{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);cursor:pointer;min-width:0}#wl .al:hover{border-color:rgba(0,255,119,.35)}#wl .al.sel{border-color:rgba(255,190,90,.6);background:rgba(255,190,90,.07)}#wl .al-v{flex:0 0 auto;width:44px;height:44px;border-radius:7px;object-fit:cover;display:block}#wl .al-v0{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);font-size:18px}#wl .al-c{flex:1;min-width:0}#wl .al-t{font-weight:650;font-size:13.5px;line-height:1.3;color:#f3ece0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#wl .al-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:3px}#wl .al-m .tag{font-size:10.5px!important;padding:1px 6px!important}#wl .al-d{font-size:11.5px;color:rgba(243,236,224,.5);margin-left:2px}#wl .al-a{flex:0 0 auto;display:flex;align-items:center;gap:4px}#wl .al-i{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.12);text-decoration:none!important;font-size:14px}#wl .al-i:hover{border-color:rgba(0,255,119,.45)}#wl .btn.small.al-b{min-width:30px;height:30px;padding:0 7px!important;font-size:12.5px!important;white-space:nowrap}@media (max-width:720px){#wl .als{grid-template-columns:1fr}}\
+#wl.wl-verrou>.top,#wl.wl-verrou>.tabs,#wl.wl-verrou>.wrap,#wl.wl-verrou>.panel,#wl.wl-verrou>.panelbg,#wl.wl-verrou>.doc{filter:blur(18px) saturate(.6);pointer-events:none;user-select:none}#wl .cs-bg{position:fixed;inset:0;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(5,4,3,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}#wl .cs{max-width:720px;margin:12px auto 40px;padding:26px 26px 22px;border-radius:18px;background:#14110c;border:1px solid rgba(0,255,119,.25);box-shadow:0 30px 90px rgba(0,0,0,.6)}#wl .cs-k{font:700 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#00ff77}#wl .cs-t{margin:8px 0 2px!important;font:800 24px/1.2 Inter,system-ui,sans-serif!important;color:#f3ece0!important;letter-spacing:normal!important;text-transform:none!important}#wl .cs-v{font:12.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .cs-x{margin:16px 0;padding:16px 18px;border-radius:12px;background:#f8f4ea;color:#1f1a12;max-height:46vh;overflow:auto;font:15px/1.6 Georgia,'Iowan Old Style',serif}#wl .cs-x p{margin:0 0 10px}#wl .cs-h{margin:14px 0 4px!important;font:700 13px Inter,sans-serif!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#6b604c!important}#wl .cs-ol{margin:0 0 6px;padding-left:26px}#wl .cs-ol li{margin:3px 0}#wl .cs-who{font-size:13.5px;color:rgba(243,236,224,.75);margin:6px 0 10px}#wl label.cs-chk{display:flex!important;gap:10px;align-items:flex-start;margin:10px 0!important;padding:12px 14px!important;border-radius:12px;border:1px solid rgba(0,255,119,.35);background:rgba(0,255,119,.06);font:600 15px/1.4 Inter,sans-serif!important;color:#f3ece0!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer}#wl label.cs-chk input{width:20px;height:20px;margin:0!important;flex:0 0 auto;accent-color:#18b45f}#wl .cs-l{display:block;margin:14px 0 6px!important;font:600 13px Inter,sans-serif!important;color:rgba(243,236,224,.85)!important;text-transform:none!important;letter-spacing:normal!important}#wl input.cs-in{width:100%!important;box-sizing:border-box;padding:12px 14px!important;border-radius:10px!important;border:1px solid #3a3020!important;background:#16120d!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font:17px Inter,sans-serif!important}#wl .cs-pad{position:relative;border-radius:12px;background:#fff;border:2px dashed #c9bfa8;overflow:hidden}#wl .cs-pad canvas{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair}#wl .cs-ligne{position:absolute;left:18px;right:18px;bottom:42px;border-bottom:1px solid #d8cdb5;pointer-events:none}#wl .btn.cs-eff{position:absolute;right:8px;top:8px;background:#f3ece0!important;color:#1f1a12!important;-webkit-text-fill-color:#1f1a12!important;border-color:#d8cdb5!important}#wl .cs-err{min-height:20px;margin:10px 0 4px;color:#ff9aa8;font-size:13.5px}#wl .btn.cs-go{display:block;width:100%!important;box-sizing:border-box;padding:14px!important;font-size:16px!important;margin-top:6px}#wl .btn.cs-go[disabled]{opacity:.4}#wl .cs-pied{margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(243,236,224,.55)}#wl .cs-ap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:-8px -8px 16px;padding:10px 12px;border-radius:12px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.5);color:#ffe0a3;font-size:13.5px}#wl .cs-fait{text-align:center}#wl .cs-ok-ic{font-size:44px;margin:14px 0 4px}#wl .cs-date{font-size:17px;color:#f3ece0;margin:10px 0 4px}#wl .cs-j{margin:12px 0 4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .cs-jn{font-weight:700;margin-bottom:6px}#wl .cs-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.035)}#wl .cs-sigmini{width:120px;height:40px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid #d8cdb5}@media (max-width:720px){#wl .cs-bg{padding:8px}#wl .cs{padding:18px 16px 16px;margin:6px auto 30px;border-radius:16px}#wl .cs-t{font-size:20px!important}#wl .cs-x{max-height:42vh;font-size:14.5px;padding:12px 14px}}\
 #wl .dtop{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(11,10,8,.92);border-bottom:1px solid rgba(255,190,90,.18)}\
 #wl .dtop .em{font-size:24px}#wl .dtop .nm{font-weight:800;font-size:15px;line-height:1.2}#wl .dtop .st{font-size:12px;color:rgba(243,236,224,.6)}\
 #wl .dtop .x{margin-left:auto;cursor:pointer;font-size:24px;color:rgba(243,236,224,.75);padding:2px 10px}\
@@ -1820,6 +1822,175 @@
   }
   function sw(act, on, off) { return '<button type="button" class="sw' + (on ? ' on' : '') + '" data-act="' + act + '"' + (off ? ' disabled' : '') + ' aria-pressed="' + (on ? 'true' : 'false') + '"><i></i></button>'; }
   function sigLire() { var e = S.root.querySelector('#wl-sig'); if (e && S.sigDraft) S.sigDraft[S.sigLang || 'fr'] = e.innerHTML; }
+  // ================= Engagement de confidentialité (23/10/2026) =================
+  // À la première connexion de chaque journaliste : écran plein écran BLOQUANT (pas de fermeture, pas d'Échap, lab flou et inerte
+  // derrière). Le serveur (fonction Supabase wl-consent, jeton du membre Ghost) fait foi : il dit si la personne doit signer, donne le
+  // texte exact (version + SHA-256), revérifie tout à la signature et horodate avec SON horloge. Aucun drapeau dans le navigateur.
+  // Le rédacteur en chef n'est pas concerné ; il consulte les engagements dans Paramètres et peut voir l'écran en aperçu (signature
+  // d'essai « test-… », supprimable).
+  var CONS_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-consent';
+  function consApi(b) { return supa(CONS_FN, b); }
+  // Horodatage du SERVEUR (signe_le) affiché à l'heure de Zurich : « 23/10/2026 à 03:52:14 ».
+  function consDate(iso) {
+    try { var f = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date(iso)), g = function (t) { return (f.filter(function (x) { return x.type === t; })[0] || {}).value || ''; };
+      return g('day') + '/' + g('month') + '/' + g('year') + ' à ' + g('hour') + ':' + g('minute') + ':' + g('second'); } catch (e) { return String(iso || ''); }
+  }
+  function consNorm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[-‐‑’']/g, ' ').replace(/\s+/g, ' ').trim(); }
+  // Texte de l'engagement → HTML (titres de parties, points numérotés, paragraphes). La 1re ligne (titre + version) est affichée à part.
+  function consTexteHTML(texte) {
+    var l = String(texte || '').split('\n').slice(1), h = '', ol = false;
+    l.forEach(function (x) {
+      var m = x.match(/^(\d{1,2})\.\s+(.*)$/);
+      if (m) { if (!ol) { h += '<ol class="cs-ol">'; ol = true; } h += '<li value="' + m[1] + '">' + esc(m[2]) + '</li>'; return; }
+      if (ol) { h += '</ol>'; ol = false; }
+      if (!x.trim()) return;
+      h += x.length < 40 && !/[.:]$/.test(x) ? '<h3 class="cs-h">' + esc(x) + '</h3>' : '<p>' + esc(x) + '</p>';
+    });
+    return h + (ol ? '</ol>' : '');
+  }
+  function consVerrou(on) {
+    var r = S.root; if (!r) return;
+    S.consBloque = !!on; r.classList.toggle('wl-verrou', !!on);
+    Array.prototype.forEach.call(r.children, function (c) { if (!c.classList.contains('cs-bg')) { if (on) c.setAttribute('inert', ''); else c.removeAttribute('inert'); } });
+    var bg = r.querySelector('.cs-bg');
+    if (on && !bg) { bg = document.createElement('div'); bg.className = 'cs-bg'; bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true'); bg.setAttribute('aria-label', 'Engagement de confidentialité'); r.appendChild(bg); }
+    if (!on && bg) bg.parentNode.removeChild(bg);
+    return bg;
+  }
+  function consPeindre(html) { var bg = consVerrou(true); bg.innerHTML = html; bg.scrollTop = 0; return bg; }
+  // Au chargement : seulement pour les journalistes (le serveur confirme le rôle). Échec réseau = l'écran reste fermé (« Réessayer »).
+  function consVerifier() {
+    if (D().me.chef) return;
+    consPeindre('<div class="cs"><div class="cs-k">🔏 Posthumain · Writinglab</div><p class="muted" style="margin-top:14px">Vérification de votre engagement de confidentialité…</p></div>');
+    consApi({ action: 'etat' }).then(function (e) {
+      if (!e || !e.ok) { consPeindre('<div class="cs"><div class="cs-k">🔏 Posthumain · Writinglab</div><h1 class="cs-t">Accès en attente</h1><p class="cs-err">⚠️ ' + esc((e && e.why) || 'le serveur ne répond pas') + '.</p><p class="muted">Le Writinglab s’ouvrira dès que votre engagement de confidentialité aura pu être vérifié. Si cela persiste, prévenez Jonathan Paiano.</p><div class="row" style="margin-top:14px"><button type="button" class="btn go" data-cs="reessayer">↻ Réessayer</button></div></div>'); return; }
+      if (!e.requis || e.signe) { consVerrou(false); return; }
+      S.consEtat = e; consFormulaire(false);
+    });
+  }
+  function consFormulaire(apercu) {
+    var e = S.consEtat; S.consApercu = !!apercu;
+    var h = '<div class="cs">' + (apercu ? '<div class="cs-ap"><span>👁️ Aperçu, réservé au rédacteur en chef : la signature sera enregistrée comme <b>test</b>.</span><button type="button" class="btn small" data-cs="quitter">Quitter l’aperçu</button></div>' : '') +
+      '<div class="cs-k">🔏 Posthumain · Writinglab · document interne</div><h1 class="cs-t">Engagement de confidentialité</h1><div class="cs-v">' + esc(e.titre) + '</div>' +
+      '<div class="cs-x" tabindex="0" aria-label="Texte de l’engagement">' + consTexteHTML(e.texte) + '</div>' +
+      '<div class="cs-who">Signataire : <b>' + esc(e.nom) + '</b>' + (e.email ? ' · ' + esc(e.email) : '') + '</div>' +
+      '<label class="cs-chk"><input type="checkbox" id="cs-ok"> <span>J’ai lu et j’accepte sans réserve cet engagement de confidentialité</span></label>' +
+      '<label class="cs-l" for="cs-nom">Vos prénom et nom</label><input class="cs-in" id="cs-nom" type="text" autocomplete="name" placeholder="Prénom Nom" spellcheck="false">' +
+      '<div class="cs-l">Votre signature <span class="muted">(au doigt ou à la souris)</span></div><div class="cs-pad"><canvas id="cs-sig" aria-label="Zone de signature"></canvas><span class="cs-ligne"></span><button type="button" class="btn small cs-eff" data-cs="effacer">Effacer</button></div>' +
+      '<p class="cs-err" id="cs-err" role="alert"></p><button type="button" class="btn go cs-go" id="cs-go" data-cs="signer" disabled>✍️ Signer et accéder au lab</button>' +
+      '<p class="cs-pied">La date et l’heure de signature sont enregistrées par le serveur de Posthumain, avec votre nom, votre signature, l’empreinte du texte (' + esc(String(e.hash).slice(0, 12)) + '…), l’adresse IP et le navigateur.</p></div>';
+    var bg = consPeindre(h);
+    consPad(bg.querySelector('#cs-sig'));
+    var maj = function () { consValide(); };
+    S.consNomVu = false;
+    bg.querySelector('#cs-ok').addEventListener('change', maj); bg.querySelector('#cs-nom').addEventListener('input', maj);
+    bg.querySelector('#cs-nom').addEventListener('change', function () { S.consNomVu = true; maj(); });
+  }
+  // Pavé de signature : pointer events (doigt, stylet, souris), trait lissé, épaisseur ~2,6 px ; refus d'un pavé vide ou d'un point.
+  function consPad(cv) {
+    var dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1)), w = cv.clientWidth || 600, h = cv.clientHeight || 180;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = 2.6; c.strokeStyle = '#14110c';
+    S.consSig = { pts: 0, len: 0, cv: cv };
+    var bas = false, last = null, pos = function (ev) { var r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
+    cv.addEventListener('pointerdown', function (ev) { ev.preventDefault(); bas = true; try { cv.setPointerCapture(ev.pointerId); } catch (x) {} last = pos(ev); c.beginPath(); c.arc(last.x, last.y, 1.2, 0, Math.PI * 2); c.fillStyle = '#14110c'; c.fill(); S.consSig.pts++; });
+    cv.addEventListener('pointermove', function (ev) {
+      if (!bas) return; ev.preventDefault();
+      (ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev]).forEach(function (pe) {
+        var p = pos(pe), mx = (last.x + p.x) / 2, my = (last.y + p.y) / 2;
+        c.beginPath(); c.moveTo(last.x, last.y); c.quadraticCurveTo(last.x, last.y, mx, my); c.lineTo(p.x, p.y); c.stroke();
+        S.consSig.len += Math.hypot(p.x - last.x, p.y - last.y); S.consSig.pts++; last = p;
+      });
+    });
+    var fin = function () { if (bas) { bas = false; consValide(); } };
+    cv.addEventListener('pointerup', fin); cv.addEventListener('pointercancel', fin); cv.addEventListener('pointerleave', fin);
+  }
+  function consValide() {
+    var bg = S.root.querySelector('.cs-bg'); if (!bg) return false;
+    var e = S.consEtat, ok = bg.querySelector('#cs-ok'), nom = bg.querySelector('#cs-nom'), go = bg.querySelector('#cs-go'), err = bg.querySelector('#cs-err');
+    if (!ok || !go) return false;
+    var sig = S.consSig || { pts: 0, len: 0 }, nomOk = consNorm(nom.value) === consNorm(e.nom), sigOk = sig.pts >= 20 && sig.len >= 120;
+    var v = ok.checked && nomOk && sigOk;
+    go.disabled = !v;
+    err.textContent = nom.value.trim().length > 3 && !nomOk && (S.consNomVu || consNorm(nom.value).length >= consNorm(e.nom).length) ? 'Le nom tapé ne correspond pas à celui de votre compte.' : (sig.pts && !sigOk ? 'Signature trop courte : signez avec votre signature habituelle.' : '');
+    return v;
+  }
+  function consSigner() {
+    if (!consValide()) return;
+    var bg = S.root.querySelector('.cs-bg'), e = S.consEtat, go = bg.querySelector('#cs-go'), err = bg.querySelector('#cs-err');
+    go.disabled = true; go.textContent = '⏳ Enregistrement de la signature…';
+    var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (x) {}
+    consApi({ action: S.consApercu ? 'signer_test' : 'signer', version: e.version, hash: e.hash, accepte: bg.querySelector('#cs-ok').checked === true, nom: bg.querySelector('#cs-nom').value,
+      signature: S.consSig.cv.toDataURL('image/png'), fuseau: tz, heure_locale: new Date().toString() }).then(function (r) {
+      if (!r || !r.ok) { go.disabled = false; go.textContent = '✍️ Signer et accéder au lab'; err.textContent = '⚠️ ' + ((r && r.why) || 'le serveur ne répond pas, réessayez'); return; }
+      var ap = S.consApercu;
+      consPeindre('<div class="cs cs-fait">' + (ap ? '<div class="cs-ap"><span>👁️ Aperçu : signature de test enregistrée au nom « ' + esc(r.consentement.journaliste_id) + ' ».</span></div>' : '') +
+        '<div class="cs-k">🔏 Posthumain · Writinglab</div><div class="cs-ok-ic">✅</div><h1 class="cs-t">Engagement signé</h1>' +
+        '<p class="cs-date">Signé le <b>' + esc(consDate(r.consentement.signe_le)) + '</b> (heure de Zurich)</p>' +
+        '<p class="muted">Horodatage enregistré par le serveur de Posthumain · ' + esc(r.consentement.texte_version) + ' · empreinte ' + esc(String(r.consentement.texte_hash).slice(0, 16)) + '…</p>' +
+        (ap ? '<div class="row" style="justify-content:center;gap:8px;margin-top:16px"><button type="button" class="btn red" data-cs="suppr-test">🗑️ Supprimer la signature de test</button><button type="button" class="btn" data-cs="quitter">Quitter l’aperçu</button></div>'
+          : '<button type="button" class="btn go cs-go" data-cs="entrer">Accéder au lab</button>') + '</div>');
+      if (ap) S.consListe = null;
+    });
+  }
+  function consApercu() {
+    toast('👁️ Ouverture de l’aperçu…');
+    consApi({ action: 'etat' }).then(function (e) { if (!e || !e.ok) { toast('⚠️ ' + ((e && e.why) || 'serveur injoignable'), true); return; } S.consEtat = e; closePanel(); consFormulaire(true); });
+  }
+  function consClic(t) {
+    var a = t.getAttribute('data-cs');
+    if (a === 'effacer') { var cv = S.consSig && S.consSig.cv; if (cv) { cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); S.consSig.pts = 0; S.consSig.len = 0; consValide(); } }
+    else if (a === 'signer') consSigner();
+    else if (a === 'reessayer') consVerifier();
+    else if (a === 'entrer') consVerrou(false);
+    else if (a === 'quitter' && S.consApercu) { S.consApercu = false; consVerrou(false); if (D().me.chef) openPanel('parametres'); }
+    else if (a === 'suppr-test') consApi({ action: 'supprimer_test' }).then(function (r) { toast(r && r.ok ? '🗑️ ' + r.supprimes + ' signature' + pl(r.supprimes) + ' de test supprimée' + pl(r.supprimes) + '.' : '⚠️ ' + ((r && r.why) || 'impossible'), !(r && r.ok)); S.consListe = null; });
+  }
+  // Paramètres (rédacteur en chef) : engagements signés, statut de chaque journaliste, certificat imprimable, aperçu de l'écran.
+  function chargerConsentements() {
+    if (S.consLd) return; S.consLd = true;
+    consApi({ action: 'liste' }).then(function (r) { S.consLd = false; S.consListe = r || { ok: false, why: 'réponse vide' }; if (S.panel === 'parametres') paintPanel(); });
+  }
+  function consSection() {
+    var L = S.consListe;
+    var h = '<div class="set"><div class="set-h"><div><b>🔏 Engagements de confidentialité</b><div class="set-s">Signés par chaque journaliste à sa première connexion (horodatage du serveur).</div></div></div>' +
+      '<div class="row" style="gap:8px;margin:10px 0 4px;flex-wrap:wrap"><button class="btn small" data-act="cons-apercu">👁️ Voir l’écran comme une journaliste</button><button class="btn small" data-act="cons-recharger">↻ Actualiser</button></div>';
+    if (!L) { chargerConsentements(); return h + '<p class="muted">Chargement…</p></div>'; }
+    if (!L.ok) return h + '<p class="muted">⚠️ ' + esc(L.why || 'indisponible') + '</p></div>';
+    var cs = L.consentements || [], vrais = cs.filter(function (c) { return !c.test; }), tests = cs.filter(function (c) { return c.test; });
+    var ligne = function (c) {
+      return '<div class="cs-row"><img class="cs-sigmini" alt="Signature de ' + esc(c.nom_saisi) + '" src="' + (/^data:image\/png;base64,/.test(c.signature_png) ? c.signature_png : '') + '"><div style="min-width:0"><b>' + esc(c.nom_saisi) + '</b>' + (c.test ? ' <span class="tag a">test</span>' : '') +
+        '<div class="set-s">signé le ' + esc(consDate(c.signe_le)) + ' (heure de Zurich) · ' + esc(c.texte_version) + (c.texte_version !== L.version && !c.test ? ' <span class="tag a">ancienne version</span>' : '') + '</div></div>' +
+        '<button class="btn small" data-act="cons-cert" data-id="' + esc(c.id) + '">⬇️ Télécharger le certificat</button></div>';
+    };
+    h += (L.journalistes || []).map(function (j) {
+      var s = vrais.filter(function (c) { return c.journaliste_id === j.id; });
+      return '<div class="cs-j"><div class="cs-jn">✍️ ' + esc(j.nom) + (s.some(function (c) { return c.texte_version === L.version; }) ? ' <span class="tag g">✓ signé (' + esc(L.version) + ')</span>' : ' <span class="tag a">⏳ pas encore signé' + (s.length ? ' en ' + esc(L.version) : '') + '</span>') + '</div>' + s.map(ligne).join('') + '</div>';
+    }).join('');
+    if (tests.length) h += '<div class="cs-j"><div class="cs-jn">🧪 Signatures de test (aperçu)</div>' + tests.map(ligne).join('') + '<button class="btn small red" data-act="cons-suppr-test" style="margin-top:6px">🗑️ Supprimer les signatures de test</button></div>';
+    return h + '<p class="set-s" style="margin-top:8px">Texte en vigueur : ' + esc(L.titre) + ' · empreinte SHA-256 ' + esc(String(L.hash).slice(0, 16)) + '…</p></div>';
+  }
+  // Certificat : page imprimable (Imprimer → PDF) avec le texte complet, les parties, la signature et les preuves techniques.
+  function consCertificat(id) {
+    var L = S.consListe || {}, c = (L.consentements || []).filter(function (x) { return String(x.id) === String(id); })[0];
+    if (!c) { toast('Certificat introuvable : actualisez.', true); return; }
+    var e = function (s) { return esc(s == null ? '' : s); };
+    var lignes = [['Signataire (nom saisi)', c.nom_saisi], ['Compte', c.journaliste_id + (c.email ? ' · ' + c.email : '')], ['Signé le (horloge du serveur)', consDate(c.signe_le) + ' — heure de Zurich'], ['Horodatage serveur (UTC)', new Date(c.signe_le).toISOString()],
+      ['Version du texte', c.texte_version], ['Empreinte SHA-256 du texte', c.texte_hash], ['Adresse IP', c.ip || '—'], ['Navigateur', c.user_agent || '—'], ['Fuseau et heure déclarés par le navigateur (indicatif)', (c.fuseau || '—') + ' · ' + (c.heure_locale || '—')], ['Identifiant de l’enregistrement', '#' + c.id]];
+    var html = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Certificat — ' + e(c.nom_saisi) + ' — ' + e(c.texte_version) + '</title><style>' +
+      'body{font:15px/1.55 Georgia,serif;color:#1f1a12;max-width:780px;margin:30px auto;padding:0 20px}h1{font:800 22px Inter,Arial,sans-serif;margin:0 0 4px}.k{font:700 11px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6b604c}' +
+      '.x{border:1px solid #d8cdb5;border-radius:8px;padding:14px 18px;background:#fbf8f1}.x h3{font:700 14px Arial,sans-serif;margin:14px 0 4px}table{width:100%;border-collapse:collapse;font:13px Arial,sans-serif;margin-top:14px}td{border-top:1px solid #e4dccb;padding:6px 8px;vertical-align:top;word-break:break-word}td:first-child{width:38%;color:#6b604c}' +
+      '.sig{border:1px solid #d8cdb5;border-radius:8px;background:#fff;padding:8px;margin-top:8px;max-width:420px}.sig img{width:100%;display:block}.np{margin:18px 0}@media print{.np{display:none}body{margin:0}}</style></head><body>' +
+      '<div class="np"><button onclick="print()">🖨️ Imprimer / enregistrer en PDF</button></div><div class="k">Posthumain · Writinglab · certificat de signature</div><h1>' + e(L.titre || c.texte_version) + '</h1>' +
+      '<p><b>Parties :</b> ' + e(L.editeur || 'Trust Medias') + ', éditrice de Posthumain (posthumain.com), représentée par Jonathan Paiano ; et ' + e(c.nom_saisi) + (c.email ? ' (' + e(c.email) + ')' : '') + ', signataire.</p>' +
+      (c.texte_version === L.version || c.texte_version === 'TEST-' + L.version ? '<div class="x">' + consTexteHTML(L.texte) + '</div>' : '<p><i>Texte signé : version ' + e(c.texte_version) + ' (empreinte ci-dessous).</i></p>') +
+      '<h3 style="font:700 14px Arial,sans-serif;margin-top:18px">Signature</h3><div class="sig"><img alt="Signature" src="' + (/^data:image\/png;base64,/.test(c.signature_png) ? c.signature_png : '') + '"></div>' +
+      '<table>' + lignes.map(function (l) { return '<tr><td>' + e(l[0]) + '</td><td>' + e(l[1]) + '</td></tr>'; }).join('') + '</table>' +
+      '<p style="font:12px Arial,sans-serif;color:#6b604c;margin-top:14px">L’horodatage est celui du serveur de Posthumain (base de données Supabase), jamais celui du navigateur de la signataire. L’empreinte SHA-256 permet de vérifier que le texte signé est exactement celui reproduit ci-dessus.</p></body></html>';
+    var u = URL.createObjectURL(new Blob([html], { type: 'text/html' })), a = document.createElement('a');
+    a.href = u; a.download = 'Engagement-confidentialite-' + String(c.nom_saisi).replace(/[^\w-]+/g, '_') + '-' + c.texte_version + '.html'; document.body.appendChild(a); a.click(); a.remove();
+    window.open(u, '_blank', 'noopener'); setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+  }
   function panelParams() {
     var me = D().me, P = S.params, lg = S.sigLang || 'fr';
     var h = head('⚙️', 'Paramètres', esc(me.nom) + ' · ' + esc(me.titre || '')) + '<div class="pb">';
@@ -1849,6 +2020,7 @@
         WEBMAILS.map(function (g, k) { var on = g[1].every(function (d) { return wm.indexOf(d) >= 0; }); return '<label class="chk"><input type="checkbox" data-wm="' + k + '"' + (on ? ' checked' : '') + '> ' + esc(g[0]) + ' <span class="set-s">' + esc(g[1].join(', ')) + '</span></label>'; }).join('') + '</div>';
     }
     if (me.chef) h += '<div class="set' + (P.recompense ? ' hot' : '') + '"><div class="set-h"><div><b>🧪 Mode récompense (test)</b><div class="set-s">Vous gagnez des pièces comme une rédactrice (votre caisse apparaît chez le Comptable) : comptabiliser, demander le paiement, cocher la facture, tout fonctionne pour vous-même et les notifications vous arrivent.</div></div>' + sw('set-rec', !!P.recompense) + '</div></div>';
+    if (me.chef) h += consSection();
     var adr = ({ jonathan: 'jonathan.paiano@posthumain.com', valisoa: 'valisoa.rasolofo@posthumain.com' })[me.id] || '';
     h += '<div class="set"><b>👤 Compte</b><div class="set-s" style="margin-top:6px">' + esc(me.nom) + ' · ' + esc(me.titre || '') + (adr ? '<br>Mails envoyés depuis <b>' + esc(adr) + '</b>' : '') + '</div></div>';
     return h + '</div>';
@@ -2085,6 +2257,10 @@
       case 'close-panel': closePanel(); break;
       case 'close-doc': fermerDoc(); break;
       case 'voir-mails': masquerTip(); voirMails(id); break;
+      case 'cons-apercu': consApercu(); break;
+      case 'cons-recharger': S.consListe = null; paintPanel(); break;
+      case 'cons-cert': consCertificat(id); break;
+      case 'cons-suppr-test': consApi({ action: 'supprimer_test' }).then(function (r) { toast(r && r.ok ? '🗑️ ' + r.supprimes + ' signature' + pl(r.supprimes) + ' de test supprimée' + pl(r.supprimes) + '.' : '⚠️ ' + ((r && r.why) || 'impossible'), !(r && r.ok)); S.consListe = null; paintPanel(); }); break;
       case 'art-tab': S.artTab = id; var ra2 = S.root.querySelector('#wl-art-res'); if (ra2) { ra2.innerHTML = artsRes(); markBusy(); } break;
       case 'prep-retry': reprendrePrep(id); break;
       case 'open-valid': openDoc('valid', id); break;
@@ -2565,6 +2741,8 @@
     if (S.art) loadDraft();
     r.addEventListener('click', function (e) {
       var t = e.target;
+      var cs = t.closest && t.closest('[data-cs]'); if (cs) { e.preventDefault(); consClic(cs); return; }
+      if (S.consBloque && !t.closest('.cs-bg')) return;
       if (t.closest('[data-stop]')) { e.stopPropagation(); return; }
       if (t.classList.contains('panelbg')) { closePanel(); return; }
       var tb = t.closest('[data-tab]'); if (tb && tb.classList.contains('tab')) { S.tab = tb.getAttribute('data-tab'); LS.set('wl-tab', S.tab); render(); return; }
@@ -2600,7 +2778,7 @@
       rd.onload = function () { S.pj = { nom: f.name, type: f.type || 'application/octet-stream', taille: f.size, categorie: devinerCat(f), data: String(rd.result).split(',')[1] || '' }; majPj(); };
       rd.readAsDataURL(f);
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) fermerDoc(); else closePanel(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.consBloque) { e.preventDefault(); return; } if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) fermerDoc(); else closePanel(); } });
     // Retour sur l'onglet : une seule relecture si la page n'a rien reçu depuis 5 minutes.
     document.addEventListener('visibilitychange', function () { if (!document.hidden && (S.rtAttente || Date.now() - S.last > 300000)) { S.rtAttente = false; refresh(true); } });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
