@@ -141,6 +141,12 @@ const execTel = new Set(); for (const c of caps) { const E = c.executeur || {}; 
 const interneTel = Object.keys(cat.interne_tel || {}).filter((k) => !k.startsWith("_"));
 for (const a of new Set(telActions)) if (!execTel.has(a) && !interneTel.includes(a)) ko("wl-tel : action « " + a + " » ni exécuteur d'une capacité, ni dans « interne_tel » avec sa raison");
 for (const a of interneTel) if (!telActions.includes(a)) ko("« interne_tel » liste « " + a + " » qui n'existe plus dans wl-tel : retirez-le");
+// --- chaque action de wl-radar (salle des décisions) est déclarée avec sa raison (interne_radar) ---
+const radarSrc = readFileSync(join(R, "supabase/functions/wl-radar/index.ts"), "utf8");
+const radarActions = [...new Set([...radarSrc.matchAll(/b\.action === "([a-z_]+)"/g)].map((m) => m[1]))];
+const interneRadar = Object.keys(cat.interne_radar || {}).filter((k) => !k.startsWith("_"));
+for (const a of radarActions) if (!interneRadar.includes(a)) ko("wl-radar : action « " + a + " » absente de « interne_radar » (ajoutez-la avec sa raison)");
+for (const a of interneRadar) if (!radarActions.includes(a)) ko("« interne_radar » liste « " + a + " » qui n'existe plus dans wl-radar : retirez-la");
 // --- aucun poste codé en dur côté serveur ---
 if (/const POSTES: Record<string, Poste> = \{\s*\n\s*secretaire/.test(tel)) ko("wl-tel : POSTES encore codés en dur (doivent venir de catalogue.ts)");
 // --- copies à jour ---

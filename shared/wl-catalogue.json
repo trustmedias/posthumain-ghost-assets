@@ -357,6 +357,34 @@
     "appel_traiter": "réponse par téléphone : structuration de la transcription (aucune écriture)",
     "fiche_traitee": "« ✓ Marquer comme traitée » : réponse purement logistique, la fiche s'affiche en attente (statut réel inchangé)"
   },
+  "interne_radar": {
+    "_pourquoi": "Actions de la fonction wl-radar (salle des décisions : Radar, Marbre, Usine). Ce ne sont pas des capacités de poste : boutons du lab avec validation humaine, ou appels serveur à serveur de l'Usine (x-tv-secret). Toute nouvelle action de wl-radar doit figurer ici avec sa raison, sinon le test échoue.",
+    "diag": "état de configuration (aucun secret renvoyé)",
+    "radar": "salle du Radar : sujets du jour, file, sujet voté",
+    "choisir": "« Écrire celui-ci » (rédacteur en chef)",
+    "decocher": "« Retirer de la file » (rédacteur en chef)",
+    "ordre": "▲ ▼ dans la file (rédacteur en chef)",
+    "imposer": "« Imposer un sujet » (rédacteur en chef)",
+    "ecarter": "sujet du public : « Ne pas l'écrire » (rédacteur en chef)",
+    "remettre": "sujet du public : « Le remettre » (rédacteur en chef)",
+    "relancer_radar": "« Relancer le Radar » (rédacteur en chef, confirmation)",
+    "lancer_usine": "« Lancer l'Usine maintenant » = /usine (rédacteur en chef, confirmation, verrou de 12 minutes, l'Usine garde ses propres garde-fous)",
+    "marbre": "le Marbre : brouillons de l'Usine, rapports, #fini, publiés du jour",
+    "approuver": "« Approuver » un brouillon de l'Usine (rédacteur en chef, confirmation)",
+    "ecarter_brouillon": "« Écarter » un brouillon de l'Usine (rédacteur en chef, confirmation ; Ghost non touché)",
+    "rapport": "Usine → lab (serveur à serveur) : rapport détaillé du brouillon",
+    "evenement": "Usine et workflows → lab (serveur à serveur) : copie d'un message Telegram (brouillon prêt, échec, alerte, Radar, journal du soir, envois spéciaux, inscriptions)",
+    "alertes": "onglet ⚠️ Alertes du Radar (rédacteur en chef, vérifié par le serveur)",
+    "alertes_lu": "« Marquer lu » / « Tout marquer lu » dans les Alertes (rédacteur en chef)",
+    "reglage_radar": "Paramètres : résumé du Radar le matin (rédacteur en chef, désactivé par défaut)",
+    "journal": "Marbre : journal du soir (lecture équipe)",
+    "speciaux": "Marbre : envois spéciaux, Best-of et Grand Format (lecture équipe ; le lien secret du Best-of reste sur le serveur)",
+    "valider_special": "« ✅ Valider » le Best-of : programme l'envoi comme le lien Telegram (rédacteur en chef, confirmation)",
+    "annuler_special": "« Annuler l'envoi » du Grand Format programmé : le post repasse en brouillon (rédacteur en chef, confirmation)",
+    "inscriptions": "Tableau de bord : bilan des inscriptions newsletter (rédacteur en chef)",
+    "fini": "« ✅ J'ai fini — prêt à relire » : pose le tag interne #fini (journaliste ; jamais sur un article publié)",
+    "reprendre": "« Reprendre » : retire le tag #fini"
+  },
   "aiguillage": {
     "_pourquoi": "Règles d'aiguillage générées dans la fiche de poste de chaque IA (wl-tel) et dans l'aide ⓘ. contacts_interview : le poste qui écrit à toute personne qui a une fiche d'interview ; un poste qui a une boîte de courrier (mail) ne reçoit jamais ces demandes (vérifié aussi par le serveur avant une transmission).",
     "contacts_interview": "secretaire"
@@ -367,7 +395,7 @@
       "nom": "Le rédacteur en chef",
       "emoji": "🧐",
       "aide": "Le bureau du rédacteur en chef : toute la rédaction d'un coup d'œil, l'équipe, et ses propres fiches.",
-      "actions": ["📊 Tableau de bord : qui a écrit à qui, ce qui attend une validation, ce qui a été cité", "Voir le bureau de chaque journaliste", "📞 Interphone pour lui écrire", "Paramètres : équipe, boîtes mail, signatures"]
+      "actions": ["📊 Tableau de bord : qui a écrit à qui, ce qui attend une validation, ce qui a été cité", "Voir le bureau de chaque journaliste", "📞 Interphone pour lui écrire", "Paramètres : équipe, boîtes mail, signatures", "📈 Bilan des inscriptions newsletter (Meta + popup) dans le Tableau de bord", "Paramètres : résumé du Radar le matin sur le téléphone (désactivé par défaut)"]
     },
     {
       "id": "journaliste",
@@ -388,14 +416,14 @@
       "nom": "Le Marbre",
       "emoji": "📰",
       "aide": "Les brouillons Ghost préparés par l'Usine, en attente de votre décision.",
-      "actions": ["✅ Approuver un brouillon", "🗑️ Écarter un brouillon (le post Ghost n'est pas supprimé)", "Choisir l'article en cours", "🔄 Actualiser"]
+      "actions": ["✅ J'ai fini — prêt à relire : pose le tag interne #fini sur votre brouillon, le rédacteur en chef est prévenu (« Reprendre » le retire)", "✅ Approuver un brouillon (rédacteur en chef ; un brouillon « en cours chez » une journaliste attend son #fini)", "🗑️ Écarter un brouillon (le post Ghost n'est pas supprimé)", "Choisir l'article en cours", "🌙 Journal du soir : publiés, brief, push, réseaux programmés, verrou de 21 h (copie du message Telegram)", "📬 Envois spéciaux : Best-of mensuel à valider, Grand Format du samedi à relire ou annuler (rédacteur en chef)", "🔄 Actualiser"]
     },
     {
       "id": "radar",
       "nom": "Le Radar",
       "emoji": "📡",
       "aide": "Les sujets du jour repérés et notés par le Radar ; sans choix, l'Usine prend le sujet le mieux noté.",
-      "actions": ["Choisir ou retirer des sujets de la file", "Mettre un sujet en file (prioritaire)", "📡 Relancer le Radar (rédacteur en chef)", "🔄 Actualiser"],
+      "actions": ["Choisir ou retirer des sujets de la file", "Mettre un sujet en file (prioritaire)", "📡 Relancer le Radar (rédacteur en chef)", "🔄 Actualiser", "🏭 Lancer l'Usine maintenant, comme /usine (rédacteur en chef ; pas deux fois en 12 minutes)", "⚠️ Alertes de l'Usine : aucun candidat, anti-doublon, échecs, crédits OpenAI, pannes, avec « marquer lu » (rédacteur en chef)"],
       "acces": "tous"
     },
     {

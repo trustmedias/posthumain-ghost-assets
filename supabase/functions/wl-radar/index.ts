@@ -18,10 +18,14 @@
 // ne mettait jusque-là que dans le message Telegram (alertes de rédaction, contrôle des sources, photos, encart vidéo,
 // graphiques non placés, mise en forme, couverture) → table usine_rapports (action « rapport », en-tête x-tv-secret),
 // affiché sous chaque brouillon du Marbre.
+// 23/10/2026 (Telegram → lab) : l'Usine envoie aussi en miroir ses messages Telegram (action « evenement », en-tête x-tv-secret)
+// → table usine_evenements : brouillon prêt et échecs (push), alertes (onglet ⚠️ Alertes du Radar, chef seul), journal du soir
+// (Marbre), résumé du Radar. « Lancer l'Usine maintenant » (= /usine) passe par le même webhook Telegram que « Relancer le Radar ».
+// Tag interne Ghost « #fini » (slug hash-fini) : la journaliste signale qu'un brouillon est prêt à relire (« fini » / « reprendre »).
 // Secrets Supabase : jeton Airtable (AIRTABLE_TOKEN, ou AIRTABLE_API_KEY / AIRTABLE_PAT / POSTHUMAIN_AIRTABLE_TOKEN),
 // clé Admin Ghost GHOST_ADMIN_API_KEY (format id:secret) et, facultatif, GHOST_ADMIN_API_URL.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import { parEmail, type Membre } from "./equipe.ts";
+import { equipe, parEmail, type Membre } from "./equipe.ts";
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
@@ -124,9 +128,21 @@ const minuitZurich = () => {
   const off = (new Date(now.toLocaleString("en-US", { timeZone: "Europe/Zurich" })).getTime() - new Date(now.toLocaleString("en-US", { timeZone: "UTC" })).getTime()) / 60000;
   return new Date(Date.parse(d + "T00:00:00Z") - off * 60000).toISOString().slice(0, 19).replace("T", " ");
 };
+// Auteurs Ghost → journaliste de l'équipe (non chef, active). Les e-mails ne quittent jamais le serveur : la page reçoit « chez ».
+async function sansEmails(l: any[]) {
+  const eq = await equipe(db).catch(() => [] as Membre[]);
+  for (const x of l) {
+    if (!x || !Array.isArray(x.auteurs)) continue;
+    const j = eq.filter((m) => !m.chef && m.actif && x.auteurs.includes(m.email)).map((m) => m.nom);
+    x.chez = j[0] || ""; delete x.auteurs;
+  }
+  return l;
+}
 function post(p: any) {
   return { id: p.id, titre: p.title, statut: p.status, visibilite: p.visibility, image: p.feature_image || "", maj: p.updated_at, publie_le: p.published_at,
-    extrait: p.custom_excerpt || "", lecture: p.reading_time || 0, url: p.url, apercu: p.uuid ? SITE + "/p/" + p.uuid + "/" : "", editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id };
+    extrait: p.custom_excerpt || "", lecture: p.reading_time || 0, url: p.url, apercu: p.uuid ? SITE + "/p/" + p.uuid + "/" : "", editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id,
+    // 23/10/2026 : tag interne « #fini » (prêt à relire) et e-mails des auteurs Ghost (une journaliste auteure sans #fini = « en cours chez elle »)
+    fini: Array.isArray(p.tags) ? p.tags.some(estFini) : undefined, auteurs: Array.isArray(p.authors) ? p.authors.map((u: any) => String(u.email || "").toLowerCase()).filter(Boolean) : undefined };
 }
 
 function egal(a: string, b: string) { if (!a || a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
@@ -150,6 +166,128 @@ async function enregistrerRapport(b: any) {
   return { ok: true, post_id: id };
 }
 
+// ---------- Événements de l'Usine (miroir des messages Telegram), 23/10/2026 ----------
+const GENRES = ["brouillon", "echec", "alerte", "panne", "soir", "radar", "special", "fini", "inscriptions"];
+const GENRES_ALERTE = ["alerte", "echec", "panne"];
+async function pushEquipe(to: string[] | null, title: string, message: string, ancre = "") {
+  try {
+    const r = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-db", { method: "POST", headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
+      body: JSON.stringify({ action: "push", ...(to ? { to } : {}), title, message, ancre }) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+async function chefsIds(): Promise<string[]> {
+  const { data } = await db.from("wl_equipe").select("id").eq("role", "chef").eq("actif", true);
+  const l = (data || []).map((x: any) => String(x.id));
+  return l.length ? l : ["jonathan"];
+}
+async function reglage(cle: string) { const { data } = await db.from("wl_reglages").select("valeur").eq("cle", cle).limit(1); return String((data && data[0] && data[0].valeur) || ""); }
+// Ligne d'événement, bornée ; clé de dédoublonnage facultative (un même message n'est jamais enregistré deux fois).
+async function noterEvenement(e: { genre: string; titre?: string; texte?: string; donnees?: any; cle?: string; test?: boolean }) {
+  const row: Record<string, unknown> = { genre: e.genre, titre: txt(e.titre, 300) || null, texte: txt(e.texte, 6000) || null, donnees: e.donnees && typeof e.donnees === "object" ? e.donnees : {}, test: !!e.test };
+  if (e.cle) row.cle = txt(e.cle, 200);
+  const { data, error } = await db.from("usine_evenements").insert(row).select("id").limit(1);
+  if (error) { if (/duplicate|unique/i.test(error.message)) return { ok: true, doublon: true }; return { ok: false, why: error.message }; }
+  return { ok: true, id: data && data[0] && data[0].id };
+}
+const premiereLigne = (t: string) => String(t || "").split("\n").map((x) => x.trim()).filter(Boolean)[0] || "";
+const lst = (v: unknown, n = 12) => (Array.isArray(v) ? v : []).map((x) => txt(x, 200)).filter(Boolean).slice(0, n);
+function texteSoir(d: any): string {
+  const k = String(d.kind || "");
+  if (k === "batch") {
+    const n = Number(d.publishedCount) || 0, t = lst(d.publishedTitles);
+    if (!n && !t.length) return "Batch du soir : aucun article à publier.";
+    return "📰 Batch du soir : " + n + " article" + (n > 1 ? "s" : "") + " publié" + (n > 1 ? "s" : "") + " (premium " + (Number(d.premiumCount) || 0) + ", gratuits " + (Number(d.actuPubCount) || 0) + ")" +
+      (t.length ? "\n" + t.map((x) => "• " + x).join("\n") : "") + (Array.isArray(d.finiRetires) && d.finiRetires.length ? "\nTag #fini retiré : " + lst(d.finiRetires).join(" · ") : "");
+  }
+  if (k === "verrou") {
+    const v = d.verrou || {}, late = lst(d.latePublished);
+    const r = String(v.role || "");
+    let t = "🔒 Verrou du soir (21 h)" + (r === "gagnant" ? " : passage retenu" : r ? " : " + r : "");
+    if (late.length) t += "\nValidés après 18 h 30, publiés à 21 h :\n" + late.map((x) => "• " + x).join("\n");
+    if (v.error) t += "\n⚠️ " + txt(v.error, 200);
+    if (d.weekend) t += "\nWeek-end : pas de brief.";
+    return t;
+  }
+  if (k === "brief") {
+    if (d.sent) return "✉️ Brief envoyé : « " + txt(d.subject, 200) + " » (" + (Number(d.articles) || 0) + " article" + ((Number(d.articles) || 0) > 1 ? "s" : "") + ")";
+    return "✉️ Brief non envoyé" + (Array.isArray(d.problems) && d.problems.length ? " : " + d.problems.map((x: unknown) => txt(typeof x === "string" ? x : JSON.stringify(x), 160)).join(" · ") : "");
+  }
+  return "";
+}
+function texteSpecial(d: any): string {
+  if (d.type === "bestof") return "📬 Best-of premium prêt (brouillon) : « " + txt(d.objet, 200) + " »" + (lst(d.picks).length ? "\n" + lst(d.picks).map((x) => "• " + x).join("\n") : "");
+  if (d.type === "grandformat") return "📺 Grand Format " + (d.scheduledAt ? "programmé" : "prêt") + " : « " + txt(d.objet, 200) + " »" + (lst(d.videos).length ? "\n" + lst(d.videos).map((x) => "• " + x).join("\n") : "");
+  return "";
+}
+async function recevoirEvenement(b: any) {
+  const genre = String(b.genre || "");
+  if (!GENRES.includes(genre)) return { ok: false, why: "genre inconnu" };
+  let texte = txt(b.texte, 6000);
+  // l'Usine peut passer le corps Telegram tel quel ({ chat_id, text }) ou sa chaîne JSON
+  if (!texte && b.telegram) { try { const t = typeof b.telegram === "string" ? JSON.parse(b.telegram) : b.telegram; texte = txt(t.text || t.caption || "", 6000); } catch (_) { texte = txt(b.telegram, 6000); } }
+  const d = b.donnees && typeof b.donnees === "object" ? b.donnees : {};
+  // Journal du soir : l'Usine envoie ses données brutes ; le texte lisible est composé ici.
+  if (genre === "soir" && !texte) texte = texteSoir(d);
+  if (genre === "special" && !texte) texte = texteSpecial(d);
+  if (!texte && !txt(b.titre, 300)) return { ok: true, ignore: "rien à noter" };
+  const titre = txt(b.titre, 300) || premiereLigne(texte).slice(0, 200);
+  const test = b.test === true;
+  const r = await noterEvenement({ genre, titre, texte, donnees: d, cle: b.cle, test });
+  if (!r.ok || (r as any).doublon) return r;
+  const low = texte.toLowerCase();
+  // alertes dérivées : crédits OpenAI épuisés (rapport du brouillon), sujets écartés par l'anti-doublon (résumé du Radar)
+  if (genre === "brouillon" && /(billing|quota|insufficient|crédit|credit).{0,40}(openai|image)|openai.{0,60}(billing|quota|crédit|credit|insufficient)/i.test(texte))
+    await noterEvenement({ genre: "alerte", titre: "Crédits OpenAI épuisés : couverture non générée", texte: titre, donnees: { source: "brouillon" }, test });
+  if (genre === "radar") {
+    const lignes = texte.split("\n").filter((x) => /écart|ecart|trop proche|doublon/i.test(x));
+    if (lignes.length) await noterEvenement({ genre: "alerte", titre: "Radar : sujets écartés par l’anti-doublon", texte: lignes.join("\n").slice(0, 3000), donnees: { source: "radar" }, test });
+  }
+  // #fini non retiré à la publication : jamais bloquant pour l'Usine, mais signalé au chef (onglet Alertes)
+  if (genre === "soir" && Array.isArray(d.finiErreurs) && d.finiErreurs.length)
+    await noterEvenement({ genre: "alerte", titre: "Tag #fini non retiré à la publication", texte: d.finiErreurs.map((x: unknown) => "• " + txt(x, 300)).join("\n"), donnees: { source: "batch" }, test });
+  if (genre === "soir" && d.kind === "brief" && d.sent === false && Array.isArray(d.problems) && d.problems.length)
+    await noterEvenement({ genre: "alerte", titre: "Brief du soir non envoyé", texte: d.problems.map((x: unknown) => "• " + txt(typeof x === "string" ? x : JSON.stringify(x), 300)).join("\n"), donnees: { source: "brief" }, test });
+  if (test) return { ok: true, id: (r as any).id, push: false };
+  const chefs = await chefsIds();
+  if (genre === "brouillon") await pushEquipe(chefs, "📝 Brouillon prêt", titre.replace(/^📝\s*/, "") || "Un nouveau brouillon de l’Usine est sur le Marbre.", "marbre");
+  else if (genre === "echec") await pushEquipe(chefs, "⚠️ Rédaction échouée", titre || "L’Usine n’a pas pu rédiger le sujet.", "radar");
+  else if (genre === "alerte") await pushEquipe(chefs, "⚠️ Usine : alerte", titre, "radar");
+  else if (genre === "radar" && (await reglage("push_radar_matin")) === "1") await pushEquipe(chefs, "📡 Radar du jour", titre || "Les sujets du jour sont arrivés.", "radar");
+  return { ok: true, id: (r as any).id };
+}
+// Tags d'un post Ghost (Admin API) ; écrit le tableau de tags complet (Ghost remplace la liste).
+async function ghostEcrire(path: string, method: string, body: unknown) {
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const r = await fetch(ghostUrl() + "/ghost/api/admin/" + path, { method, signal: ctl.signal, headers: { Authorization: "Ghost " + (await ghostToken()), "Accept-Version": "v5.0", "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error("Ghost " + r.status + " " + String(j?.errors?.[0]?.message || "").slice(0, 160));
+    return j;
+  } finally { clearTimeout(to); }
+}
+const FINI = { name: "#fini", slug: "hash-fini" };
+const estFini = (t: any) => t && (t.slug === FINI.slug || String(t.name || "").toLowerCase() === FINI.name);
+
+// Brouillons marqués « #fini » (prêts à relire), tous auteurs. Un #fini posé directement dans Ghost (sans le bouton du lab) est
+// détecté ici, une seule fois par article et par jour : événement « fini » + push au rédacteur en chef. Jamais bloquant.
+async function brouillonsFinis() {
+  try {
+    const r: any = await ghost(`posts/?filter=${encodeURIComponent("tag:hash-fini+status:[draft,scheduled]")}&limit=30&fields=id,title,updated_at&include=authors`);
+    const l = (r.posts || []).map((p: any) => ({ id: p.id, titre: p.title, maj: p.updated_at, editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id, auteurs: (p.authors || []).map((u: any) => String(u.name || "")).filter(Boolean) }));
+    const jour = new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Zurich" }).format(new Date());
+    for (const p of l) {
+      const n = await noterEvenement({ genre: "fini", titre: p.titre, texte: "« " + p.titre + " » marqué #fini", donnees: { post_id: p.id, source: "ghost" }, cle: "fini:" + p.id + ":" + jour });
+      if (n.ok && !(n as any).doublon) {
+        // déjà signalé par le bouton du lab dans les 12 dernières heures ? pas de deuxième push
+        const { data } = await db.from("usine_evenements").select("id").eq("genre", "fini").is("cle", null).gte("at", new Date(Date.now() - 12 * 3600e3).toISOString()).contains("donnees", { post_id: p.id }).limit(1);
+        if (!data || !data.length) await pushEquipe(await chefsIds(), "✅ Prêt à relire", "« " + p.titre + " »" + (p.auteurs.length ? " (" + p.auteurs.join(", ") + ")" : "") + " est marqué #fini.", "marbre");
+      }
+    }
+    return l;
+  } catch (_) { return null; }
+}
+
 Deno.serve(async (req) => {
   const h = { ...cors(req), "Content-Type": "application/json", "Cache-Control": "no-store" };
   if (req.method === "OPTIONS") return new Response(null, { headers: h });
@@ -161,10 +299,15 @@ Deno.serve(async (req) => {
     if (!egal(req.headers.get("x-tv-secret") || "", env("TV_ADMIN_SECRET"))) return out({ ok: false, why: "unauthorized" }, 401);
     try { return out(await enregistrerRapport(b)); } catch (e) { return out({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) }, 500); }
   }
+  // Usine (serveur à serveur) : miroir d'un message Telegram (23/10/2026). Jamais bloquant côté Usine (réponse rapide, erreurs avalées).
+  if (b.action === "evenement") {
+    if (!egal(req.headers.get("x-tv-secret") || "", env("TV_ADMIN_SECRET"))) return out({ ok: false, why: "unauthorized" }, 401);
+    try { return out(await recevoirEvenement(b)); } catch (e) { return out({ ok: false, why: String((e as Error)?.message || e).slice(0, 200) }); }
+  }
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const chef = !!qui.chef;
-  const ecrit = ["choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar"];
+  const ecrit = ["choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar", "lancer_usine", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
   if (ecrit.includes(String(b.action)) && !chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
   try {
     // État de configuration (aucune valeur de secret n'est renvoyée).
@@ -238,11 +381,12 @@ Deno.serve(async (req) => {
       // Sans jeton Airtable : on montre quand même les brouillons Ghost récents (sans « Approuver », qui écrit dans Airtable).
       if (!airKey()) {
         const [dr, pub] = await Promise.all([
-          ghost(`posts/?filter=${encodeURIComponent("status:[draft,scheduled]")}&limit=15&order=updated_at%20desc&fields=${CHAMPS_POST}`).catch((e) => ({ erreur: String(e.message || e) })),
+          ghost(`posts/?filter=${encodeURIComponent("status:[draft,scheduled]")}&limit=15&order=updated_at%20desc&fields=${CHAMPS_POST}&include=tags,authors`).catch((e) => ({ erreur: String(e.message || e) })),
           ghost(`posts/?filter=${encodeURIComponent(`status:published+published_at:>'${minuitZurich()}'`)}&limit=20&order=published_at%20desc&fields=${CHAMPS_POST}`).catch((e) => ({ erreur: String(e.message || e) })),
         ]);
         const brouillons = ((dr as any).posts || []).filter((p: any) => !p.email_only && !/^\s*TEST\s*[—–-]/.test(p.title || "")).map((p: any) => ({ id: "", titre: p.title, type: "", statut: "", post: post(p), social: null }));
-        return out({ ok: true, chef, airtable_absent: true, brouillons, usine_ids: [], publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
+        await sansEmails(brouillons.map((x: any) => x.post));
+        return out({ ok: true, chef, airtable_absent: true, brouillons, usine_ids: [], finis: await brouillonsFinis(), publies: await sansEmails(((pub as any).posts || []).filter((p: any) => !p.email_only).map(post)),
           erreur_ghost: (dr as any).erreur || (pub as any).erreur || "", at: new Date().toISOString() });
       }
       // usine_ids (23/10/2026) : les posts Ghost écrits par l'Usine (GhostPostId du Radar, 100 plus récents, tous statuts), pour que la
@@ -255,7 +399,7 @@ Deno.serve(async (req) => {
       const recs = (r.records || []).map(sujet).filter((s: any) => s.ghost_id);
       const ids = recs.map((s: any) => s.ghost_id).filter((x: string) => /^[a-f0-9]{24}$/.test(x));
       const [posts, soc, pub] = await Promise.all([
-        ids.length ? ghost(`posts/?filter=${encodeURIComponent("id:[" + ids.join(",") + "]")}&limit=all&fields=${CHAMPS_POST}`).catch((e) => ({ erreur: String(e.message || e) })) : Promise.resolve({ posts: [] }),
+        ids.length ? ghost(`posts/?filter=${encodeURIComponent("id:[" + ids.join(",") + "]")}&limit=all&fields=${CHAMPS_POST}&include=tags,authors`).catch((e) => ({ erreur: String(e.message || e) })) : Promise.resolve({ posts: [] }),
         ids.length ? air("Social" + q("OR(" + ids.map((i: string) => `{GhostPostId}='${i}'`).join(",") + ")", "&maxRecords=30")).catch(() => ({ records: [] })) : Promise.resolve({ records: [] }),
         ghost(`posts/?filter=${encodeURIComponent(`status:published+published_at:>'${minuitZurich()}'`)}&limit=20&order=published_at%20desc&fields=${CHAMPS_POST}`).catch((e) => ({ erreur: String(e.message || e) })),
       ]);
@@ -267,7 +411,8 @@ Deno.serve(async (req) => {
         .filter((x: any) => !x.post || x.post.statut === "draft" || x.post.statut === "scheduled")
         // Post Ghost introuvable alors que la requête Ghost a réussi : il a été supprimé à la main (22/10/2026).
         .map((x: any) => ({ ...x, ghost_supprime: !x.post && !(posts as any).erreur && /^[a-f0-9]{24}$/.test(x.ghost_id) }));
-      return out({ ok: true, chef, brouillons, usine_ids, publies: ((pub as any).posts || []).filter((p: any) => !p.email_only).map(post),
+      await sansEmails(brouillons.map((x: any) => x.post));
+      return out({ ok: true, chef, brouillons, usine_ids, finis: await brouillonsFinis(), publies: await sansEmails(((pub as any).posts || []).filter((p: any) => !p.email_only).map(post)),
         erreur_ghost: (posts as any).erreur || (pub as any).erreur || "", at: new Date().toISOString() });
     }
     // Approuver (= lien « Approuver » de Telegram, mais authentifié) : publié au batch du soir (~18 h 30).
@@ -303,6 +448,108 @@ Deno.serve(async (req) => {
       const r = await fetch(USINE_TELEGRAM_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(upd) }).catch(() => null);
       if (!r || !r.ok) return out({ ok: false, why: "l’Usine ne répond pas (" + (r ? r.status : "réseau") + ")" });
       return out({ ok: true, why: "Radar relancé : les nouveaux sujets arrivent d’ici quelques minutes" });
+    }
+    // Lancer l'Usine maintenant (= /usine) : même webhook Telegram que « Relancer le Radar » ; l'Usine applique ses propres garde-fous
+    // (pas deux /usine en 12 min, pas pendant un passage programmé) et répond aussi sur Telegram. Verrou du lab : 12 minutes.
+    if (b.action === "lancer_usine") {
+      const now = new Date(), hm = Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", hour: "2-digit", hour12: false }).format(now)) * 60 + Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", minute: "2-digit" }).format(now));
+      if ((hm >= 510 && hm < 525) || (hm >= 720 && hm < 735)) return out({ ok: false, why: "un passage programmé de l’Usine est en cours (" + (hm < 600 ? "8 h 30" : "12 h") + ") : attendez le brouillon" });
+      const last = Date.parse(await reglage("usine_lance_le")) || 0;
+      if (Date.now() - last < 12 * 60e3) return out({ ok: false, why: "Usine déjà lancée il y a moins de 12 minutes : le brouillon arrive (environ 8 min)" });
+      await db.from("wl_reglages").upsert({ cle: "usine_lance_le", valeur: now.toISOString(), updated_at: now.toISOString() }, { onConflict: "cle" });
+      const upd = { update_id: Date.now(), message: { message_id: Date.now() % 1e9, date: Math.floor(Date.now() / 1000), text: "/usine", chat: { id: JONATHAN_CHAT, type: "private" }, from: { id: JONATHAN_CHAT, is_bot: false, first_name: "Writinglab" } } };
+      const r = await fetch(USINE_TELEGRAM_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(upd) }).catch(() => null);
+      if (!r || !r.ok) return out({ ok: false, why: "l’Usine ne répond pas (" + (r ? r.status : "réseau") + ")" });
+      return out({ ok: true, why: "Usine lancée : le brouillon arrive sur le Marbre d’ici 8 à 10 minutes" });
+    }
+    // Onglet ⚠️ Alertes du Radar (chef seul) : alertes et échecs de l'Usine + pannes des workflows (wl_alertes).
+    if (b.action === "alertes") {
+      const [ev, pn] = await Promise.all([
+        db.from("usine_evenements").select("id,at,genre,titre,texte,lu_le,test").in("genre", GENRES_ALERTE).order("at", { ascending: false }).limit(80),
+        db.from("wl_alertes").select("cle,derniere,nombre,detail").order("derniere", { ascending: false }).limit(20),
+      ]);
+      const alertes = (ev.data || []).map((x: any) => ({ id: x.id, at: x.at, genre: x.genre, titre: x.titre || "", texte: x.texte || "", lu: !!x.lu_le, test: !!x.test }));
+      const lus = await reglage("alertes_pannes_lues_le");
+      const pannes = (pn.data || []).map((x: any) => ({ cle: x.cle, at: x.derniere, nombre: Number(x.nombre) || 1, texte: x.detail || "", lu: !!lus && Date.parse(lus) >= Date.parse(x.derniere) }));
+      const radar_matin = (await reglage("push_radar_matin")) === "1";
+      return out({ ok: true, alertes, pannes, non_lues: alertes.filter((x: any) => !x.lu && !x.test).length + pannes.filter((x: any) => !x.lu).length, radar_matin });
+    }
+    if (b.action === "alertes_lu") {
+      const now = new Date().toISOString();
+      if (b.tout) {
+        await db.from("usine_evenements").update({ lu_le: now }).in("genre", GENRES_ALERTE).is("lu_le", null);
+        await db.from("wl_reglages").upsert({ cle: "alertes_pannes_lues_le", valeur: now, updated_at: now }, { onConflict: "cle" });
+      } else if (b.panne) await db.from("wl_reglages").upsert({ cle: "alertes_pannes_lues_le", valeur: now, updated_at: now }, { onConflict: "cle" });
+      else if (Number(b.id) > 0) await db.from("usine_evenements").update({ lu_le: now }).eq("id", Number(b.id)).in("genre", GENRES_ALERTE);
+      return out({ ok: true });
+    }
+    // Interrupteur du chef : push du résumé du Radar le matin (désactivé par défaut).
+    if (b.action === "reglage_radar") {
+      const v = b.push_radar_matin ? "1" : "0";
+      await db.from("wl_reglages").upsert({ cle: "push_radar_matin", valeur: v, updated_at: new Date().toISOString() }, { onConflict: "cle" });
+      return out({ ok: true, push_radar_matin: v === "1" });
+    }
+    // Journal du soir (toute l'équipe, lecture) : ce que l'Usine a fait au batch (publiés, brief, push, réseaux, verrou) depuis 36 h.
+    if (b.action === "journal") {
+      const depuis = new Date(Date.now() - 36 * 3600e3).toISOString();
+      const { data } = await db.from("usine_evenements").select("id,at,genre,titre,texte,donnees").in("genre", ["soir", "special"]).eq("test", false).gte("at", depuis).order("at", { ascending: true }).limit(40);
+      return out({ ok: true, journal: (data || []).map((x: any) => ({ id: x.id, at: x.at, genre: x.genre, titre: x.titre || "", texte: x.texte || "", donnees: x.donnees || {} })) });
+    }
+    // Envois spéciaux (Best-of mensuel, Grand Format du samedi) : 14 derniers jours, lecture équipe. Le lien de programmation du
+    // Best-of (il contient la clé du webhook) ne quitte jamais le serveur.
+    if (b.action === "speciaux") {
+      const { data } = await db.from("usine_evenements").select("id,at,titre,texte,donnees").eq("genre", "special").eq("test", false).gte("at", new Date(Date.now() - 14 * 864e5).toISOString()).order("at", { ascending: false }).limit(10);
+      return out({ ok: true, speciaux: (data || []).map((x: any) => { const d = { ...(x.donnees || {}) }; const lien = !!d.lien; delete d.lien;
+        return { id: x.id, at: x.at, titre: x.titre || "", texte: x.texte || "", type: d.type || "", post_id: d.post_id || "", editeur: d.post_id ? ghostUrl() + "/ghost/#/editor/post/" + d.post_id : "", programme: d.programme || d.scheduledAt || "", valide: !!d.valide_le, annule: !!d.annule_le, peut_valider: lien && !d.valide_le, donnees: d }; }) });
+    }
+    if (b.action === "valider_special" || b.action === "annuler_special") {
+      const { data } = await db.from("usine_evenements").select("id,donnees").eq("id", Number(b.id) || 0).eq("genre", "special").limit(1);
+      const ev: any = data && data[0];
+      if (!ev) return out({ ok: false, why: "envoi introuvable" });
+      const d = ev.donnees || {};
+      if (b.action === "valider_special") {
+        if (d.type !== "bestof" || !d.lien) return out({ ok: false, why: "rien à valider pour cet envoi" });
+        if (d.valide_le) return out({ ok: true, deja: true, why: "déjà validé" });
+        const r = await fetch(String(d.lien), { method: "GET" }).catch(() => null);
+        const html = r ? await r.text().catch(() => "") : "";
+        const t = (html.match(/<h1[^>]*>([^<]*)<\/h1>/i) || [])[1] || "", p2 = ((html.match(/<p>([\s\S]*?)<\/p>/i) || [])[1] || "").replace(/<[^>]+>/g, "").trim();
+        const ok = !!r && r.ok && !/invalide|erreur/i.test(t);
+        if (ok) await db.from("usine_evenements").update({ donnees: { ...d, valide_le: new Date().toISOString(), valide_msg: (t + " — " + p2).slice(0, 300) } }).eq("id", ev.id);
+        return out({ ok, why: (t ? t + (p2 ? " : " + p2 : "") : (r ? "réponse " + r.status : "le workflow ne répond pas")).slice(0, 300) });
+      }
+      // Annuler le Grand Format programmé : repasse le post en brouillon (rien n'est envoyé).
+      if (d.type !== "grandformat" || !/^[a-f0-9]{24}$/.test(String(d.post_id || ""))) return out({ ok: false, why: "rien à annuler pour cet envoi" });
+      const pg: any = ((await ghost(`posts/${d.post_id}/?fields=id,status,updated_at`)) as any).posts?.[0];
+      if (!pg) return out({ ok: false, why: "post introuvable dans Ghost" });
+      if (pg.status !== "scheduled") return out({ ok: false, why: pg.status === "draft" ? "déjà annulé (brouillon)" : "déjà envoyé (" + pg.status + ")" });
+      await ghostEcrire(`posts/${d.post_id}/`, "PUT", { posts: [{ status: "draft", updated_at: pg.updated_at }] });
+      await db.from("usine_evenements").update({ donnees: { ...d, annule_le: new Date().toISOString() } }).eq("id", ev.id);
+      return out({ ok: true, why: "Grand Format annulé : le post est repassé en brouillon" });
+    }
+    // Bilan des inscriptions newsletter (Meta Ads + popup) envoyé chaque soir par le workflow des inscrits : 14 derniers bilans.
+    if (b.action === "inscriptions") {
+      const { data } = await db.from("usine_evenements").select("id,at,titre,texte,donnees").eq("genre", "inscriptions").eq("test", false).order("at", { ascending: false }).limit(14);
+      return out({ ok: true, inscriptions: (data || []).map((x: any) => ({ id: x.id, at: x.at, titre: x.titre || "", texte: x.texte || "", donnees: x.donnees || {} })) });
+    }
+    // Tag interne « #fini » : la journaliste signale qu'un brouillon est prêt à relire (ou le reprend). Toute l'équipe peut le poser
+    // sur un brouillon ou un article programmé ; jamais sur un article publié. Les autres tags sont conservés tels quels.
+    if (b.action === "fini" || b.action === "reprendre") {
+      const id = String(b.post_id || "");
+      if (!/^[a-f0-9]{24}$/.test(id)) return out({ ok: false, why: "article invalide" }, 400);
+      const p = ((await ghost(`posts/${id}/?include=tags&formats=html`)) as any).posts?.[0];
+      if (!p) return out({ ok: false, why: "article introuvable dans Ghost" });
+      if (p.status === "published" || p.status === "sent") return out({ ok: false, why: "article déjà publié" });
+      const tags = (p.tags || []).map((t: any) => ({ id: t.id, name: t.name, slug: t.slug }));
+      const a = tags.some(estFini);
+      if (b.action === "fini" && a) return out({ ok: true, fini: true, deja: true });
+      if (b.action === "reprendre" && !a) return out({ ok: true, fini: false, deja: true });
+      const nv = b.action === "fini" ? tags.map((t: any) => (t.id ? { id: t.id } : { name: t.name })).concat([{ name: FINI.name }]) : tags.filter((t: any) => !estFini(t)).map((t: any) => ({ id: t.id }));
+      await ghostEcrire(`posts/${id}/`, "PUT", { posts: [{ tags: nv, updated_at: p.updated_at }] });
+      if (b.action === "fini") {
+        await noterEvenement({ genre: "fini", titre: p.title, texte: qui.nom + " a fini « " + p.title + " »", donnees: { post_id: id, membre: qui.id } });
+        if (!qui.chef) await pushEquipe(await chefsIds(), "✅ " + qui.nom.split(" ")[0] + " a fini", "« " + p.title + " » est prêt à relire.", "marbre");
+      }
+      return out({ ok: true, fini: b.action === "fini" });
     }
     return out({ ok: false, why: "action inconnue" }, 400);
   } catch (e) {
