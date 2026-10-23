@@ -100,8 +100,11 @@ function humain(e: any, quoi: "IMAP" | "SMTP", hote: string, port: number) {
   return "Erreur " + quoi + " : " + m.replace(/\s+/g, " ").slice(0, 160);
 }
 const DELAIS = { connectionTimeout: 10000, greetingTimeout: 8000, socketTimeout: 20000 };
+// 24/10/2026 : sans compression IMAP (COMPRESS=DEFLATE, proposée par OVH) ni IDLE automatique : dans l'environnement des fonctions,
+// le flux compressé restait parfois bloqué au milieu d'une réponse (lecture d'un mail ou même d'un en-tête qui ne finit jamais).
+const IMAP_OPTS = { disableCompression: true, disableAutoIdle: true };
 async function testImap(c: Cfg, pass: string) {
-  const cl = new ImapFlow({ host: c.imap_host, port: c.imap_port, secure: c.imap_port === 993, auth: { user: c.identifiant, pass }, logger: false, ...DELAIS });
+  const cl = new ImapFlow({ host: c.imap_host, port: c.imap_port, secure: c.imap_port === 993, auth: { user: c.identifiant, pass }, logger: false, ...DELAIS, ...IMAP_OPTS });
   try {
     await cl.connect();
     const l = await cl.list();
@@ -230,7 +233,7 @@ async function releverBoite(box: any, adresses: string[]) {
   const { data: pris } = await db.from("wl_boites").update({ releve_verrou: now }).eq("id", box.id).or("releve_verrou.is.null,releve_verrou.lt." + avant).select("id");
   if (!pris || !pris.length) return { id: box.id, saute: "relève déjà en cours" };
   let dernier = box.dernier_uid == null ? null : Number(box.dernier_uid), validite = box.uid_validity, nouveaux = 0, ignores = 0;
-  const c = new ImapFlow({ host: box.imap_host, port: box.imap_port, secure: box.imap_port === 993, auth: { user: box.identifiant || box.adresse, pass: await lireSecret(box.secret_id) }, logger: false, ...DELAIS });
+  const c = new ImapFlow({ host: box.imap_host, port: box.imap_port, secure: box.imap_port === 993, auth: { user: box.identifiant || box.adresse, pass: await lireSecret(box.secret_id) }, logger: false, ...DELAIS, ...IMAP_OPTS });
   try {
     await etape("connexion", c.connect());
     const lock = await etape("ouverture de la boîte de réception", c.getMailboxLock("INBOX"));
