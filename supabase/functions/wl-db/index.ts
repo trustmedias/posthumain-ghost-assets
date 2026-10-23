@@ -201,6 +201,7 @@ async function recompenser(data: any[] | null, meta: any = null) {
     const doutes: string[] = [];
     if (ADRESSES_EQUIPE.includes(email) || dom === "posthumain.com" || ADRESSES_EQUIPE.includes(pr.de) || domDe === "posthumain.com") doutes.push("adresse de l'équipe");
     else if (pr.lien === "autre_adresse") doutes.push("réponse dans le fil depuis une autre adresse (" + pr.de + ")");
+    else if (pr.lien === "telephone") doutes.push("réponse par téléphone"); // 23/10/2026 : pas de preuve par les en-têtes de mail → le chef valide
     { const wm = await webmailsAVerifier(), d2 = wm.includes(dom) ? dom : wm.includes(domDe) ? domDe : ""; if (d2) doutes.push("adresse de messagerie gratuite (" + d2 + ")"); }
     if (String(f.reponse || "").replace(/\s+/g, " ").trim().length < 120) doutes.push("réponse très courte");
     const bm = bareme(meta);
@@ -251,7 +252,7 @@ const TARIFS: Record<string, [number, number]> = {
 };
 const USD_EUR = 0.92; // conversion approximative, suffisante pour un ordre de grandeur mensuel
 const RECHERCHE_WEB_USD = 0.01; // 10 $ les 1000 recherches web
-const USAGES = ["preparation", "dictee", "citations", "prospection", "autre"];
+const USAGES = ["preparation", "dictee", "citations", "prospection", "telephone", "autre"];
 function coutEur(modele: string, u: any) {
   const k = Object.keys(TARIFS).find((x) => String(modele || "").startsWith(x)) || "claude-sonnet-5-5";
   const [pi, po] = TARIFS[k];
@@ -274,7 +275,7 @@ async function couts() {
   const debut = new Date(Date.UTC(m <= 5 ? a - 1 : a, (m - 6 + 12) % 12, 1)).toISOString();
   const { data } = await db.from("wl_couts").select("created_at,usage,cout_eur").gte("created_at", debut).limit(20000);
   const moisDe = (d: string) => new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit" }).format(new Date(d));
-  const par_usage: Record<string, number> = { preparation: 0, dictee: 0, citations: 0, prospection: 0, autre: 0 };
+  const par_usage: Record<string, number> = { preparation: 0, dictee: 0, citations: 0, prospection: 0, telephone: 0, autre: 0 };
   const pm: Record<string, number> = {};
   for (let i = 5; i >= 0; i--) { const d = new Date(Date.UTC(a, m - 1 - i, 1)); pm[d.toISOString().slice(0, 7)] = 0; }
   let total = 0;

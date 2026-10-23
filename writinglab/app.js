@@ -296,7 +296,7 @@
 #wl .prep{max-width:760px;margin:16px auto 80px;padding:20px 22px 22px;background:#14110c;border:1px solid rgba(0,255,119,.22);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(0,255,119,.08)}#wl .dtop .pp-x{margin-left:auto;flex:0 0 auto}#wl .pp-k{display:flex;align-items:center;gap:8px;font:700 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#00ff77}#wl .pp-dot{width:8px;height:8px;border-radius:50%;background:#00ff77;box-shadow:0 0 10px #00ff77;animation:wlPpPulse 1.1s ease-in-out infinite}#wl .pp-ti{margin:6px 0 14px;font-weight:800;font-size:19px;line-height:1.3;color:#f3ece0}#wl .pp-pg{margin:4px 0 12px}#wl .pp-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}#wl .pp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77);transition:width 1s linear}#wl .pp-pg.on .pp-bar i:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:wlPpScan 1.6s linear infinite}#wl .pp-meta{display:flex;justify-content:space-between;margin-top:6px;font:12px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .pp-el{color:#9fffc8;font-weight:700}#wl .pp-log{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:2px}#wl .pp-log li{display:grid;grid-template-columns:46px 26px 1fr;align-items:baseline;gap:6px;padding:7px 10px;border-radius:10px;transition:background .3s,opacity .3s}#wl .pp-log li.wait{opacity:.38}#wl .pp-log li.run{background:rgba(0,255,119,.07);box-shadow:inset 2px 0 0 #00ff77}#wl .pp-log li.ok .pp-lt:after{content:' ✓';color:#3dffa0;font-weight:800}#wl .pp-log li.ko{background:rgba(255,61,90,.1);box-shadow:inset 2px 0 0 #ff3d5a}#wl .pp-log li.run .pp-lt:after{content:'';display:inline-block;width:7px;height:14px;margin-left:6px;vertical-align:-2px;background:#00ff77;animation:wlPpCaret 1s steps(2) infinite}#wl .pp-s{font:11.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.45)}#wl .pp-ic{font-size:15px}#wl .pp-l{font-size:14.5px;line-height:1.4;color:#f3ece0}#wl .pp-l small{display:block;font-size:12.5px;color:rgba(243,236,224,.55)}#wl .pp-long{margin:6px 0;padding:9px 12px;border-radius:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.35);font-size:13.5px;line-height:1.5;color:#ffe0a3}#wl .prep p.muted{font-size:13px!important;line-height:1.5!important}#wl .pp-n{font-size:13px;margin:8px 0 0}#wl .pp-det summary{cursor:pointer;font-size:13px;color:rgba(243,236,224,.6);margin:2px 0 4px}#wl .pp-fin{margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(0,255,119,.08);border:1px solid rgba(0,255,119,.35);color:#c9ffe0;font-size:14.5px;line-height:1.5}#wl .pp-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:18px 0 4px}#wl .pp-h>b{font-size:16px;color:#f3ece0}#wl .pp-c.in{animation:wlPpIn .55s cubic-bezier(.2,.8,.2,1) both}#wl .dcard:focus-visible{outline:2px solid #00ff77;outline-offset:2px}@keyframes wlPpIn{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}@keyframes wlPpScan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@keyframes wlPpPulse{50%{opacity:.35}}@keyframes wlPpCaret{50%{opacity:0}}@media (max-width:720px){#wl .prep{margin:10px 8px 60px;padding:16px 14px 18px;border-radius:16px}#wl .pp-ti{font-size:17px}#wl .pp-log li{grid-template-columns:40px 22px 1fr;padding:7px 6px}}@media (prefers-reduced-motion:reduce){#wl .pp-c.in,#wl .pp-dot,#wl .pp-pg.on .pp-bar i:after,#wl .pp-log li.run .pp-lt:after{animation:none}}\
 #wl .qbox input,#wl .qbox input.in{padding-left:40px!important}#wl .qbox:before{left:13px!important;line-height:1;z-index:1}#wl .nom-l{color:inherit!important;text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}#wl .nom-l:hover{text-decoration:none;border-bottom-style:solid}#wl .nom-i{display:inline-block;margin-left:4px;font:700 10px/1 Inter,sans-serif;opacity:.6;vertical-align:2px;border-bottom:0}#wl .nom-i.li{padding:2px 3px;border-radius:3px;background:#0a66c2;color:#fff!important;opacity:.9}#wl .nom-l.nom-q .nom-i{font-size:10px}#wl .src-l{font-size:12.5px;color:#3dffa0!important;margin-left:6px;white-space:nowrap}#wl .paper .src-l,#wl .dcard .src-l{color:#0a7a45!important}#wl .src-w{margin:-6px 0 10px;font-family:Inter,sans-serif}#wl .pp-att{display:inline-block;animation:wlPpPulse 2.4s ease-in-out infinite}#wl .pp-log.r li{grid-template-columns:26px 1fr}#wl .pp-cts{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px}#wl .pp-ct{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-left:3px solid rgba(0,255,119,.5);animation:wlPpIn .45s cubic-bezier(.2,.8,.2,1) both}#wl .pp-ct.ok{border-left-color:#3dffa0}#wl .pp-ct.ko{border-left-color:#ff3d5a;background:rgba(255,61,90,.06)}#wl .pp-ct.deja{border-left-color:#7fb2ff;opacity:.8}#wl .pp-ct-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}#wl .pp-ct-h b{font-size:15px;color:#f3ece0}#wl .pp-ct-h>span{font-size:13px;color:rgba(243,236,224,.62)}#wl .pp-ct-m{font-size:12.5px;color:rgba(243,236,224,.6);margin-top:3px;word-break:break-word}#wl .pp-ct-s{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#wl .pp-ct-s span{font-size:12.5px;padding:3px 9px;border-radius:99px;border:1px solid rgba(255,255,255,.12);color:rgba(243,236,224,.5)}#wl .pp-ct-s span.run{border-color:rgba(0,255,119,.55);color:#9fffc8;background:rgba(0,255,119,.08);animation:wlPpPulse 1.6s ease-in-out infinite}#wl .pp-ct-s span.ok{border-color:rgba(61,255,160,.4);color:#c9ffe0}#wl .pp-ct-s span.ok:before{content:'✓ ';font-weight:800}#wl .pp-ct-s span.ko{border-color:rgba(255,61,90,.5);color:#ffb3c0}#wl .pp-ct-e{margin-top:8px;font-size:13px;color:#ffb3c0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}#wl .enqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin:8px 0}#wl .enq{padding:12px 14px;border-radius:14px;background:#14110c;border:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;gap:7px;min-width:0}#wl .enq.flash{border-color:rgba(0,255,119,.6)}#wl .enq-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0!important}#wl .enq-t:hover{text-decoration:underline}#wl .enq>.tag{align-self:flex-start}#wl .eb{display:flex;gap:3px;height:8px}#wl .eb i{flex:1;border-radius:3px;background:#d9e5f6}#wl .eb i.a{background:#f6c56b}#wl .eb i.b{background:#8fb3ea}#wl .eb i.g{background:#4fdc8e}#wl .eb i.c{background:#18b45f}#wl .eb i.r{background:#ff7f8f}#wl .enq-l{font-size:13px;color:rgba(243,236,224,.75)}#wl .enq-n{font-size:13px;color:rgba(243,236,224,.85);line-height:1.6}#wl .enq-n .sep{margin:0 6px;opacity:.4}#wl .enq-a{gap:6px;margin-top:2px}#wl .seg.arts-seg{display:flex;flex-wrap:wrap;margin:4px 0 2px}#wl .seg.arts-seg button{flex:1 1 auto;white-space:nowrap}#wl .seg .n{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:99px;background:rgba(255,255,255,.08);font-size:12px}@media (max-width:720px){#wl .enqs{grid-template-columns:1fr}#wl .seg.arts-seg button{padding:7px 8px!important;font-size:12.5px!important}}\
 #wl .mb-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}#wl label.mb-chk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;font:500 12.5px Inter,system-ui,sans-serif!important;text-transform:none!important;letter-spacing:normal!important;color:rgba(243,236,224,.75);cursor:pointer}#wl label.mb-chk input{width:15px;height:15px;margin:0!important;accent-color:#18b45f}#wl .als{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px;margin:6px 0 10px}#wl .al{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);cursor:pointer;min-width:0}#wl .al:hover{border-color:rgba(0,255,119,.35)}#wl .al.sel{border-color:rgba(255,190,90,.6);background:rgba(255,190,90,.07)}#wl .al-v{flex:0 0 auto;width:44px;height:44px;border-radius:7px;object-fit:cover;display:block}#wl .al-v0{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);font-size:18px}#wl .al-c{flex:1;min-width:0}#wl .al-t{font-weight:650;font-size:13.5px;line-height:1.3;color:#f3ece0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#wl .al-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:3px}#wl .al-m .tag{font-size:10.5px!important;padding:1px 6px!important}#wl .al-d{font-size:11.5px;color:rgba(243,236,224,.5);margin-left:2px}#wl .al-a{flex:0 0 auto;display:flex;align-items:center;gap:4px}#wl .al-i{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.12);text-decoration:none!important;font-size:14px}#wl .al-i:hover{border-color:rgba(0,255,119,.45)}#wl .btn.small.al-b{min-width:30px;height:30px;padding:0 7px!important;font-size:12.5px!important;white-space:nowrap}@media (max-width:720px){#wl .als{grid-template-columns:1fr}}\
-#wl.wl-verrou>.top,#wl.wl-verrou>.tabs,#wl.wl-verrou>.wrap,#wl.wl-verrou>.panel,#wl.wl-verrou>.panelbg,#wl.wl-verrou>.doc{filter:blur(18px) saturate(.6);pointer-events:none;user-select:none}#wl .cs-bg{position:fixed;inset:0;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(5,4,3,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}#wl .cs{max-width:720px;margin:12px auto 40px;padding:26px 26px 22px;border-radius:18px;background:#14110c;border:1px solid rgba(0,255,119,.25);box-shadow:0 30px 90px rgba(0,0,0,.6)}#wl .cs-k{font:700 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#00ff77}#wl .cs-t{margin:8px 0 2px!important;font:800 24px/1.2 Inter,system-ui,sans-serif!important;color:#f3ece0!important;letter-spacing:normal!important;text-transform:none!important}#wl .cs-v{font:12.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .cs-x{margin:16px 0;padding:16px 18px;border-radius:12px;background:#f8f4ea;color:#1f1a12;max-height:46vh;overflow:auto;font:15px/1.6 Georgia,'Iowan Old Style',serif}#wl .cs-x p{margin:0 0 10px}#wl .cs-h{margin:14px 0 4px!important;font:700 13px Inter,sans-serif!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#6b604c!important}#wl .cs-ol{margin:0 0 6px;padding-left:26px}#wl .cs-ol li{margin:3px 0}#wl .cs-who{font-size:13.5px;color:rgba(243,236,224,.75);margin:6px 0 10px}#wl label.cs-chk{display:flex!important;gap:10px;align-items:flex-start;margin:10px 0!important;padding:12px 14px!important;border-radius:12px;border:1px solid rgba(0,255,119,.35);background:rgba(0,255,119,.06);font:600 15px/1.4 Inter,sans-serif!important;color:#f3ece0!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer}#wl label.cs-chk input{width:20px;height:20px;margin:0!important;flex:0 0 auto;accent-color:#18b45f}#wl .cs-l{display:block;margin:14px 0 6px!important;font:600 13px Inter,sans-serif!important;color:rgba(243,236,224,.85)!important;text-transform:none!important;letter-spacing:normal!important}#wl input.cs-in{width:100%!important;box-sizing:border-box;padding:12px 14px!important;border-radius:10px!important;border:1px solid #3a3020!important;background:#16120d!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font:17px Inter,sans-serif!important}#wl .cs-pad{position:relative;border-radius:12px;background:#fff;border:2px dashed #c9bfa8;overflow:hidden}#wl .cs-pad canvas{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair}#wl .cs-ligne{position:absolute;left:18px;right:18px;bottom:42px;border-bottom:1px solid #d8cdb5;pointer-events:none}#wl .btn.cs-eff{position:absolute;right:8px;top:8px;background:#f3ece0!important;color:#1f1a12!important;-webkit-text-fill-color:#1f1a12!important;border-color:#d8cdb5!important}#wl .cs-err{min-height:20px;margin:10px 0 4px;color:#ff9aa8;font-size:13.5px}#wl .btn.cs-go{display:block;width:100%!important;box-sizing:border-box;padding:14px!important;font-size:16px!important;margin-top:6px}#wl .btn.cs-go[disabled]{opacity:.4}#wl .cs-pied{margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(243,236,224,.55)}#wl .cs-ap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:-8px -8px 16px;padding:10px 12px;border-radius:12px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.5);color:#ffe0a3;font-size:13.5px}#wl .cs-fait{text-align:center}#wl .cs-ok-ic{font-size:44px;margin:14px 0 4px}#wl .cs-date{font-size:17px;color:#f3ece0;margin:10px 0 4px}#wl .cs-j{margin:12px 0 4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .cs-jn{font-weight:700;margin-bottom:6px}#wl .cs-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.035)}#wl .cs-sigmini{width:120px;height:40px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid #d8cdb5}#wl .tag.eq-test{background:rgba(255,176,32,.18)!important;color:#ffc861!important;border-color:rgba(255,176,32,.55)!important;font-weight:800;letter-spacing:.06em}#wl .eq-m{margin:10px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .eq-m.off{opacity:.62}#wl .eq-h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}#wl .eq-b{gap:6px;flex-wrap:wrap;margin:0}#wl .eq-f{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}#wl .eq-ft{font-weight:800;margin-bottom:4px}#wl .eq-f label{display:block;margin:10px 0 4px;font-size:13px;font-weight:600}#wl .eq-f .in{width:100%;box-sizing:border-box}#wl .eq-f textarea.in{min-height:66px;font:14px/1.45 Inter,system-ui,sans-serif;resize:vertical}#wl .eq-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}#wl .eq-f label.eq-chk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}#wl .eq-f label.eq-chk input{width:18px;height:18px;margin:0}#wl #wl-equipe>.eq-f{padding:12px;border-radius:12px;background:rgba(0,255,119,.05);border:1px solid rgba(0,255,119,.25)}#wl .bx-m{margin:10px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .bx-m.off{opacity:.62}#wl .bx-m.sys{background:rgba(255,255,255,.02);border-style:dashed}#wl .bx-h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}#wl .bx-i{min-width:0;flex:1 1 260px}#wl .bx-b{gap:6px;flex-wrap:wrap;margin:0}#wl .bx-err{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(255,80,100,.1);border:1px solid rgba(255,80,100,.35);font-size:13px;color:#ffb3bf}#wl .tag.bx-sys{background:rgba(127,178,255,.14)!important;color:#a9c8ff!important;border-color:rgba(127,178,255,.45)!important}#wl .bx-t{margin:16px 0 4px;font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}#wl .bx-f{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .bx-f label,#wl .bx-w label{display:block;margin:10px 0 4px;font-size:13px;font-weight:600}#wl .bx-f .in,#wl .bx-w .in{width:100%;box-sizing:border-box}#wl .bx-w{margin:10px 0;padding:14px;border-radius:14px;background:rgba(0,255,119,.05);border:1px solid rgba(0,255,119,.28)}#wl .bx-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}#wl .bx-steps span{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);opacity:.6}#wl .bx-steps span.on{opacity:1;border-color:#00ff77;color:#00ff77}#wl .bx-steps span.ok{opacity:.9;color:#7fe0a8}#wl .bx-choix{display:flex;gap:8px;flex-wrap:wrap}#wl .bx-c{padding:9px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:inherit;font:600 14px Inter,system-ui,sans-serif;cursor:pointer}#wl .bx-c.on{border-color:#00ff77;background:rgba(0,255,119,.12);color:#c9ffe0}#wl .bx-note{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.35)}#wl .bx-av{margin-top:12px}#wl .bx-av summary{cursor:pointer;font-weight:600;font-size:13px}#wl .bx-2{display:grid;grid-template-columns:1fr 110px;gap:10px}#wl .bx-nav{gap:8px;justify-content:space-between;margin-top:14px;flex-wrap:wrap}#wl .bx-adr{font-size:13px;opacity:.75;margin:6px 0 10px;word-break:break-all}#wl .bx-r{margin:8px 0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);font-size:14px}#wl .bx-r div{margin-top:4px;font-size:13.5px;opacity:.9}#wl .bx-r.ok{border-color:rgba(0,255,119,.4);background:rgba(0,255,119,.07)}#wl .bx-r.ko{border-color:rgba(255,80,100,.45);background:rgba(255,80,100,.08)}#wl .bx-r.enc{opacity:.75}#wl .bx-roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}#wl .bx-role{text-align:left;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:inherit;font:14px Inter,system-ui,sans-serif;cursor:pointer}#wl .bx-role>span:not(.tag){display:block;margin-top:4px;font-size:12.5px;opacity:.75}#wl .bx-role>.tag{margin-left:6px;font-size:11px;vertical-align:1px}#wl .bx-role.on{border-color:#00ff77;background:rgba(0,255,119,.12)}#wl .bx-role.bientot{opacity:.45;cursor:not-allowed}#wl table.bx-recap{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:14px}#wl table.bx-recap td{padding:7px 8px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top;word-break:break-word}#wl table.bx-recap td:first-child{width:34%;opacity:.7}@media (max-width:560px){#wl .bx-roles{grid-template-columns:1fr}#wl .bx-h>div:first-child{flex:1 1 100%!important}#wl .eq-2{grid-template-columns:1fr}#wl .eq-h>div:first-child{flex:1 1 100%!important}}@media (max-width:720px){#wl .cs-bg{padding:8px}#wl .cs{padding:18px 16px 16px;margin:6px auto 30px;border-radius:16px}#wl .cs-t{font-size:20px!important}#wl .cs-x{max-height:42vh;font-size:14.5px;padding:12px 14px}}\
+#wl.wl-verrou>.top,#wl.wl-verrou>.tabs,#wl.wl-verrou>.wrap,#wl.wl-verrou>.panel,#wl.wl-verrou>.panelbg,#wl.wl-verrou>.doc{filter:blur(18px) saturate(.6);pointer-events:none;user-select:none}#wl .cs-bg{position:fixed;inset:0;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(5,4,3,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}#wl .cs{max-width:720px;margin:12px auto 40px;padding:26px 26px 22px;border-radius:18px;background:#14110c;border:1px solid rgba(0,255,119,.25);box-shadow:0 30px 90px rgba(0,0,0,.6)}#wl .cs-k{font:700 11px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#00ff77}#wl .cs-t{margin:8px 0 2px!important;font:800 24px/1.2 Inter,system-ui,sans-serif!important;color:#f3ece0!important;letter-spacing:normal!important;text-transform:none!important}#wl .cs-v{font:12.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .cs-x{margin:16px 0;padding:16px 18px;border-radius:12px;background:#f8f4ea;color:#1f1a12;max-height:46vh;overflow:auto;font:15px/1.6 Georgia,'Iowan Old Style',serif}#wl .cs-x p{margin:0 0 10px}#wl .cs-h{margin:14px 0 4px!important;font:700 13px Inter,sans-serif!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#6b604c!important}#wl .cs-ol{margin:0 0 6px;padding-left:26px}#wl .cs-ol li{margin:3px 0}#wl .cs-who{font-size:13.5px;color:rgba(243,236,224,.75);margin:6px 0 10px}#wl label.cs-chk{display:flex!important;gap:10px;align-items:flex-start;margin:10px 0!important;padding:12px 14px!important;border-radius:12px;border:1px solid rgba(0,255,119,.35);background:rgba(0,255,119,.06);font:600 15px/1.4 Inter,sans-serif!important;color:#f3ece0!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer}#wl label.cs-chk input{width:20px;height:20px;margin:0!important;flex:0 0 auto;accent-color:#18b45f}#wl .cs-l{display:block;margin:14px 0 6px!important;font:600 13px Inter,sans-serif!important;color:rgba(243,236,224,.85)!important;text-transform:none!important;letter-spacing:normal!important}#wl input.cs-in{width:100%!important;box-sizing:border-box;padding:12px 14px!important;border-radius:10px!important;border:1px solid #3a3020!important;background:#16120d!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font:17px Inter,sans-serif!important}#wl .cs-pad{position:relative;border-radius:12px;background:#fff;border:2px dashed #c9bfa8;overflow:hidden}#wl .cs-pad canvas{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair}#wl .cs-ligne{position:absolute;left:18px;right:18px;bottom:42px;border-bottom:1px solid #d8cdb5;pointer-events:none}#wl .btn.cs-eff{position:absolute;right:8px;top:8px;background:#f3ece0!important;color:#1f1a12!important;-webkit-text-fill-color:#1f1a12!important;border-color:#d8cdb5!important}#wl .cs-err{min-height:20px;margin:10px 0 4px;color:#ff9aa8;font-size:13.5px}#wl .btn.cs-go{display:block;width:100%!important;box-sizing:border-box;padding:14px!important;font-size:16px!important;margin-top:6px}#wl .btn.cs-go[disabled]{opacity:.4}#wl .cs-pied{margin:12px 0 0;font-size:12px;line-height:1.5;color:rgba(243,236,224,.55)}#wl .cs-ap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:-8px -8px 16px;padding:10px 12px;border-radius:12px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.5);color:#ffe0a3;font-size:13.5px}#wl .cs-fait{text-align:center}#wl .cs-ok-ic{font-size:44px;margin:14px 0 4px}#wl .cs-date{font-size:17px;color:#f3ece0;margin:10px 0 4px}#wl .cs-j{margin:12px 0 4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .cs-jn{font-weight:700;margin-bottom:6px}#wl .cs-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;padding:8px;border-radius:10px;background:rgba(255,255,255,.035)}#wl .cs-sigmini{width:120px;height:40px;object-fit:contain;background:#fff;border-radius:6px;border:1px solid #d8cdb5}#wl .tag.eq-test{background:rgba(255,176,32,.18)!important;color:#ffc861!important;border-color:rgba(255,176,32,.55)!important;font-weight:800;letter-spacing:.06em}#wl .eq-m{margin:10px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .eq-m.off{opacity:.62}#wl .eq-h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}#wl .eq-b{gap:6px;flex-wrap:wrap;margin:0}#wl .eq-f{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}#wl .eq-ft{font-weight:800;margin-bottom:4px}#wl .eq-f label{display:block;margin:10px 0 4px;font-size:13px;font-weight:600}#wl .eq-f .in{width:100%;box-sizing:border-box}#wl .eq-f textarea.in{min-height:66px;font:14px/1.45 Inter,system-ui,sans-serif;resize:vertical}#wl .eq-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}#wl .eq-f label.eq-chk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}#wl .eq-f label.eq-chk input{width:18px;height:18px;margin:0}#wl #wl-equipe>.eq-f{padding:12px;border-radius:12px;background:rgba(0,255,119,.05);border:1px solid rgba(0,255,119,.25)}#wl .bx-m{margin:10px 0;padding:12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .bx-m.off{opacity:.62}#wl .bx-m.sys{background:rgba(255,255,255,.02);border-style:dashed}#wl .bx-h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}#wl .bx-i{min-width:0;flex:1 1 260px}#wl .tel{position:fixed;right:16px;bottom:16px;width:min(430px,calc(100vw - 32px));max-height:min(680px,calc(100vh - 90px));z-index:15;display:none;flex-direction:column;background:#120f0b;border:1px solid rgba(0,255,119,.35);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:hidden}#wl .tel.open{display:flex}#wl .tel-h{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}#wl .tel-h .em{font-size:22px}#wl .tel-h .nm{font-weight:700}#wl .tel-h .st{font-size:12px;color:rgba(243,236,224,.6)}#wl .tel-h .x{cursor:pointer;font-size:18px;padding:4px 8px}#wl .tel-fil{flex:1 1 auto;overflow-y:auto;padding:12px;max-width:none;min-height:120px}#wl .tel-fil .bub{max-width:94%}#wl .tel-c{padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,.08)}#wl .tel-c textarea{width:100%;resize:vertical;min-height:52px}#wl .tel-a{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);white-space:normal}#wl .tel-a ol,#wl .tel-a ul{margin:6px 0 4px 18px;padding:0}#wl .tel-a p{margin:6px 0}#wl .tel-ab{gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}#wl .bub.tel-tr{border-style:dashed}#wl .tel-att{opacity:.75;font-style:italic}#wl .tel-vide{padding:6px 2px;line-height:1.5}#wl .tel-b{margin-left:auto;font-size:16px!important;padding:4px 9px!important}#wl .tel-svg{cursor:pointer}#wl .tel-svg:hover circle{stroke:#00ff77}#wl .ap{margin:16px 0;padding:14px 16px;border-radius:14px;border:1px solid rgba(10,122,69,.35);background:rgba(10,122,69,.06)}#wl .ap-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}#wl .ap-h .x{cursor:pointer;padding:2px 8px}#wl .ap-aide{margin:8px 0;padding:9px 11px;border-radius:10px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.38);font-size:14px;line-height:1.45}#wl .ap-aide ul{margin:6px 0 0 18px;padding:0}#wl .ap-s{font-size:12.5px;opacity:.75;line-height:1.45}#wl .ap-ok{display:flex;gap:10px;align-items:flex-start;margin:10px 0;cursor:pointer}#wl .ap-ok input{margin-top:4px;width:18px;height:18px;flex:0 0 auto}#wl .ap-live-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#wl .ap-rec{width:10px;height:10px;border-radius:50%;background:#ff3d5a;animation:wlmic 1.2s ease-in-out infinite}#wl .ap-live{min-height:120px;max-height:300px;overflow-y:auto;white-space:pre-wrap;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.14);font-size:15px;line-height:1.5}#wl .ap-int{opacity:.55}#wl .ap-lang{display:flex;gap:8px;align-items:center;margin-top:6px;opacity:1}#wl .ap-lang select{padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,.25);background:#fffdf7;color:#1f1a12;font:14px Inter,system-ui,sans-serif}@media (max-width:720px){#wl .tel{right:0;left:0;bottom:0;width:100vw;max-height:88vh;border-radius:18px 18px 0 0}}#wl .bx-b{gap:6px;flex-wrap:wrap;margin:0}#wl .bx-err{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(255,80,100,.1);border:1px solid rgba(255,80,100,.35);font-size:13px;color:#ffb3bf}#wl .tag.bx-sys{background:rgba(127,178,255,.14)!important;color:#a9c8ff!important;border-color:rgba(127,178,255,.45)!important}#wl .bx-t{margin:16px 0 4px;font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}#wl .bx-f{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}#wl .bx-f label,#wl .bx-w label{display:block;margin:10px 0 4px;font-size:13px;font-weight:600}#wl .bx-f .in,#wl .bx-w .in{width:100%;box-sizing:border-box}#wl .bx-w{margin:10px 0;padding:14px;border-radius:14px;background:rgba(0,255,119,.05);border:1px solid rgba(0,255,119,.28)}#wl .bx-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}#wl .bx-steps span{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);opacity:.6}#wl .bx-steps span.on{opacity:1;border-color:#00ff77;color:#00ff77}#wl .bx-steps span.ok{opacity:.9;color:#7fe0a8}#wl .bx-choix{display:flex;gap:8px;flex-wrap:wrap}#wl .bx-c{padding:9px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.04);color:inherit;font:600 14px Inter,system-ui,sans-serif;cursor:pointer}#wl .bx-c.on{border-color:#00ff77;background:rgba(0,255,119,.12);color:#c9ffe0}#wl .bx-note{margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.35)}#wl .bx-av{margin-top:12px}#wl .bx-av summary{cursor:pointer;font-weight:600;font-size:13px}#wl .bx-2{display:grid;grid-template-columns:1fr 110px;gap:10px}#wl .bx-nav{gap:8px;justify-content:space-between;margin-top:14px;flex-wrap:wrap}#wl .bx-adr{font-size:13px;opacity:.75;margin:6px 0 10px;word-break:break-all}#wl .bx-r{margin:8px 0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);font-size:14px}#wl .bx-r div{margin-top:4px;font-size:13.5px;opacity:.9}#wl .bx-r.ok{border-color:rgba(0,255,119,.4);background:rgba(0,255,119,.07)}#wl .bx-r.ko{border-color:rgba(255,80,100,.45);background:rgba(255,80,100,.08)}#wl .bx-r.enc{opacity:.75}#wl .bx-roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}#wl .bx-role{text-align:left;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:inherit;font:14px Inter,system-ui,sans-serif;cursor:pointer}#wl .bx-role>span:not(.tag){display:block;margin-top:4px;font-size:12.5px;opacity:.75}#wl .bx-role>.tag{margin-left:6px;font-size:11px;vertical-align:1px}#wl .bx-role.on{border-color:#00ff77;background:rgba(0,255,119,.12)}#wl .bx-role.bientot{opacity:.45;cursor:not-allowed}#wl table.bx-recap{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:14px}#wl table.bx-recap td{padding:7px 8px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top;word-break:break-word}#wl table.bx-recap td:first-child{width:34%;opacity:.7}@media (max-width:560px){#wl .bx-roles{grid-template-columns:1fr}#wl .bx-h>div:first-child{flex:1 1 100%!important}#wl .eq-2{grid-template-columns:1fr}#wl .eq-h>div:first-child{flex:1 1 100%!important}}@media (max-width:720px){#wl .cs-bg{padding:8px}#wl .cs{padding:18px 16px 16px;margin:6px auto 30px;border-radius:16px}#wl .cs-t{font-size:20px!important}#wl .cs-x{max-height:42vh;font-size:14.5px;padding:12px 14px}}\
 #wl .dtop{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(11,10,8,.92);border-bottom:1px solid rgba(255,190,90,.18)}\
 #wl .dtop .em{font-size:24px}#wl .dtop .nm{font-weight:800;font-size:15px;line-height:1.2}#wl .dtop .st{font-size:12px;color:rgba(243,236,224,.6)}\
 #wl .dtop .x{margin-left:auto;cursor:pointer;font-size:24px;color:rgba(243,236,224,.75);padding:2px 10px}\
@@ -367,7 +367,7 @@
 #wl .btn.red{background:rgba(255,61,90,.1)!important;color:#ffb3c0!important;-webkit-text-fill-color:#ffb3c0!important;border-color:rgba(255,61,90,.45)!important}\
 #wl .btn.small{padding:5px 9px!important;font-size:12.5px!important;border-radius:8px!important}\
 @media (max-width:720px){#wl{font-size:14.5px}#wl .top{flex-wrap:wrap;gap:8px;padding:10px 12px}#wl .chips{order:3;justify-content:flex-start;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#wl .chips::-webkit-scrollbar{display:none}#wl .clock{order:2;font-size:17px;margin-left:auto}#wl .wrap{padding:0 10px 60px}#wl .tabs{padding:8px 10px 0}#wl .panel{width:100vw;top:6vh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid rgba(255,190,90,.3);transform:translateY(105%)}#wl .panel.open{transform:none}#wl .floor svg{min-width:1100px}#wl .paper{margin:10px 8px 60px;padding:22px 16px 28px;font-size:16.5px}#wl .paper h1{font-size:22px}#wl .two{grid-template-columns:1fr}#wl .kan{grid-template-columns:repeat(4,82vw)}#wl button.clsr-h{top:auto;bottom:150px;padding:10px 6px}#wl .clsr-h .lb{display:none}#wl .clsr{width:100vw;top:8vh;border-left:none;border-top:1px solid rgba(255,190,90,.3);border-radius:18px 18px 0 0;transform:translateY(105%)}#wl .clsr.open{transform:none}}\
-#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg,#wl .wrap{overflow-wrap:anywhere;word-break:break-word}#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg{overflow-x:hidden;max-width:100%}#wl .panel pre,#wl .doc pre,#wl .clsr pre{white-space:pre-wrap}#wl .dtop>div,#wl .ph2>div,#wl .tl li,#wl .feed .it>span,#wl .dcard,#wl .pp-ct-h>*{min-width:0}#wl a.src-l.h-l{white-space:nowrap}\
+#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg,#wl .wrap,#wl .tel{overflow-wrap:anywhere;word-break:break-word}#wl .panel,#wl .doc,#wl .clsr,#wl .cs-bg{overflow-x:hidden;max-width:100%}#wl .panel pre,#wl .doc pre,#wl .clsr pre{white-space:pre-wrap}#wl .dtop>div,#wl .ph2>div,#wl .tl li,#wl .feed .it>span,#wl .dcard,#wl .pp-ct-h>*{min-width:0}#wl a.src-l.h-l{white-space:nowrap}\
 ";
   CSS += PHL_CSS.porte; // porte de couloir vers l'autre lab (shared/lab-core.js)
   // Mode clair (22/10/2026) : la feuille claire est DÉRIVÉE de la feuille sombre ci-dessus par PHTheme.deriverClair
@@ -484,6 +484,7 @@
       '<rect x="-24" y="2" width="48" height="10" rx="2" fill="#3e372b"/>' + deco +
       '<circle class="ledsvg ' + st + '" cx="' + (w / 2 - 8) + '" cy="-24" r="5" fill="' + (st === 'off' ? '#3a4440' : scr) + '" ' + (st !== 'off' ? 'filter="url(#glow)"' : '') + '/>' +
       '<g transform="translate(' + (-w / 2 + 2) + ',-46)"><circle r="17" fill="#15110c" stroke="rgba(255,190,90,.4)"/><text x="0" y="6" text-anchor="middle" font-size="18">' + p.emoji + '</text></g>' +
+      (TEL_POSTES[p.kind] && telPeut(p.kind) ? '<g class="tel-svg" data-act="tel" data-id="' + p.kind + '" transform="translate(' + (w / 2 - 2) + ',-46)" data-tip="' + esc('☎️ Appeler ' + TEL_POSTES[p.kind].nom + '|une requête libre, écrite ou dictée|') + '"><circle r="15" fill="#15110c" stroke="rgba(0,255,119,.55)"/><text x="0" y="5.5" text-anchor="middle" font-size="15">☎️</text></g>' : '') +
       '<text class="lbl" x="0" y="96" text-anchor="middle">' + esc(p.nom) + '</text>' +
       '<text class="lbl2" x="0" y="116" text-anchor="middle">' + esc(o.why) + '</text>' +
       (isMe(p) ? '<g class="here" transform="translate(0,140)"><rect x="-46" y="-12" width="92" height="22" rx="11" fill="#00ff77"/><text y="4" text-anchor="middle" font-size="11.5" font-weight="800" fill="#05170d">VOUS ÊTES ICI</text></g>' : '') +
@@ -1228,6 +1229,7 @@
     else if (k === 'compta') h = panelCompta();
     else if (k === 'parametres') h = panelParams();
     else if (k.indexOf('j:') === 0) h = panelJournaliste(k.slice(2));
+    if (TEL_POSTES[k] && telPeut(k)) h = h.replace('<span class="x" data-act="close-panel">', telBouton(k) + '<span class="x" data-act="close-panel">'); // ☎️ du poste
     el.innerHTML = h; el.scrollTop = keep; markBusy();
   }
   function mcard(m) {
@@ -1632,7 +1634,7 @@
 
   // ---------- documents (feuille de papier plein écran) ----------
   function openDoc(kind, id) { S.docRetour = S.doc && S.doc.kind === 'prep' && kind !== 'prep' ? { kind: 'prep', id: S.doc.id } : kind === 'prep' ? null : S.docRetour; S.doc = { kind: kind, id: id }; paintDoc(); S.root.querySelector('.doc').classList.add('open'); S.root.querySelector('.doc').scrollTop = 0; }
-  function closeDoc() { S.doc = null; S.docRetour = null; S.cit = null; S.colle = false; S.root.querySelector('.doc').classList.remove('open'); }
+  function closeDoc() { if (S.appel) { S.appel.actif = false; clearInterval(S.appel.timer); try { if (S.appel.rec) S.appel.rec.stop(); } catch (e) {} S.appel = null; } S.doc = null; S.docRetour = null; S.cit = null; S.colle = false; S.root.querySelector('.doc').classList.remove('open'); }
   // Fermer (✕, Échap, après un envoi ou un archivage) : un mail ouvert depuis la fenêtre des interviews y revient.
   function fermerDoc() {
     var r = S.docRetour;
@@ -1711,8 +1713,11 @@
     } else if (f.statut === 'envoyé' && rw) {
       h += '<h2>Réponse</h2><p class="lead">Pas encore de réponse (mail envoyé ' + esc(when(f.envoye_le)) + '). Le Courrier la rangera ici dès qu’elle arrive.</p>' +
         '<div class="acts">' + (relancable(f) && !relancePrete(f) ? '<button data-act="relance" data-id="' + esc(f.fiche_id) + '"' + (S.busy.secretaire ? ' disabled' : '') + '>🔁 Faire préparer une relance</button>' : '') +
-        '<button data-act="colle" data-id="' + esc(f.fiche_id) + '">📝 Réponse reçue ailleurs (téléphone, autre adresse)</button></div>';
+        '<button data-act="ap-ouvrir" data-id="' + esc(f.fiche_id) + '">📞 Réponse par téléphone</button>' +
+        '<button data-act="colle" data-id="' + esc(f.fiche_id) + '">📝 Réponse reçue ailleurs (autre adresse)</button></div>';
     }
+    if (f.reponse && f.statut === 'a répondu' && rw && !(S.appel && S.appel.fiche_id === f.fiche_id)) h += '<div class="acts"><button data-act="ap-ouvrir" data-id="' + esc(f.fiche_id) + '">📞 Compléter par une réponse au téléphone</button></div>';
+    h += appelHTML(f);
     if (S.colle) h += '<label>Collez ou résumez la réponse</label><textarea class="pin" id="wl-colle"></textarea><div class="acts"><button class="go" data-act="colle-go" data-id="' + esc(f.fiche_id) + '">Enregistrer la réponse</button></div>';
     var qe = questionsEnvoyees(f), qo = f.questions || [];
     var traduites = qe.length && qo.length && qe.join('|') !== qo.join('|');
@@ -2111,6 +2116,263 @@
       bxAction({ action: 'supprimer', id: id }, '🗑️ ' + b.adresse + ' supprimée du lab.');
     });
   }
+  // ================= ☎️ Téléphone des bureaux (23/10/2026) =================
+  // Chaque poste IA (Secrétaire, Assistant, Julien Marketing, Julien Service client, Comptable) a un téléphone : une requête libre,
+  // écrite ou dictée. Le poste (Claude, fonction wl-tel) répond par une proposition structurée : faire (action du lab, toujours
+  // validée par un humain avant tout envoi ou enregistrement), transmettre (une seule fois, au bon poste, trace visible) ou question.
+  // Les brouillons (mail d'interview, réponse à un mail, questions, chercheurs) sont lancés tout de suite ; ce qui écrit dans
+  // une fiche (réponse) ou ouvre un flux (citations) attend un clic. Fils gardés par poste et par membre (table wl_tel).
+  var TEL_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-tel';
+  var TEL_POSTES = { secretaire: { nom: 'La Secrétaire', em: '📮', chef: false }, assistant: { nom: 'L’Assistant', em: '🧠', chef: false },
+    mk: { nom: 'Julien · Marketing', em: '📣', chef: true }, sc: { nom: 'Julien · Service client', em: '🎧', chef: true }, compta: { nom: 'Le Comptable', em: '🧮', chef: false } };
+  var TEL_AUTO = { questions: 1, chercher_contacts: 1, rediger_interview: 1, proposer_reponse: 1 };
+  function telApi(b) { return supa(TEL_FN, b); }
+  function telPeut(k) { var p = TEL_POSTES[k]; return !!p && (!p.chef || !!D().me.chef); }
+  function telBouton(k) { return telPeut(k) ? '<button class="btn small tel-b" data-act="tel" data-id="' + k + '" title="Appeler ' + esc(TEL_POSTES[k].nom) + ' : une requête libre, écrite ou dictée">☎️</button>' : ''; }
+  function telOuvrir(k) {
+    if (!telPeut(k)) return;
+    if (S.telP && S.telP.poste === k) { telPeindre(true); return; }
+    S.telP = { poste: k, fil: null, envoi: false, brouillon: (S.telBr || {})[k] || '' };
+    telPeindre(true);
+    telApi({ action: 'historique', poste: k }).then(function (r) {
+      if (!S.telP || S.telP.poste !== k) return;
+      S.telP.fil = r && r.ok ? r.fil : []; if (r && !r.ok) toast('⚠️ ' + (r.why || 'téléphone indisponible'), true);
+      telPeindre();
+    });
+  }
+  function telFermer() { if (TEL_DICTEE.actif()) TEL_DICTEE.arreter(); S.telP = null; var el = S.root.querySelector('.tel'); if (el) { el.classList.remove('open'); el.innerHTML = ''; } }
+  function telQui(de) { if (de === 'moi') return { em: '', nom: D().me.nom.split(' ')[0] }; var p = TEL_POSTES[de] || { em: '·', nom: de }; return { em: p.em, nom: p.nom }; }
+  function telActionHTML(m) {
+    var a = m.action; if (!a || a.type === 'transmission') return '';
+    var p = a.params || {}, loc = (S.telLoc || {})[m.id] || {}, h = '<div class="tel-a">', b = function (lib, cls) { return '<button class="btn small' + (cls ? ' ' + cls : '') + '" data-act="tel-exec" data-id="' + m.id + '">' + lib + '</button>'; };
+    var fait = a.fait || loc.fait, enCours = loc.enCours;
+    if (a.type === 'rediger_interview') h += '<b>✍️ Mail d’interview pour ' + esc((p.contact || {}).nom || '') + '</b><ol>' + (p.questions || []).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol>' + (loc.fiche_id || (a.resultat && /fiche/.test(a.resultat)) ? '' : '');
+    else if (a.type === 'questions') h += '<b>❓ Questions pour ' + esc((p.contact || {}).nom || '') + '</b>' + (loc.questions ? '<ol>' + loc.questions.map(function (q) { return '<li>' + esc(q.q) + '</li>'; }).join('') + '</ol>' : '');
+    else if (a.type === 'chercher_contacts') h += '<b>🔎 Chercheurs à interroger</b>' + (loc.contacts ? '<ul>' + loc.contacts.map(function (c) { return '<li><b>' + esc(c.nom || '') + '</b>' + (c.institution ? ' · ' + esc(c.institution) : '') + (c.email ? ' · ' + esc(c.email) : '') + '</li>'; }).join('') + '</ul>' : '');
+    else if (a.type === 'reponse_fiche') h += '<b>📞 Réponse de ' + esc(p.contact || '') + ' à enregistrer dans sa fiche</b>' + (p.resume ? '<p>' + esc(p.resume) + '</p>' : '') + '<ol>' + (p.reponses || []).map(function (x) { return '<li>' + (x.question ? '<i>' + esc(x.question) + '</i><br>' : '') + esc(x.reponse) + '</li>'; }).join('') + '</ol>' +
+      '<div class="set-s">Elle sera marquée « reçue par téléphone » : pas de preuve par mail, les pièces éventuelles passent « à vérifier » au Comptable.</div>';
+    else if (a.type === 'citations') h += '<b>✅ Citations à placer dans l’article</b>';
+    else if (a.type === 'proposer_reponse') h += '<b>✉️ Réponse à « ' + esc(p.sujet || '') + ' »</b>' + (p.consigne ? '<div class="set-s">Consigne : ' + esc(p.consigne) + '</div>' : '');
+    else if (a.type === 'ouvrir') h += '<b>↗ Ouvrir ' + esc(p.cible === 'fiche' ? 'la fiche' : p.cible === 'mail' ? 'le mail' : 'le bureau') + '</b>';
+    var st = enCours ? '<span class="tag a">⏳ en cours…</span>' : loc.erreur ? '<span class="tag r">⚠️ ' + esc(loc.erreur) + '</span>' : fait ? '<span class="tag g">✓ ' + esc(loc.resultat || a.resultat || 'fait') + '</span>' : '';
+    var btn = '';
+    if (!enCours) {
+      if (a.type === 'rediger_interview') btn = fait && loc.fiche_id ? '<button class="btn small go" data-act="open-valid" data-id="' + esc(loc.fiche_id) + '">📮 Relire le mail à valider</button>' : fait ? '' : b('✍️ Faire rédiger le mail', 'go');
+      else if (a.type === 'questions') btn = loc.questions && loc.questions.length ? '<button class="btn small go" data-act="tel-rediger" data-id="' + m.id + '">✍️ Faire rédiger le mail avec ces questions</button>' : fait ? '' : b('❓ Proposer les questions', 'go');
+      else if (a.type === 'chercher_contacts') btn = fait ? '' : b('🔎 Chercher', 'go');
+      else if (a.type === 'reponse_fiche') btn = fait ? '<button class="btn small" data-act="open-fiche" data-id="' + esc(p.fiche_id) + '">🗂️ Ouvrir la fiche</button>' : b('✅ Enregistrer dans la fiche', 'go');
+      else if (a.type === 'citations') btn = b('✅ Ouvrir la fiche et proposer les emplacements', 'go');
+      else if (a.type === 'proposer_reponse') btn = fait ? '<button class="btn small go" data-act="open-mail" data-id="' + esc(p.mail_id) + '">✉️ Relire et envoyer</button>' : b('✉️ Rédiger la réponse', 'go');
+      else if (a.type === 'ouvrir') btn = b('↗ Ouvrir', 'go');
+    }
+    return h + '<div class="row tel-ab">' + st + btn + '</div></div>';
+  }
+  function telFilHTML() {
+    var T = S.telP; if (!T.fil) return '<div class="muted">Chargement…</div>';
+    var l = T.fil.map(function (m) {
+      var q = telQui(m.de), moi = m.de === 'moi';
+      var transm = m.mode === 'transmettre' ? ' tel-tr' : '', par = m.transmis_par && m.transmis_par !== m.de ? ' · transmis par ' + esc(telQui(m.transmis_par).nom) : '';
+      return '<div class="bub' + (moi ? ' me' : ' bot') + transm + '"><div class="who">' + (moi ? esc(q.nom) : q.em + ' ' + esc(q.nom)) + par + ' · ' + esc(when(m.created_at)) + (m.mode === 'question' ? ' · ❔ question' : '') + '</div>' + esc(m.texte || '') + telActionHTML(m) + '</div>';
+    }).join('');
+    if (T.envoi) l += '<div class="bub bot tel-att"><div class="who">' + TEL_POSTES[T.poste].em + ' ' + esc(TEL_POSTES[T.poste].nom) + '</div>… réfléchit</div>';
+    return l || '<div class="muted tel-vide">Écrivez ou dictez votre requête, librement. Exemple : « Je vais appeler M. Schwab qui répond à notre interview ; voici ce qu’il a dit… prépare les réponses pour l’article. » ' + esc(TEL_POSTES[T.poste].nom) + ' s’en charge, vous pose une question, ou transmet au bon poste. Rien n’est envoyé sans votre validation.</div>';
+  }
+  function telPeindre(tout) {
+    var T = S.telP, el = S.root && S.root.querySelector('.tel'); if (!el || !T) return;
+    var P = TEL_POSTES[T.poste];
+    if (tout || !el.querySelector('.tel-fil')) {
+      el.innerHTML = '<div class="tel-h"><span class="em">☎️</span><div style="min-width:0;flex:1"><div class="nm">' + P.em + ' ' + esc(P.nom) + '</div><div class="st">Requête libre · rien ne part sans votre validation</div></div><span class="x" data-act="tel-fermer" title="Raccrocher">✕</span></div>' +
+        '<div class="tel-fil chat"></div>' +
+        '<div class="tel-c"><textarea class="in" id="wl-tel-msg" rows="2" placeholder="' + (TEL_DICTEE.actif() ? '🎙️ Je vous écoute…' : 'Votre requête…') + '">' + esc(T.brouillon || '') + '</textarea>' +
+        '<div class="row" style="gap:8px;margin-top:6px">' + (TEL_DICTEE.dispo ? '<button class="btn small mic' + (TEL_DICTEE.actif() ? ' on' : '') + '" data-act="tel-dicter" type="button">' + (TEL_DICTEE.actif() ? '⏹️ Arrêter' : '🎙️ Dicter') + '</button>' : '') +
+        '<span style="flex:1"></span><button class="btn go" data-act="tel-envoyer"' + (T.envoi ? ' disabled' : '') + '>Envoyer</button></div></div>';
+      el.classList.add('open');
+    }
+    var f = el.querySelector('.tel-fil'); f.innerHTML = telFilHTML(); f.scrollTop = f.scrollHeight;
+    var bt = el.querySelector('[data-act="tel-envoyer"]'); if (bt) bt.disabled = !!T.envoi;
+  }
+  function telArticles() { return (D().articles || []).slice(0, 20).map(function (a) { return { id: a.id, titre: a.titre, statut: a.statut }; }); }
+  function telEnvoyer() {
+    var T = S.telP; if (!T || T.envoi) return;
+    if (TEL_DICTEE.actif()) TEL_DICTEE.arreter();
+    var ta = S.root.querySelector('#wl-tel-msg'), txt = String((ta && ta.value) || '').trim(); if (!txt) { toast('Écrivez ou dictez votre requête.', true); return; }
+    T.envoi = true; T.fil = (T.fil || []).concat([{ id: 'tmp', de: 'moi', texte: txt, created_at: new Date().toISOString() }]);
+    T.brouillon = ''; if (S.telBr) delete S.telBr[T.poste]; if (ta) ta.value = ''; telPeindre();
+    var k = T.poste;
+    telApi({ action: 'telephone', poste: k, texte: txt, article_id: S.art || '', fiche_id: S.doc && S.doc.kind === 'fiche' ? S.doc.id : '', articles: telArticles() }).then(function (r) {
+      if (!S.telP || S.telP.poste !== k) return;
+      T.envoi = false;
+      T.fil = (T.fil || []).filter(function (m) { return m.id !== 'tmp'; });
+      if (!r || !r.ok) { T.fil.push({ id: 'err' + Date.now(), de: k, texte: '⚠️ ' + ((r && r.why) || 'pas de réponse, réessayez'), created_at: new Date().toISOString() }); T.brouillon = txt; telPeindre(true); return; }
+      T.fil = T.fil.concat(r.fil || []); telPeindre();
+      var der = (r.fil || [])[(r.fil || []).length - 1];
+      if (der && der.action && TEL_AUTO[der.action.type] && !(der.action.type === 'proposer_reponse' && mailBrouillonExiste(der.action.params.mail_id))) telExec(der.id);
+    });
+  }
+  function mailBrouillonExiste(id) { var m = (D().courrier || []).filter(function (x) { return x.mail_id === id; })[0]; return !!(m && m.brouillon_corps); }
+  function telEntree(id) { var T = S.telP; return T && (T.fil || []).filter(function (m) { return String(m.id) === String(id); })[0]; }
+  function telLoc(id) { S.telLoc = S.telLoc || {}; return (S.telLoc[id] = S.telLoc[id] || {}); }
+  function telFait(id, resultat) { var L = telLoc(id); L.enCours = false; L.fait = true; L.resultat = resultat; telPeindre(); if (/^\d+$/.test(String(id))) telApi({ action: 'action_faite', id: id, resultat: resultat }); }
+  function telEchec(id, e) { var L = telLoc(id); L.enCours = false; L.erreur = (e && e.message) || String(e || 'échec'); telPeindre(); }
+  function telExec(id) {
+    var m = telEntree(id); if (!m || !m.action) return;
+    var a = m.action, p = a.params || {}, L = telLoc(id);
+    if (L.enCours) return; L.enCours = true; L.erreur = ''; telPeindre();
+    if (a.type === 'rediger_interview') {
+      work('secretaire', 'rédige le mail', api('rediger', { article_id: p.article_id, contact: p.contact, questions: p.questions, type: 'interview', consigne: p.consigne || '', publie: true })).then(function (r) {
+        L.fiche_id = r.fiche_id; return refresh(true).then(function () { telFait(id, 'mail rédigé, à valider dans la fiche'); });
+      }).catch(function (e) { telEchec(id, e); });
+    } else if (a.type === 'questions') {
+      work('assistant', 'prépare les questions', api('questions', { article_id: p.article_id, contact: p.contact, angle: p.angle || '' })).then(function (r) {
+        L.questions = (r.questions || []).filter(function (q) { return q && q.q; }); telFait(id, L.questions.length + ' question' + pl(L.questions.length) + ' proposée' + pl(L.questions.length));
+      }).catch(function (e) { telEchec(id, e); });
+    } else if (a.type === 'chercher_contacts') {
+      work('assistant', 'cherche les chercheurs', api('contacts', { article_id: p.article_id })).then(function (r) {
+        L.contacts = r.contacts || []; telFait(id, L.contacts.length ? L.contacts.length + ' chercheur' + pl(L.contacts.length) + ' trouvé' + pl(L.contacts.length) : 'personne de sûr trouvé');
+      }).catch(function (e) { telEchec(id, e); });
+    } else if (a.type === 'proposer_reponse') {
+      var bk = (function () { var mm = (D().courrier || []).filter(function (x) { return x.mail_id === p.mail_id; })[0]; return (mm && bureauDe(mm.boite)) || S.telP.poste; })();
+      work(bk, 'rédige une réponse', api('proposer', { mail_id: p.mail_id, consigne: p.consigne || '' })).then(function () {
+        return refresh(true).then(function () { telFait(id, 'réponse rédigée, à relire avant envoi'); });
+      }).catch(function (e) { telEchec(id, e); });
+    } else if (a.type === 'reponse_fiche') {
+      var tx = (S.telP.fil || []).filter(function (x) { return x.de === 'moi'; }).map(function (x) { return x.texte; }).slice(-1)[0] || '';
+      telApi({ action: 'appel_enregistrer', fiche_id: p.fiche_id, resume: p.resume, reponses: p.reponses, transcription: tx, source: 'notes' }).then(function (r) {
+        if (!r || !r.ok) { telEchec(id, new Error((r && r.why) || 'enregistrement impossible')); return; }
+        refresh(true).then(function () { telFait(id, 'réponse enregistrée dans la fiche (reçue par téléphone)'); toast('📞 Réponse enregistrée dans la fiche. Vous pouvez placer les citations.'); });
+      });
+    } else if (a.type === 'citations') {
+      L.enCours = false; telFait(id, 'fiche ouverte');
+      openDoc('fiche', p.fiche_id); var g = document.createElement('span'); g.setAttribute('data-id', p.fiche_id); act('cit', g);
+    } else if (a.type === 'ouvrir') {
+      L.enCours = false; telFait(id, 'ouvert');
+      if (p.cible === 'fiche') openDoc('fiche', p.id); else if (p.cible === 'mail') openDoc('mail', p.id); else openPanel(p.id);
+    } else { L.enCours = false; telPeindre(); }
+  }
+  function telRediger(id) {
+    var m = telEntree(id), L = telLoc(id); if (!m || !L.questions) return;
+    var p = m.action.params, nouv = { id: 'r' + id, de: 'secretaire', texte: 'Je rédige le mail avec ces questions.', created_at: new Date().toISOString(),
+      action: { type: 'rediger_interview', params: { article_id: p.article_id, contact: p.contact, questions: L.questions.map(function (q) { return q.q; }), consigne: '' } } };
+    S.telP.fil.push(nouv); telPeindre(); telExec(nouv.id);
+  }
+  var TEL_DICTEE = !PHL.dictee ? { dispo: false, demarrer: function () {}, arreter: function () {}, actif: function () { return false; } } : PHL.dictee({
+    champ: function () { return S.root && S.root.querySelector('#wl-tel-msg'); },
+    lang: function () { return LS.get('wl-dictee-lang') || 'fr-FR'; },
+    brouillon: function (t) { if (S.telP) S.telP.brouillon = t; },
+    etat: function () { var b = S.root && S.root.querySelector('[data-act="tel-dicter"]'); if (b) { b.classList.toggle('on', TEL_DICTEE.actif()); b.textContent = TEL_DICTEE.actif() ? '⏹️ Arrêter' : '🎙️ Dicter'; } var ta = S.root && S.root.querySelector('#wl-tel-msg'); if (ta) ta.placeholder = TEL_DICTEE.actif() ? '🎙️ Je vous écoute…' : 'Votre requête…'; },
+    verrou: function (on) { var ta = S.root && S.root.querySelector('#wl-tel-msg'); if (ta) { ta.disabled = on; ta.classList.toggle('wl-mef', on); } },
+    toast: function (t, bad) { toast(t, bad); },
+    formaterActif: function () { return LS.get('wl-mef') !== '0'; },
+    miseEnForme: function (dit) { return pushApi({ action: 'dictee', texte: dit }).then(function (r) { return r && r.ok ? r.texte : ''; }); }
+  });
+
+  // ================= 📞 Réponse par téléphone dans une fiche (23/10/2026) =================
+  // Écoute de l'appel par la reconnaissance vocale du navigateur (gratuite, en direct ; mode continu relancé automatiquement
+  // quand Chrome coupe après une pause), SEULEMENT après la case « la personne a accepté » (art. 179ter CP). Repli : coller ou
+  // dicter ses notes d'appel. Puis l'Assistant tire résumé + réponses par question (wl-tel appel_traiter), relues et corrigées,
+  // et enregistrées comme réponse de la fiche « reçue par téléphone le … » (wl-tel appel_enregistrer ; pièces « à vérifier »).
+  // iPhone : pendant un appel classique, le micro est réservé à l'appel (Safari ne l'a plus) → haut-parleur + lab sur l'ordinateur.
+  var AP_SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  var AP_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function apChrono(ms) { var s = Math.max(0, Math.round(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  function apOuvrir(fid) { var f = fiche(fid); if (!f) return; S.appel = { fiche_id: fid, etape: 'pret', consent: false, source: 'appel', texte: '', interim: '', lang: f.langue === 'en' ? 'en-US' : 'fr-FR', res: null, busy: false }; paintDoc(); setTimeout(function () { var x = S.root.querySelector('#wl-appel'); if (x) x.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 30); }
+  function appelHTML(f) {
+    var A = S.appel; if (!A || A.fiche_id !== f.fiche_id) return '';
+    var h = '<div class="ap" id="wl-appel"><div class="ap-h"><b>📞 Réponse par téléphone</b><span class="x" data-act="ap-annuler" title="Fermer">✕</span></div>';
+    if (A.etape === 'pret') {
+      h += '<div class="ap-aide">📱 <b>Appelez sur haut-parleur et ouvrez cette fiche sur votre ordinateur</b> : pendant un appel téléphonique, l’iPhone réserve le micro à l’appel et la page ne peut pas l’écouter.' + (AP_IOS ? ' <b>Vous êtes sur iPhone ou iPad</b> : utilisez plutôt l’ordinateur pour écouter, ou notez la réponse après l’appel.' : '') + '</div>' +
+        '<label class="ap-ok"><input type="checkbox" id="wl-ap-ok"' + (A.consent ? ' checked' : '') + '> <span><b>La personne a accepté que l’appel soit écouté et retranscrit.</b><br><span class="ap-s">Obligatoire avant d’écouter : en Suisse, écouter ou enregistrer une conversation sans l’accord de l’interlocuteur est interdit (art. 179ter du Code pénal).</span></span></label>' +
+        (AP_SR ? '<label class="ap-s ap-lang">Langue de l’appel <select id="wl-ap-lang">' + [['fr-FR', 'français'], ['en-US', 'anglais'], ['de-CH', 'allemand'], ['it-CH', 'italien']].map(function (l) { return '<option value="' + l[0] + '"' + (A.lang === l[0] ? ' selected' : '') + '>' + l[1] + '</option>'; }).join('') + '</select></label>'
+          : '<div class="ap-aide">La transcription en direct n’est pas disponible dans ce navigateur (elle marche dans Chrome ou Edge sur ordinateur). Vous pouvez coller ou dicter vos notes d’appel.</div>') +
+        '<div class="acts">' + (AP_SR ? '<button class="go" data-act="ap-ecouter"' + (A.consent ? '' : ' disabled') + '>🎧 Écouter l’appel</button>' : '') + '<button data-act="ap-notes">📝 Coller ou dicter mes notes d’appel</button></div>';
+    } else if (A.etape === 'ecoute') {
+      h += '<div class="ap-live-h"><span class="ap-rec"></span> <b>Écoute en cours</b> · <span id="wl-ap-chrono">' + apChrono(Date.now() - A.debut) + '</span><span style="flex:1"></span><span class="ap-s">' + esc(A.lang) + '</span></div>' +
+        '<div class="ap-live" id="wl-ap-live">' + esc(A.texte) + '<span class="ap-int">' + esc(A.interim ? ' ' + A.interim : '') + '</span>' + (A.texte || A.interim ? '' : '<span class="ap-s">La transcription s’affiche ici pendant que vous parlez…</span>') + '</div>' +
+        '<div class="acts"><button class="go" data-act="ap-stop">⏹️ Terminer l’appel</button></div>';
+    } else if (A.etape === 'relire') {
+      h += '<label for="wl-ap-txt">' + (A.source === 'appel' ? 'Transcription de l’appel (' + apChrono((A.fin || 0) - (A.debut || 0)) + ') : relisez et corrigez si besoin' : 'Vos notes d’appel : collez-les, tapez-les ou dictez-les') + '</label>' +
+        '<textarea class="pin" id="wl-ap-txt" rows="9">' + esc(A.texte) + '</textarea>' +
+        '<div class="acts">' + (AP_DICTEE.dispo && A.source === 'notes' ? '<button data-act="ap-dicter" class="' + (AP_DICTEE.actif() ? 'on' : '') + '">' + (AP_DICTEE.actif() ? '⏹️ Arrêter la dictée' : '🎙️ Dicter mes notes') + '</button>' : '') +
+        '<button class="go" data-act="ap-traiter"' + (A.busy ? ' disabled' : '') + '>' + (A.busy ? '⏳ L’Assistant travaille…' : '🧠 Envoyer pour traitement') + '</button></div>' +
+        '<div class="ap-s">L’Assistant en tire un résumé et les réponses classées par question de la fiche. Vous relisez avant d’enregistrer.</div>';
+    } else if (A.etape === 'traite' && A.res) {
+      var R = A.res;
+      h += '<label for="wl-ap-resume">Résumé</label><textarea class="pin" id="wl-ap-resume" rows="4">' + esc(R.resume) + '</textarea>' +
+        R.reponses.map(function (x, i) { return '<label for="wl-ap-r-' + i + '">' + (i + 1) + '. ' + esc(x.question || 'Réponse') + '</label><textarea class="pin" id="wl-ap-r-' + i + '" rows="3" placeholder="(pas de réponse : laissée de côté)">' + esc(x.reponse) + '</textarea>'; }).join('') +
+        (R.citations && R.citations.length ? '<div class="ap-aide"><b>Citations possibles</b> (vous les placerez ensuite avec « Proposer les emplacements dans l’article ») :<ul>' + R.citations.map(function (c) { return '<li>« ' + esc(c) + ' »</li>'; }).join('') + '</ul></div>' : '') +
+        (R.manque ? '<div class="ap-s">⚠️ ' + esc(R.manque) + '</div>' : '') +
+        '<div class="ap-s">Enregistrée comme réponse de la fiche, « reçue par téléphone le … ». Pas de preuve par mail : les pièces éventuelles passent « à vérifier » au Comptable (motif « réponse par téléphone »).</div>' +
+        '<div class="acts"><button data-act="ap-retour">← Revenir au texte</button><button class="go" data-act="ap-enregistrer"' + (A.busy ? ' disabled' : '') + '>' + (A.busy ? '⏳ Enregistrement…' : '✅ Enregistrer comme réponse') + '</button></div>';
+    }
+    return h + '</div>';
+  }
+  function apLive() {
+    var A = S.appel, el = S.root && S.root.querySelector('#wl-ap-live'); if (!A || !el) return;
+    el.innerHTML = esc(A.texte) + '<span class="ap-int">' + esc(A.interim ? ' ' + A.interim : '') + '</span>'; el.scrollTop = el.scrollHeight;
+  }
+  function apEcouter() {
+    var A = S.appel; if (!A || !AP_SR) return;
+    if (!A.consent) { toast('Cochez d’abord l’accord de la personne.', true); return; }
+    A.etape = 'ecoute'; A.source = 'appel'; A.debut = Date.now(); A.actif = true; A.dernier = 0; A.err = '';
+    var lancer = function () {
+      if (!A.actif || S.appel !== A) return;
+      var rec = new AP_SR(); rec.lang = A.lang; rec.continuous = true; rec.interimResults = true;
+      rec.onresult = function (ev) {
+        var interim = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var t = ev.results[i][0].transcript;
+          if (ev.results[i].isFinal) { t = t.trim(); if (t) { var now = Date.now(); A.texte += (A.texte ? (now - A.dernier > 2500 ? '\n' : ' ') : '') + t; A.dernier = now; } }
+          else interim += t;
+        }
+        A.interim = interim.trim(); apLive();
+      };
+      rec.onerror = function (ev) { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { A.actif = false; toast('Autorisez le micro pour posthumain.com dans le navigateur.', true); apArreter(); } else if (ev.error === 'audio-capture') { A.actif = false; toast('Aucun micro disponible (pendant un appel sur ce téléphone, le micro est réservé à l’appel).', true); apArreter(); } };
+      rec.onend = function () { if (A.actif && S.appel === A) setTimeout(lancer, 250); }; // Chrome coupe après une pause : on relance
+      try { rec.start(); A.rec = rec; } catch (e) { setTimeout(lancer, 600); }
+    };
+    lancer();
+    A.timer = setInterval(function () { var c = S.root && S.root.querySelector('#wl-ap-chrono'); if (c && S.appel === A) c.textContent = apChrono(Date.now() - A.debut); }, 1000);
+    paintDoc();
+  }
+  function apArreter() {
+    var A = S.appel; if (!A) return;
+    A.actif = false; clearInterval(A.timer); try { if (A.rec) A.rec.stop(); } catch (e) { /* déjà arrêtée */ }
+    if (A.interim) { A.texte += (A.texte ? ' ' : '') + A.interim; A.interim = ''; }
+    A.fin = Date.now(); A.etape = 'relire'; paintDoc();
+  }
+  function apTraiter() {
+    var A = S.appel; if (!A || A.busy) return;
+    if (AP_DICTEE.actif()) AP_DICTEE.arreter();
+    var ta = S.root.querySelector('#wl-ap-txt'); if (ta) A.texte = ta.value;
+    if (String(A.texte || '').trim().length < 20) { toast('Le texte est trop court pour en tirer une réponse.', true); return; }
+    A.busy = true; if (document.activeElement) document.activeElement.blur(); paintDoc();
+    work('assistant', 'traite l’appel', telApi({ action: 'appel_traiter', fiche_id: A.fiche_id, transcription: A.texte }).then(function (r) { if (!r || !r.ok) throw new Error((r && r.why) || 'traitement impossible'); return r; })).then(function (r) {
+      if (S.appel !== A) return; A.busy = false; A.res = { resume: r.resume || '', reponses: r.reponses || [], citations: r.citations || [], manque: r.manque || '' }; A.etape = 'traite'; paintDoc();
+    }, function () { if (S.appel === A) { A.busy = false; paintDoc(); } });
+  }
+  function apEnregistrer() {
+    var A = S.appel; if (!A || A.busy || !A.res) return;
+    var v = function (id) { var e = S.root.querySelector('#' + id); return e ? e.value : null; };
+    if (v('wl-ap-resume') !== null) A.res.resume = v('wl-ap-resume');
+    A.res.reponses.forEach(function (x, i) { var t = v('wl-ap-r-' + i); if (t !== null) x.reponse = t; });
+    A.busy = true; if (document.activeElement) document.activeElement.blur(); paintDoc();
+    telApi({ action: 'appel_enregistrer', fiche_id: A.fiche_id, resume: A.res.resume, reponses: A.res.reponses, transcription: A.texte, source: A.source, consentement: A.source === 'appel' ? !!A.consent : undefined }).then(function (r) {
+      if (S.appel !== A) return;
+      A.busy = false;
+      if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); paintDoc(); return; }
+      S.appel = null; refresh(true).then(function () { paintDoc(); toast('📞 Réponse enregistrée dans la fiche. Vous pouvez maintenant placer les citations.'); });
+    });
+  }
+  var AP_DICTEE = !PHL.dictee ? { dispo: false, demarrer: function () {}, arreter: function () {}, actif: function () { return false; } } : PHL.dictee({
+    champ: function () { return S.root && S.root.querySelector('#wl-ap-txt'); },
+    lang: function () { return (S.appel && S.appel.lang) || 'fr-FR'; },
+    brouillon: function (t) { if (S.appel) S.appel.texte = t; },
+    etat: function () { var b = S.root && S.root.querySelector('[data-act="ap-dicter"]'); if (b) { b.classList.toggle('on', AP_DICTEE.actif()); b.textContent = AP_DICTEE.actif() ? '⏹️ Arrêter la dictée' : '🎙️ Dicter mes notes'; } },
+    verrou: function (on) { var ta = S.root && S.root.querySelector('#wl-ap-txt'); if (ta) { ta.disabled = on; ta.classList.toggle('wl-mef', on); } },
+    toast: function (t, bad) { toast(t, bad); },
+    formaterActif: function () { return LS.get('wl-mef') !== '0'; },
+    miseEnForme: function (dit) { return pushApi({ action: 'dictee', texte: dit }).then(function (r) { return r && r.ok ? r.texte : ''; }); }
+  });
   // ---------- Équipe (23/10/2026) ----------
   // Source unique de l'accès au lab : table wl_equipe (Supabase), gérée ici par le rédacteur en chef via wl-consent
   // (equipe_liste / equipe_enregistrer / equipe_actif ; tout est revérifié côté serveur). n8n et toutes les fonctions la lisent
@@ -2327,7 +2589,7 @@
     else if (!C.ok) h += '<p class="muted">Le compteur de coût n’est pas encore disponible (' + esc(C.why || 'indisponible') + ').</p>';
     else {
       var eu = function (v) { return (Math.round(Number(v || 0) * 100) / 100).toFixed(2).replace('.', ',') + ' €'; };
-      var U = C.par_usage || {}, noms = { preparation: '🧠 Préparation', dictee: '🎙️ Dictée', citations: '✅ Citations', prospection: '🔎 Prospection', autre: '· Autre' };
+      var U = C.par_usage || {}, noms = { preparation: '🧠 Préparation', dictee: '🎙️ Dictée', citations: '✅ Citations', prospection: '🔎 Prospection', telephone: '☎️ Téléphone', autre: '· Autre' };
       h += '<div class="kpis">' + kpi(eu(C.total_eur), 'ce mois-ci' + (C.mois ? ' (' + esc(moisNom(C.mois)) + ')' : '')) + '</div>';
       var ru = Object.keys(noms).filter(function (k) { return Number(U[k]) > 0; }).map(function (k) { return [noms[k], Number(U[k])]; });
       if (ru.length) h += barres(ru, eu);
@@ -2419,9 +2681,11 @@
     // 23/10/2026 : message exact selon le vrai cas. Preuve = en-têtes du fil (notre Message-ID), pas l'adresse seule.
     var pv = ((S.pieces && S.pieces.preuves) || {})[f.fiche_id] || null;
     var parCourrier = (f.historique || []).some(function (e) { return e && e.par === 'courrier' && /réponse reçue/.test(String(e.e || '')); });
-    var etiq = !f.reponse ? '📬 réponse' : v || !D().me.chef ? '📬 réponse reçue' : parCourrier ? '📬 réponse hors du fil' : '📝 réponse saisie à la main';
+    var tel = !!(f.reponse && pv && pv.lien === 'telephone');
+    var etiq = !f.reponse ? '📬 réponse' : tel ? '📞 réponse par téléphone' : v || !D().me.chef ? '📬 réponse reçue' : parCourrier ? '📬 réponse hors du fil' : '📝 réponse saisie à la main';
     var note = '';
-    if (f.reponse && v && pv && pv.lien === 'meme_domaine') note = 'Réponse reçue dans le fil, depuis ' + pv.de + ' (autre adresse du même domaine que le contact).';
+    if (tel) note = 'Réponse reçue par téléphone' + (chefFiche ? '.' : ' : pas de preuve par mail, les pièces éventuelles passent « à vérifier » au Comptable.');
+    else if (f.reponse && v && pv && pv.lien === 'meme_domaine') note = 'Réponse reçue dans le fil, depuis ' + pv.de + ' (autre adresse du même domaine que le contact).';
     else if (f.reponse && v && pv && pv.lien === 'autre_adresse') note = 'Réponse reçue dans le fil, depuis ' + pv.de + ' : une autre adresse que celle du contact' + (chefFiche ? '.' : ', les pièces passent « à vérifier » au Comptable.');
     else if (f.reponse && !v && D().me.chef && !chefFiche) note = parCourrier ? 'Réponse reçue hors du fil (sans référence à notre mail) : pas de pièces automatiques.' : 'Réponse ajoutée à la main : pas de pièces automatiques.';
     return '<div class="parc">' + et(!!f.envoye_le, '✉️ envoyée') + '<i></i>' + et(!!f.reponse, etiq) + '<i></i>' + et(f.statut === 'inséré', '✅ citée') +
@@ -2545,6 +2809,21 @@
       case 'art-tab': S.artTab = id; var ra2 = S.root.querySelector('#wl-art-res'); if (ra2) { ra2.innerHTML = artsRes(); markBusy(); } break;
       case 'prep-retry': reprendrePrep(id); break;
       case 'open-valid': openDoc('valid', id); break;
+      case 'tel': telOuvrir(id); break;
+      case 'tel-fermer': telFermer(); break;
+      case 'tel-envoyer': telEnvoyer(); break;
+      case 'tel-dicter': if (TEL_DICTEE.actif()) TEL_DICTEE.arreter(); else TEL_DICTEE.demarrer(); break;
+      case 'tel-exec': telExec(id); break;
+      case 'tel-rediger': telRediger(id); break;
+      case 'ap-ouvrir': apOuvrir(id); break;
+      case 'ap-annuler': if (S.appel && S.appel.actif) { S.appel.actif = false; clearInterval(S.appel.timer); try { S.appel.rec.stop(); } catch (e) {} } if (AP_DICTEE.actif()) AP_DICTEE.arreter(); S.appel = null; paintDoc(); break;
+      case 'ap-ecouter': apEcouter(); break;
+      case 'ap-stop': apArreter(); break;
+      case 'ap-notes': if (S.appel) { S.appel.source = 'notes'; S.appel.etape = 'relire'; paintDoc(); setTimeout(function () { var x = S.root.querySelector('#wl-ap-txt'); if (x) x.focus(); }, 30); } break;
+      case 'ap-dicter': if (AP_DICTEE.actif()) AP_DICTEE.arreter(); else AP_DICTEE.demarrer(); break;
+      case 'ap-traiter': apTraiter(); break;
+      case 'ap-retour': if (S.appel) { S.appel.etape = 'relire'; paintDoc(); } break;
+      case 'ap-enregistrer': apEnregistrer(); break;
       case 'open-fiche': openDoc('fiche', id); break;
       case 'open-aide': openDoc('aide', ''); break;
       case 'open-mail': openDoc('mail', id); break;
@@ -2870,6 +3149,10 @@
     if (t.id && /^eq-/.test(t.id)) { S.eqDraft = S.eqDraft || {}; S.eqDraft[t.id.slice(3)] = t.type === 'checkbox' ? !!t.checked : t.value; return; }
     if (t.classList && t.classList.contains('pub-in')) { S.pub = S.pub || {}; S.pub[t.getAttribute('data-pub')] = !!t.checked; return; }
     if (t.id === 'wl-msg') { S.msgDraft = t.value; return; }
+    if (t.id === 'wl-tel-msg') { if (S.telP) { S.telP.brouillon = t.value; S.telBr = S.telBr || {}; S.telBr[S.telP.poste] = t.value; } return; }
+    if (t.id === 'wl-ap-ok') { if (S.appel) { S.appel.consent = !!t.checked; var be = S.root.querySelector('[data-act="ap-ecouter"]'); if (be) be.disabled = !t.checked; } return; }
+    if (t.id === 'wl-ap-lang') { if (S.appel) S.appel.lang = t.value; return; }
+    if (t.id === 'wl-ap-txt') { if (S.appel) S.appel.texte = t.value; return; }
     if (t.id === 'wl-mb-usine') { try { localStorage.setItem('wl-mb-usine', t.checked ? '1' : '0'); } catch (e) {} var lm = S.root.querySelector('#wl-mb-listes'); if (lm) { lm.innerHTML = mbListes(); markBusy(); } return; }
     if (t.id === 'wl-qmb') { S.qMb = t.value; var tm = S.root.querySelector('#wl-mb-tous'); if (tm) { var tmp = document.createElement('div'); tmp.innerHTML = mbListes(); var nt = tmp.querySelector('#wl-mb-tous'); if (nt) tm.innerHTML = nt.innerHTML; markBusy(); } return; }
     if (t.id === 'wl-qa') { S.qArt = t.value; var ra = S.root.querySelector('#wl-art-res'); if (ra) { ra.innerHTML = artsRes(); markBusy(); } return; }
@@ -3018,7 +3301,7 @@
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     try { if (window.PHTheme && PHTheme.deriverClair) { var stc = document.createElement('style'); stc.id = 'wl-clair-css'; stc.textContent = PHTheme.deriverClair(CSS, '#wl', '#wl.wl-clair') + '\n' + CSS_CLAIR_MAIN; document.head.appendChild(stc); } } catch (e) { /* pas de mode clair : le lab reste sombre */ }
     var r = document.createElement('div'); r.id = 'wl';
-    r.innerHTML = '<div class="top"></div><div class="tabs"></div><div class="wrap"></div><div class="panelbg"></div><div class="panel"></div><div class="doc"></div><div class="toast"></div>';
+    r.innerHTML = '<div class="top"></div><div class="tabs"></div><div class="wrap"></div><div class="panelbg"></div><div class="panel"></div><div class="doc"></div><div class="tel" role="dialog" aria-label="Téléphone du bureau"></div><div class="toast"></div>';
     document.body.appendChild(r);
     document.documentElement.style.overflow = 'hidden';
     S.root = r;
@@ -3041,6 +3324,7 @@
     r.addEventListener('keydown', function (e) {
       if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('.dcard[data-act]')) { e.preventDefault(); act(e.target.getAttribute('data-act'), e.target); return; }
       if (e.target && e.target.id === 'wl-msg' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var b = r.querySelector('[data-act="send-msg"]'); if (b) b.click(); }
+      if (e.target && e.target.id === 'wl-tel-msg' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); telEnvoyer(); }
     });
     var pjsIn = document.createElement('input'); pjsIn.type = 'file'; pjsIn.id = 'wl-pjs-input'; pjsIn.multiple = true; pjsIn.style.display = 'none'; r.appendChild(pjsIn);
     pjsIn.addEventListener('change', function () {
