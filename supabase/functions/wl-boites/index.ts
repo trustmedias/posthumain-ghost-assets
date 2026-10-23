@@ -208,6 +208,22 @@ function etape<T>(nom: string, p: Promise<T>, ms = 25000): Promise<T> {
   let t: number | undefined;
   return Promise.race([p, new Promise<T>((_, rej) => { t = setTimeout(() => rej(new Error("timeout : " + nom)), ms); })]).finally(() => clearTimeout(t));
 }
+// 24/10/2026 : le mail est lu par morceaux de 16 Ko (FETCH BODY.PEEK[]<début.longueur>) : d'un seul tenant, la lecture d'un mail
+// normal restait bloquée dans l'environnement des fonctions (les petits en-têtes passaient). 600 Ko au plus.
+// deno-lint-ignore no-explicit-any
+async function lireSource(c: any, uid: number, taille: number): Promise<Uint8Array> {
+  const PAS = 16 * 1024, fin = Math.min(Number(taille) || 600 * 1024, 600 * 1024), morceaux: Uint8Array[] = [];
+  let pos = 0;
+  while (pos < fin) {
+    const m = await etape("lecture d'un mail (octet " + pos + ")", c.fetchOne(String(uid), { source: { start: pos, maxLength: PAS } }, { uid: true }), 15000);
+    const b = m && m.source ? new Uint8Array(m.source) : new Uint8Array(0);
+    if (!b.length) break;
+    morceaux.push(b); pos += b.length;
+    if (b.length < PAS) break;
+  }
+  const out = new Uint8Array(pos); let k = 0; for (const b of morceaux) { out.set(b, k); k += b.length; }
+  return out;
+}
 // deno-lint-ignore no-explicit-any
 async function releverBoite(box: any, adresses: string[]) {
   const now = new Date().toISOString(), avant = new Date(Date.now() - 3 * 60e3).toISOString();
@@ -243,9 +259,9 @@ async function releverBoite(box: any, adresses: string[]) {
           dernier = uid; ignores++; await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); continue;
         }
         const MAX = 600 * 1024, gros = !!(e.size && e.size > MAX);
-        const m = await etape("lecture d'un mail", c.fetchOne(String(uid), { source: gros ? { start: 0, maxLength: MAX } : true }, { uid: true }), 40000);
-        if (!m || !m.source) { dernier = uid; ignores++; continue; }
-        const t = await etape("tri d'un mail", trier(box, new Uint8Array(m.source), adresses), 30000);
+        const src = await lireSource(c, uid, Number(e.size) || MAX);
+        if (!src.length) { dernier = uid; ignores++; continue; }
+        const t = await etape("tri d'un mail", trier(box, src, adresses), 30000);
         if (gros && t.row) { t.row.texte = (t.row.texte ? t.row.texte + "\n\n" : "") + "[Mail volumineux (" + Math.round(Number(e.size) / 1024 / 1024 * 10) / 10 + " Mo) : pièces jointes non récupérées, voir la boîte " + box.adresse + ".]"; t.row.pieces_upload = []; }
         if (t.row && !deja.has(t.mail_id)) {
           const { data: ex } = await db.from("wl_courrier").select("mail_id").eq("mail_id", t.mail_id).limit(1);
