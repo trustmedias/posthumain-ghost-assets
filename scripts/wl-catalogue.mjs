@@ -14,9 +14,15 @@ const F = {
   tel: join(R, "supabase/functions/wl-tel/index.ts"),
   telCat: join(R, "supabase/functions/wl-tel/catalogue.ts"),
   kbCat: join(R, "supabase/functions/wl-kb/catalogue.ts"),
+  mails: join(R, "shared/wl-mails.json"),
+  mailsTypes: join(R, "supabase/functions/wl-mails/types.ts"),
 };
 const lire = (f) => readFileSync(f, "utf8");
 const cat = JSON.parse(lire(F.cat));
+// « valeurs »: "@types_mails" (paramètre de capacité) = la liste des types de shared/wl-mails.json, résolue ici : un nouveau type de
+// mail déclaré dans wl-mails.json devient aussitôt une valeur valide au ☎️, sans toucher au catalogue.
+const mailsDecl0 = JSON.parse(lire(F.mails));
+for (const c of cat.capacites || []) for (const d of Object.values(c.params || {})) if (d && d.valeurs === "@types_mails") d.valeurs = (mailsDecl0.types || []).map((t) => t.id);
 const compact = JSON.stringify(cat);
 const MARQ = /\/\*CATALOGUE-DEBUT\*\/[\s\S]*?\/\*CATALOGUE-FIN\*\//;
 const moduleTel = "// GÉNÉRÉ par scripts/wl-catalogue.mjs depuis shared/wl-catalogue.json : ne pas modifier à la main.\n" +
@@ -25,10 +31,20 @@ const moduleTel = "// GÉNÉRÉ par scripts/wl-catalogue.mjs depuis shared/wl-ca
 const moduleKb = "// GÉNÉRÉ par scripts/wl-catalogue.mjs depuis shared/wl-catalogue.json (extrait : connaissances) : ne pas modifier à la main.\n" +
   "// deno-lint-ignore-file\nexport const CATALOGUE: any = " + JSON.stringify({ connaissances: cat.connaissances || [], postes: (cat.postes || []).map((p) => ({ id: p.id, nom: p.nom, emoji: p.emoji, connaissances: p.connaissances ?? null })) }) + ";\n";
 
+// Types de mails marketing (shared/wl-mails.json) : éditeur unique du bureau Marketing, recopié dans app.js et dans wl-mails
+const mailsDecl = JSON.parse(lire(F.mails));
+const mailsCompact = JSON.stringify(mailsDecl);
+const MARQ_MAILS = /\/\*MAILS-DEBUT\*\/[\s\S]*?\/\*MAILS-FIN\*\//;
+const moduleMails = "// GÉNÉRÉ par scripts/wl-catalogue.mjs depuis shared/wl-mails.json : ne pas modifier à la main.\n" +
+  "// deno-lint-ignore-file\nexport const MAILS: any = " + mailsCompact + ";\n";
+
 if (process.argv.includes("--ecrire")) {
   const app = lire(F.app);
   if (!MARQ.test(app)) { console.error("Marqueurs /*CATALOGUE-DEBUT*/ … /*CATALOGUE-FIN*/ introuvables dans writinglab/app.js"); process.exit(1); }
-  writeFileSync(F.app, app.replace(MARQ, () => "/*CATALOGUE-DEBUT*/" + compact + "/*CATALOGUE-FIN*/"));
+  let app2 = app.replace(MARQ, () => "/*CATALOGUE-DEBUT*/" + compact + "/*CATALOGUE-FIN*/");
+  if (MARQ_MAILS.test(app2)) app2 = app2.replace(MARQ_MAILS, () => "/*MAILS-DEBUT*/" + mailsCompact + "/*MAILS-FIN*/");
+  writeFileSync(F.app, app2);
+  writeFileSync(F.mailsTypes, moduleMails);
   writeFileSync(F.telCat, moduleTel);
   writeFileSync(F.kbCat, moduleKb);
   console.log("Catalogue recopié dans writinglab/app.js, supabase/functions/wl-tel/catalogue.ts et supabase/functions/wl-kb/catalogue.ts. Lancez maintenant : node scripts/wl-catalogue.mjs");
@@ -158,5 +174,24 @@ if (telCat !== moduleTel) ko("supabase/functions/wl-tel/catalogue.ts : copie pé
 let kbCat = ""; try { kbCat = lire(F.kbCat); } catch { /* absent */ }
 if (kbCat !== moduleKb) ko("supabase/functions/wl-kb/catalogue.ts : copie périmée ou absente → node scripts/wl-catalogue.mjs --ecrire (puis redéployer wl-kb)");
 
+// --- types de mails marketing ---
+const REG_CONNUS = Object.keys(mailsDecl.reglages || {}), SOURCES = ["ghost_automation", "n8n_gabarit"];
+const mIds = new Set();
+for (const t of mailsDecl.types || []) {
+  const n = "type de mail « " + (t.id || "?") + " »";
+  if (!t.id || !/^[a-z0-9_]+$/.test(t.id)) ko(n + " : « id » manquant ou invalide");
+  if (mIds.has(t.id)) ko(n + " : id en double"); mIds.add(t.id);
+  for (const k of ["nom", "emoji", "aide", "ia"]) if (!t[k] || typeof t[k] !== "string") ko(n + " : « " + k + " » manquant");
+  if (!SOURCES.includes(t.source)) ko(n + " : source inconnue « " + t.source + " » (" + SOURCES.join(", ") + ")");
+  if (t.source === "ghost_automation" && (!/^[0-9a-f]{24}$/.test(String(t.automation || "")) || !(t.rang >= 1))) ko(n + " : « automation » (id Ghost) et « rang » requis");
+  if (t.source === "n8n_gabarit" && (!t.workflow || !Array.isArray(t.emplacements))) ko(n + " : « workflow » et « emplacements » requis");
+  for (const r of t.reglages || []) { if (!REG_CONNUS.includes(r)) ko(n + " : réglage inconnu « " + r + " »"); if (!t.defauts || !(r in t.defauts)) ko(n + " : valeur par défaut manquante pour « " + r + " »"); }
+}
+const mApp = MARQ_MAILS.exec(app);
+if (!mApp) ko("writinglab/app.js : marqueurs /*MAILS-DEBUT*/…/*MAILS-FIN*/ introuvables");
+else if (mApp[0] !== "/*MAILS-DEBUT*/" + mailsCompact + "/*MAILS-FIN*/") ko("writinglab/app.js : copie des types de mails périmée → node scripts/wl-catalogue.mjs --ecrire");
+let mT = ""; try { mT = lire(F.mailsTypes); } catch { /* absent */ }
+if (mT !== moduleMails) ko("supabase/functions/wl-mails/types.ts : copie périmée ou absente → node scripts/wl-catalogue.mjs --ecrire (puis redéployer wl-mails)");
+
 if (err.length) { console.error("✗ Catalogue du Writinglab : " + err.length + " problème(s)\n- " + err.join("\n- ")); process.exit(1); }
-console.log("✓ Catalogue du Writinglab : " + postes.length + " postes, " + caps.length + " capacités, " + domaines.length + " domaines de connaissances, " + apiModes.length + " actions de la page vérifiées (" + interne.length + " internes), copies à jour.");
+console.log("✓ Catalogue du Writinglab : " + postes.length + " postes, " + caps.length + " capacités, " + domaines.length + " domaines de connaissances, " + (mailsDecl.types || []).length + " types de mails, " + apiModes.length + " actions de la page vérifiées (" + interne.length + " internes), copies à jour.");

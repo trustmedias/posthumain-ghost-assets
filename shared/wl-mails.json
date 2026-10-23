@@ -1,0 +1,61 @@
+{
+  "_lisezmoi": "Types de mails marketing éditables dans le bureau Marketing du Writinglab (Julien · Marketing → ✉️ Mails marketing). Un type = une déclaration ici ; ajouter un type d'une source déjà gérée (ghost_automation, n8n_gabarit) ne demande aucun code. Recopié par scripts/wl-catalogue.mjs --ecrire dans supabase/functions/wl-mails/types.ts et dans writinglab/app.js (entre les marqueurs MAILS-DEBUT et MAILS-FIN). Réglages connus : actif, jours, conservation, jour, frequence.",
+  "version": 1,
+  "reglages": {
+    "actif": { "type": "interrupteur", "nom": "Activé", "aide_on": "Ce mail part normalement.", "aide_off": "Ce mail ne part plus, jusqu'à ce que vous le réactiviez." },
+    "jours": { "type": "nombre", "nom": "Délai après l'inscription", "min": 1, "max": 60, "unite": "jour", "aide": "Envoyé {n} jour(s) après l'inscription." },
+    "conservation": { "type": "nombre", "nom": "Conservation dans Ghost", "min": 7, "max": 365, "unite": "jour", "aide": "Les envois de ce mail restent {n} jours dans l'historique des publications Ghost, puis leurs statistiques sont archivées dans Airtable et le post est supprimé de Ghost." },
+    "jour": { "type": "choix", "nom": "Jour d'envoi", "valeurs": [[1, "lundi"], [2, "mardi"], [3, "mercredi"], [4, "jeudi"], [5, "vendredi"], [6, "samedi"], [0, "dimanche"]], "aide": "Préparé à 9 h 45 et envoyé à 17 h 30 le {v}." },
+    "frequence": { "type": "choix", "nom": "Fréquence", "valeurs": [["hebdo", "chaque semaine"], ["2", "2 fois par mois (1er et 3e)"], ["1", "1 fois par mois (le 1er du mois)"]], "aide": "{v}." }
+  },
+  "types": [
+    {
+      "id": "bienvenue_1",
+      "nom": "Mail de bienvenue n°1",
+      "emoji": "👋",
+      "source": "ghost_automation",
+      "automation": "69dcdc7025aa41000849be20",
+      "rang": 1,
+      "aide": "Premier mail de la série de bienvenue des membres GRATUITS (automation Ghost « Free member welcome flow »). Ghost l'envoie aux inscrits du site ; le workflow « Série de bienvenue (leads Meta) » le rejoue pour les leads Meta créés par l'API.",
+      "reglages": ["actif", "jours", "conservation"],
+      "defauts": { "actif": true, "jours": 1, "conservation": 30 },
+      "mise_en_page_proposee": "carte",
+      "ia": "Mail n°1 de la série de bienvenue des membres GRATUITS de Posthumain (média suisse francophone indépendant sur l'IA, la tech et la science, sans publicité). Il arrive environ 1 jour après l'inscription. But : remercier, dire clairement ce que le lecteur va recevoir et quand, donner 1 ou 2 premiers liens utiles (articles phares, page Premium), installer la confiance. Ton chaleureux, direct, VOUVOIEMENT obligatoire, français impeccable avec tous les accents, jamais de tiret cadratin. Objet : 30 à 60 caractères, sans majuscules criardes, au plus un emoji. Corps court : 5 à 9 blocs, phrases courtes. N'invente aucun chiffre, prix, fonctionnalité ou date absents du mail actuel ou de la base de connaissances Marketing ; Posthumain TV n'est PAS encore lancé : n'en parle pas. Liens : seulement des URL https://posthumain.com/… déjà présentes ou citées dans la base de connaissances."
+    },
+    {
+      "id": "bienvenue_2",
+      "nom": "Mail de bienvenue n°2",
+      "emoji": "📬",
+      "source": "ghost_automation",
+      "automation": "69dcdc7025aa41000849be20",
+      "rang": 2,
+      "aide": "Deuxième mail de la série de bienvenue des membres GRATUITS (même automation Ghost), une semaine après le premier.",
+      "reglages": ["actif", "jours", "conservation"],
+      "defauts": { "actif": true, "jours": 8, "conservation": 30 },
+      "mise_en_page_proposee": "carte",
+      "ia": "Mail n°2 de la série de bienvenue des membres GRATUITS de Posthumain, environ une semaine après l'inscription. But : donner envie de lire un contenu fort (une enquête ou un dossier présent dans le mail actuel), montrer la valeur du travail de la rédaction, et inviter avec élégance à passer Premium sans pression ni fausse urgence. Ton chaleureux, VOUVOIEMENT obligatoire, français impeccable, jamais de tiret cadratin. Objet : 30 à 60 caractères, curiosité ou enjeu concret, au plus un emoji. Corps : 6 à 12 blocs. Prix et offres : UNIQUEMENT ceux de la base de connaissances Marketing ; aucun chiffre inventé. Posthumain TV n'est PAS encore lancé : n'en parle pas. Liens : seulement des URL https://posthumain.com/… déjà présentes ou citées dans la base de connaissances."
+    },
+    {
+      "id": "grand_format",
+      "nom": "Le Grand Format",
+      "emoji": "📺",
+      "source": "n8n_gabarit",
+      "workflow": "dSPO5tEWq09YPvk1",
+      "aide": "Mail qui présente les vidéos longues de la semaine (le samedi à l'origine ; jour et fréquence réglables ci-dessous). Chaque semaine, Claude écrit l'objet, l'intro et une accroche par vidéo ; le GABARIT HTML (tableaux, boutons compatibles Outlook et Gmail) est figé. Ici, vous réglez l'envoi, les textes fixes et des consignes supplémentaires pour l'IA.",
+      "reglages": ["actif", "jour", "frequence"],
+      "defauts": { "actif": true, "jour": 6, "frequence": "hebdo" },
+      "emplacements": [
+        { "id": "titre", "nom": "Titre en tête du mail", "defaut": "Le Grand Format", "max": 40 },
+        { "id": "bouton_defaut", "nom": "Bouton sous chaque vidéo (si l'IA n'en propose pas)", "defaut": "Regarder la vidéo", "max": 30 },
+        { "id": "conclusion_defaut", "nom": "Phrase de fin (si l'IA n'en propose pas)", "defaut": "Bon visionnage, et à samedi prochain.", "max": 160 },
+        { "id": "pied_texte", "nom": "Pied du mail : texte", "defaut": "Envie d’en voir plus ? Toutes les vidéos Posthumain sont sur notre chaîne YouTube.", "max": 220 },
+        { "id": "pied_lien", "nom": "Pied du mail : lien vers la chaîne", "defaut": "S’abonner à @posthum1 →", "max": 60 },
+        { "id": "consignes", "nom": "Consignes supplémentaires pour l'IA qui écrit le mail chaque semaine", "defaut": "", "max": 1500, "multiligne": true }
+      ],
+      "futurs": [
+        { "id": "posthumain_tv", "nom": "🎬 Bloc Posthumain TV en tête du mail", "actif": false, "aide": "Préparé, désactivé : rien n'apparaît dans les envois tant qu'il est désactivé. Le moment venu : le documentaire Posthumain TV de la semaine (14 min) en tête du mail, avec sa note Posthumain TV et un appel à s'abonner à Posthumain TV.", "ia": "Quand ce bloc sera activé, il se place en TÊTE du mail, avant les vidéos YouTube, dans la même structure que les cartes vidéo : vignette cliquable (image 560 px de large, coins arrondis 12 px, lien vers la page du documentaire), étiquette en capitales couleur d'accent « POSTHUMAIN TV · 14 MIN », titre h2 22 px gras, une phrase d'accroche, la note Posthumain TV sur une ligne, puis le bouton HTML « bulletproof » existant (même tableau, même couleur, mêmes balises mso) avec le texte « S'abonner à Posthumain TV → » vers https://posthumain.com/tv/?ref=grand-format-tv, et le séparateur gris existant. Aucun nouveau style ni nouvelle structure." }
+      ],
+      "ia": "Le Grand Format est l'email du samedi de Posthumain (média suisse francophone sur l'IA, la tech et le futur) qui présente les vidéos longues de la semaine. Sa STRUCTURE HTML EST FIGÉE et ne doit JAMAIS être réinventée : titre en capitales couleur d'accent, intro de 2 phrases, puis pour chaque vidéo une carte (vignette cliquable, pastille ► dans une mini-table de 40 px, étiquette en capitales, titre h2, accroche de 280 caractères au plus) suivie du bouton HTML « bulletproof » compatible Outlook classic et Gmail (tableau, mso-text-raise, <i> masqués), séparateurs gris, phrase de fin, pied avec lien vers la chaîne YouTube. Tu ne modifies QUE les textes des emplacements fixes et les consignes supplémentaires données à l'IA hebdomadaire. Règles du Grand Format : vouvoiement obligatoire ; jamais de tiret cadratin ; aucune mention d'abonnement payant, de prix, de premium, de vues ou de popularité ; aucun chiffre inventé ; ne mentionne aucun moment de la journée ; « samedi prochain » pour évoquer le prochain rendez-vous si la fréquence est hebdomadaire, sinon « au prochain Grand Format ». Posthumain TV n'est pas encore lancé : n'en parle pas."
+    }
+  ]
+}

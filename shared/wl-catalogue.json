@@ -44,14 +44,14 @@
       "couleur": "#e0763a",
       "acces": "chef",
       "titre": "redaction@posthumain.com",
-      "role": "Tu gères UNIQUEMENT le courrier de redaction@posthumain.com (et des boîtes confiées au Marketing), c'est-à-dire les mails présents dans « courrier » du contexte : partenariats, articles sponsorisés, publicité, presse. Tu rédiges une proposition de réponse à un mail reçu : elle reste en brouillon, le rédacteur en chef la relit et l'envoie lui-même (« Valider et envoyer »). Tu suis aussi les campagnes de prospection. Les contacts d'interview (personnes qui ont une fiche) ne sont jamais pour toi.",
+      "role": "Tu gères UNIQUEMENT le courrier de redaction@posthumain.com (et des boîtes confiées au Marketing), c'est-à-dire les mails présents dans « courrier » du contexte : partenariats, articles sponsorisés, publicité, presse. Tu rédiges une proposition de réponse à un mail reçu : elle reste en brouillon, le rédacteur en chef la relit et l'envoie lui-même (« Valider et envoyer »). Tu suis aussi les campagnes de prospection, et tu ouvres l'éditeur des mails marketing (mails de bienvenue, Grand Format) quand le rédacteur en chef veut en modifier un : il relit, enregistre et teste lui-même. Les contacts d'interview (personnes qui ont une fiche) ne sont jamais pour toi.",
       "aide": "Julien traite le courrier de redaction@posthumain.com : partenariats, publicité, articles sponsorisés, presse, et la prospection. Il prépare des réponses que le rédacteur en chef relit et envoie.",
       "exemples": ["Réponds à l'agence qui propose un article sponsorisé : pas de sponsoring ce mois-ci.", "Prépare une réponse polie au mail de partenariat reçu ce matin."],
-      "aiguillage": "UNIQUEMENT un mail présent dans le Courrier de redaction@ (ou des boîtes du Marketing), une demande de partenariat, de publicité ou d'article sponsorisé, la prospection ; jamais un contact d'interview",
+      "aiguillage": "UNIQUEMENT un mail présent dans le Courrier de redaction@ (ou des boîtes du Marketing), une demande de partenariat, de publicité ou d'article sponsorisé, la prospection, la modification d'un mail marketing automatique (mails de bienvenue, Grand Format) ; jamais un contact d'interview",
       "contexte": ["courrier"],
       "mail": { "boite": "redaction", "adresse": "redaction@posthumain.com", "role": "mk" },
       "plan": { "x": 930, "y": 950, "teinte": 20 },
-      "capacites": ["proposer_reponse", "ouvrir"]
+      "capacites": ["proposer_reponse", "mails_marketing", "ouvrir"]
     },
     {
       "id": "sc",
@@ -312,6 +312,23 @@
         "texte": "Consigne : {p.consigne}",
         "bouton": "✉️ Rédiger la réponse"
       }
+    },
+    {
+      "id": "mails_marketing",
+      "nom": "✉️ Modifier un mail marketing",
+      "postes": ["mk"],
+      "description": "ouvre l'éditeur des mails marketing du bureau Marketing sur le bon mail, avec la consigne du rédacteur en chef pré-remplie pour la « Suggestion par IA ». Rien n'est modifié ni envoyé : le rédacteur en chef relit, enregistre et teste lui-même. Paramètres : type (bienvenue_1 = mail de bienvenue n°1, bienvenue_2 = mail de bienvenue n°2, grand_format = Le Grand Format ; la liste vient de shared/wl-mails.json), consigne? (ce qu'il veut changer, fidèle à sa demande)",
+      "aide": "Ouvre l'éditeur « ✉️ Mails marketing » sur le mail demandé (bienvenue n°1 ou n°2, Grand Format) avec votre consigne prête pour la suggestion de l'IA. Vous relisez, enregistrez et envoyez un test vous-même.",
+      "fournir": "le mail concerné (bienvenue n°1, bienvenue n°2 ou Grand Format) et ce que vous voulez changer",
+      "exemples": ["Raccourcis le mail de bienvenue n°1 et ajoute un lien vers nos enquêtes.", "Change le titre du Grand Format et rends la phrase de fin plus chaleureuse.", "Ouvre le deuxième mail de bienvenue, je veux revoir l'objet."],
+      "params": {
+        "type": { "type": "choix", "requis": true, "valeurs": "@types_mails" },
+        "consigne": { "type": "texte", "long": 1500 }
+      },
+      "droits": "chef",
+      "mode": "clic",
+      "executeur": { "type": "page", "fonction": "mails", "resultat": "éditeur ouvert" },
+      "carte": { "titre": "✉️ Mail marketing à modifier", "bouton": "✉️ Ouvrir l'éditeur" }
     },
     {
       "id": "ouvrir",

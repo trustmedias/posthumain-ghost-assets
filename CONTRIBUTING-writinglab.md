@@ -159,3 +159,18 @@ avec ce poste uniquement dans le catalogue de test.
 - Chaque domaine de connaissances a ses champs, ses fiches `defaut` existent ; chaque poste déclare `connaissances`
   (domaine connu ou `null`).
 - Les copies du catalogue (app.js, wl-tel/catalogue.ts, wl-kb/catalogue.ts) sont à jour.
+
+## Mails marketing : `shared/wl-mails.json`
+
+L'éditeur « ✉️ Mails marketing » (bureau Julien · Marketing, rédacteur en chef) lit cette déclaration. Champs d'un type :
+
+- `id`, `nom`, `emoji`, `aide` (une phrase pour les humains), `ia` (règles et structure données à l'IA pour la suggestion).
+- `source` : `ghost_automation` (avec `automation` = id de l'automation Ghost et `rang` = place du mail dans la série) ou
+  `n8n_gabarit` (avec `workflow` et `emplacements` : `{ id, nom, defaut, max, multiligne? }`, les seuls textes modifiables ;
+  le gabarit HTML reste figé dans n8n, qui lit ces textes par l'action `config` de wl-mails).
+- `reglages` : liste parmi `actif`, `jours`, `conservation`, `jour`, `frequence` (définis en tête du fichier, avec leur phrase
+  d'aide) et `defauts` (valeurs d'origine, utilisées tant que rien n'est enregistré).
+- `mise_en_page_proposee` (facultatif, `carte`) : nouvelle mise en page proposée dans l'éditeur, jamais appliquée sans « Enregistrer ».
+- `futurs` (facultatif) : blocs préparés mais désactivés (`actif: false`), avec leurs consignes de mise en page pour plus tard.
+
+Le test (`node scripts/wl-catalogue.mjs`) vérifie les champs obligatoires, les sources connues, les réglages et les copies.
