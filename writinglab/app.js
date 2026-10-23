@@ -275,7 +275,7 @@
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .panel .dossier .dh{cursor:pointer}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
-#wl .mb-al{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(255,107,90,.10);border:1px solid rgba(255,107,90,.45);font-size:13.5px;line-height:1.5}#wl .mb-ul{margin:4px 0 2px 18px;padding:0;font-size:13px;line-height:1.5}#wl .mb-ul li{margin:2px 0;word-break:break-word}#wl .mb-k{font-weight:700;font-size:13px;margin:10px 0 2px}#wl .mb-src{white-space:pre-wrap;font-size:12.5px;line-height:1.5;color:rgba(243,236,224,.8);word-break:break-word}#wl .mb-src a,#wl .mb-ul a{color:#9fffc8!important}#wl .pubwrap{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 12px;max-width:100%}#wl label.pubchk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;padding:0!important;font:500 12.5px/1.2 Inter,system-ui,sans-serif!important;opacity:.85;cursor:pointer;user-select:none;white-space:nowrap;text-transform:none!important;letter-spacing:normal!important;color:inherit}#wl label.pubchk:hover{opacity:1}#wl label.pubchk input{width:16px;height:16px;margin:0!important;accent-color:#18b45f;cursor:pointer;flex:0 0 auto}#wl label.cfm-pub{display:flex!important;justify-content:center;margin:2px 0 14px!important;font-size:13.5px!important}#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .rd-h{display:flex;gap:10px;align-items:flex-start}#wl .rd-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:rgba(0,255,119,.14);color:#9fffc8;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .rd-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0}#wl .rd-a{margin-top:6px;font-size:13.5px;line-height:1.5;color:rgba(243,236,224,.72);white-space:pre-wrap}#wl .rd-vote{border-color:rgba(0,255,119,.55)!important;background:rgba(0,255,119,.06)!important}#wl .mb-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block}#wl .mb-soc{width:100%;max-width:320px;border-radius:10px;margin:8px 0;display:block}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
+#wl .mb-al{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(255,107,90,.10);border:1px solid rgba(255,107,90,.45);font-size:13.5px;line-height:1.5}#wl .mb-ul{margin:4px 0 2px 18px;padding:0;font-size:13px;line-height:1.5}#wl .mb-ul li{margin:2px 0;word-break:break-word}#wl .mb-k{font-weight:700;font-size:13px;margin:10px 0 2px}#wl .mb-src{white-space:pre-wrap;font-size:12.5px;line-height:1.5;color:rgba(243,236,224,.8);word-break:break-word}#wl .mb-src a,#wl .mb-ul a{color:#9fffc8!important}#wl .pubwrap{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 12px;max-width:100%}#wl label.pubchk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;padding:0!important;font:500 12.5px/1.2 Inter,system-ui,sans-serif!important;opacity:.85;cursor:pointer;user-select:none;white-space:nowrap;text-transform:none!important;letter-spacing:normal!important;color:inherit}#wl label.pubchk:hover{opacity:1}#wl label.pubchk input{width:16px;height:16px;margin:0!important;accent-color:#18b45f;cursor:pointer;flex:0 0 auto}#wl label.cfm-pub{display:flex!important;justify-content:center;margin:2px 0 14px!important;font-size:13.5px!important}#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .rd-h{display:flex;gap:10px;align-items:flex-start}#wl .rd-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:rgba(0,255,119,.14);color:#9fffc8;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .rd-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0}#wl .rd-a{margin-top:6px;font-size:13.5px;line-height:1.5;color:rgba(243,236,224,.72);white-space:pre-wrap}#wl .rd-vote{border-color:rgba(0,255,119,.55)!important;background:rgba(0,255,119,.06)!important}#wl .mb-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block}#wl .mb-soc{width:100%;max-width:320px;border-radius:10px;margin:8px 0;display:block}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .sigprev .kd{display:block}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
 #wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .fa-ed{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18)}#wl .fa-ed label{display:block;font-size:12.5px;color:rgba(243,236,224,.6);margin:8px 0 4px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 " + PHL_CSS.confirmer + "\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
@@ -285,6 +285,7 @@
 #wl .feed .it{display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13.5px}\
 #wl .feed .it .t{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:rgba(243,236,224,.45);min-width:78px;padding-top:2px}\
 #wl .doc{position:fixed;inset:0;z-index:12;background:rgba(5,4,3,.86);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch}#wl .doc.open{display:block}\
+#wl .prep{max-width:760px;margin:16px auto 80px;padding:20px 22px 22px;background:#14110c;border:1px solid rgba(0,255,119,.22);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(0,255,119,.08)}#wl .dtop .pp-x{margin-left:auto;flex:0 0 auto}#wl .pp-k{display:flex;align-items:center;gap:8px;font:700 11.5px 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#00ff77}#wl .pp-dot{width:8px;height:8px;border-radius:50%;background:#00ff77;box-shadow:0 0 10px #00ff77;animation:wlPpPulse 1.1s ease-in-out infinite}#wl .pp-ti{margin:6px 0 14px;font-weight:800;font-size:19px;line-height:1.3;color:#f3ece0}#wl .pp-pg{margin:4px 0 12px}#wl .pp-bar{position:relative;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}#wl .pp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#18b45f,#00ff77);transition:width 1s linear}#wl .pp-pg.on .pp-bar i:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:wlPpScan 1.6s linear infinite}#wl .pp-meta{display:flex;justify-content:space-between;margin-top:6px;font:12px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.6)}#wl .pp-el{color:#9fffc8;font-weight:700}#wl .pp-log{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-direction:column;gap:2px}#wl .pp-log li{display:grid;grid-template-columns:46px 26px 1fr;align-items:baseline;gap:6px;padding:7px 10px;border-radius:10px;transition:background .3s,opacity .3s}#wl .pp-log li.wait{opacity:.38}#wl .pp-log li.run{background:rgba(0,255,119,.07);box-shadow:inset 2px 0 0 #00ff77}#wl .pp-log li.ok .pp-lt:after{content:' ✓';color:#3dffa0;font-weight:800}#wl .pp-log li.ko{background:rgba(255,61,90,.1);box-shadow:inset 2px 0 0 #ff3d5a}#wl .pp-log li.run .pp-lt:after{content:'';display:inline-block;width:7px;height:14px;margin-left:6px;vertical-align:-2px;background:#00ff77;animation:wlPpCaret 1s steps(2) infinite}#wl .pp-s{font:11.5px 'JetBrains Mono',ui-monospace,monospace;color:rgba(243,236,224,.45)}#wl .pp-ic{font-size:15px}#wl .pp-l{font-size:14.5px;line-height:1.4;color:#f3ece0}#wl .pp-l small{display:block;font-size:12.5px;color:rgba(243,236,224,.55)}#wl .pp-long{margin:6px 0;padding:9px 12px;border-radius:10px;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.35);font-size:13.5px;line-height:1.5;color:#ffe0a3}#wl .pp-n{font-size:13px;margin:8px 0 0}#wl .pp-det summary{cursor:pointer;font-size:13px;color:rgba(243,236,224,.6);margin:2px 0 4px}#wl .pp-fin{margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(0,255,119,.08);border:1px solid rgba(0,255,119,.35);color:#c9ffe0;font-size:14.5px;line-height:1.5}#wl .pp-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:18px 0 4px}#wl .pp-h>b{font-size:16px;color:#f3ece0}#wl .pp-c.in{animation:wlPpIn .55s cubic-bezier(.2,.8,.2,1) both}#wl .dcard:focus-visible{outline:2px solid #00ff77;outline-offset:2px}@keyframes wlPpIn{from{opacity:0;transform:translateY(14px) scale(.97);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}@keyframes wlPpScan{from{transform:translateX(-100%)}to{transform:translateX(100%)}}@keyframes wlPpPulse{50%{opacity:.35}}@keyframes wlPpCaret{50%{opacity:0}}@media (max-width:720px){#wl .prep{margin:10px 8px 60px;padding:16px 14px 18px;border-radius:16px}#wl .pp-ti{font-size:17px}#wl .pp-log li{grid-template-columns:40px 22px 1fr;padding:7px 6px}}@media (prefers-reduced-motion:reduce){#wl .pp-c.in,#wl .pp-dot,#wl .pp-pg.on .pp-bar i:after,#wl .pp-log li.run .pp-lt:after{animation:none}}\
 #wl .dtop{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(11,10,8,.92);border-bottom:1px solid rgba(255,190,90,.18)}\
 #wl .dtop .em{font-size:24px}#wl .dtop .nm{font-weight:800;font-size:15px;line-height:1.2}#wl .dtop .st{font-size:12px;color:rgba(243,236,224,.6)}\
 #wl .dtop .x{margin-left:auto;cursor:pointer;font-size:24px;color:rgba(243,236,224,.75);padding:2px 10px}\
@@ -557,7 +558,8 @@
     ds.slice(0, max).forEach(function (d, i) {
       var cx = X + (i % cols) * CW, cy = Y + Math.floor(i / cols) * CH;
       if (d.iv) { // enquête premium sans demande d'interview : case au micro, clic = préparer les interviews
-        s += '<g class="case" data-act="express" data-id="' + esc(d.iv.id) + '" data-tip="' + esc(d.iv.titre + '|🎙️ interviews pas encore préparées|aucune demande pour l’instant') + '" data-tip-act="Cliquer pour préparer les interviews" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="rgba(255,176,32,.08)" stroke="rgba(255,176,32,.55)" stroke-dasharray="4 3"/>' +
+        var pv = prepEtat(d.iv.id), enCours = !!(pv && pv.etat === 'cours');
+        s += '<g class="case" data-act="' + (enCours ? 'voir-mails' : 'express') + '" data-id="' + esc(d.iv.id) + '" data-tip="' + esc(d.iv.titre + (enCours ? '|⏳ préparation des interviews en cours|les mails arrivent dans 1 à 2 minutes' : '|🎙️ interviews pas encore préparées|aucune demande pour l’instant')) + '" data-tip-act="' + (enCours ? 'Cliquer pour suivre la préparation' : 'Cliquer pour préparer les interviews') + '" transform="translate(' + cx + ',' + cy + ')"><rect x="2" y="4" width="' + (CW - 4) + '" height="' + (CH - 12) + '" rx="4" fill="rgba(255,176,32,.08)" stroke="rgba(255,176,32,.55)" stroke-dasharray="4 3"/>' +
           '<g transform="translate(' + (CW / 2) + ',' + (CH / 2 - 4) + ')"><rect x="-7" y="-18" width="14" height="22" rx="7" fill="#d9d2c3" stroke="#6b5f4a"/><path d="M-11 -2 a11 11 0 0 0 22 0" fill="none" stroke="#d9d2c3" stroke-width="2.5"/><rect x="-1.5" y="9" width="3" height="7" fill="#d9d2c3"/><rect x="-7" y="15" width="14" height="3" rx="1.5" fill="#d9d2c3"/></g>' +
           '<g transform="translate(' + (CW - 14) + ',14)"><circle r="10" fill="#ffb020" filter="url(#glow)"/><text y="4" text-anchor="middle" font-size="11" font-weight="800" fill="#2a1a00">!</text></g></g>';
         return;
@@ -652,14 +654,22 @@
     s += '<g transform="translate(70,1040)"><rect width="70" height="56" rx="18" fill="#3a2a1c"/><rect x="300" width="70" height="56" rx="18" fill="#3a2a1c"/><text x="335" y="-12" text-anchor="middle" font-size="26">🪴</text></g>';
     var pp = people(), J = pp.filter(function (p) { return p.kind === 'journaliste'; });
     var sec = P('secretaire'), asst = P('assistant'), cour = P('courrier'), mar = P('marbre'), chef = P('chef');
-    var envoyes = by('envoyé').length, reps = by('a répondu').length;
+    // Câbles verts clignotants (23/10/2026) : seulement quand quelque chose se passe MAINTENANT (rédaction ou envoi en cours,
+    // mail parti ou réponse arrivée il y a moins de 60 s). Une simple attente de réponse, ou une réponse pas encore traitée,
+    // ne clignote plus : les compteurs sont déjà sur les bureaux. Repeint programmé à l'expiration pour éteindre le câble.
+    var FRAIS = 60000, maintenant = Date.now(), prochain = 0;
+    var frais = function (f, champ) { var t = f[champ] ? new Date(f[champ]).getTime() : 0, reste = t ? t + FRAIS - maintenant : -1; if (reste > 0 && (!prochain || reste < prochain)) prochain = reste; return reste > 0; };
+    var envoisFrais = D().fiches.filter(function (f) { return frais(f, 'envoye_le') || frais(f, 'relance_envoyee_le'); }).length;
+    var repsFraiches = D().fiches.filter(function (f) { return frais(f, 'reponse_le'); });
+    clearTimeout(S.cableT); S.cableT = prochain ? setTimeout(paintFloor, prochain + 250) : null;
     J.forEach(function (j) {
       s += cable(j, asst, !!S.busy.assistant);
       s += cable(asst, sec, !!S.busy.secretaire);
       s += cable(j, mar, false);
     });
-    s += cable(sec, cour, envoyes > 0 || !!S.busy.secretaire);
-    J.forEach(function (j) { s += cable(cour, j, reps > 0); });
+    s += cable(sec, cour, envoisFrais > 0 || !!S.busy.secretaire);
+    var courActif = !!S.busy.courrier || !!(S.arrivees && S.arrivees.length);
+    J.forEach(function (j) { s += cable(cour, j, courActif || repsFraiches.some(function (f) { return !j.id || f.redacteur === j.id; })); });
     s += cable(chef, mar, false);
     var jsc = P('sc'), jmk = P('mk'), arr = S.arrivees || [];
     if (jsc && jmk) {
@@ -727,13 +737,13 @@
   function bandeauInterviews() {
     var l = aInterviewer(); if (!l.length) return '';
     return '<div class="box iv"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><b>🎙️ ' + l.length + ' enquête' + pl(l.length) + ' attend' + (l.length > 1 ? 'ent' : '') + ' ses interviews</b><button class="btn small" data-act="a-interviewer">Voir la file</button></div>' +
-      l.slice(0, 3).map(function (a) { return '<div class="ivl"><span>' + esc(a.titre) + '</span>' + '<button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button>' + '</div>'; }).join('') + '</div>';
+      l.slice(0, 3).map(function (a) { return '<div class="ivl"><span>' + esc(a.titre) + '</span>' + btnMails(a.id) + '</div>'; }).join('') + '</div>';
   }
   function artCard(a) {
     var n = D().fiches.filter(function (f) { return f.article_id === a.id; }).length;
     return '<div class="ar' + (a.id === S.art ? ' sel' : '') + '" data-act="pick-art" data-id="' + esc(a.id) + '"><div class="ph">' + (a.image ? '<img loading="lazy" alt="" src="' + esc(a.image) + '">' : '📰') + '</div><div class="b"><div class="ti">' + esc(a.titre) + '</div><div class="me">' +
       (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
-      '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) && !n ? '<div style="margin-top:8px">' + '<button class="btn small go" data-act="express" data-id="' + esc(a.id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button>' + '</div>' : '') + '</div></div></div>';
+      '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) || n || prepEtat(a.id) ? '<div style="margin-top:8px">' + btnMails(a.id) + '</div>' : '') + '</div></div></div>';
   }
   function viewArticles() {
     var as = artsRecents();
@@ -742,10 +752,123 @@
     return (iv.length ? '<h3 id="a-interviewer" style="margin-top:16px">🎙️ À interviewer (' + iv.length + ')</h3><p class="muted">Enquêtes premium sans aucune demande d’interview. « Préparer les interviews » : l’Assistant trouve 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Vous n’avez plus qu’à les relire et les valider (1 à 2 minutes de préparation).</p><div class="arts">' + iv.map(artCard).join('') + '</div><h3 style="margin-top:22px">📰 Tous les brouillons</h3>' : '') +
       '<p class="muted" style="margin-top:14px">L’article en cours guide l’Assistant (questions, chercheurs à contacter) et reçoit les citations. Brouillons et articles programmés de Ghost :</p><div class="arts">' + (as.map(artCard).join('') || '<div class="muted">Aucun brouillon dans Ghost.</div>') + '</div>';
   }
+  // ================= Fenêtre « Préparation des interviews » (23/10/2026) =================
+  // La préparation express est UN seul appel (n8n → Claude avec recherche web, 1 à 2 minutes, sans flux intermédiaire) :
+  // les étapes affichées pendant l'attente sont rythmées sur la durée habituelle (aucune exécution ni lecture en plus),
+  // puis remplacées par le résultat réel : les cartes des mails (le même composant que chez la Secrétaire) apparaissent.
+  // La fenêtre se ferme et se rouvre à volonté (bouton « Voir les mails ») ; la préparation continue derrière.
+  var PREP_ETAPES = [[0, '📖', 'Lecture de l’article', ''], [5, '🔗', 'Repérage des études et des sources citées', ''],
+    [12, '🔎', 'Recherche des auteurs et des chercheurs', 'recherche web'], [35, '🏛️', 'Vérification sur les pages des labos et des universités', ''],
+    [55, '📧', 'Adresses professionnelles publiées', 'jamais devinées : sans adresse publiée, la fiche dit où la trouver'],
+    [72, '❓', 'Écriture des questions d’interview', '4 à 5 par personne'], [88, '✍️', 'Rédaction des mails', 'dans la langue de chaque chercheur'],
+    [104, '🗂️', 'Rangement des fiches chez la Secrétaire', '']];
+  var PREP_LS = 'wl-prep-cours', PREP_TTL = 300000;
+  function prepFiches(id) {
+    var rang = function (f) { return f.statut === 'brouillon' ? 0 : relancePrete(f) ? 1 : f.statut === 'a répondu' ? 2 : estRebond(f) ? 3 : f.statut === 'envoyé' ? 4 : 5; };
+    return D().fiches.filter(function (f) { return f.article_id === id && f.statut !== 'archivé'; }).sort(function (a, b) { return rang(a) - rang(b); });
+  }
+  function prepSauver() { var o = {}; Object.keys(S.preps || {}).forEach(function (k) { if (S.preps[k].etat === 'cours') o[k] = S.preps[k].t0; }); LS.set(PREP_LS, Object.keys(o).length ? JSON.stringify(o) : null); }
+  // Après un rechargement de page : la préparation lancée continue côté n8n ; on la suit jusqu'à l'arrivée des fiches (temps réel).
+  function prepRelire() {
+    if (S.preps) return; S.preps = {};
+    var o = null; try { o = JSON.parse(LS.get(PREP_LS) || 'null'); } catch (e) { o = null; }
+    Object.keys(o || {}).forEach(function (k) { if (Date.now() - Number(o[k]) < PREP_TTL) S.preps[k] = { t0: Number(o[k]), etat: 'cours', orphelin: true }; });
+  }
+  function prepEtat(id) {
+    prepRelire();
+    var p = S.preps[id]; if (!p) return null;
+    if (p.etat === 'cours' && p.orphelin) {
+      if (S.data && prepFiches(id).length) { p.etat = 'ok'; p.fin = Date.now(); p.anim = true; p.n = prepFiches(id).length; prepSauver(); }
+      else if (Date.now() - p.t0 > PREP_TTL) { delete S.preps[id]; prepSauver(); return null; }
+    }
+    return p;
+  }
+  // Bouton des listes (Articles, file « à interviewer », Interphone) : préparer, suivre la préparation ou voir les mails.
+  function btnMails(id) {
+    var p = prepEtat(id), n = prepFiches(id).length;
+    if (p && p.etat === 'cours') return '<button class="btn small amber" data-act="voir-mails" data-id="' + esc(id) + '">⏳ Préparation en cours · voir</button>';
+    if (n) return '<button class="btn small" data-act="voir-mails" data-id="' + esc(id) + '">📬 Voir les mails (' + n + ')</button>';
+    if (p && p.etat === 'ko') return '<button class="btn small red" data-act="voir-mails" data-id="' + esc(id) + '">⚠️ Préparation échouée · voir</button>';
+    return '<button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button>';
+  }
+  function mmss(ms) { var s = Math.max(0, Math.floor(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  // État affiché à l'instant t : étape en cours, pourcentage de la barre, temps écoulé.
+  function prepVue(p) {
+    var t = ((p.etat === 'cours' ? Date.now() : (p.fin || Date.now())) - p.t0) / 1000, cur = 0;
+    PREP_ETAPES.forEach(function (e, i) { if (t >= e[0]) cur = i; });
+    var pct = p.etat === 'ok' ? 100 : Math.min(96, Math.round(100 * (1 - Math.exp(-t / 50))));
+    return { t: t, cur: cur, pct: pct, long: p.etat === 'cours' && t > 130 };
+  }
+  function prepClasse(p, v, i) { return p.etat === 'ok' || i < v.cur ? 'ok' : i === v.cur ? (p.etat === 'ko' ? 'ko' : 'run') : 'wait'; }
+  function docPrep(id) {
+    var a = art(id), p = prepEtat(id), fs = prepFiches(id), titre = (a && a.titre) || (fs[0] && fs[0].article_titre) || 'Enquête';
+    var nb = fs.filter(function (f) { return f.statut === 'brouillon'; }).length;
+    var st = p && p.etat === 'cours' ? 'préparation express en cours' : fs.length ? fs.length + ' demande' + pl(fs.length) + ' d’interview' + (nb ? ' · ' + nb + ' à valider' : '') : p && p.etat === 'ko' ? 'préparation interrompue' : 'aucune demande pour l’instant';
+    var h = '<div class="dtop"><span class="em">📬</span><div style="min-width:0"><div class="nm">Interviews</div><div class="st">' + esc(st) + '</div></div><span style="flex:1"></span><button type="button" class="btn small pp-x" data-act="close-doc" aria-label="Fermer la fenêtre">✕ Fermer</button></div>';
+    h += '<div class="prep" role="dialog" aria-modal="true" aria-label="Interviews de l’article"><div class="pp-k">' + (p && p.etat === 'cours' ? '<i class="pp-dot"></i>' : '') + (p && Date.now() - (p.fin || Date.now()) < 600000 ? 'préparation des interviews' : 'interviews de l’article') + '</div><div class="pp-ti">' + esc(titre) + '</div>';
+    if (p && (p.etat === 'cours' || ((p.etat === 'ok' || p.etat === 'ko') && Date.now() - (p.fin || 0) < 600000))) {
+      var v = prepVue(p);
+      h += '<div class="pp-pg' + (p.etat === 'cours' ? ' on' : '') + '"><div class="pp-bar"><i style="width:' + v.pct + '%"></i></div><div class="pp-meta"><span class="pp-el">' + mmss(v.t * 1000) + '</span><span>' +
+        (p.etat === 'ok' ? '✓ terminé' : p.etat === 'ko' ? '✕ interrompu' : 'compter 1 à 2 minutes') + '</span></div></div>' + (p.etat === 'ok' ? '<details class="pp-det"><summary>Les étapes de la préparation</summary>' : '') + '<ol class="pp-log">' +
+        PREP_ETAPES.map(function (e, i) { return '<li class="' + prepClasse(p, v, i) + '" data-i="' + i + '"><span class="pp-s">' + mmss(e[0] * 1000) + '</span><span class="pp-ic">' + e[1] + '</span><span class="pp-l"><span class="pp-lt">' + esc(e[2]) + '</span>' + (e[3] ? '<small>' + esc(e[3]) + '</small>' : '') + '</span></li>'; }).join('') + '</ol>' + (p.etat === 'ok' ? '</details>' : '') +
+        '<p class="pp-long"' + (v.long ? '' : ' hidden') + '>La recherche web prend parfois un peu plus longtemps que d’habitude. Rien n’est perdu : les mails arrivent ici dès qu’ils sont prêts.</p>';
+      if (p.etat === 'cours') h += '<p class="muted pp-n">Vous pouvez fermer cette fenêtre : la préparation continue. Le bouton « ⏳ Préparation en cours · voir », dans la liste des articles, la rouvre.</p>';
+      if (p.etat === 'ko') h += '<div class="box warn" style="margin:12px 0">⚠️ La préparation n’a pas abouti : ' + esc(p.why || 'erreur inconnue') + '.<div class="row" style="margin-top:10px"><button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>↻ Réessayer</button></div></div>';
+      if (p.etat === 'ok') h += '<div class="pp-fin">✅ ' + (fs.length ? fs.length + ' mail' + pl(fs.length) + ' prêt' + pl(fs.length) + ' : ' + esc(fs.map(function (f) { return f.contact.nom; }).filter(Boolean).join(', ')) : 'aucun chercheur avec une adresse publiée n’a été trouvé') + '</div>';
+    }
+    if (fs.length) {
+      h += '<div class="pp-h"><b>Les mails</b>' + avancement(fs) + '</div><p class="muted" style="margin:2px 0 10px">Touchez une carte pour relire, corriger et envoyer le mail. Une carte bleue est partie ; verte, le chercheur a répondu.</p><div class="dos pp-cards">' +
+        fs.map(function (f, i) {
+          var x = f.statut === 'brouillon' ? '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>' : f.statut === 'envoyé' ? '<div class="su">envoyé ' + esc(when(f.envoye_le)) + '</div>' : f.statut === 'a répondu' ? '<div class="su">réponse reçue ' + esc(when(f.reponse_le)) + '</div>' : '';
+          return '<div class="pp-c' + (p && p.anim ? ' in' : '') + '" style="animation-delay:' + (i * 0.18).toFixed(2) + 's">' + dcard(f, x) + '</div>';
+        }).join('') + '</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn small" data-act="dossier-sec" data-id="' + esc(id) + '">📮 Ouvrir le dossier chez la Secrétaire</button></div>';
+    } else if (!p || p.etat === 'ok') {
+      h += '<p class="muted" style="margin-top:14px">Aucune demande d’interview pour cet article.</p>' + (a ? '<div class="row"><button class="btn small go" data-act="express" data-id="' + esc(id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>⚡ Préparer les interviews</button></div>' : '');
+    }
+    if (p && p.anim) setTimeout(function () { p.anim = false; }, 2600);
+    return h + '</div>';
+  }
+  // Mise à jour en place, chaque seconde, pendant la préparation (pas de repeint complet : rien ne saute à l'écran).
+  function majPrep() {
+    prepRelire();
+    var cours = Object.keys(S.preps).filter(function (k) { var p = prepEtat(k); return p && p.etat === 'cours'; });
+    if (!cours.length) { clearInterval(S.prepTick); S.prepTick = null; }
+    if (!S.doc || S.doc.kind !== 'prep' || document.hidden) return;
+    var p = prepEtat(S.doc.id), el = S.root.querySelector('.doc .prep');
+    if (!p || !el) return;
+    if (p.etat !== 'cours' || !el.querySelector('.pp-pg.on')) { paintDoc(); return; }
+    var v = prepVue(p), b = el.querySelector('.pp-bar i'), e = el.querySelector('.pp-el'), lg = el.querySelector('.pp-long');
+    if (b) b.style.width = v.pct + '%'; if (e) e.textContent = mmss(v.t * 1000); if (lg) lg.hidden = !v.long;
+    Array.prototype.forEach.call(el.querySelectorAll('.pp-log li'), function (li) { var c = prepClasse(p, v, Number(li.getAttribute('data-i'))); if (li.className !== c) li.className = c; });
+  }
+  function prepTicker() { if (!S.prepTick) S.prepTick = setInterval(majPrep, 1000); }
+  function voirMails(id) {
+    if (!S.doc) S.prepOpener = document.activeElement;
+    openDoc('prep', id);
+    var p = prepEtat(id); if (p && p.etat === 'cours') prepTicker();
+    setTimeout(function () { var x = S.root.querySelector('.doc .pp-x'); if (x) x.focus({ preventScroll: true }); }, 30);
+  }
+  function lancerPrep(id, publie) {
+    prepRelire();
+    var p = S.preps[id] = { t0: Date.now(), etat: 'cours' }; prepSauver();
+    S.art = id; LS.set('wl-article', id); pubOubli('x:' + id);
+    voirMails(id); prepTicker(); render(); // les boutons des listes passent à « Préparation en cours · voir »
+    work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true, publie: publie })).then(function (r) {
+      p.etat = 'ok'; p.fin = Date.now(); p.n = r.n || 0; p.anim = true; prepSauver();
+      var ouvert = S.doc && S.doc.kind === 'prep' && S.doc.id === id;
+      return refresh(true).then(function () {
+        if (S.doc && S.doc.kind === 'prep') paintDoc();
+        if (!ouvert) toast('⚡ ' + p.n + ' mail' + pl(p.n) + ' prêt' + pl(p.n) + ' : touchez « 📬 Voir les mails » pour les relire.');
+      });
+    }, function (e) {
+      p.etat = 'ko'; p.fin = Date.now(); p.why = (e && e.message) || 'erreur inconnue'; prepSauver();
+      render();
+    });
+  }
   function dcard(f, extra) {
     var s = STATUTS[f.statut] || ['·', f.statut, ''];
     var og = origine(f);
-    return '<div class="dcard ' + s[2] + '" data-act="' + (f.statut === 'brouillon' ? 'open-valid' : 'open-fiche') + '" data-id="' + esc(f.fiche_id) + '"><div class="k">' + s[0] + ' ' + esc(s[1]) + ' · ' + og[0] + ' ' + og[1] + (D().me.chef ? ' · ' + esc(qui(f)) : '') + '</div>' +
+    return '<div class="dcard ' + s[2] + '" tabindex="0" role="button" data-act="' + (f.statut === 'brouillon' ? 'open-valid' : 'open-fiche') + '" data-id="' + esc(f.fiche_id) + '"><div class="k">' + s[0] + ' ' + esc(s[1]) + ' · ' + og[0] + ' ' + og[1] + (D().me.chef ? ' · ' + esc(qui(f)) : '') + '</div>' +
       '<div class="ti">' + esc(f.contact.nom || '(sans nom)') + '</div><div class="su">' + esc([f.contact.role, f.contact.institution].filter(Boolean).join(', ')) + '</div>' +
       '<div class="su">📰 ' + esc(f.article_titre || 'sans article') + '</div>' + (extra || '') +
       (relancePrete(f) ? '<div class="su">⏰ <b>relance prête à valider</b></div>' : '') + (relanceInfo(f) ? '<div class="su">🔁 ' + esc(relanceInfo(f)) + '</div>' : '') +
@@ -805,7 +928,7 @@
     var list = ms.map(function (m) {
       var bot = !D().equipe.some(function (w) { return w.id === m.auteur; });
       var btns = m.auteur === 'compta' ? '<div class="row" style="margin-top:8px">' + (/^\s*(🧾|💸)/.test(m.texte || '') || /facture/i.test((m.texte || '').slice(0, 40)) ? '<button class="btn small" data-act="voir-facture">🧾 Voir la facture</button>' : '<button class="btn small" data-act="pieces">🪙 Ouvrir les pièces</button>') + '</div>' : bot && m.article_id ? '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (art(m.article_id) ? '<button class="btn small" data-act="pick-art" data-id="' + esc(m.article_id) + '">📰 Ouvrir l’enquête</button>' : '') +
-        (art(m.article_id) && !D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<button class="btn small go" data-act="express" data-id="' + esc(m.article_id) + '">⚡ Préparer les interviews</button>' : (D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? '<span class="muted">✓ interviews lancées</span>' : '')) + '</div>' : '';
+        (art(m.article_id) || D().fiches.some(function (f) { return f.article_id === m.article_id; }) ? btnMails(m.article_id) : '') + '</div>' : '';
       return '<div class="bub' + (m.auteur === me ? ' me' : '') + (bot ? ' bot' : '') + '"><div class="who">' + esc(m.nom) + ' · ' + esc(when(m.le)) + (m.article_titre && !bot ? ' · 📰 ' + esc(m.article_titre) : '') + '</div>' + (m.texte ? esc(m.texte).replace(/\n/g, '<br>') : '') + (m.fichier ? fichierHTML(m.fichier) : '') + btns + '</div>';
     }).join('');
     var a = art(S.art);
@@ -1270,14 +1393,22 @@
   }
 
   // ---------- documents (feuille de papier plein écran) ----------
-  function openDoc(kind, id) { S.doc = { kind: kind, id: id }; paintDoc(); S.root.querySelector('.doc').classList.add('open'); S.root.querySelector('.doc').scrollTop = 0; }
-  function closeDoc() { S.doc = null; S.cit = null; S.colle = false; S.root.querySelector('.doc').classList.remove('open'); }
+  function openDoc(kind, id) { S.docRetour = S.doc && S.doc.kind === 'prep' && kind !== 'prep' ? { kind: 'prep', id: S.doc.id } : kind === 'prep' ? null : S.docRetour; S.doc = { kind: kind, id: id }; paintDoc(); S.root.querySelector('.doc').classList.add('open'); S.root.querySelector('.doc').scrollTop = 0; }
+  function closeDoc() { S.doc = null; S.docRetour = null; S.cit = null; S.colle = false; S.root.querySelector('.doc').classList.remove('open'); }
+  // Fermer (✕, Échap, après un envoi ou un archivage) : un mail ouvert depuis la fenêtre des interviews y revient.
+  function fermerDoc() {
+    var r = S.docRetour;
+    if (r && S.doc && S.doc.kind !== 'prep') { S.cit = null; S.colle = false; openDoc(r.kind, r.id); setTimeout(function () { var x = S.root.querySelector('.doc .pp-x'); if (x) x.focus({ preventScroll: true }); }, 30); return; }
+    var prep = S.doc && S.doc.kind === 'prep', o = S.prepOpener; closeDoc(); S.prepOpener = null;
+    if (prep && o && o.isConnected && o.focus) o.focus({ preventScroll: true });
+  }
   function paintDoc() {
     if (!S.doc) return;
     setTimeout(markBusy, 0);
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
     if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
+    if (S.doc.kind === 'prep') { el.innerHTML = docPrep(S.doc.id); el.scrollTop = keep; markBusy(); return; }
     if (S.doc.kind === 'pieces') { el.innerHTML = docPieces(); el.scrollTop = keep; markBusy(); return; }
     if (S.doc.kind === 'prospect') { var px = prospect(S.doc.id); el.innerHTML = px ? docProspect(px) : '<div class="dtop"><span class="nm">Prospect introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; markBusy(); return; }
     if (S.doc.kind === 'mail') { var mm = mail(S.doc.id); el.innerHTML = mm ? docMail(mm) : '<div class="dtop"><span class="nm">Mail introuvable</span><span class="x" data-act="close-doc">✕</span></div>'; el.scrollTop = keep; return; }
@@ -1741,7 +1872,8 @@
         });
         break;
       case 'close-panel': closePanel(); break;
-      case 'close-doc': closeDoc(); break;
+      case 'close-doc': fermerDoc(); break;
+      case 'voir-mails': masquerTip(); voirMails(id); break;
       case 'open-valid': openDoc('valid', id); break;
       case 'open-fiche': openDoc('fiche', id); break;
       case 'open-aide': openDoc('aide', ''); break;
@@ -1860,13 +1992,13 @@
         if (!sujet || !corps) { toast('Objet ou message vide.', true); break; }
         var ck4 = S.clicking; confirmer('Envoyer ce mail à ' + f1.contact.nom + ' (' + f1.contact.email + ') ?').then(function (ok) { if (!ok) return; S.clicking = ck4; setTimeout(function () { S.clicking = null; }, 0);
           work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps, pieces: pjsData('v:' + id) })).then(function () {
-            forget(id); if (S.pjs) delete S.pjs['v:' + id]; closeDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
+            forget(id); if (S.pjs) delete S.pjs['v:' + id]; fermerDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
           });
         });
         break;
       case 'archive':
         var ck5 = S.clicking; confirmer('Archiver cette fiche ? Elle disparaîtra du lab.').then(function (ok) { if (!ok) return; S.clicking = ck5; setTimeout(function () { S.clicking = null; }, 0);
-          api('maj', { fiche_id: id, statut: 'archivé' }).then(function () { closeDoc(); toast('🗄️ Fiche archivée.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
+          api('maj', { fiche_id: id, statut: 'archivé' }).then(function () { fermerDoc(); toast('🗄️ Fiche archivée.'); return refresh(true); }, function (e) { toast('⚠️ ' + e.message, true); });
         });
         break;
       // le Courrier
@@ -2025,19 +2157,16 @@
         break;
       case 'dos-toggle': S.dosFocus = null; S.dosOuvert = S.dosOuvert || {}; var dEl = S.root.querySelector('#sdos-' + id); S.dosOuvert[id] = !(dEl && dEl.classList.contains('open')); paintPanel(); break;
       case 'dos-tout': S.dosFocus = null; S.dosOuvert = {}; dossiers(vues().filter(function (f) { return f.statut !== 'inséré'; })).forEach(function (d) { S.dosOuvert[d.id || 'sans'] = id === '1'; }); paintPanel(); break;
-      case 'dossier-sec': S.dosFocus = id; masquerTip(); openPanel('secretaire'); setTimeout(function () { var d = S.root.querySelector('#sdos-' + id); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80); break;
+      case 'dossier-sec': S.dosFocus = id; masquerTip(); if (S.doc) closeDoc(); openPanel('secretaire'); setTimeout(function () { var d = S.root.querySelector('#sdos-' + id); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80); break;
       case 'portee': S.portee = id === 'moi' ? 'moi' : 'tous'; LS.set('wl-portee', S.portee); render(); break;
       case 'dossier': S.tab = 'suivi'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var d = S.root.querySelector('#dossier-' + (id || 'sans')); if (d) { d.scrollIntoView({ behavior: 'smooth', block: 'center' }); d.classList.add('flash'); } }, 60); break;
       case 'a-interviewer': S.tab = 'articles'; LS.set('wl-tab', S.tab); closePanel(); closeDoc(); render(); setTimeout(function () { var h = S.root.querySelector('#a-interviewer'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 60); break;
       case 'express':
         var ax = art(id); if (!ax) { toast('Enquête introuvable dans Ghost.', true); break; }
         var ck7 = S.clicking, pub7 = true; // case « Article publié » : dans la confirmation uniquement (23/10/2026)
+        var pe7 = prepEtat(id); if (pe7 && pe7.etat === 'cours') { voirMails(id); break; } // déjà en route : on suit la préparation
         confirmerPub('Préparer les interviews pour « ' + ax.titre + ' » ?\n\nL’Assistant cherche 2 ou 3 chercheurs (adresses publiées uniquement), écrit les questions, et la Secrétaire prépare les mails. Rien ne part sans votre validation. Compter 1 à 2 minutes.', pub7).then(function (rc) { if (!rc.ok) return; S.clicking = ck7; setTimeout(function () { S.clicking = null; }, 0);
-          S.art = id; LS.set('wl-article', id); pubOubli('x:' + id);
-          work('assistant', 'prépare les interviews express', api('contacts', { article_id: id, express: true, publie: rc.publie })).then(function (r) {
-            toast('⚡ ' + (r.n || 0) + ' mail' + pl(r.n || 0) + ' prêt' + pl(r.n || 0) + ' : relisez-les chez la Secrétaire.');
-            return refresh(true);
-          }).then(function () { openPanel('secretaire'); });
+          lancerPrep(id, rc.publie); // fenêtre de préparation : étapes en direct, puis les cartes des mails
         });
         break;
       case 'push': reglerPush(true); break;
@@ -2231,6 +2360,7 @@
     r.addEventListener('mousemove', suivreTip); r.addEventListener('mouseleave', masquerTip);
     r.addEventListener('change', onInput);
     r.addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('.dcard[data-act]')) { e.preventDefault(); act(e.target.getAttribute('data-act'), e.target); return; }
       if (e.target && e.target.id === 'wl-msg' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var b = r.querySelector('[data-act="send-msg"]'); if (b) b.click(); }
     });
     var pjsIn = document.createElement('input'); pjsIn.type = 'file'; pjsIn.id = 'wl-pjs-input'; pjsIn.multiple = true; pjsIn.style.display = 'none'; r.appendChild(pjsIn);
@@ -2254,7 +2384,7 @@
       rd.onload = function () { S.pj = { nom: f.name, type: f.type || 'application/octet-stream', taille: f.size, categorie: devinerCat(f), data: String(rd.result).split(',')[1] || '' }; majPj(); };
       rd.readAsDataURL(f);
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) closeDoc(); else closePanel(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) fermerDoc(); else closePanel(); } });
     // Retour sur l'onglet : une seule relecture si la page n'a rien reçu depuis 5 minutes.
     document.addEventListener('visibilitychange', function () { if (!document.hidden && (S.rtAttente || Date.now() - S.last > 300000)) { S.rtAttente = false; refresh(true); } });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
