@@ -70,7 +70,36 @@
   const SUBSCRIPTION_FLOW_STARTED_KEY = 'posthumain_subscription_flow_started';
   const EMAIL_CHECK_REDIRECTED_KEY = 'posthumain_email_check_redirected';
 
-  const LAST_PAYWALLED_ARTICLE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 heures
+  // 23/10/2026 : 30 min au lieu de 24 h (un clic de la veille renvoyait encore vers /verification-email/)
+  const LAST_PAYWALLED_ARTICLE_MAX_AGE = 30 * 60 * 1000;
+
+  // ---------------------------------------------------------------------------
+  // Mesure GA4 (23/10/2026) : jamais de donnée personnelle, uniquement le type d'événement et la page
+  function mesure(nom, params) {
+    try {
+      if (typeof window.gtag !== 'function') return;
+      var p = Object.assign({ page_chemin: window.location.pathname }, params || {});
+      window.gtag('event', nom, p);
+    } catch (e) { /* jamais bloquant */ }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Retour de Ghost / Stripe (23/10/2026). La redirection vers /verification-email/ n'a lieu QUE sur un vrai retour :
+  //   ?stripe=success | ?stripe=cancel (posés par Ghost après Stripe Checkout), ou arrivée depuis checkout.stripe.com.
+  // L'URL d'origine est lue dans l'entrée de navigation : Portal efface ces paramètres de la barre d'adresse.
+  const RETOUR = (function () {
+    var q = '';
+    try { var nav = performance.getEntriesByType('navigation')[0]; if (nav && nav.name) q = new URL(nav.name).search; } catch (e) { q = ''; }
+    if (!q) q = window.location.search || '';
+    var sp; try { sp = new URLSearchParams(q); } catch (e) { sp = new URLSearchParams(''); }
+    var stripe = (sp.get('stripe') || '').toLowerCase();
+    var depuisStripe = false;
+    try { depuisStripe = /(^|\.)stripe\.com$/i.test(new URL(document.referrer).hostname); } catch (e) { depuisStripe = false; }
+    var type = stripe === 'success' ? 'succes' : stripe === 'cancel' ? 'annulation' : depuisStripe ? 'stripe' : '';
+    if (!type) return null;
+    return { type: type };
+  })();
+  if (RETOUR) mesure('checkout_retour', { statut: RETOUR.type });
 
   // ---------------------------------------------------------------------------
   // Helpers pages
@@ -112,41 +141,45 @@
       return;
     }
 
-    localStorage.setItem(
+    try { localStorage.setItem(
       LAST_PAYWALLED_ARTICLE_KEY,
       JSON.stringify({
         url: currentUrl,
         createdAt: Date.now()
       })
-    );
+    ); } catch (e) { /* stockage indisponible : on continue sans mémoire */ }
   }
 
   function markSubscriptionFlowStarted() {
-    localStorage.setItem(
+    try { localStorage.setItem(
       SUBSCRIPTION_FLOW_STARTED_KEY,
       JSON.stringify({
         startedAt: Date.now()
       })
-    );
+    ); } catch (e) { /* rien */ }
   }
 
   function markEmailCheckRedirected() {
-    localStorage.setItem(
+    try { localStorage.setItem(
       EMAIL_CHECK_REDIRECTED_KEY,
       JSON.stringify({
         redirectedAt: Date.now()
       })
-    );
+    ); } catch (e) { /* rien */ }
   }
 
   function clearSavedPaywalledArticle() {
-    localStorage.removeItem(LAST_PAYWALLED_ARTICLE_KEY);
-    localStorage.removeItem(SUBSCRIPTION_FLOW_STARTED_KEY);
-    localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
+    try {
+      localStorage.removeItem(LAST_PAYWALLED_ARTICLE_KEY);
+      localStorage.removeItem(SUBSCRIPTION_FLOW_STARTED_KEY);
+      localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
+    } catch (e) { /* rien */ }
   }
 
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
   function getSavedPaywalledArticleUrl() {
-    const savedDataRaw = localStorage.getItem(LAST_PAYWALLED_ARTICLE_KEY);
+    const savedDataRaw = lsGet(LAST_PAYWALLED_ARTICLE_KEY);
 
     if (!savedDataRaw) {
       return null;
@@ -173,7 +206,7 @@
   }
 
   function subscriptionFlowWasStarted() {
-    const raw = localStorage.getItem(SUBSCRIPTION_FLOW_STARTED_KEY);
+    const raw = lsGet(SUBSCRIPTION_FLOW_STARTED_KEY);
 
     if (!raw) {
       return false;
@@ -196,7 +229,7 @@
   }
 
   function emailCheckWasAlreadyRedirected() {
-    const raw = localStorage.getItem(EMAIL_CHECK_REDIRECTED_KEY);
+    const raw = lsGet(EMAIL_CHECK_REDIRECTED_KEY);
 
     if (!raw) {
       return false;
@@ -207,13 +240,13 @@
       const redirectedAt = data.redirectedAt || 0;
 
       if (!redirectedAt || Date.now() - redirectedAt > LAST_PAYWALLED_ARTICLE_MAX_AGE) {
-        localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
+        try { localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY); } catch (e2) {}
         return false;
       }
 
       return true;
     } catch (e) {
-      localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
+      try { localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY); } catch (e2) {}
       return false;
     }
   }
@@ -262,11 +295,24 @@
       return;
     }
 
-    if (isGenericReturnPageAfterCheckout()) {
-      markEmailCheckRedirected();
-      window.location.href = EMAIL_CHECK_PATH;
+    // 23/10/2026 : uniquement au retour réel de Stripe (succès ou annulation). Avant, n'importe quel passage par
+    // l'accueil dans les 24 h suivant un simple contact avec un bouton « S'abonner » renvoyait ici.
+    if (!RETOUR) {
+      return;
+    }
+
+    if (isGenericReturnPageAfterCheckout() && !redirectionEnCours) {
+      redirectionEnCours = true;
+      // Confirmation côté serveur : la personne n'est vraiment pas connectée (Ghost : 204 = pas de session)
+      fetch('/members/api/member', { credentials: 'same-origin' }).then(function (r) {
+        if (r.status === 200) { return; } // connectée : on ne redirige pas, et on ne revérifie plus (redirectionEnCours reste vrai)
+        markEmailCheckRedirected();
+        mesure('verification_email_redirection', { raison: 'retour_' + RETOUR.type });
+        window.location.href = EMAIL_CHECK_PATH;
+      }).catch(function () { redirectionEnCours = false; });
     }
   }
+  let redirectionEnCours = false;
 
   function redirectBackToArticleAfterLogin() {
     const savedArticleUrl = getSavedPaywalledArticleUrl();
@@ -298,7 +344,11 @@
 
     // Si on est connecté ailleurs, on revient à l'article.
     // Cela couvre surtout les comptes gratuits / freemium.
-    if (isLoggedIn) {
+    // 23/10/2026 : seulement si la personne a réellement cliqué sur un bouton d'abonnement (parcours commencé),
+    // pas pour un simple passage sur un article payant.
+    if (isLoggedIn && subscriptionFlowWasStarted()) {
+      mesure('retour_article', {});
+      clearSavedPaywalledArticle();
       window.location.href = savedArticleUrl;
     }
   }
@@ -393,65 +443,61 @@
   // ---------------------------------------------------------------------------
   // Mémorisation robuste de l'article AVANT que Ghost ne capture le clic
 
-  function shouldRememberArticleFromClick(target) {
-    if (!target) {
-      return false;
-    }
-
-    const explicitTrigger = target.closest('[data-posthumain-subscription-trigger="true"]');
-
-    if (explicitTrigger) {
-      return true;
-    }
-
-    const paywallOrUpgradeButton = target.closest(
-      '[data-portal], ' +
-      '.gh-post-upgrade-cta a, ' +
-      '.gh-post-upgrade-cta button, ' +
-      '.gh-post-upgrade-cta-content a, ' +
-      '.gh-post-upgrade-cta-content button, ' +
-      'a.gh-btn, ' +
-      'button.gh-button'
-    );
-
-    if (!paywallOrUpgradeButton) {
-      return false;
-    }
-
-    const buttonText = (paywallOrUpgradeButton.textContent || '').trim().toLowerCase();
-    const portalTarget = (paywallOrUpgradeButton.getAttribute('data-portal') || '').toLowerCase();
-    const href = (paywallOrUpgradeButton.getAttribute('href') || '').toLowerCase();
-
-    return (
-      portalTarget.includes('signup') ||
-      portalTarget.includes('account/plans') ||
-      portalTarget.includes('upgrade') ||
-      href.includes('#/portal/signup') ||
-      href.includes('#/portal/account/plans') ||
-      buttonText.includes('s’abonner') ||
-      buttonText.includes('s\'abonner') ||
-      buttonText.includes('abonner') ||
-      buttonText.includes('débloquer') ||
-      buttonText.includes('créer un compte') ||
-      buttonText.includes('upgrade') ||
-      buttonText.includes('subscribe')
-    );
+  // 23/10/2026 : seuls les VRAIS boutons d'abonnement comptent (plus de détection par le texte « abonner »), et seulement
+  // au clic (plus de « pointerdown », qui se déclenchait quand un doigt glissait sur un bouton en faisant défiler).
+  function boutonAbonnement(target) {
+    if (!target || !target.closest) return null;
+    var explicite = target.closest('[data-posthumain-subscription-trigger="true"]');
+    if (explicite) return explicite;
+    var el = target.closest('.gh-post-upgrade-cta a, .gh-post-upgrade-cta button, .gh-post-upgrade-cta-content a, .gh-post-upgrade-cta-content button, [data-portal], a[href*="#/portal/"]');
+    if (!el) return null;
+    var cible = ((el.getAttribute('data-portal') || '') + ' ' + (el.getAttribute('href') || '')).toLowerCase();
+    if (el.closest('.gh-post-upgrade-cta, .gh-post-upgrade-cta-content')) return el;
+    return /signup|account\/plans|upgrade/.test(cible) ? el : null;
   }
 
-  function rememberArticleAndMarkFlow(target) {
-    if (shouldRememberArticleFromClick(target)) {
-      rememberCurrentArticleBeforeSubscribe();
-      markSubscriptionFlowStarted();
-    }
+  function origineClic(el) {
+    if (el.closest('.gh-post-upgrade-cta, .gh-post-upgrade-cta-content')) return 'paywall';
+    if (el.closest('.kg-cta-card, .kg-signup-card, .kg-header-card')) return 'encart';
+    if (el.closest('header, .gh-head, nav')) return 'menu';
+    return 'autre';
   }
-
-  document.addEventListener('pointerdown', function(e) {
-    rememberArticleAndMarkFlow(e.target);
-  }, true);
 
   document.addEventListener('click', function(e) {
-    rememberArticleAndMarkFlow(e.target);
+    var el = boutonAbonnement(e.target);
+    if (!el) return;
+    rememberCurrentArticleBeforeSubscribe();
+    markSubscriptionFlowStarted();
+    var origine = origineClic(el);
+    mesure(origine === 'paywall' ? 'paywall_clic' : 'abonnement_clic', { origine: origine });
   }, true);
+
+  // Paywall vu (une fois par page) et ouverture de la fenêtre Portal
+  (function () {
+    var vu = false;
+    function observerPaywall() {
+      var pw = document.querySelector('.gh-post-upgrade-cta');
+      if (!pw || vu || typeof IntersectionObserver !== 'function') return;
+      var io = new IntersectionObserver(function (ents) {
+        if (vu) return;
+        if (ents.some(function (x) { return x.isIntersecting; })) { vu = true; io.disconnect(); mesure('paywall_vu', {}); }
+      }, { threshold: 0.4 });
+      io.observe(pw);
+    }
+    setTimeout(observerPaywall, 800);
+    var portalVu = false;
+    var obsPortal = new MutationObserver(function () {
+      var popup = document.querySelector('iframe[title="portal-popup"], iframe[data-testid="portal-popup-frame"]');
+      if (popup && !portalVu) {
+        portalVu = true;
+        var h = (window.location.hash || '').replace('#/portal/', '').split('/')[0] || 'inconnu';
+        mesure('portal_ouvert', { ecran: h });
+      } else if (!popup) {
+        portalVu = false;
+      }
+    });
+    obsPortal.observe(document.body, { childList: true, subtree: true });
+  })();
 
   // ---------------------------------------------------------------------------
   // Traduction des messages d’abonnement / paywall
