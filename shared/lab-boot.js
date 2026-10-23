@@ -41,7 +41,7 @@
   function css(p, c, k) {
     var L1 = '#' + p + '-loader', l = '.' + p + 'l', B = '.' + p + '-boot', K = p + 'l';
     return '#' + p + '-root{min-height:70vh}' +
-      L1 + '{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:24px;background:' + c.fond + ';color:' + c.texte + ';font:15px/1.5 Inter,system-ui,-apple-system,sans-serif;transition:opacity .55s ease,visibility .55s}' +
+      L1 + '{position:fixed;inset:0;z-index:3999400;display:flex;align-items:center;justify-content:center;padding:24px;background:' + c.fond + ';color:' + c.texte + ';font:15px/1.5 Inter,system-ui,-apple-system,sans-serif;transition:opacity .55s ease,visibility .55s}' +
       L1 + '.fin{opacity:0;visibility:hidden}' +
       l + '-in{width:min(780px,100%);text-align:center}' +
       l + "-logo{font:800 17px ui-monospace,'JetBrains Mono',monospace;letter-spacing:.24em;color:#00ff77;text-shadow:0 0 18px rgba(0,255,119,.45);margin-bottom:18px}" +
