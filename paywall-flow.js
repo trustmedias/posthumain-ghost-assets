@@ -71,6 +71,8 @@
   const EMAIL_CHECK_REDIRECTED_KEY = 'posthumain_email_check_redirected';
 
   const LAST_PAYWALLED_ARTICLE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 heures
+  // Vérification E-mail seulement peu après le clic d'abonnement (le retour à l'article garde ses 24 heures)
+  const EMAIL_CHECK_WINDOW = 30 * 60 * 1000; // 30 minutes
 
   // ---------------------------------------------------------------------------
   // Helpers pages
@@ -262,6 +264,13 @@
 
     // Il faut que l'utilisateur ait réellement cliqué sur un bouton inscription/abonnement.
     if (!subscriptionFlowWasStarted()) {
+      return;
+    }
+
+    // … et récemment : quelqu'un qui attend son mail revient dans les minutes qui suivent.
+    var debutParcours = 0;
+    try { debutParcours = JSON.parse(localStorage.getItem(SUBSCRIPTION_FLOW_STARTED_KEY)).startedAt || 0; } catch (e) {}
+    if (!debutParcours || Date.now() - debutParcours > EMAIL_CHECK_WINDOW) {
       return;
     }
 
