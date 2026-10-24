@@ -11,6 +11,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import nodemailer from "npm:nodemailer@6.9.14";
 import { ImapFlow } from "npm:imapflow@1.0.164";
 import { simpleParser } from "npm:mailparser@3.7.1";
+import { Buffer } from "node:buffer";
 import { parEmail } from "./equipe.ts";
 import { ROLES, role, FOURNISSEURS, PORTS_IMAP, PORTS_SMTP, idDe } from "./boites.ts";
 
@@ -164,7 +165,8 @@ async function telegram(texte: string) {
 }
 // deno-lint-ignore no-explicit-any
 async function trier(box: any, raw: Uint8Array, adresses: string[]) {
-  const p = await simpleParser(raw, { skipImageLinks: true, skipTextToHtml: true });
+  // mailparser attend un Buffer Node (un Uint8Array brut est pris pour un flux : « input.once is not a function »)
+  const p = await simpleParser(Buffer.from(raw.buffer, raw.byteOffset, raw.byteLength), { skipImageLinks: true, skipTextToHtml: true });
   const fromV = (p.from && p.from.value && p.from.value[0]) || { address: "", name: "" };
   const de_email = String(fromV.address || "").toLowerCase().trim();
   const de_nom = String(fromV.name || "").replace(/["']/g, "").trim() || de_email;
