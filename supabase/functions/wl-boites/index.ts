@@ -211,21 +211,84 @@ function etape<T>(nom: string, p: Promise<T>, ms = 25000): Promise<T> {
   let t: number | undefined;
   return Promise.race([p, new Promise<T>((_, rej) => { t = setTimeout(() => rej(new Error("timeout : " + nom)), ms); })]).finally(() => clearTimeout(t));
 }
-// 24/10/2026 : le mail est lu par morceaux de 16 Ko (FETCH BODY.PEEK[]<début.longueur>) : d'un seul tenant, la lecture d'un mail
-// normal restait bloquée dans l'environnement des fonctions (les petits en-têtes passaient). 600 Ko au plus.
-// deno-lint-ignore no-explicit-any
-async function lireSource(c: any, uid: number, taille: number): Promise<Uint8Array> {
-  const PAS = 16 * 1024, fin = Math.min(Number(taille) || 600 * 1024, 600 * 1024), morceaux: Uint8Array[] = [];
-  let pos = 0;
-  while (pos < fin) {
-    const m = await etape("lecture d'un mail (octet " + pos + ")", c.fetchOne(String(uid), { source: { start: pos, maxLength: PAS } }, { uid: true }), 15000);
-    const b = m && m.source ? new Uint8Array(m.source) : new Uint8Array(0);
-    if (!b.length) break;
-    morceaux.push(b); pos += b.length;
-    if (b.length < PAS) break;
+// 24/10/2026 : client IMAP minimal en Deno natif (Deno.connectTls) pour la RELÈVE. Avec imapflow (couche de compatibilité Node),
+// les petites réponses passaient mais la lecture du contenu d'un mail ne finissait jamais dans l'environnement des fonctions, même
+// sans compression et par morceaux de 16 Ko (info@trustmedias.com, OVH). Lecture seule : SELECT + UID SEARCH + UID FETCH
+// BODY.PEEK (rien n'est marqué lu ni déplacé). Chaque lecture sur le réseau a son délai maximum. Le test de connexion
+// (Paramètres) garde imapflow, qui fonctionne pour la connexion et la liste des dossiers.
+const ENC = new TextEncoder(), DEC = new TextDecoder();
+const qImap = (s: string) => '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+const MOIS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+class ImapNatif {
+  private conn!: Deno.Conn;
+  private buf = new Uint8Array(0);
+  private n = 0;
+  constructor(private host: string, private port: number) {}
+  private async plus(quoi: string, ms: number) {
+    const m = new Uint8Array(65536);
+    const lu = await etape(quoi, this.conn.read(m), ms);
+    if (lu === null) throw new Error("Connection closed (" + quoi + ")");
+    const nb = new Uint8Array(this.buf.length + lu); nb.set(this.buf); nb.set(m.subarray(0, lu), this.buf.length); this.buf = nb;
   }
-  const out = new Uint8Array(pos); let k = 0; for (const b of morceaux) { out.set(b, k); k += b.length; }
-  return out;
+  private async ligne(quoi: string, ms: number): Promise<string> {
+    for (;;) {
+      for (let i = 0; i + 1 < this.buf.length; i++) if (this.buf[i] === 13 && this.buf[i + 1] === 10) { const l = DEC.decode(this.buf.subarray(0, i)); this.buf = this.buf.slice(i + 2); return l; }
+      await this.plus(quoi, ms);
+    }
+  }
+  private async octets(n: number, quoi: string, ms: number): Promise<Uint8Array> {
+    while (this.buf.length < n) await this.plus(quoi, ms);
+    const b = this.buf.slice(0, n); this.buf = this.buf.slice(n); return b;
+  }
+  private async ecrire(s: string, quoi: string) { const b = ENC.encode(s); let k = 0; while (k < b.length) k += await etape(quoi, this.conn.write(b.subarray(k)), 15000); }
+  // Une commande : lignes non étiquetées (littéraux remplacés par \0LITn\0) et littéraux ; erreur si le serveur ne répond pas OK.
+  async cmd(c: string, quoi: string, ms = 20000): Promise<{ lignes: string[]; lits: Uint8Array[] }> {
+    const tag = "W" + (++this.n), lignes: string[] = [], lits: Uint8Array[] = [];
+    await this.ecrire(tag + " " + c + "\r\n", quoi);
+    for (;;) {
+      let l = await this.ligne(quoi, ms);
+      if (l.startsWith(tag + " ")) { if (!/^\S+ OK/i.test(l)) throw new Error(l.slice(tag.length + 1, tag.length + 200)); return { lignes, lits }; }
+      let m: RegExpMatchArray | null;
+      while ((m = l.match(/\{(\d+)\}$/))) { lits.push(await this.octets(Number(m[1]), quoi, ms)); l = l.slice(0, -m[0].length) + "\u0000LIT" + (lits.length - 1) + "\u0000" + await this.ligne(quoi, ms); }
+      lignes.push(l);
+    }
+  }
+  async ouvrir(user: string, pass: string) {
+    if (this.port === 993) this.conn = await etape("connexion", Deno.connectTls({ hostname: this.host, port: this.port }), 12000);
+    else this.conn = await etape("connexion", Deno.connect({ hostname: this.host, port: this.port }), 12000);
+    const g = await this.ligne("accueil du serveur", 10000);
+    if (!/^\* (OK|PREAUTH)/i.test(g)) throw new Error("accueil IMAP inattendu : " + g.slice(0, 120));
+    if (this.port !== 993) { await this.cmd("STARTTLS", "chiffrement"); this.conn = await etape("chiffrement", Deno.startTls(this.conn as Deno.TcpConn, { hostname: this.host }), 12000); this.buf = new Uint8Array(0); }
+    try { await this.cmd("LOGIN " + qImap(user) + " " + qImap(pass), "connexion"); }
+    catch (e) { const err = new Error("AUTHENTICATIONFAILED " + String((e as Error).message || "")); throw /^timeout : /.test(String((e as Error).message)) ? e : err; }
+  }
+  async inbox() {
+    const r = await this.cmd("EXAMINE INBOX", "ouverture de la boîte de réception"); // lecture seule
+    const t = r.lignes.join("\n");
+    return { uidValidity: Number((t.match(/UIDVALIDITY (\d+)/i) || [])[1] || 0), uidNext: Number((t.match(/UIDNEXT (\d+)/i) || [])[1] || 0) };
+  }
+  async chercher(critere: string): Promise<number[]> {
+    const r = await this.cmd("UID SEARCH " + critere, "recherche des mails");
+    const out: number[] = [];
+    for (const l of r.lignes) if (/^\* SEARCH\b/i.test(l)) for (const x of l.slice(8).trim().split(/\s+/)) if (/^\d+$/.test(x)) out.push(Number(x));
+    return out;
+  }
+  // En-têtes de tri et taille, sans télécharger le mail.
+  async entete(uid: number): Promise<{ taille: number; headers: string } | null> {
+    const r = await this.cmd("UID FETCH " + uid + " (UID RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM LIST-UNSUBSCRIBE LIST-ID PRECEDENCE AUTO-SUBMITTED)])", "lecture d'un en-tête");
+    const l = r.lignes.find((x) => /FETCH \(/i.test(x) && new RegExp("UID " + uid + "\\b").test(x));
+    if (!l) return null;
+    const k = (l.match(/\u0000LIT(\d+)\u0000/) || [])[1];
+    return { taille: Number((l.match(/RFC822\.SIZE (\d+)/i) || [])[1] || 0), headers: k == null ? "" : DEC.decode(r.lits[Number(k)]) };
+  }
+  // Le mail brut, tronqué à max octets (BODY.PEEK[]<0.max>).
+  async source(uid: number, max: number): Promise<Uint8Array> {
+    const r = await this.cmd("UID FETCH " + uid + " (UID BODY.PEEK[]<0." + max + ">)", "lecture d'un mail", 25000);
+    const l = r.lignes.find((x) => /FETCH \(/i.test(x) && /\u0000LIT\d+\u0000/.test(x) && new RegExp("UID " + uid + "\\b").test(x)) || r.lignes.find((x) => /BODY\[\]/i.test(x) && /\u0000LIT\d+\u0000/.test(x));
+    const k = l ? (l.match(/\u0000LIT(\d+)\u0000/) || [])[1] : null;
+    return k == null ? new Uint8Array(0) : r.lits[Number(k)];
+  }
+  async fermer() { try { await etape("déconnexion", this.cmd("LOGOUT", "déconnexion", 4000), 5000); } catch (_) { /* rien */ } try { this.conn.close(); } catch (_) { /* déjà fermé */ } }
 }
 // deno-lint-ignore no-explicit-any
 async function releverBoite(box: any, adresses: string[]) {
@@ -233,18 +296,16 @@ async function releverBoite(box: any, adresses: string[]) {
   const { data: pris } = await db.from("wl_boites").update({ releve_verrou: now }).eq("id", box.id).or("releve_verrou.is.null,releve_verrou.lt." + avant).select("id");
   if (!pris || !pris.length) return { id: box.id, saute: "relève déjà en cours" };
   let dernier = box.dernier_uid == null ? null : Number(box.dernier_uid), validite = box.uid_validity, nouveaux = 0, ignores = 0;
-  const c = new ImapFlow({ host: box.imap_host, port: box.imap_port, secure: box.imap_port === 993, auth: { user: box.identifiant || box.adresse, pass: await lireSecret(box.secret_id) }, logger: false, ...DELAIS, ...IMAP_OPTS });
+  const c = new ImapNatif(box.imap_host, Number(box.imap_port));
   try {
-    await etape("connexion", c.connect());
-    const lock = await etape("ouverture de la boîte de réception", c.getMailboxLock("INBOX"));
-    try {
-      // deno-lint-ignore no-explicit-any
-      const mb: any = c.mailbox;
-      if (validite != null && String(mb.uidValidity) !== String(validite)) dernier = null; // boîte recréée côté serveur : on repart des 3 derniers jours
+    await c.ouvrir(box.identifiant || box.adresse, await lireSecret(box.secret_id));
+    {
+      const mb = await c.inbox();
+      if (validite != null && String(mb.uidValidity) !== String(validite)) dernier = null; // boîte recréée côté serveur : on repart des derniers jours
       validite = Number(mb.uidValidity);
       let uids: number[];
-      if (dernier == null) uids = ((await etape("recherche des mails", c.search({ since: new Date(Date.now() - 3 * 864e5) }, { uid: true }))) || []).slice(-15); // première relève : 3 derniers jours, 15 mails au plus
-      else uids = ((await etape("recherche des mails", c.search({ uid: (dernier + 1) + ":*" }, { uid: true }))) || []).filter((u: number) => u > (dernier as number));
+      if (dernier == null) { const d = new Date(Date.now() - 7 * 864e5); uids = (await c.chercher("SINCE " + d.getUTCDate() + "-" + MOIS[d.getUTCMonth()] + "-" + d.getUTCFullYear())).slice(-40); } // première relève : 7 derniers jours, 40 mails au plus
+      else uids = (await c.chercher("UID " + (dernier + 1) + ":*")).filter((u: number) => u > (dernier as number));
       uids = uids.sort((a, b) => a - b).slice(0, 8); // 8 mails par passage au plus (toutes les 2 minutes), pour rester loin du délai de la fonction
       if (!uids.length && dernier == null) dernier = Math.max(0, Number(mb.uidNext || 1) - 1);
       const deja = new Set<string>();
@@ -255,17 +316,18 @@ async function releverBoite(box: any, adresses: string[]) {
         await db.from("wl_boites").update({ releve_en_cours: uid }).eq("id", box.id);
         // 24/10/2026 : d'abord l'enveloppe et les en-têtes de tri (léger) ; un mail automatique ou une newsletter est écarté sans
         // télécharger son contenu. Ensuite seulement le mail, limité à 600 Ko (la lecture d'un gros mail entier bloquait la relève).
-        const e = await etape("lecture d'un en-tête", c.fetchOne(String(uid), { envelope: true, size: true, headers: ["list-unsubscribe", "list-id", "precedence", "auto-submitted"] }, { uid: true }), 20000);
-        const exp = String((e && e.envelope && e.envelope.from && e.envelope.from[0] && e.envelope.from[0].address) || "").toLowerCase();
-        const hd = e && e.headers ? new TextDecoder().decode(e.headers) : "";
+        const e = await c.entete(uid);
+        const hd = e ? e.headers : "";
+        const fromL = ((hd.match(/^from:(.*(?:\r?\n[ \t].*)*)/im) || [])[1] || "");
+        const exp = String((fromL.match(/<([^<>\s]+@[^<>\s]+)>/) || fromL.match(/([^\s<>"',;:()]+@[^\s<>"',;:()]+)/) || [])[1] || "").toLowerCase();
         if (!e || (exp && (adresses.includes(exp) || AUTO.test(exp) || DOMS.test(exp.split("@")[1] || ""))) || /^(list-unsubscribe|list-id)\s*:/im.test(hd) || /^precedence\s*:\s*(bulk|list|junk)/im.test(hd) || /^auto-submitted\s*:\s*auto-/im.test(hd)) {
           dernier = uid; ignores++; await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); continue;
         }
-        const MAX = 600 * 1024, gros = !!(e.size && e.size > MAX);
-        const src = await lireSource(c, uid, Number(e.size) || MAX);
+        const MAX = 600 * 1024, gros = !!(e.taille && e.taille > MAX);
+        const src = await c.source(uid, MAX);
         if (!src.length) { dernier = uid; ignores++; continue; }
         const t = await etape("tri d'un mail", trier(box, src, adresses), 30000);
-        if (gros && t.row) { t.row.texte = (t.row.texte ? t.row.texte + "\n\n" : "") + "[Mail volumineux (" + Math.round(Number(e.size) / 1024 / 1024 * 10) / 10 + " Mo) : pièces jointes non récupérées, voir la boîte " + box.adresse + ".]"; t.row.pieces_upload = []; }
+        if (gros && t.row) { t.row.texte = (t.row.texte ? t.row.texte + "\n\n" : "") + "[Mail volumineux (" + Math.round(Number(e.taille) / 1024 / 1024 * 10) / 10 + " Mo) : pièces jointes non récupérées, voir la boîte " + box.adresse + ".]"; t.row.pieces_upload = []; }
         if (t.row && !deja.has(t.mail_id)) {
           const { data: ex } = await db.from("wl_courrier").select("mail_id").eq("mail_id", t.mail_id).limit(1);
           if (!ex || !ex.length) {
@@ -281,7 +343,7 @@ async function releverBoite(box: any, adresses: string[]) {
         dernier = uid;
         await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); // progression gardée
       }
-    } finally { lock.release(); }
+    }
     await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, derniere_releve: new Date().toISOString(), statut: "ok", derniere_erreur: null, erreur_depuis: null, releve_verrou: null, releve_en_cours: null }).eq("id", box.id);
     return { id: box.id, nouveaux, ignores };
   } catch (e) {
@@ -289,7 +351,7 @@ async function releverBoite(box: any, adresses: string[]) {
     await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, statut: "erreur", derniere_erreur: why, erreur_depuis: box.erreur_depuis || new Date().toISOString(), releve_verrou: null }).eq("id", box.id); // releve_en_cours gardé : le mail fautif sera sauté au prochain passage
     await wlDb({ action: "alerte", cle: "wl-boites:" + box.id, titre: "relève " + box.adresse, texte: "La boîte " + box.adresse + " n’a pas pu être relevée : " + why + " (Paramètres → Boîtes mail de la rédaction)." }).catch(() => null);
     return { id: box.id, erreur: why };
-  } finally { try { await etape("déconnexion", c.logout(), 5000); } catch (_) { try { c.close(); } catch (_e) { /* déjà fermé */ } } }
+  } finally { await c.fermer(); }
 }
 async function releverTout() {
   const { data } = await db.from("wl_boites").select("*").eq("actif", true).not("secret_id", "is", null);
