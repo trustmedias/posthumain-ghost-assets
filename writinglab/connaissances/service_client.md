@@ -10,7 +10,7 @@
 - Réseaux : Facebook, X, Bluesky, TikTok, YouTube (@posthum1).
 
 ## Ce qu'on publie
-- **Actus** gratuites : IA, robotique, quantique, neurosciences, génétique, automobile, cybersécurité.
+- **Actus** gratuites : IA, technologies, informatique, robotique, cybersécurité, espace, sciences (dont génétique et longévité).
 - **Enquêtes Premium** : articles de fond réservés aux abonnés.
 - **Guides pratiques** IA (méthodes, prompts, outils), tests et comparatifs.
 - **Humain 2.0** : rubrique et newsletter sur l'humain augmenté.
@@ -21,11 +21,6 @@
 - subs@posthumain.com : service client / abonnements (Julien).
 - redaction@posthumain.com : marketing, demandes des marques, partenariats, presse (Julien).
 - jonathan.paiano@posthumain.com, valisoa.rasolofo@posthumain.com : rédaction.
-
-## Marketing — ce qu'on peut proposer aux marques
-- Articles sponsorisés clairement signalés, dans la ligne éditoriale (IA, tech, science) ; pas de contenu trompeur ni de sujet hors ligne.
-- Tarifs et acceptation : **toujours décidés par Jonathan**. Le marketing qualifie la demande (marque, sujet, budget, délai, liens souhaités) et prépare une réponse, sans jamais annoncer de prix ni d'engagement.
-- Refuser poliment : casinos/paris, crypto spéculative douteuse, contenus adultes, santé non prouvée.
 
 ## Ton des réponses
 - Vouvoiement, français clair, chaleureux et bref. Signer au nom du bureau (« Julien, service client Posthumain » ou « Julien, Posthumain »).
