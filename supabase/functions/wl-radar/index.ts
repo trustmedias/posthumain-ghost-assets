@@ -292,7 +292,7 @@ async function brouillonsFinis() {
 // L'assistant propose jusqu'à 3 titres et 3 angles pour une idée de sujet (Radar → « Proposer un sujet », sujet du vote, ☎️ de
 // l'Assistant). Recherche web facultative (outil web_search d'Anthropic) pour un premier tour d'horizon : ce qu'on trouve, si le
 // sujet vaut un article, et un angle renforcé par ce qu'on a trouvé. Rien n'est écrit dans le Radar : on choisit, puis on met en file.
-const MODELE_SUJET = "claude-sonnet-5-5";
+const MODELE_SUJET = "claude-opus-5-5"; // 24/10/2026 (Jonathan) : Opus 5.5 effort moyen
 const SYS_SUJET = "Tu es le rédacteur en chef adjoint de Posthumain, média français par abonnement (IA, technologies, science, cerveau, futur humain) "
   + "lu par un grand public curieux, pas par des spécialistes. On te confie une idée de sujet pour l'Usine à articles. Propose EXACTEMENT 3 titres et 3 angles, différents entre eux.\n"
   + "Titres : en français, accrocheurs mais honnêtes (le contenu doit tenir la promesse), 110 caractères au plus, jamais à la première personne (« J'ai testé… » interdit), "
@@ -308,7 +308,7 @@ const SYS_SUJET = "Tu es le rédacteur en chef adjoint de Posthumain, média fra
 const TYPES_SUJET: Record<string, string> = { actu: "article d'actualité gratuit (court, factuel, utile)", "actu-premium": "actualité avec une dernière partie réservée aux abonnés (la stratégie Posthumain)", premium: "enquête premium payante (article de fond, 3 000 mots et plus)" };
 async function claudeSujet(user: string, web: boolean) {
   const key = env("ANTHROPIC_API_KEY"); if (!key) throw new Error("clé Anthropic absente");
-  const body: any = { model: MODELE_SUJET, max_tokens: 6000, thinking: { type: "adaptive" }, output_config: { effort: web ? "medium" : "low" }, system: SYS_SUJET, messages: [{ role: "user", content: user }] };
+  const body: any = { model: MODELE_SUJET, max_tokens: 12000, thinking: { type: "adaptive" }, output_config: { effort: "medium" }, system: SYS_SUJET, messages: [{ role: "user", content: user }] };
   if (web) body.tools = [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }];
   const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(110000),
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -332,7 +332,7 @@ async function proposerSujet(b: any, qui: string) {
   let o: any = null; try { o = JSON.parse(texte.slice(a, z + 1)); } catch { o = null; }
   if (!o) throw new Error("réponse de l'assistant illisible, réessayez");
   const u = j.usage || {}, tin = Number(u.input_tokens || 0), tout = Number(u.output_tokens || 0), nbWeb = Number(u.server_tool_use?.web_search_requests || 0);
-  try { await db.from("wl_couts").insert({ membre: qui, usage: "sujet_usine", modele: String(j.model || MODELE_SUJET), tokens_in: tin, tokens_out: tout, cout_eur: Math.round((((tin * 2 + tout * 10) / 1e6) + nbWeb * 0.01) * 0.92 * 1e5) / 1e5 }); } catch (_) { /* comptage facultatif */ }
+  try { await db.from("wl_couts").insert({ membre: qui, usage: "sujet_usine", modele: String(j.model || MODELE_SUJET), tokens_in: tin, tokens_out: tout, cout_eur: Math.round((((tin * 4 + tout * 20) / 1e6) + nbWeb * 0.01) * 0.92 * 1e5) / 1e5 }); } catch (_) { /* comptage facultatif */ }
   const sources = (Array.isArray(o.sources) ? o.sources : []).filter((x: any) => x && /^https?:\/\//.test(String(x.url || ""))).slice(0, 6).map((x: any) => ({ titre: txt(x.titre || x.url, 160), url: txt(x.url, 600) }));
   return { ok: true, web, web_indisponible: webIndispo, recherches: nbWeb,
     titres: liste(o.titres, 3, 160), angles: (Array.isArray(o.angles) ? o.angles : []).slice(0, 3).map((x: any) => ({ nom: txt(x && x.nom, 80), texte: txt(x && (x.texte || x), 1200) })).filter((x: any) => x.texte.trim()),

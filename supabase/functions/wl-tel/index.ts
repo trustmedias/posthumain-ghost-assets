@@ -29,7 +29,7 @@ const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
-const MODELE = "claude-sonnet-5-5";
+const MODELE = "claude-opus-5-5"; // 24/10/2026 (Jonathan) : Opus 5.5, effort faible pour les mails simples, moyen pour le reste
 // Boîtes historiques (mêmes adresses que n8n et wl-mail) ; les boîtes ajoutées depuis le lab sont lues dans wl_boites.
 const ADRESSES: Record<string, string> = { jonathan: "jonathan.paiano@posthumain.com", valisoa: "valisoa.rasolofo@posthumain.com", subs: "subs@posthumain.com", redaction: "redaction@posthumain.com" };
 function cors(req: Request) {
@@ -130,14 +130,14 @@ async function filDe(me: Membre, poste: string, n = 12): Promise<any[]> {
 }
 
 // ---------- Claude ----------
-const TARIF = [2, 10]; // USD / million de jetons (Sonnet 5.5), conversion EUR approximative
+const TARIF = [4, 20]; // USD / million de jetons (Opus 5.5), conversion EUR approximative
 // deno-lint-ignore no-explicit-any
-async function claude(system: string, messages: any[], tool: any, maxTokens = 2500, usage = "telephone", qui = ""): Promise<any> {
+async function claude(system: string, messages: any[], tool: any, maxTokens = 6000, usage = "telephone", qui = "", effort: "low" | "medium" = "medium"): Promise<any> {
   const key = env("ANTHROPIC_API_KEY"); if (!key) throw new Error("clé Anthropic absente");
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(55000),
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(110000),
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     // tool_choice « tool » / « any » refusé par ce modèle : « auto » + consigne ferme dans le système, et repli sur le texte.
-    body: JSON.stringify({ model: MODELE, max_tokens: maxTokens, system: system + "\n\nIMPORTANT : réponds UNIQUEMENT en appelant l'outil « " + tool.name + " », sans texte autour.", messages, tools: [tool], tool_choice: { type: "auto" } }) });
+    body: JSON.stringify({ model: MODELE, max_tokens: maxTokens, thinking: { type: "adaptive" }, output_config: { effort }, system: system + "\n\nIMPORTANT : réponds UNIQUEMENT en appelant l'outil « " + tool.name + " », sans texte autour.", messages, tools: [tool], tool_choice: { type: "auto" } }) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error("Claude " + r.status + " : " + court(j?.error?.message, 160));
   // deno-lint-ignore no-explicit-any
@@ -460,7 +460,7 @@ Deno.serve(async (req) => {
           (f.reponse ? "\n\nSA RÉPONSE (" + (f.reponse_le || "") + ") :\n" + String(f.reponse).slice(-3000) : "\n\n(Pas encore de réponse du contact.)") +
           (envoyees.length ? "\n\nRÉPONSES DÉJÀ ENVOYÉES DANS LE FIL : " + envoyees.map((x) => (x.le || "").slice(0, 10) + " « " + (x.sujet || "") + " »").join(" ; ") : "") +
           "\n\nCONSIGNE DU MEMBRE (" + me.nom + ") :\n" + consigne + "\n\nNUMÉRO À DONNER : " + (telOk || "(aucun)");
-        const r = await claude(sys + await kbTexte(kbDeCapacite("suite_interview"), consigne), [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
+        const r = await claude(sys + await kbTexte(kbDeCapacite("suite_interview"), consigne), [{ role: "user", content: user }], outil, 8000, "telephone", me.id, "low"); // réponse dans le fil d'une fiche : mail simple
         const corps = String(r.corps || "").trim().slice(0, 8000); if (!corps) return out({ ok: false, why: "rédaction impossible, réessayez" });
         hist.push({ t: now, e: "réponse dans le fil préparée (à valider)", par: me.id });
         const { error } = await db.from("wl_fiches").update({ suite_sujet: sujetDef, suite_corps: corps, suite_consigne: consigne, suite_a: dest, suite_prete_le: now, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
