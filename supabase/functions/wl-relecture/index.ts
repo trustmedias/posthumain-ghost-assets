@@ -404,13 +404,13 @@ async function ghostTeleverser(bytes: Uint8Array, nom: string, mime: string): Pr
   return String(j.images[0].url);
 }
 async function suivreGraphiques() {
-  const { data } = await db.from("wl_relectures").select("id,titre,graphes,lance_par,meta").neq("graphes", "[]").order("updated_at", { ascending: false }).limit(30);
-  const res: string[] = [];
+  const { data, error } = await db.from("wl_relectures").select("id,titre,graphes,lance_par,meta").neq("graphes", "[]").order("updated_at", { ascending: false }).limit(30);
+  const res: string[] = error ? ["graphiques illisibles : " + court(error.message, 160)] : [];
   for (const row of data || []) for (const g of (row.graphes || []).filter((x: { statut: string }) => x.statut === "en_cours")) {
     try {
       const r = await anthropic("messages/batches/" + g.batch_id, {}, BETAS_GRAPHIQUE); const b = await r.json().catch(() => ({}));
-      if (!r.ok) { res.push("g" + row.id + "." + g.k + " : lot illisible"); continue; }
-      if (b.processing_status !== "ended") { if (Date.now() - Date.parse(g.lance || g.maj) > 26 * 3600e3) await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte expirée" }); continue; }
+      if (!r.ok) { res.push("g" + row.id + "." + g.k + " : lot illisible " + r.status + " " + court(JSON.stringify(b), 160)); continue; }
+      if (b.processing_status !== "ended") { res.push("g" + row.id + "." + g.k + " : lot " + b.processing_status + " " + JSON.stringify(b.request_counts || {})); if (Date.now() - Date.parse(g.lance || g.maj) > 26 * 3600e3) await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte expirée" }); continue; }
       const t = await (await anthropic("messages/batches/" + g.batch_id + "/results", {}, BETAS_GRAPHIQUE)).text();
       // deno-lint-ignore no-explicit-any
       let item: any = null; for (const l of t.split("\n").filter((x) => x.trim())) { try { const o = JSON.parse(l); if (o.custom_id === "gr-" + row.id + "-" + g.k) item = o; } catch (_) { /* ligne suivante */ } }
