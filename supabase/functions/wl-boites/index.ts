@@ -130,6 +130,8 @@ const cfgDe = (r: Record<string, unknown>): Cfg => ({ adresse: String(r.adresse)
 const ADR_LEGACY = LEGACY.map((l) => l.adresse);
 const AUTO = /^(no-?reply|do-?not-?reply|mailer-daemon|postmaster|notifications?|notify|alerts?|bounces?|news(letter)?|marketing|updates?|digest)([+._-][^@]*)?@/;
 const DOMS = /(^|\.)(stripe\.com|ghost\.(io|org)|infomaniak\.(com|ch)|google\.com|googlemail\.com|facebookmail\.com|meta\.com|linkedin\.com|x\.com|twitter\.com|tiktok\.com|youtube\.com|substack\.com|mailchimp\.com|mcsv\.net|sendgrid\.net|amazonses\.com|n8n\.(io|cloud)|github\.com|apple\.com|paypal\.com|postiz\.com|bunny\.net|openai\.com|anthropic\.com|airtable\.com|supabase\.(io|com)|vercel\.com|cloudflare\.com|ovh\.(net|com))$/;
+// Spam déjà marqué par l'hébergeur (OVH préfixe l'objet par « [SPAM] » ; X-Spam-Flag: YES ailleurs) : écarté sans téléchargement.
+const SPAM_HD = /^subject:\s*\[?\*{0,3}spam\*{0,3}\]?[\s:]|^x-spam-flag:\s*yes|^x-spam-status:\s*yes/im;
 const KW: Record<string, RegExp> = {
   subs: /abonn|r[ée]sili|d[ée]sabonn|d[ée]sinscri|rembours|factur|re[çc]u|carte|paiement|pay[ée]|pr[ée]l[èe]v|d[ée]bit|connexion|connecter|lien magique|acc[eè]s|accéder|compte|mot de passe|newsletter|premium|prix|tarif|essai|annul|cancel|refund|subscri|login|invoice|charge|cadeau/,
   redaction: /partenariat|sponsor|collaborat|article|publi|tarif|prix|devis|m[ée]dia ?kit|presse|communiqu|interview|placement|backlink|netlinking|campagne|annonce|marque|brand|partnership|guest post|advertis|rates|pricing|contenu|r[ée]daction/,
@@ -195,6 +197,7 @@ async function trier(box: any, raw: Uint8Array, adresses: string[]) {
   else if (adresses.includes(de_email)) { categorie = "ecarte"; motif = "envoyé par nous-mêmes"; }
   else if (AUTO.test(de_email)) { categorie = "ecarte"; motif = "adresse automatique"; }
   else if (DOMS.test(dom)) { categorie = "ecarte"; motif = "notification de service (" + dom + ")"; }
+  else if (/^\s*\[?\*{0,3}SPAM\*{0,3}\]?[\s:]/i.test(sujet) || /^yes/i.test(H("x-spam-flag"))) { categorie = "ecarte"; motif = "spam (marqué par le serveur)"; }
   else if (H("list-unsubscribe") || H("list-id") || /bulk|list|junk/i.test(H("precedence"))) { categorie = "ecarte"; motif = "envoi de masse (newsletter)"; }
   else if (/auto-(replied|generated)/i.test(H("auto-submitted")) || /^(r[ée]ponse automatique|automatic reply|auto[- ]?reply|out of office|absen|abwesenheit)/i.test(sujet)) { categorie = "ecarte"; motif = "réponse automatique"; }
   else if (KW[tri].test((sujet + " " + texte).toLowerCase())) { categorie = "demande"; motif = "mots-clés " + (tri === "subs" ? "abonnement" : "partenariat"); }
@@ -277,7 +280,7 @@ class ImapNatif {
   }
   // En-têtes de tri et taille, sans télécharger le mail.
   async entete(uid: number): Promise<{ taille: number; headers: string } | null> {
-    const r = await this.cmd("UID FETCH " + uid + " (UID RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM LIST-UNSUBSCRIBE LIST-ID PRECEDENCE AUTO-SUBMITTED)])", "lecture d'un en-tête");
+    const r = await this.cmd("UID FETCH " + uid + " (UID RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM SUBJECT LIST-UNSUBSCRIBE LIST-ID PRECEDENCE AUTO-SUBMITTED X-SPAM-FLAG X-SPAM-STATUS)])", "lecture d'un en-tête");
     const l = r.lignes.find((x) => /FETCH \(/i.test(x) && new RegExp("UID " + uid + "\\b").test(x));
     if (!l) return null;
     const k = (l.match(/\u0000LIT(\d+)\u0000/) || [])[1];
@@ -322,7 +325,7 @@ async function releverBoite(box: any, adresses: string[]) {
         const hd = e ? e.headers : "";
         const fromL = ((hd.match(/^from:(.*(?:\r?\n[ \t].*)*)/im) || [])[1] || "");
         const exp = String((fromL.match(/<([^<>\s]+@[^<>\s]+)>/) || fromL.match(/([^\s<>"',;:()]+@[^\s<>"',;:()]+)/) || [])[1] || "").toLowerCase();
-        if (!e || (exp && (adresses.includes(exp) || AUTO.test(exp) || DOMS.test(exp.split("@")[1] || ""))) || /^(list-unsubscribe|list-id)\s*:/im.test(hd) || /^precedence\s*:\s*(bulk|list|junk)/im.test(hd) || /^auto-submitted\s*:\s*auto-/im.test(hd)) {
+        if (!e || (exp && (adresses.includes(exp) || AUTO.test(exp) || DOMS.test(exp.split("@")[1] || ""))) || /^(list-unsubscribe|list-id)\s*:/im.test(hd) || /^precedence\s*:\s*(bulk|list|junk)/im.test(hd) || /^auto-submitted\s*:\s*auto-/im.test(hd) || SPAM_HD.test(hd)) {
           dernier = uid; ignores++; await db.from("wl_boites").update({ dernier_uid: dernier, uid_validity: validite, releve_en_cours: null }).eq("id", box.id); continue;
         }
         const MAX = 600 * 1024, gros = !!(e.taille && e.taille > MAX);
