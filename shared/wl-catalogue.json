@@ -86,6 +86,23 @@
       "mail": null,
       "plan": { "x": 1230, "y": 950, "teinte": 45 },
       "capacites": ["ouvrir"]
+    },
+    {
+      "id": "correcteur",
+      "connaissances": "redaction",
+      "nom": "Le Correcteur",
+      "emoji": "🖍️",
+      "couleur": "#d8577a",
+      "acces": "chef",
+      "titre": "Relit les brouillons",
+      "role": "Tu relis les brouillons Ghost avant publication, comme la relecture du lundi du rédacteur en chef avec le skill de relecture : correction, chasse aux tics d'IA, fact-check, vulgarisation, titre et sommaire, puis audit de chaque source et de chaque graphique (un graphique faux est refait). Tu ne modifies jamais Ghost toi-même : tu lances la relecture d'un brouillon, et le rédacteur en chef valide chaque correction (une par une ou toutes) avant qu'elle parte dans Ghost.",
+      "aide": "Il relit un brouillon comme la relecture du lundi : correction, fact-check, vérification de chaque source et de chaque graphique (il refait ceux qui sont faux). Vous voyez chaque correction en avant/après et vous poussez dans Ghost celles que vous gardez, article par article ou plusieurs d'un coup. Il peut aussi relire seul les brouillons du jour, les jours choisis.",
+      "exemples": ["Relis le brouillon sur le robot de Massey Ferguson.", "Lance la relecture de l'article sur les lunettes Meta."],
+      "aiguillage": "relire ou corriger un brouillon d'article avant publication (relecture complète : correction, fact-check, sources, graphiques)",
+      "contexte": [],
+      "mail": null,
+      "plan": { "x": 575, "y": 610, "teinte": 340 },
+      "capacites": ["relire_article", "ouvrir"]
     }
   ],
   "capacites": [
@@ -353,9 +370,25 @@
       "carte": { "titre": "🏭 Sujet pour l'Usine : {p.titre}", "bouton": "🧠 Ouvrir et proposer des angles" }
     },
     {
+      "id": "relire_article",
+      "nom": "🖍️ Relire un brouillon",
+      "postes": ["correcteur"],
+      "description": "ouvre le bureau du Correcteur et lance la relecture complète d'un brouillon (correction selon le skill de relecture, audit de chaque source, audit des graphiques avec refonte des graphiques faux). Rien n'est écrit dans Ghost : le résultat arrive en quelques minutes et le rédacteur en chef valide chaque correction. Paramètres : article_id (un brouillon, jamais un article publié)",
+      "aide": "Lance la relecture complète d'un brouillon : correction, fact-check, sources et graphiques. Les corrections arrivent en avant/après dans le bureau du Correcteur ; rien ne part dans Ghost sans votre validation.",
+      "fournir": "le brouillon à relire (ouvert ou nommé)",
+      "exemples": ["Relis le brouillon sur le robot de Massey Ferguson.", "Fais la relecture de l'article en cours."],
+      "params": {
+        "article_id": { "type": "article", "requis": true }
+      },
+      "droits": "chef",
+      "mode": "clic",
+      "executeur": { "type": "page", "fonction": "relecture", "resultat": "relecture lancée" },
+      "carte": { "titre": "🖍️ Relecture du brouillon", "bouton": "🖍️ Lancer la relecture" }
+    },
+    {
       "id": "ouvrir",
       "nom": "↗ Ouvrir une fiche, un mail ou un panneau",
-      "postes": ["secretaire", "assistant", "mk", "sc", "compta"],
+      "postes": ["secretaire", "assistant", "mk", "sc", "compta", "correcteur"],
       "description": "ouvre l'élément dans le lab (fiche_id, mail_id, ou poste pour un panneau). Paramètres : cible 'fiche'|'mail'|'panneau', id",
       "aide": "Ouvre directement une fiche, un mail ou le panneau d'un poste.",
       "fournir": "ce qu'il faut ouvrir",
@@ -457,7 +490,7 @@
       "nom": "Le Marbre",
       "emoji": "📰",
       "aide": "Les brouillons Ghost préparés par l'Usine, en attente de votre décision.",
-      "actions": ["✅ J'ai fini — prêt à relire : pose le tag interne #fini sur votre brouillon, le rédacteur en chef est prévenu (« Reprendre » le retire)", "✅ Approuver un brouillon (rédacteur en chef ; un brouillon « en cours chez » une journaliste attend son #fini)", "🗑️ Écarter un brouillon (le post Ghost n'est pas supprimé)", "Choisir l'article en cours", "🌙 Journal du soir : publiés, brief, push, réseaux programmés, verrou de 21 h (copie du message Telegram)", "📬 Envois spéciaux : Best-of mensuel à valider, Grand Format du samedi à relire ou annuler (rédacteur en chef)", "🔄 Actualiser"]
+      "actions": ["✅ J'ai fini — prêt à relire : pose le tag interne #fini sur votre brouillon, le rédacteur en chef est prévenu (« Reprendre » le retire)", "✅ Approuver un brouillon (rédacteur en chef ; un brouillon « en cours chez » une journaliste attend son #fini)", "🗑️ Écarter un brouillon (le post Ghost n'est pas supprimé)", "🖍️ Relire un brouillon avec le Correcteur (bouton sur chaque brouillon, rédacteur en chef)", "Choisir l'article en cours", "🌙 Journal du soir : publiés, brief, push, réseaux programmés, verrou de 21 h (copie du message Telegram)", "📬 Envois spéciaux : Best-of mensuel à valider, Grand Format du samedi à relire ou annuler (rédacteur en chef)", "🔄 Actualiser"]
     },
     {
       "id": "radar",

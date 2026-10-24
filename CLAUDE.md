@@ -24,7 +24,17 @@ Un poste déclaré obtient automatiquement :
 
 Base de connaissances : un domaine = une entrée dans `connaissances` du catalogue (`id`, `nom`, `emoji`, `aide`, `defaut`) ;
 chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_shared/kb.ts` est copié tel quel en `wl-tel/kb.ts` et
-`wl-kb/kb.ts` : modifier les trois ensemble.
+`wl-kb/kb.ts` (et aussi `wl-mails/kb.ts`, `wl-relecture/kb.ts`) : modifier toutes les copies ensemble.
+
+## Writinglab : le Correcteur (relecture des brouillons, fonction `wl-relecture`)
+
+- Reprend la relecture du lundi (skill `posthumain-revision:revise-article` + audit des sources + audit des graphiques) en
+  traitement par lot Anthropic ; `tic` toutes les 2 min (pg_cron « writinglab-relecture-tic », secret `relecture_cron_secret`).
+- Le texte du skill et les consignes du lundi sont dans `wl_reglages` (`relecture_skill`, `relecture_guide`, `relecture_lundi`,
+  `relecture_skill_version`), **jamais dans ce dépôt public**. Après chaque PR fusionnée du skill, les recopier dans ces réglages.
+- Rien n'est écrit dans Ghost sans validation du rédacteur en chef ; seul le Lexical est envoyé (blocs protégés intacts).
+  Tests hors ligne : `deno test supabase/functions/wl-relecture/blocs_test.ts`.
+- Déploiement : `index.ts`, `blocs.ts`, `equipe.ts`, `kb.ts` (copies identiques à celles de wl-tel).
 
 Champs d'aide obligatoires (le test échoue sinon) : sur chaque poste `aide` (une phrase pour les humains), `exemples`
 (au moins 2 phrases à dire au ☎️) et `aiguillage` (ce qu'on lui transmet) ; sur chaque capacité `nom`, `aide`, `fournir`
