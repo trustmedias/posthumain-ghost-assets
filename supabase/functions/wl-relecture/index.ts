@@ -222,18 +222,18 @@ async function texteSkill() {
 }
 
 // ---------- Lancer une relecture ----------
-async function lancer(postId: string, qui: string, auto = false) {
+async function lancer(postId: string, qui: string, auto = false, essai = false) {
   const { data: enCours } = await db.from("wl_relectures").select("id,statut").eq("post_id", postId).in("statut", ["en_cours", "prete"]).order("created_at", { ascending: false }).limit(1);
   if (enCours && enCours[0]) return { ok: true, id: enCours[0].id, deja: enCours[0].statut };
   const p = await lirePost(postId);
-  if (p.status === "published") throw new Error("article déjà publié : la relecture ne touche qu’aux brouillons");
+  if (p.status === "published" && !essai) throw new Error("article déjà publié : la relecture ne touche qu’aux brouillons");
   const blocs = extraireBlocs(p.lexical);
   if (blocs.filter((b) => b.t !== "protege").length < 3) throw new Error("article trop court ou illisible pour une relecture");
   const s = await texteSkill();
   const kb = (await contexteKb(db, "redaction", String(p.title || "")).catch(() => ({ texte: "" }))).texte;
   const messages = [{ role: "user", content: await messageInitial(p, blocs) }];
   const meta = { titre: p.title || "", extrait: p.custom_excerpt || "", meta_title: p.meta_title || "", meta_description: p.meta_description || "", visibilite: p.visibility, statut: p.status,
-    og_title: p.og_title || "", twitter_title: p.twitter_title || "", image: p.feature_image || "", editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id, apercu: p.uuid ? SITE + "/p/" + p.uuid + "/" : "", skill: await reglage("relecture_skill_version") };
+    og_title: p.og_title || "", twitter_title: p.twitter_title || "", image: p.feature_image || "", editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id, apercu: p.uuid ? SITE + "/p/" + p.uuid + "/" : "", skill: await reglage("relecture_skill_version"), ...(essai ? { essai: true } : {}) };
   const { data: row, error } = await db.from("wl_relectures").insert({ post_id: p.id, titre: p.title || "", statut: "en_cours", auto, lance_par: qui, post_maj: p.updated_at, blocs, meta }).select("id").limit(1);
   if (error || !row || !row[0]) throw new Error("enregistrement impossible : " + (error && error.message));
   const id = Number(row[0].id);
@@ -301,7 +301,7 @@ async function terminer(row: any, msg: any) {
   for (let k = 0; k < resultat.graphiques.length; k++) { const g = resultat.graphiques[k]; if (g.a_refaire && g.refaire && g.src) { try { await lancerGraphique(row.id, k); } catch (_) { /* le bouton reste disponible */ } } }
   const nb = n.corrections.length + n.insertions.length + (resultat.titre ? 1 : 0) + (resultat.extrait ? 1 : 0);
   const fautes = resultat.graphiques.filter((g: { a_refaire: boolean }) => g.a_refaire).length;
-  await pushChefs("🖍️ Relecture prête", "« " + court(row.titre, 90) + " » : " + nb + " correction" + (nb > 1 ? "s" : "") + " à valider" + (fautes ? " · " + fautes + " graphique" + (fautes > 1 ? "s" : "") + " à refaire" : "") + ".");
+  if (!row.meta?.essai) await pushChefs("🖍️ Relecture prête", "« " + court(row.titre, 90) + " » : " + nb + " correction" + (nb > 1 ? "s" : "") + " à valider" + (fautes ? " · " + fautes + " graphique" + (fautes > 1 ? "s" : "") + " à refaire" : "") + ".");
   return "prête";
 }
 async function suivreLots() {
@@ -404,7 +404,7 @@ async function ghostTeleverser(bytes: Uint8Array, nom: string, mime: string): Pr
   return String(j.images[0].url);
 }
 async function suivreGraphiques() {
-  const { data } = await db.from("wl_relectures").select("id,titre,graphes,lance_par").neq("graphes", "[]").order("updated_at", { ascending: false }).limit(30);
+  const { data } = await db.from("wl_relectures").select("id,titre,graphes,lance_par,meta").neq("graphes", "[]").order("updated_at", { ascending: false }).limit(30);
   const res: string[] = [];
   for (const row of data || []) for (const g of (row.graphes || []).filter((x: { statut: string }) => x.statut === "en_cours")) {
     try {
@@ -429,7 +429,7 @@ async function suivreGraphiques() {
       const src = await ghostTeleverser(bytes, png ? String(g.nom).replace(/\.jpg$/, ".png") : g.nom, png ? "image/png" : "image/jpeg");
       await majGraphe(row.id, g.k, { statut: "pret", src, largeur: dim.largeur, hauteur: dim.hauteur, erreur: null });
       anthropic("files/" + fid, { method: "DELETE" }, BETAS_GRAPHIQUE).catch(() => null);
-      await pushChefs("🎨 Graphique refait", "« " + court(row.titre, 90) + " » : le graphique corrigé est prêt à valider.");
+      if (!row.meta?.essai) await pushChefs("🎨 Graphique refait", "« " + court(row.titre, 90) + " » : le graphique corrigé est prêt à valider.");
       res.push("g" + row.id + "." + g.k + " : prêt");
     } catch (e) { res.push("g" + row.id + "." + g.k + " : " + court((e as Error).message, 160)); }
   }
@@ -504,10 +504,12 @@ Deno.serve(async (req) => {
   let b: any; try { b = await req.json(); } catch { return out({ ok: false, why: "bad_json" }, 400); }
   try {
     // pg_cron : suivi des lots + relecture automatique ; diagnostics (secret du réglage relecture_cron_secret)
-    if (["tic", "diag_blocs", "diag_outils"].includes(b.action)) {
+    if (["tic", "diag_blocs", "diag_outils", "essai"].includes(b.action)) {
       const s = await reglage("relecture_cron_secret");
       if (!s || String(b.secret || "") !== s) return out({ ok: false, why: "unauthorized" }, 401);
       if (b.action === "tic") { const lots = (await suivreLots()).concat(await suivreGraphiques()); let auto = ""; try { auto = await relectureAuto(); } catch (e) { auto = "erreur : " + court((e as Error).message, 200); } return out({ ok: true, lots, auto }); }
+      // essai de bout en bout sur un article (même publié) : lecture seule, sans notification ; « valider » refuse un article publié
+      if (b.action === "essai") return out(await lancer(String(b.post_id || ""), "essai", false, true));
       if (b.action === "diag_blocs") { const p = await lirePost(String(b.post_id || "")); const bl = extraireBlocs(p.lexical); return out({ ok: true, titre: p.title, visibilite: p.visibility, n: bl.length, types: bl.map((x) => x.t + (x.genre ? ":" + x.genre : "")), texte: bl.map(blocPourIA).join("\n").slice(0, 20000), noeuds: JSON.parse(p.lexical).root.children.map((n: { type: string }) => n.type) }); }
       // vérifie que le modèle et les outils serveur sont acceptés (petite requête, Haiku)
       const r = await anthropic("messages", { method: "POST", body: JSON.stringify({ model: "claude-haiku-5-5", max_tokens: 50, tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }, { type: "web_fetch_20250910", name: "web_fetch", max_uses: 1, max_content_tokens: 1000 }, OUTIL], messages: [{ role: "user", content: "Réponds seulement OK, sans outil." }] }) });
