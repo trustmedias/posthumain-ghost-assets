@@ -30,8 +30,10 @@ chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_share
 
 - Reprend la relecture du lundi (skill `posthumain-revision:revise-article` + audit des sources + audit des graphiques) en
   traitement par lot Anthropic ; `tic` toutes les 2 min (pg_cron « writinglab-relecture-tic », secret `relecture_cron_secret`).
-- Le texte du skill et les consignes du lundi sont dans `wl_reglages` (`relecture_skill`, `relecture_guide`, `relecture_lundi`,
-  `relecture_skill_version`), **jamais dans ce dépôt public**. Après chaque PR fusionnée du skill, les recopier dans ces réglages.
+- Le texte du skill est recopié AUTOMATIQUEMENT dans `wl_reglages` (`relecture_skill`, `relecture_guide`, `relecture_skill_version`)
+  par la GitHub Action du dépôt privé `claude-posthumain-article-corrector` à chaque fusion sur main (action `skill_maj`, secret
+  `relecture_skill_secret`) : GitHub est la seule source, ne jamais le modifier à la main ni le mettre dans ce dépôt public.
+- Graphiques refaits : skill `generate-charts` de l'Usine (Skills API, version latest), en appel direct en tâche de fond (pas de lot).
 - Rien n'est écrit dans Ghost sans validation du rédacteur en chef ; seul le Lexical est envoyé (blocs protégés intacts).
   Tests hors ligne : `deno test supabase/functions/wl-relecture/blocs_test.ts`.
 - Déploiement : `index.ts`, `blocs.ts`, `equipe.ts`, `kb.ts` (copies identiques à celles de wl-tel).

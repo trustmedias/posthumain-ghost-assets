@@ -19,7 +19,7 @@
 // place) qu'après validation. État dans la colonne graphes.
 // Le texte du skill (SKILL.md + references/revision-guide.md, dépôt privé trustmedias/claude-posthumain-article-corrector) et les
 // consignes du lundi sont dans wl_reglages (relecture_skill, relecture_guide, relecture_lundi, relecture_skill_version) : jamais dans
-// ce dépôt public. Après une mise à jour du skill (pull request fusionnée), les recopier dans ces réglages.
+// ce dépôt public. Ils sont recopiés AUTOMATIQUEMENT à chaque fusion sur main du dépôt du skill (GitHub Action, action skill_maj).
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
 import { contexteKb } from "./kb.ts";
@@ -388,11 +388,50 @@ async function lancerGraphique(id: number, k: number) {
   if (img) contenu.push({ type: "image", source: { type: "base64", ...img } });
   const params = { model: MODELE, max_tokens: 16000, thinking: { type: "adaptive" }, output_config: { effort: "medium" }, container: { skills: [{ type: "custom", skill_id: SKILL_GRAPHIQUES, version: "latest" }] },
     tools: [{ type: "code_execution_20250825", name: "code_execution" }], messages: [{ role: "user", content: contenu }] };
-  const r = await anthropic("messages/batches", { method: "POST", body: JSON.stringify({ requests: [{ custom_id: "gr-" + id + "-" + k, params }] }) }, BETAS_GRAPHIQUE);
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok || !j.id) { await majGraphe(id, k, { statut: "erreur", erreur: "envoi refusé (" + r.status + ") : " + court(j?.error?.message, 200) }); throw new Error("refonte du graphique refusée : " + court(j?.error?.message, 200)); }
-  await majGraphe(id, k, { statut: "en_cours", batch_id: String(j.id), nom, src_avant: g.src, legende: g.refaire.legende || "", alt: g.refaire.titre || "", erreur: null, lance: new Date().toISOString() });
+  // Appel DIRECT (24/10/2026) : en traitement par lot, un graphique a attendu 6 heures. La refonte tourne en tâche de fond de la
+  // fonction (quelques minutes) ; le tic la déclare en erreur si elle n'a pas abouti au bout de 15 minutes.
+  await majGraphe(id, k, { statut: "en_cours", batch_id: null, nom, src_avant: g.src, legende: g.refaire.legende || "", alt: g.refaire.titre || "", erreur: null, lance: new Date().toISOString() });
+  const tache = refaireDirect(row, k, nom, params).catch(async (e) => { await majGraphe(id, k, { statut: "erreur", erreur: court((e as Error).message, 200) }); });
+  // deno-lint-ignore no-explicit-any
+  const er = (globalThis as any).EdgeRuntime;
+  if (er && typeof er.waitUntil === "function") er.waitUntil(tache); else await tache;
   return { ok: true };
+}
+// deno-lint-ignore no-explicit-any
+async function refaireDirect(row: any, k: number, nom: string, params: any) {
+  // deno-lint-ignore no-explicit-any
+  let messages: any[] = params.messages, msg: any = null, container: any = params.container;
+  for (let tour = 0; tour < 4; tour++) {
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(330000),
+      headers: { "x-api-key": env("ANTHROPIC_API_KEY"), "anthropic-version": "2023-06-01", "anthropic-beta": BETAS_GRAPHIQUE, "content-type": "application/json" },
+      body: JSON.stringify({ ...params, container, messages }) });
+    msg = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error("refonte refusée (" + r.status + ") : " + court(msg?.error?.message, 200));
+    try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture_graphique", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: Math.round(coutDe(u) * 2 * 1e4) / 1e4 }); } catch (_) { /* facultatif */ }
+    if (msg.stop_reason !== "pause_turn") break;
+    // tour interrompu (exécution de code longue) : on reprend dans le même conteneur
+    messages = messages.concat([{ role: "assistant", content: msg.content }]);
+    if (msg.container?.id) container = { id: msg.container.id, skills: params.container.skills };
+  }
+  await recevoirGraphique(row, k, nom, msg);
+}
+// deno-lint-ignore no-explicit-any
+async function recevoirGraphique(row: any, k: number, nom: string, msg: any) {
+  const ids = fichiers(msg?.content);
+  if (!ids.length) { await majGraphe(row.id, k, { statut: "erreur", erreur: "aucune image produite (" + (msg?.stop_reason || "?") + ")" }); return "erreur"; }
+  const fid = ids[ids.length - 1];
+  const fr = await anthropic("files/" + fid + "/content", {}, BETAS_GRAPHIQUE);
+  if (!fr.ok) { await majGraphe(row.id, k, { statut: "erreur", erreur: "image illisible (" + fr.status + ")" }); return "erreur"; }
+  const bytes = new Uint8Array(await fr.arrayBuffer());
+  const dim = dimensionsImage(bytes);
+  if (!dim) { await majGraphe(row.id, k, { statut: "erreur", erreur: "le fichier produit n’est pas une image JPEG ou PNG" }); return "erreur"; }
+  const png = bytes[0] === 0x89;
+  const src = await ghostTeleverser(bytes, png ? String(nom).replace(/\.jpg$/, ".png") : nom, png ? "image/png" : "image/jpeg");
+  await majGraphe(row.id, k, { statut: "pret", src, largeur: dim.largeur, hauteur: dim.hauteur, erreur: null });
+  anthropic("files/" + fid, { method: "DELETE" }, BETAS_GRAPHIQUE).catch(() => null);
+  const { data } = await db.from("wl_relectures").select("meta").eq("id", row.id).limit(1);
+  if (!data?.[0]?.meta?.essai) await pushChefs("🎨 Graphique refait", "« " + court(row.titre, 90) + " » : le graphique corrigé est prêt à valider.");
+  return "prêt";
 }
 // deno-lint-ignore no-explicit-any
 function fichiers(o: any, out: string[] = []): string[] { if (!o || typeof o !== "object") return out; if (typeof o.file_id === "string") out.push(o.file_id); for (const v of Array.isArray(o) ? o : Object.values(o)) fichiers(v, out); return out; }
@@ -403,34 +442,24 @@ async function ghostTeleverser(bytes: Uint8Array, nom: string, mime: string): Pr
   if (!r.ok || !j.images?.[0]?.url) throw new Error("téléversement Ghost refusé (" + r.status + ")");
   return String(j.images[0].url);
 }
+// Refontes en cours : appel direct (pas de batch_id) déclaré en erreur après 15 minutes ; anciens lots encore suivis jusqu'à leur fin.
 async function suivreGraphiques() {
   const { data, error } = await db.from("wl_relectures").select("id,titre,graphes,lance_par,meta").neq("graphes", "[]").order("updated_at", { ascending: false }).limit(30);
   const res: string[] = error ? ["graphiques illisibles : " + court(error.message, 160)] : [];
   for (const row of data || []) for (const g of (row.graphes || []).filter((x: { statut: string }) => x.statut === "en_cours")) {
     try {
+      if (!g.batch_id) {
+        if (Date.now() - Date.parse(g.lance || g.maj) > 15 * 60e3) { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte interrompue : relancez-la" }); res.push("g" + row.id + "." + g.k + " : interrompue"); }
+        continue;
+      }
       const r = await anthropic("messages/batches/" + g.batch_id, {}, BETAS_GRAPHIQUE); const b = await r.json().catch(() => ({}));
-      if (!r.ok) { res.push("g" + row.id + "." + g.k + " : lot illisible " + r.status + " " + court(JSON.stringify(b), 160)); continue; }
-      if (b.processing_status !== "ended") { res.push("g" + row.id + "." + g.k + " : lot " + b.processing_status + " " + JSON.stringify(b.request_counts || {})); if (Date.now() - Date.parse(g.lance || g.maj) > 26 * 3600e3) await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte expirée" }); continue; }
+      if (!r.ok) { res.push("g" + row.id + "." + g.k + " : lot illisible " + r.status); continue; }
+      if (b.processing_status !== "ended") { res.push("g" + row.id + "." + g.k + " : lot " + b.processing_status); if (Date.now() - Date.parse(g.lance || g.maj) > 26 * 3600e3) await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte expirée" }); continue; }
       const t = await (await anthropic("messages/batches/" + g.batch_id + "/results", {}, BETAS_GRAPHIQUE)).text();
       // deno-lint-ignore no-explicit-any
       let item: any = null; for (const l of t.split("\n").filter((x) => x.trim())) { try { const o = JSON.parse(l); if (o.custom_id === "gr-" + row.id + "-" + g.k) item = o; } catch (_) { /* ligne suivante */ } }
-      if (!item || item.result?.type !== "succeeded") { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte : " + court(item?.result?.error?.error?.message || item?.result?.type || "résultat absent", 200) }); res.push("g" + row.id + "." + g.k + " : erreur"); continue; }
-      const msg = item.result.message;
-      try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture_graphique", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: coutDe(u) }); } catch (_) { /* facultatif */ }
-      const ids = fichiers(msg.content);
-      if (!ids.length) { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "aucune image produite (" + msg.stop_reason + ")" }); continue; }
-      const fid = ids[ids.length - 1];
-      const fr = await anthropic("files/" + fid + "/content", {}, BETAS_GRAPHIQUE);
-      if (!fr.ok) { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "image illisible (" + fr.status + ")" }); continue; }
-      const bytes = new Uint8Array(await fr.arrayBuffer());
-      const dim = dimensionsImage(bytes);
-      if (!dim) { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "le fichier produit n’est pas une image JPEG ou PNG" }); continue; }
-      const png = bytes[0] === 0x89;
-      const src = await ghostTeleverser(bytes, png ? String(g.nom).replace(/\.jpg$/, ".png") : g.nom, png ? "image/png" : "image/jpeg");
-      await majGraphe(row.id, g.k, { statut: "pret", src, largeur: dim.largeur, hauteur: dim.hauteur, erreur: null });
-      anthropic("files/" + fid, { method: "DELETE" }, BETAS_GRAPHIQUE).catch(() => null);
-      if (!row.meta?.essai) await pushChefs("🎨 Graphique refait", "« " + court(row.titre, 90) + " » : le graphique corrigé est prêt à valider.");
-      res.push("g" + row.id + "." + g.k + " : prêt");
+      if (!item || item.result?.type !== "succeeded") { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte : " + court(item?.result?.error?.error?.message || item?.result?.type || "résultat absent", 200) }); continue; }
+      res.push("g" + row.id + "." + g.k + " : " + await recevoirGraphique(row, g.k, g.nom, item.result.message));
     } catch (e) { res.push("g" + row.id + "." + g.k + " : " + court((e as Error).message, 160)); }
   }
   return res;
@@ -516,6 +545,19 @@ Deno.serve(async (req) => {
       const j = await r.json().catch(() => ({}));
       const r2 = await anthropic("messages/count_tokens", { method: "POST", body: JSON.stringify({ model: MODELE, thinking: { type: "adaptive" }, messages: [{ role: "user", content: "x" }] }) });
       return out({ ok: r.ok, statut: r.status, reponse: court(JSON.stringify(j).slice(0, 400), 400), opus: r2.status, opus_reponse: court(await r2.text(), 300) });
+    }
+    // GitHub Action du dépôt du skill (claude-posthumain-article-corrector) : à chaque fusion sur main, recopie SKILL.md et
+    // references/revision-guide.md ici (secret relecture_skill_secret de wl_reglages = secret GitHub WRITINGLAB_SKILL_SECRET).
+    // GitHub reste la seule source du skill : on ne modifie jamais ces réglages à la main.
+    if (b.action === "skill_maj") {
+      const s = await reglage("relecture_skill_secret");
+      if (!s || String(b.secret || "") !== s) return out({ ok: false, why: "unauthorized" }, 401);
+      const skill = String(b.skill || ""), guide = String(b.guide || "");
+      if (skill.length < 2000 || guide.length < 2000 || !/^---\s*\nname:\s*revise-article/m.test(skill)) return out({ ok: false, why: "skill incomplet : rien n’a été remplacé" }, 400);
+      await ecrireReglage("relecture_skill", skill.slice(0, 200000));
+      await ecrireReglage("relecture_guide", guide.slice(0, 400000));
+      await ecrireReglage("relecture_skill_version", court(b.version || "", 200));
+      return out({ ok: true, skill: skill.length, guide: guide.length, version: court(b.version || "", 200) });
     }
     const me = await membre(String(b.token || "")).catch(() => null);
     if (!me) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
