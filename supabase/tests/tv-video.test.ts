@@ -231,7 +231,7 @@ check("promote → OK + Bunny supprimé", pr.status === 200 && pr.j.bunny_delete
 check("page devenue publique", post.visibility === "public");
 check("#posthumain-tv retiré, autres tags gardés", post.tags.map((t: any) => t.name).join("|") === "Vidéos|#version-longue", post.tags);
 const lx3 = JSON.parse(post.lexical).root.children;
-check("fiche YouTube + ancien id + embed", lx3.length === 1 && lx3[0].html.includes('data-youtube="dQw4w9WgXcQ"') && lx3[0].html.includes(`data-was="bn-${guid}"`) && lx3[0].html.includes("youtube.com/embed/dQw4w9WgXcQ") && !lx3[0].html.includes("data-bunny"));
+check("fiche YouTube + ancien id + vignette play (pas d'iframe)", lx3.length === 1 && lx3[0].html.includes('data-youtube="dQw4w9WgXcQ"') && lx3[0].html.includes(`data-was="bn-${guid}"`) && lx3[0].html.includes('class="ph-yt-thumb"') && lx3[0].html.includes("youtube.com/watch?v=dQw4w9WgXcQ") && lx3[0].html.includes("posthumain-bouton-play") && !lx3[0].html.includes("<iframe") && !lx3[0].html.includes("data-bunny"));
 check("plus lisible sur Bunny via tv-play → 404", (await play("bn-" + guid, tAbo)).status === 404);
 check("promote rejoué → déjà fait", (await call({ action: "promote", guid, youtube_id: "dQw4w9WgXcQ" }, { secret: "s3cret" })).j.already === true);
 

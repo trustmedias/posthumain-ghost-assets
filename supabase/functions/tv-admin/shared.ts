@@ -236,11 +236,23 @@ export function exclusiveLexical(row: VideoRow): string {
   return lexical([teaser, "paywall", members]);
 }
 
+const PLAY_BUTTON =
+  "https://storage.ghost.io/c/ff/1a/ff1a0836-0870-4803-888c-ae1b8c48d937/content/images/2026/10/posthumain-bouton-play-v2-demi.png";
+
 export function promotedLexical(row: VideoRow, youtubeId: string): string {
+  // 24/10/2026 (Jonathan) : pas de lecteur YouTube intégré sur les pages vidéo. Vignette 16/9 cliquable (image de la page)
+  // avec le bouton play rouge Posthumain, qui ouvre la vidéo sur YouTube — même carte que l'usine n8n (ph-yt-thumb).
+  const yt = escHtml(youtubeId);
+  const img = escHtml(/^https:\/\//.test(row.feature_image || "") ? row.feature_image : `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`);
   const embed =
-    `<figure class="kg-card kg-embed-card"><iframe width="560" height="315" src="https://www.youtube.com/embed/${escHtml(youtubeId)}?feature=oembed" ` +
-    `frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ` +
-    `referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="${escHtml(row.title)}"></iframe></figure>`;
+    `<figure class="ph-yt-thumb" style="margin:1.6em 0">` +
+    `<a href="https://www.youtube.com/watch?v=${yt}" target="_blank" rel="noopener" aria-label="Regarder « ${escHtml(row.title)} » sur YouTube"` +
+    ` style="position:relative;display:block;width:100%;height:0;padding-top:56.25%;overflow:hidden;background:#000;line-height:0">` +
+    `<img src="${img}" alt="${escHtml(row.title)}" width="1280" height="720" decoding="async"` +
+    ` style="position:absolute;top:0;left:0;width:100%;height:100%;max-width:none;object-fit:cover;display:block;margin:0">` +
+    `<img src="${PLAY_BUTTON}" alt="" aria-hidden="true" width="150" height="115"` +
+    ` style="position:absolute;left:50%;top:50%;width:12.5%;min-width:56px;height:auto;max-width:none;transform:translate(-50%,-50%);margin:0;pointer-events:none">` +
+    `</a></figure>`;
   return lexical([
     (row.excerpt ? `<p>${escHtml(row.excerpt)}</p>` : "") + embed +
       metaCard({ source: "youtube", youtube: youtubeId, theme: row.theme, series: row.series, duration: row.duration, was: `bn-${row.bunny_guid}` }) +
