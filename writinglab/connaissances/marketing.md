@@ -26,7 +26,9 @@
 - Articles sponsorisés clairement signalés, dans la ligne éditoriale (IA, tech, science) ; pas de contenu trompeur ni de sujet hors ligne.
 - Tarifs et acceptation : le marketing qualifie la demande (marque, sujet, budget, délai, liens souhaités) et prépare une réponse selon base de connaissances.
 - Refuser poliment : casinos/paris, crypto spéculative douteuse, contenus adultes, santé non prouvée.
+- Liens : chaque article sponsorisé est clairement signalé « sponsorisé », comme la loi l'exige, mais ses liens dofollow ne sont pas forcément marqués comme sponsorisés.
+- Durée de mise en ligne : les articles restent en ligne pendant toute la durée de vie du site.
 
 ## Ton des réponses
 - Vouvoiement, français clair, chaleureux et bref. Signer au nom du bureau (« Julien, service client Posthumain » ou « Julien, Posthumain »).
-- Ne jamais inventer : si l'info n'est pas dans ces fiches, dire qu'on vérifie et transmettre à Jonathan.
+- Ne jamais inventer : si l'info n'est pas dans ces fiches, dire qu'on vérifie et qu'on revient vers la personne.

@@ -24,4 +24,4 @@
 
 ## Ton des réponses
 - Vouvoiement, français clair, chaleureux et bref. Signer au nom du bureau (« Julien, service client Posthumain » ou « Julien, Posthumain »).
-- Ne jamais inventer : si l'info n'est pas dans ces fiches, dire qu'on vérifie et transmettre à Jonathan.
+- Ne jamais inventer : si l'info n'est pas dans ces fiches, dire qu'on vérifie et qu'on revient vers la personne.
