@@ -183,7 +183,7 @@ async function imageB64(src: string): Promise<{ media_type: string; data: string
 // deno-lint-ignore no-explicit-any
 async function messageInitial(p: any, blocs: Bloc[]) {
   const tags = (p.tags || []).map((t: { name: string }) => t.name).filter(Boolean);
-  const entete = ["Article à relire (brouillon Ghost) :", "Titre : " + (p.title || ""), "Sous-titre (custom_excerpt) : " + (p.custom_excerpt || "(vide)"), "meta_title : " + (p.meta_title || "(vide)"), "meta_description : " + (p.meta_description || "(vide)"),
+  const entete = ["Article à relire (" + (p.status === "published" || p.statut === "published" ? "article DÉJÀ PUBLIÉ : les corrections validées partiront en ligne" : "brouillon Ghost") + ") :", "Titre : " + (p.title || ""), "Sous-titre (custom_excerpt) : " + (p.custom_excerpt || "(vide)"), "meta_title : " + (p.meta_title || "(vide)"), "meta_description : " + (p.meta_description || "(vide)"),
     "og_title / twitter_title : " + [p.og_title, p.twitter_title].filter(Boolean).join(" / ") || "(vides)", "Visibilité : " + p.visibility + (["paid", "tiers"].includes(p.visibility) ? " → ARTICLE PREMIUM" : " → article non premium"),
     "Tags : " + tags.join(", "), "Créé le : " + p.created_at, "Date du jour : " + new Date().toISOString().slice(0, 10), "", "BLOCS DE L'ARTICLE :"].join("\n");
   // deno-lint-ignore no-explicit-any
@@ -226,7 +226,8 @@ async function lancer(postId: string, qui: string, auto = false, essai = false) 
   const { data: enCours } = await db.from("wl_relectures").select("id,statut").eq("post_id", postId).in("statut", ["en_cours", "prete"]).order("created_at", { ascending: false }).limit(1);
   if (enCours && enCours[0]) return { ok: true, id: enCours[0].id, deja: enCours[0].statut };
   const p = await lirePost(postId);
-  if (p.status === "published" && !essai) throw new Error("article déjà publié : la relecture ne touche qu’aux brouillons");
+  // 25/10/2026 (Jonathan) : un article publié se relit sur demande (bouton) ; la relecture AUTOMATIQUE ne prend que les brouillons du jour.
+  if (p.status === "published" && auto) throw new Error("article déjà publié : la relecture automatique ne prend que les brouillons");
   const blocs = extraireBlocs(p.lexical);
   if (blocs.filter((b) => b.t !== "protege").length < 3) throw new Error("article trop court ou illisible pour une relecture");
   const s = await texteSkill();
@@ -486,7 +487,7 @@ async function valider(b: any, me: Membre) {
   const corrections = cIdx.map((k) => R.corrections[k]), insertions = iIdx.map((k) => R.insertions[k]);
   for (let essai = 0; essai < 2; essai++) {
     const p = await lirePost(row.post_id);
-    if (p.status === "published") throw new Error("l’article a été publié entre-temps : rien n’a été modifié");
+    // article publié : les corrections validées partent en ligne (statut inchangé)
     // deno-lint-ignore no-explicit-any
     const maj: any = { updated_at: p.updated_at };
     let res = { appliquees: [] as number[], inserees: [] as number[], conflits: [] as { ref: string; raison: string }[] };
@@ -582,7 +583,6 @@ Deno.serve(async (req) => {
       if (!g || g.statut !== "pret") return out({ ok: false, why: "ce graphique refait n’est pas prêt" });
       for (let essai = 0; essai < 2; essai++) {
         const p = await lirePost(row.post_id);
-        if (p.status === "published") return out({ ok: false, why: "article déjà publié : rien n’a été modifié" });
         const lex = JSON.parse(p.lexical);
         if (!graphiquesDans(lex, row.graphes, [k]).length) return out({ ok: false, why: "le graphique d’origine n’est plus dans l’article (déjà remplacé ou supprimé)" });
         try { await ghost(`posts/${p.id}/`, "PUT", { posts: [{ lexical: JSON.stringify(lex), updated_at: p.updated_at }] }); }

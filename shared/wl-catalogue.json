@@ -95,13 +95,13 @@
       "couleur": "#d8577a",
       "acces": "chef",
       "titre": "Relit les brouillons",
-      "role": "Tu relis les brouillons Ghost avant publication, comme la relecture du lundi du rédacteur en chef avec le skill de relecture : correction, chasse aux tics d'IA, fact-check, vulgarisation, titre et sommaire, puis audit de chaque source et de chaque graphique (un graphique faux est refait). Tu ne modifies jamais Ghost toi-même : tu lances la relecture d'un brouillon, et le rédacteur en chef valide chaque correction (une par une ou toutes) avant qu'elle parte dans Ghost.",
-      "aide": "Il relit un brouillon comme la relecture du lundi : correction, fact-check, vérification de chaque source et de chaque graphique (il refait ceux qui sont faux). Vous voyez chaque correction en avant/après et vous poussez dans Ghost celles que vous gardez, article par article ou plusieurs d'un coup. Il peut aussi relire seul les brouillons du jour, les jours choisis.",
+      "role": "Tu relis les articles Ghost (brouillons avant publication, ou articles déjà publiés sur demande), comme la relecture du lundi du rédacteur en chef avec le skill de relecture : correction, chasse aux tics d'IA, fact-check, vulgarisation, titre et sommaire, puis audit de chaque source et de chaque graphique (un graphique faux est refait). Tu ne modifies jamais Ghost toi-même : tu lances la relecture d'un brouillon, et le rédacteur en chef valide chaque correction (une par une ou toutes) avant qu'elle parte dans Ghost.",
+      "aide": "Il relit un brouillon (ou un article déjà publié, sur demande) comme la relecture du lundi : correction, fact-check, vérification de chaque source et de chaque graphique (il refait ceux qui sont faux). Vous voyez chaque correction en avant/après et vous poussez dans Ghost celles que vous gardez, article par article ou plusieurs d'un coup. Il peut aussi relire seul les brouillons du jour, les jours choisis.",
       "exemples": ["Relis le brouillon sur le robot de Massey Ferguson.", "Lance la relecture de l'article sur les lunettes Meta."],
-      "aiguillage": "relire ou corriger un brouillon d'article avant publication (relecture complète : correction, fact-check, sources, graphiques)",
+      "aiguillage": "relire ou corriger un article, brouillon ou déjà publié (relecture complète : correction, fact-check, sources, graphiques)",
       "contexte": [],
       "mail": null,
-      "plan": { "x": 575, "y": 610, "teinte": 340 },
+      "plan": { "x": 500, "y": 215, "teinte": 340 },
       "capacites": ["relire_article", "ouvrir"]
     }
   ],
@@ -371,11 +371,11 @@
     },
     {
       "id": "relire_article",
-      "nom": "🖍️ Relire un brouillon",
+      "nom": "🖍️ Relire un article",
       "postes": ["correcteur"],
-      "description": "ouvre le bureau du Correcteur et lance la relecture complète d'un brouillon (correction selon le skill de relecture, audit de chaque source, audit des graphiques avec refonte des graphiques faux). Rien n'est écrit dans Ghost : le résultat arrive en quelques minutes et le rédacteur en chef valide chaque correction. Paramètres : article_id (un brouillon, jamais un article publié)",
-      "aide": "Lance la relecture complète d'un brouillon : correction, fact-check, sources et graphiques. Les corrections arrivent en avant/après dans le bureau du Correcteur ; rien ne part dans Ghost sans votre validation.",
-      "fournir": "le brouillon à relire (ouvert ou nommé)",
+      "description": "ouvre le bureau du Correcteur et lance la relecture complète d'un article, brouillon ou déjà publié (correction selon le skill de relecture, audit de chaque source, audit des graphiques avec refonte des graphiques faux). Rien n'est écrit dans Ghost : le résultat arrive en quelques minutes et le rédacteur en chef valide chaque correction. Paramètres : article_id (brouillon ou article publié)",
+      "aide": "Lance la relecture complète d'un article (brouillon ou déjà publié) : correction, fact-check, sources et graphiques. Les corrections arrivent en avant/après dans le bureau du Correcteur ; rien ne part dans Ghost sans votre validation.",
+      "fournir": "l'article à relire (ouvert ou nommé)",
       "exemples": ["Relis le brouillon sur le robot de Massey Ferguson.", "Fais la relecture de l'article en cours."],
       "params": {
         "article_id": { "type": "article", "requis": true }
@@ -383,7 +383,7 @@
       "droits": "chef",
       "mode": "clic",
       "executeur": { "type": "page", "fonction": "relecture", "resultat": "relecture lancée" },
-      "carte": { "titre": "🖍️ Relecture du brouillon", "bouton": "🖍️ Lancer la relecture" }
+      "carte": { "titre": "🖍️ Relecture de l'article", "bouton": "🖍️ Lancer la relecture" }
     },
     {
       "id": "ouvrir",

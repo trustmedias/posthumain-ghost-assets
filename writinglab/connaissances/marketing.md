@@ -25,7 +25,9 @@
 ## Marketing — ce qu'on peut proposer aux marques
 - Articles sponsorisés clairement signalés, dans la ligne éditoriale (IA, tech, science) ; pas de contenu trompeur ni de sujet hors ligne.
 - Tarifs et acceptation : le marketing qualifie la demande (marque, sujet, budget, délai, liens souhaités) et prépare une réponse selon base de connaissances.
-- Refuser poliment : casinos/paris, crypto spéculative douteuse, contenus adultes, santé non prouvée.
+
+- Sujets sensibles (crypto, minage, trading, placements spéculatifs…) quand l'annonceur propose un sujet sans imposer d'angle : accepter, au tarif normal majoré de 100 €. Dire franchement que, vu le sujet, la rédaction écrira un article vrai et sourcé, qui ne sera pas forcément positif, et que leur lien sera placé dans une partie neutre de l'article (par exemple là où l'article présente un exemple de plateforme). Si l'annonceur impose un texte promotionnel ou un angle favorable sur ces sujets : refuser poliment.
+- Refuser poliment : casinos/paris, contenus adultes, santé non prouvée.
 - Liens : chaque article sponsorisé est clairement signalé « sponsorisé », comme la loi l'exige, mais ses liens dofollow ne sont pas forcément marqués comme sponsorisés.
 - Durée de mise en ligne : les articles restent en ligne pendant toute la durée de vie du site.
 
