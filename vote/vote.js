@@ -26,8 +26,17 @@
     '<div class="phv-page"><div id="phv" class="phv"><div class="phv-gris">Chargement du vote…</div></div></div></div>';
   var coque = sh.querySelector('.phv-coque'), root = sh.getElementById('phv');
   var lien = sh.querySelector('link');
-  var montrer = function () { coque.classList.add('pret'); };
-  lien.addEventListener('load', montrer); lien.addEventListener('error', montrer); setTimeout(montrer, 2500);
+  // 27/10/2026 (CLS) : la page ne s'affiche qu'une fois sa feuille ET ses polices prêtes. Avant, elle apparaissait au bout de
+  // 2,5 s même sans feuille, puis tout se réarrangeait à l'arrivée des styles et de Fira Mono (gros décalages sur mobile).
+  var montre = false, attentes = [];
+  var montrer = function () { if (montre) return; montre = true; coque.classList.add('pret'); attentes.splice(0).forEach(function (f) { try { f(); } catch (e) { /* rien */ } }); };
+  var quandVisible = function (f) { if (montre) f(); else attentes.push(f); };
+  var feuille = new Promise(function (ok) { lien.addEventListener('load', ok); lien.addEventListener('error', ok); });
+  feuille.then(function () {
+    var polices = document.fonts && document.fonts.load ? Promise.all([document.fonts.load('600 20px "Fira Mono"'), document.fonts.load('16px Inter')]).catch(function () {}) : Promise.resolve();
+    return Promise.race([polices, new Promise(function (ok) { setTimeout(ok, 1200); })]);
+  }).then(montrer);
+  setTimeout(montrer, 8000); // secours : réseau très lent
   var SOLEIL = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
   var LUNE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
   function majMode(m) {
@@ -106,7 +115,10 @@
     return api('etat').then(function (r) {
       if (!r || !r.ok) { if (!silencieux) { S.alerte = { ko: true, t: (r && r.why) || 'Le vote ne répond pas.' }; rendre(); } return; }
       if (r.serveur) S.decalage = Date.parse(r.serveur) - Date.now();
+      // relecture silencieuse (toutes les 25 s) : on ne redessine que si quelque chose a vraiment changé (sinon décalages inutiles)
+      var avant = silencieux && S.d ? JSON.stringify(Object.assign({}, S.d, { serveur: 0 })) : null;
       fusionner(r);
+      if (avant && avant === JSON.stringify(Object.assign({}, S.d, { serveur: 0 })) && !(r.equipe && location.hash === '#redaction')) return;
       if (r.equipe && (location.hash === '#redaction' || S.tourId)) chargerRedaction();
       else rendre();
     });
@@ -135,8 +147,8 @@
 
   // ---------------------------------------------------------------- rendu
   function phaseCible(t) {
-    if (t.phase === 'propositions') return { quand: t.fin_propositions, quoi: 'Propositions ouvertes encore', suite: 'Ensuite, vote jusqu’au ' + dateTxt(t.fin_vote, true) + '.' };
-    if (t.phase === 'vote') return { quand: t.fin_vote, quoi: 'Vote ouvert encore', suite: 'Clôture le ' + dateTxt(t.fin_vote, true) + ' (heure suisse). Le sujet le plus voté devient une enquête premium.' };
+    if (t.phase === 'propositions') return { quand: t.fin_propositions, quoi: 'Propositions ouvertes encore', suite: 'Puis vote jusqu’au ' + dateTxt(t.fin_vote) + '.' };
+    if (t.phase === 'vote') return { quand: t.fin_vote, quoi: 'Vote ouvert encore', suite: 'Clôture le ' + dateTxt(t.fin_vote, true) + ' (heure suisse).' };
     return null;
   }
   function blocs(ms) {
@@ -156,8 +168,8 @@
     }
     var t = d.tour, role = d.role, cible = phaseCible(t), h = '<div class="phv-grille"><aside class="phv-rail">';
     h += '<div class="phv-surtitre">Vote de ' + esc(t.mois_txt) + (t.test ? ' (tour de test)' : '') + '</div>';
-    h += '<h1 class="phv-titre phv-dec">Le sujet d’une de nos prochaines enquêtes premium, c’est vous qui le choisissez.</h1>';
-    h += '<div class="phv-chapo">Chaque mois, les abonnés premium proposent des sujets et votent. Le plus demandé devient une enquête de la rédaction, publiée pour tous les abonnés.</div>';
+    h += '<h1 class="phv-titre phv-dec">Choisissez le sujet d’une de nos prochaines enquêtes</h1>';
+    h += '<div class="phv-chapo">Les abonnés premium proposent et votent. Le sujet gagnant devient une enquête de la rédaction.</div>';
 
     // compte à rebours
     if (cible) {
@@ -178,22 +190,23 @@
       '<li class="phv-etape ' + e2 + '"><b>2. Vote</b>jusqu’au ' + esc(dateTxt(t.fin_vote)) + '</li>' +
       '<li class="phv-etape ' + e3 + '"><b>3. Enquête</b>rédigée dans la foulée</li></ol>';
 
-    h += '<section class="phv-regles" aria-label="Règles du vote">' +
-      '<div><strong>Qui participe ?</strong> Les abonnés premium : une proposition et un vote par mois, vote modifiable jusqu’à la clôture.</div>' +
-      '<div><strong>Comment sont choisis les 3 sujets ?</strong> Les 5 premières propositions entrent telles quelles. À la 6e, l’IA de la rédaction regroupe les idées proches et formule les 3 sujets du vote. Les votes déjà donnés suivent leur proposition.</div>' +
-      '<div><strong>Et ensuite ?</strong> Le sujet qui a reçu le plus de votes depuis le début du tour devient une enquête premium. Elle apparaît ici une fois publiée.</div>' +
-      '<div><strong>Confidentialité :</strong> les propositions sont affichées sans nom. Seule la rédaction sait qui a proposé quoi.</div></section>';
     h += '</aside><main class="phv-principal">';
-    if (S.alerte) h += '<div class="phv-alerte ' + (S.alerte.ko ? 'ko' : 'ok') + '" role="status">' + esc(S.alerte.t) + '</div>';
+    if (S.alerte) h += '<div class="phv-toast ' + (S.alerte.ko ? 'ko' : 'ok') + '" role="status">' + esc(S.alerte.t) + '</div>';
     h += zoneParticipation(d);
     h += tableau(d);
     h += gagnants(d);
+    h += '<details class="phv-regles"><summary>Comment ça marche ?</summary><ul>' +
+      '<li><strong>Qui ?</strong> Les abonnés premium : une proposition et un vote par mois, vote modifiable jusqu’à la clôture.</li>' +
+      '<li><strong>Les 3 sujets.</strong> À la 6e proposition, l’IA regroupe les idées proches en 3 sujets. Les votes déjà donnés suivent.</li>' +
+      '<li><strong>Le gagnant.</strong> Le sujet le plus voté devient une enquête premium, affichée ici une fois publiée.</li>' +
+      '<li><strong>Anonymat.</strong> Les propositions s’affichent sans nom ; seule la rédaction sait qui a proposé quoi.</li></ul></details>';
     if (d.equipe) h += redaction();
     h += '</main></div>';
     root.innerHTML = h;
     majCompte();
     lierEvenements();
-    if (S.premier) { S.premier = false; if (!REDUIT) decoder(); requestAnimationFrame(function () { remplirBarres(); }); } else remplirBarres(true);
+    if (S.premier) { S.premier = false; quandVisible(function () { if (!REDUIT) decoder(); requestAnimationFrame(function () { remplirBarres(); }); }); } else remplirBarres(true);
+    if (S.alerte) { clearTimeout(S.alerteT); S.alerteT = setTimeout(function () { S.alerte = null; var a = root.querySelector('.phv-toast'); if (a) a.remove(); }, S.alerte.ko ? 9000 : 5000); }
     demarrerHorloge();
   }
 
@@ -201,9 +214,9 @@
     var t = d.tour, role = d.role, me = d.me || {}, h = '<section class="phv-zone" id="participer">';
     if (t.phase === 'propositions') {
       if (role === 'premium' && me.proposition_id) {
-        h += '<h2 class="phv-h2">Votre proposition est en lice</h2><div class="phv-h2-sous">' + (t.n_propositions < 6 ? 'Encore ' + pl(6 - t.n_propositions, 'proposition') + ' avant que l’IA forme les 3 sujets du vote. ' : '') + 'Vous pouvez voter pour n’importe quel sujet, y compris le vôtre (c’est le cas par défaut).</div>';
+        h += '<h2 class="phv-h2">Votre proposition est en lice</h2><div class="phv-h2-sous">Votre vote lui est attribué ; vous pouvez le donner à un autre sujet.</div>';
       } else {
-        h += '<h2 class="phv-h2">Proposez un sujet</h2><div class="phv-h2-sous">Choisissez une thématique, puis dites en une phrase sur quoi la rédaction devrait enquêter.</div>';
+        h += '<h2 class="phv-h2">Proposez un sujet</h2><div class="phv-h2-sous">Une thématique, puis votre idée en une phrase.</div>';
         h += '<div class="phv-themes" role="group" aria-label="Thématique">' + Object.keys(d.themes || {}).map(function (k) {
           return '<button type="button" class="phv-chip" data-act="theme" data-k="' + esc(k) + '" aria-pressed="' + (S.theme === k) + '">' + esc(d.themes[k]) + '</button>';
         }).join('') + '</div>';
@@ -212,11 +225,11 @@
           '<div class="phv-compte" id="phv-compte">' + S.titre.length + ' / 140</div>' +
           '<label class="phv-cache" for="phv-detail">Précisions</label><textarea id="phv-detail" class="phv-champ" rows="3" maxlength="600" placeholder="Facultatif : ce que vous aimeriez savoir, un lien, une piste…">' + esc(S.detail) + '</textarea>' +
           '<div class="phv-actions"><button type="button" class="phv-btn" data-act="proposer"' + (S.occupe ? ' disabled' : '') + '>' + (S.occupe ? 'Envoi…' : 'Proposer ce sujet') + '</button>' +
-          '<span class="phv-note">Une proposition par abonné et par mois.</span></div></div>';
+          '<span class="phv-note">Une par mois.</span></div></div>';
       }
     }
-    if (t.ia_etat === 'en_cours') h += '<div class="phv-fusion"><i></i>L’IA regroupe les propositions en 3 sujets. La page se met à jour toute seule.</div>';
-    if (role === 'visiteur') h += '<div class="phv-alerte">Les propositions sont réservées aux membres. <a href="#/portal/signin" data-portal="signin">Connectez-vous</a> ou <a href="#/portal/signup" data-portal="signup">créez un compte gratuit</a> pour les lire.</div>';
+    if (t.ia_etat === 'en_cours') h += '<div class="phv-fusion"><i></i>L’IA regroupe les propositions en 3 sujets…</div>';
+    if (role === 'visiteur') h += '<div class="phv-alerte"><a href="#/portal/signin" data-portal="signin">Connectez-vous</a> pour lire les propositions.</div>';
     return h + '</section>';
   }
 
@@ -243,7 +256,7 @@
     var themeTxt = function (k) { return esc((d.themes || {})[k] || k || ''); };
     if (t.ia_etat === 'fait' && sujets.length) {
       var tot = sujets.reduce(function (a, s) { return a + s.votes; }, 0);
-      h += '<h2 class="phv-h2">' + (t.phase === 'resultat' ? 'Les 3 sujets du vote' : 'Votez parmi les 3 sujets') + '</h2><div class="phv-h2-sous">' + (t.phase === 'resultat' ? '' : 'L’IA a regroupé les propositions des abonnés en 3 sujets. Les votes donnés avant comptent toujours. ') + pl(tot, 'vote') + ' au total.</div><div class="phv-tableau">';
+      h += '<h2 class="phv-h2">' + (t.phase === 'resultat' ? 'Les 3 sujets du vote' : 'Votez parmi les 3 sujets') + '</h2><div class="phv-h2-sous">' + pl(tot, 'vote') + (t.phase === 'resultat' ? '' : ' · les votes donnés avant comptent toujours') + '</div><div class="phv-tableau">';
       sujets.forEach(function (s) {
         var src = props.filter(function (p) { return p.sujet_id === s.id; });
         var extra = src.length && !voile ? '<details class="phv-details"><summary>' + pl(src.length, 'proposition') + ' d’abonnés à l’origine</summary><ul class="phv-sources">' + src.map(function (p) { return '<li>' + esc(p.titre) + '</li>'; }).join('') + '</ul></details>' : '';
@@ -257,7 +270,7 @@
       var themes = {}; actives.forEach(function (p) { themes[p.thematique] = (themes[p.thematique] || 0) + 1; });
       var vis = S.filtre ? actives.filter(function (p) { return p.thematique === S.filtre; }) : actives;
       var tot2 = actives.reduce(function (a, p) { return a + p.votes; }, 0);
-      h += '<h2 class="phv-h2">' + (t.phase === 'vote' ? 'Votez pour votre sujet préféré' : 'Les propositions') + '</h2><div class="phv-h2-sous">' + (t.phase === 'vote' ? 'Les propositions sont fermées. Un vote par abonné premium, modifiable jusqu’à la clôture. ' : '') + pl(actives.length, 'proposition') + (t.phase === 'propositions' ? ' sur 5 avant le regroupement par l’IA' : '') + ', ' + pl(tot2, 'vote') + '.</div>';
+      h += '<h2 class="phv-h2">' + (t.phase === 'vote' ? 'Votez pour votre sujet préféré' : 'Les propositions') + '</h2><div class="phv-h2-sous">' + pl(actives.length, 'proposition') + ' · ' + pl(tot2, 'vote') + (t.phase === 'vote' ? ' · vote modifiable jusqu’à la clôture' : '') + '</div>';
       if (Object.keys(themes).length > 1) h += '<div class="phv-themes" role="group" aria-label="Filtrer par thématique"><button type="button" class="phv-chip" data-act="filtre" data-k="" aria-pressed="' + !S.filtre + '">Toutes</button>' +
         Object.keys(themes).map(function (k) { return '<button type="button" class="phv-chip" data-act="filtre" data-k="' + esc(k) + '" aria-pressed="' + (S.filtre === k) + '">' + themeTxt(k) + '<small>' + themes[k] + '</small></button>'; }).join('') + '</div>';
       h += '<div class="phv-tableau">';
@@ -276,7 +289,7 @@
     var publies = g.filter(function (x) { return x.article && x.article.url; });
     if (!publies.length) {
       var dernier = g[0];
-      return h + '<div class="phv-h2-sous">' + (dernier ? 'Sujet choisi en ' + esc(dernier.mois_txt) + ' : « ' + esc(dernier.titre) + ' ». L’enquête apparaîtra ici dès sa publication.' : 'Les enquêtes choisies par les abonnés apparaîtront ici dès leur publication.') + '</div></section>';
+      return h + '<div class="phv-h2-sous">' + (dernier ? 'Choisi en ' + esc(dernier.mois_txt) + ' : « ' + esc(dernier.titre) + ' ». Bientôt publié ici.' : 'Les enquêtes choisies par les abonnés apparaîtront ici.') + '</div></section>';
     }
     h += '<div class="phv-gagnants">' + publies.slice(0, 6).map(function (x) {
       var a = x.article;
@@ -425,20 +438,24 @@
   }
 
   // ---------------------------------------------------------------- l'unique effet « terminal » : décodage au chargement
-  var GLYPHES = '01アイウエオカキクケコサシスセソ#%&$@<>/\\=+';
+  // 27/10/2026 (CLS) : uniquement des lettres et chiffres latins (même largeur en police à chasse fixe, aucune coupure de ligne en
+  // plus) ; seuls les lettres et chiffres sont brouillés, la ponctuation et les espaces restent en place ; la hauteur est verrouillée
+  // le temps de l'effet. Avant, les katakana (deux fois plus larges) faisaient changer les retours à la ligne à chaque image.
+  var GLYPHES = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
   function decoder() {
     var els = root.querySelectorAll('.phv-dec');
     Array.prototype.forEach.call(els, function (el, n) {
       var final = el.textContent, debut = performance.now() + n * 40, duree = el.tagName === 'B' ? 700 : 1100;
       el.classList.add('phv-dec-en-cours');
+      var r0 = el.getBoundingClientRect(); el.style.minHeight = r0.height + 'px'; if (el.tagName === 'B') el.style.minWidth = r0.width + 'px';
       (function pas(maint) {
         var p = Math.min(1, Math.max(0, (maint - debut) / duree)), fixe = Math.floor(final.length * p), s = '';
         for (var i = 0; i < final.length; i++) {
           var c = final[i];
-          s += (i < fixe || c === ' ' || c === '’' || c === ',' || c === '.') ? c : GLYPHES[(Math.random() * GLYPHES.length) | 0];
+          s += (i < fixe || !/[0-9A-Za-zÀ-ÿ]/.test(c)) ? c : GLYPHES[(Math.random() * GLYPHES.length) | 0];
         }
         el.textContent = s;
-        if (p < 1) requestAnimationFrame(pas); else { el.textContent = final; el.classList.remove('phv-dec-en-cours'); }
+        if (p < 1) requestAnimationFrame(pas); else { el.textContent = final; el.classList.remove('phv-dec-en-cours'); el.style.minHeight = ''; el.style.minWidth = ''; }
       })(performance.now());
     });
   }

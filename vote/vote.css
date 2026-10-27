@@ -2,7 +2,7 @@
    Identité du site : Fira Mono, vert signal ; un seul moment animé (décodage du titre et du compte à rebours).
    Deux modes, clair et sombre, qui suivent le réglage du site (cookie tlj_theme, via shared/theme-mode.js). */
 :host {
-  --nuit: #0f0f0f; --plaque: #151716; --plaque2: #1b1e1c; --trait: #282d2a; --texte: #e6ebe7; --fort: #ffffff; --gris: #8d968f; --sourd: #5d655f;
+  --nuit: #0f0f0f; --plaque: #151716; --plaque2: #1b1e1c; --trait: #282d2a; --texte: #e6ebe7; --fort: #ffffff; --gris: #a7b0a9; --sourd: #7e877f;
   --signal: #00f170; --signal-fond: #00f170; --sur-signal: #04120a; --signal-rgb: 0, 241, 112; --signal-doux: rgba(var(--signal-rgb), .14);
   --ambre: #ffb020; --ambre-rgb: 255, 176, 32; --rouge: #ff6b5a; --lueur: .28; --voile-fond: var(--voile-fond); --barre-fond: rgba(15, 15, 15, .82);
   --mono: "Fira Mono", "JetBrains Mono", ui-monospace, monospace; --sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -71,10 +71,10 @@
 /* ---------- en-tête */
 .phv .phv-surtitre { font-family: var(--mono); font-size: 14px; color: var(--signal); letter-spacing: .02em; }
 .phv .phv-titre { font-family: var(--mono); font-weight: 600; font-size: clamp(26px, 5vw, 36px); line-height: 1.12; letter-spacing: -.01em; margin-top: 10px !important; color: var(--fort); max-width: 24ch; }
-.phv .phv-chapo { color: var(--gris); font-size: 17px; margin-top: 14px !important; max-width: 60ch; }
+.phv .phv-chapo { color: var(--gris); font-size: 17px; line-height: 1.5; margin-top: 12px !important; max-width: 46ch; }
 
 /* ---------- compte à rebours : l'élément mémorable de la page */
-.phv .phv-horloge { margin: 34px 0 6px; padding: 22px 0 18px; border-top: 1px solid var(--trait); border-bottom: 1px solid var(--trait); position: relative; }
+.phv .phv-horloge { margin: 26px 0 6px; padding: 18px 0 16px; border-top: 1px solid var(--trait); border-bottom: 1px solid var(--trait); position: relative; }
 .phv .phv-horloge-quoi { font-family: var(--mono); font-size: 14px; color: var(--gris); }
 .phv .phv-horloge-quoi strong { color: var(--texte); font-weight: 600; }
 .phv .phv-chiffres { display: flex; gap: clamp(10px, 3vw, 26px); margin-top: 10px; font-family: var(--mono); color: var(--signal); }
@@ -95,7 +95,7 @@
 .phv .phv-etape.actif b { color: var(--signal); }
 
 /* ---------- participation */
-.phv .phv-zone { margin-top: 38px; }
+.phv .phv-zone { margin-top: 40px; }
 .phv .phv-h2 { font-family: var(--mono); font-weight: 600; font-size: 21px; line-height: 1.25; color: var(--fort); }
 .phv .phv-h2-sous { color: var(--gris); margin-top: 6px !important; font-size: 15px; }
 .phv .phv-themes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
@@ -157,8 +157,18 @@
 .phv .phv-gagnant p { font-size: 13px; color: var(--sourd); margin-top: 4px !important; font-family: var(--mono); }
 
 /* ---------- comment ça marche */
-.phv .phv-regles { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--trait); font-size: 15px; color: var(--gris); display: grid; gap: 8px; }
+.phv .phv-regles { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--trait); font-size: 15px; color: var(--gris); }
+.phv .phv-regles summary { cursor: pointer; font-family: var(--mono); font-size: 15px; color: var(--texte); list-style: none; }
+.phv .phv-regles summary::-webkit-details-marker { display: none; }
+.phv .phv-regles summary::before { content: "+ "; color: var(--signal); }
+.phv .phv-regles[open] summary::before { content: "− "; }
+.phv .phv-regles ul { display: grid; gap: 10px; margin-top: 12px !important; max-width: 62ch; }
 .phv .phv-regles strong { color: var(--texte); }
+
+/* ---------- message après une action : flottant, il ne pousse jamais la page (CLS) */
+.phv .phv-toast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; width: max-content; max-width: calc(100% - 32px); padding: 12px 16px; border-radius: 10px; background: var(--plaque); border: 1px solid rgba(var(--signal-rgb), .55); color: var(--fort); font-size: 15px; line-height: 1.4; box-shadow: 0 10px 40px rgba(0, 0, 0, .35); animation: phv-toast .25s ease-out; }
+.phv .phv-toast.ko { border-color: rgba(255, 107, 90, .65); }
+@keyframes phv-toast { from { opacity: 0; transform: translate(-50%, 8px); } }
 
 /* ---------- fenêtre « passer premium » */
 .phv.phv-fond { margin: 0; z-index: 20; }
