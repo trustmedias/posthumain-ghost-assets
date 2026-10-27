@@ -413,12 +413,13 @@
   // (shared/theme-mode.js) et ne s'applique que sous « #wl.wl-clair » : le mode sombre reste identique.
   // Ici, les seuls compléments écrits à la main : sols du plan (attributs SVG) et textes forcés par le thème du site.
   CSS += "#wl .ml{scroll-margin-top:12px}#wl .ml .kb-row label.ml-l{flex:0 0 auto;margin:0}#wl .ml label.ml-l{display:block;margin:10px 0 4px;font-weight:600;font-size:13.5px;color:#f3ece0}#wl .ml .ml-aide{margin:6px 0 4px}#wl .ml .ml-r{padding:8px 0;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap}#wl .ml .ml-r>div{flex:1 1 220px;min-width:0}#wl .ml .ml-r:first-of-type{border-top:0}#wl .ml .ml-num{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;white-space:nowrap;font-size:13px}#wl .ml .ml-num input{width:76px!important}#wl .ml select.ml-sel{width:auto!important;flex:0 0 auto;max-width:60%}#wl .ml textarea.ml-ta{display:block;width:100%;box-sizing:border-box;resize:vertical;margin:6px 0 0;font:14px/1.5 Inter,system-ui,sans-serif}#wl .ml .ml-b{margin:10px 0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02)}#wl .ml .ml-bh{display:flex;justify-content:space-between;align-items:center;gap:8px}#wl .ml .ml-bx{display:inline-flex;gap:4px}#wl .ml .ml-hr{border-top:1px solid rgba(255,255,255,.25);margin:10px 0 4px}#wl .ml .ml-mep{margin-top:12px}#wl .ml .ml-mep .seg{display:flex;flex-wrap:wrap}#wl .ml .ml-futur{margin:12px 0 0;padding:10px 12px;border-radius:10px;border:1px dashed rgba(255,176,32,.5);background:rgba(255,176,32,.05)}#wl .ml .ml-cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}#wl .ml .ml-col{min-width:0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);font-size:13.5px;line-height:1.5}#wl .ml .ml-new{border-color:rgba(0,255,119,.45);background:rgba(0,255,119,.05)}#wl .ml .ml-ri{margin:4px 0;white-space:pre-wrap;word-break:break-word}#wl .ml .ml-rh{font-weight:700}#wl .ml iframe.ml-if{display:block;width:100%;height:640px;max-height:80vh;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:#fff;margin-top:10px}#wl .ml .ml-save{position:sticky;bottom:0;z-index:2;padding:10px 0;background:linear-gradient(180deg,transparent,rgba(16,13,9,.96) 30%)}#wl .ml .ml-save .in{flex:1 1 200px;width:auto!important}#wl .ml details summary{cursor:pointer}#wl .ml .ml-av{margin-top:10px}@media (max-width:640px){#wl .ml .ml-cmp{grid-template-columns:1fr}#wl .ml iframe.ml-if{height:520px}#wl .ml select.ml-sel{max-width:100%;width:100%!important}#wl .ml .ml-save{position:static;background:none}}"; // ✉️ Mails marketing (bureau Marketing), bloc ml- : voir mlMonter
+  CSS += "#wl .mlc-l{display:flex;flex-direction:column;gap:8px;margin-top:10px}#wl button.mlc{display:flex!important;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px!important;border-radius:14px!important;border:1px solid rgba(255,255,255,.12)!important;background:rgba(255,255,255,.035)!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;cursor:pointer;font:inherit!important;text-transform:none!important;letter-spacing:normal!important;box-shadow:none!important}#wl button.mlc:hover{border-color:rgba(0,255,119,.45)!important;background:rgba(0,255,119,.06)!important}#wl .mlc-e{font-size:24px;flex:0 0 auto}#wl .mlc-t{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}#wl .mlc-t b{font-size:15px}#wl .mlc-s{font-size:12.5px;color:rgba(243,236,224,.65)}#wl .mlc-on{color:#7fe0a8}#wl .mlc-off{color:#ffc46b}#wl .mlc-ns{color:#ffc46b;font-weight:700}#wl .mlc-go{flex:0 0 auto;font-size:13px;font-weight:700;color:#9fffc8;padding:6px 10px;border-radius:9px;background:rgba(0,255,119,.1)}#wl .mls-bg{position:fixed;inset:0;z-index:70;display:flex;background:rgba(5,4,3,.8);opacity:0;transition:opacity .15s}#wl .mls-bg.on{opacity:1}#wl .mls{display:flex;flex-direction:column;width:100%;height:100%;background:#120f0b;color:#f3ece0;font-family:Inter,system-ui,sans-serif}#wl .mls-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.09);background:#16120d}#wl button.mls-x{width:40px;height:40px;padding:0!important;border-radius:10px!important;border:1px solid rgba(255,255,255,.16)!important;background:transparent!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font-size:18px!important;cursor:pointer;box-shadow:none!important;flex:0 0 auto}#wl select.mls-type{flex:0 1 auto;min-width:0;max-width:min(360px,60vw);font:700 15.5px Inter,system-ui,sans-serif;color:#f3ece0;background:#1d1812;border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:9px 10px}#wl .mls-st{font-size:12.5px;font-weight:700;color:#7fe0a8;white-space:nowrap}#wl .mls-st.sale{color:#ffc46b}#wl .mls-act{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}#wl .mls-act .btn[disabled]{opacity:.45;cursor:not-allowed}#wl .mls-test{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0 2px}#wl .mls-test label{font-size:13px;font-weight:700}#wl .mls-test .in{flex:1 1 220px;width:auto!important;min-width:0}#wl .mls-test .mls-m{flex-basis:100%;margin:0}#wl .mls-tabs{display:flex;gap:4px;padding:6px 10px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto}#wl .mls-tabs::-webkit-scrollbar{display:none}#wl button.mls-tab{flex:0 0 auto;padding:8px 12px!important;border-radius:9px!important;border:0!important;background:transparent!important;color:rgba(243,236,224,.7)!important;-webkit-text-fill-color:rgba(243,236,224,.7)!important;font:600 14px Inter,system-ui,sans-serif!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer;box-shadow:none!important;position:relative}#wl button.mls-tab.on{background:rgba(0,255,119,.13)!important;color:#c9ffe0!important;-webkit-text-fill-color:#c9ffe0!important}#wl .mls-pt{display:inline-block;width:8px;height:8px;border-radius:50%;background:#00ff77;margin-left:4px;vertical-align:middle}#wl .mls-main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}#wl .mls-g{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px 90px;min-width:0}#wl .mls-d{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 40px;border-left:1px solid rgba(255,255,255,.08);background:#0c0a07;min-width:0}#wl .mls-mob{display:none!important}#wl .mls-m{font-size:13px;line-height:1.45;color:rgba(243,236,224,.66);margin:8px 0}#wl .mls-l{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;margin:12px 0 5px;color:#f3ece0}#wl .mls-c{font-weight:500;color:rgba(243,236,224,.5)}#wl .mls-al{margin:8px 0 12px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,176,32,.45);background:rgba(255,176,32,.07);font-size:13.5px;line-height:1.5}#wl .mls-al.mls-info{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.035)}#wl .mls-sg{margin:0 0 12px;padding:10px 12px;border-radius:10px;border:1px solid rgba(0,255,119,.45);background:rgba(0,255,119,.07);font-size:13.5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}#wl .mls-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}#wl .mls textarea.mls-ta{display:block;width:100%;box-sizing:border-box;resize:vertical;font:14.5px/1.5 Inter,system-ui,sans-serif}#wl input.mls-sujet{display:block;width:100%;box-sizing:border-box;font:700 18px/1.3 Inter,system-ui,sans-serif;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:#1d1812;color:#fff;-webkit-text-fill-color:#fff}#wl input.mls-sujet:focus{outline:2px solid rgba(0,255,119,.6);outline-offset:1px}#wl .mls-boite{display:flex;gap:10px;align-items:center;margin:8px 0 14px;padding:9px 12px;border-radius:12px;background:#fff;color:#202124;font:13.5px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}#wl .mls-boite b{color:#202124!important;-webkit-text-fill-color:#202124!important}#wl .mls-boite .mls-bs{color:#5f6368}#wl .mls-av{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:#00be59;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}#wl .mls-bar{position:sticky;top:-14px;z-index:3;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;margin:0 -4px;border-radius:12px;background:#1d1812;border:1px solid rgba(255,255,255,.1)}#wl .mls-bar button{padding:7px 11px!important;border-radius:8px!important;border:1px solid rgba(255,255,255,.14)!important;background:rgba(255,255,255,.04)!important;color:#f3ece0!important;-webkit-text-fill-color:#f3ece0!important;font:600 14px Inter,system-ui,sans-serif!important;text-transform:none!important;letter-spacing:normal!important;cursor:pointer;box-shadow:none!important}#wl .mls-bar button:hover{border-color:rgba(0,255,119,.5)!important}#wl .mls-bar select{font:600 13.5px Inter,system-ui,sans-serif;color:#f3ece0;background:#120f0b;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 8px}#wl .mls-bar select:disabled{opacity:.4}#wl .mls-sep{flex:1 1 auto}#wl .mls-lien,#wl .mls-menu{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;padding:8px;border-radius:10px;background:rgba(0,255,119,.06);border:1px solid rgba(0,255,119,.3)}#wl .mls-lien label{font-size:13px;font-weight:700;flex-basis:100%}#wl .mls-lien .in{flex:1 1 220px;width:auto!important;min-width:0}#wl .mls-feuille{background:#fff;color:#15171a;border-radius:12px;padding:26px 24px 16px;margin:12px 0;box-shadow:0 10px 40px rgba(0,0,0,.45);font:17px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}#wl .mls-feuille.carte{font-size:17.5px}#wl .mls-b{position:relative;margin:2px -10px;padding:6px 10px;border-radius:8px;border:1px dashed transparent}#wl .mls-b:hover{border-color:#e3e3e3}#wl .mls-b.focus{border-color:#9fd9b6;background:#f6fbf8}#wl .mls-ctl{position:absolute;top:-15px;right:6px;z-index:2;display:none;gap:3px}#wl .mls-b:hover .mls-ctl,#wl .mls-b.focus .mls-ctl{display:flex}#wl .mls-ctl button{width:30px;height:28px;padding:0!important;border-radius:7px!important;border:1px solid #d6d6d6!important;background:#fff!important;color:#333!important;-webkit-text-fill-color:#333!important;font-size:13px!important;line-height:1!important;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.12)!important}#wl .mls-ed{outline:none;min-height:1.6em;white-space:pre-wrap;word-wrap:break-word;color:#15171a!important;-webkit-text-fill-color:#15171a!important;caret-color:#00a04a}#wl .mls-ed:empty:before{content:attr(data-ph);color:#a3a3a3;-webkit-text-fill-color:#a3a3a3}#wl .mls-feuille b,#wl .mls-feuille strong,#wl .mls-feuille i,#wl .mls-feuille em,#wl .mls-feuille li,#wl .mls-ed span{color:#15171a!important;-webkit-text-fill-color:#15171a!important;background:none!important;text-shadow:none!important}#wl .mls-feuille b,#wl .mls-feuille strong{font-weight:700}#wl .mls-feuille a{color:#e5322d!important;-webkit-text-fill-color:#e5322d!important;text-decoration:underline!important}#wl .mls-feuille a *{color:inherit!important;-webkit-text-fill-color:inherit!important}#wl .mls-ed.mls-h2{font-size:25px;line-height:1.25;font-weight:800}#wl .mls-ed.mls-h3{font-size:20px;line-height:1.3;font-weight:700}#wl .mls-ed.mls-li{margin:0;padding-left:24px;white-space:normal}#wl .mls-ed.mls-li li{margin:2px 0}#wl .mls-btn-w{text-align:center;padding:6px 0}#wl .mls-btn{display:inline-block;background:#00be59;color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:700;border-radius:999px;padding:13px 26px;font-size:16px}#wl .mls-btn-f{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;font:12.5px Inter,system-ui,sans-serif;color:#555}#wl .mls-btn-f label{display:flex;flex-direction:column;gap:3px;color:#555!important;-webkit-text-fill-color:#555!important}#wl .mls-btn-f .in{background:#fff!important;color:#15171a!important;-webkit-text-fill-color:#15171a!important;border:1px solid #ccc!important}#wl .mls-b.focus .mls-btn-f{display:grid}#wl hr.mls-hr{border:0;border-top:1px solid #e1e1e1;margin:12px 0}#wl .mls-raw{padding:10px 12px;border-radius:8px;background:#f3f3f3;border:1px dashed #bdbdbd;font-size:14px;color:#444!important;-webkit-text-fill-color:#444!important}#wl .mls-raw .mls-m{color:#777!important;-webkit-text-fill-color:#777!important}#wl button.mls-plus{display:block;width:100%;margin:10px 0 4px;padding:10px!important;border-radius:10px!important;border:1px dashed #c8c8c8!important;background:#fafafa!important;color:#666!important;-webkit-text-fill-color:#666!important;font:600 14px Inter,system-ui,sans-serif!important;text-transform:none!important;cursor:pointer;box-shadow:none!important}#wl button.mls-plus:hover{border-color:#00be59!important;color:#00873f!important;-webkit-text-fill-color:#00873f!important}#wl .mls-mep{margin:14px 0}#wl .mls-mep .seg{display:flex;flex-wrap:wrap;margin:8px 0 4px}#wl .mls-champ{margin:0 0 14px}#wl button.mls-def{display:block;margin:5px 0 0;padding:0!important;border:0!important;background:none!important;color:#9fffc8!important;-webkit-text-fill-color:#9fffc8!important;font:12.5px Inter,system-ui,sans-serif!important;text-transform:none!important;cursor:pointer;text-align:left;box-shadow:none!important}#wl .mls-prop{margin:14px 0;padding:12px 14px;border-radius:12px;border:1px solid rgba(0,255,119,.45);background:rgba(0,255,119,.05)}#wl .mls-prop-h{font-weight:800;font-size:15px}#wl .mls-prop .seg{display:flex;flex-wrap:wrap}#wl .mls-cmp{margin:10px 0}#wl .mls-avant{padding:8px 10px;border-radius:8px;background:rgba(255,80,100,.1);text-decoration:line-through;text-decoration-color:rgba(255,120,140,.6);font-size:14px;white-space:pre-wrap}#wl .mls-apres{margin-top:4px;padding:8px 10px;border-radius:8px;background:rgba(0,255,119,.12);font-size:14px;white-space:pre-wrap}#wl .mls-reg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}#wl .mls-reg>div{flex:1 1 220px;min-width:0}#wl .mls-reg select.in{width:auto!important;max-width:100%}#wl .mls-num{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:13.5px}#wl .mls-num input{width:64px!important;text-align:center}#wl .mls-vs{display:flex;flex-direction:column;gap:6px;margin-top:8px}#wl .mls-v{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);font-size:13.5px}#wl .mls-dh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:14px}#wl .mls-ap-st{font-size:12.5px;color:#ffc46b}#wl .mls-ecr{margin:0!important}#wl .mls-sujet-ap{font-size:13.5px;margin:0 0 8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04)}#wl .mls-cadre{margin:0 auto;transition:width .2s}#wl .mls-cadre.mobile{width:390px;max-width:100%}#wl .mls-cadre.pc{width:100%}#wl iframe.mls-if{display:block;width:100%;height:calc(100vh - 230px);min-height:480px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:#fff}@media (max-width:999px){#wl .mls-main{grid-template-columns:minmax(0,1fr)}#wl .mls-d{display:none;border-left:0}#wl .mls-mob{display:inline-flex!important}#wl .mls-bg.vue-apercu .mls-g{display:none}#wl .mls-bg.vue-apercu .mls-d{display:block}#wl .mls-g{padding:12px 12px 90px}#wl .mls-feuille{padding:20px 16px 12px;margin:10px -4px}#wl .mls-top{padding:8px 10px}#wl .mls-act{margin-left:0;flex-basis:100%}#wl .mls-act .btn.go{flex:1 1 auto}#wl iframe.mls-if{height:calc(100vh - 250px)}#wl .mls-btn-f{grid-template-columns:1fr}#wl .mls-ctl{top:-17px}}"; // ✉️ Studio des mails marketing (27/10/2026) : voir mlStudio
   // 27/10/2026 : l'injection de code du site impose ses couleurs de mode sombre aux balises elles-mêmes (p, li, strong/b, h1-h4, a,
   // figcaption, code/pre, souvent en !important : p = #f7f7f7). En mode clair, toutes ces balises héritent donc de l'encre du lab,
   // avec ou sans classe : :where() garde une spécificité basse, si bien que toute règle du lab qui fixe sa propre couleur
   // en !important (p.muted, .ob-c p, titres .rl-ti…) passe toujours devant. Avant, seules les balises SANS classe étaient
   // neutralisées : le résumé et les notes du Correcteur (p.rl-res, p.rl-gn) restaient blanc cassé sur le papier.
-  var CSS_CLAIR_MAIN = "#wl.wl-clair .floor svg rect[fill=\"#0a0806\"]{fill:#ddd5c6}\n#wl.wl-clair .floor svg rect[fill=\"#100d09\"]{fill:#e9e2d5}\n#wl.wl-clair .floor svg rect[fill=\"#16110b\"]{fill:#f7f0e4}\n#wl.wl-clair .floor svg rect[fill=\"#0b1216\"]{fill:#ebf2f6}\n#wl.wl-clair .floor svg rect[fill=\"#120e19\"]{fill:#f1ecf7}\n#wl.wl-clair .floor svg rect[fill=\"#0c1414\"]{fill:#e9f4f3}\n#wl.wl-clair .floor svg rect[fill=\"#0f140c\"]{fill:#eff5e9}\n#wl.wl-clair .floor svg rect[fill=\"#0c0f16\"]{fill:#ebeef7}\n#wl.wl-clair .floor svg rect[fill=\"#0a0d0b\"]{fill:#eef2ef}\n#wl.wl-clair .floor svg rect[fill=\"#16100c\"]{fill:#f8efe7}\n#wl.wl-clair .floor svg rect[fill=\"#110d07\"]{fill:#f5efe3}\n#wl.wl-clair .floor svg rect[fill=\"#08120f\"]{fill:#e7f4ef}\n#wl.wl-clair .floor svg rect[stroke=\"rgba(243,236,224,.16)\"]{stroke:rgba(31,26,18,.2)}\n#wl.wl-clair .floor svg path[stroke=\"rgba(0,0,0,.6)\"]{stroke:rgba(60,45,20,.1)}\n#wl.wl-clair .floor svg path[stroke=\"rgba(255,190,90,.18)\"]{stroke:rgba(150,100,30,.38)}\n#wl.wl-clair .floor svg pattern path[stroke=\"rgba(255,255,255,.035)\"]{stroke:rgba(31,26,18,.06)}\n#wl.wl-clair .floor svg pattern path[stroke=\"rgba(255,190,90,.05)\"]{stroke:rgba(150,100,30,.12)}\n#wl.wl-clair .tip,#wl.wl-clair .paper{box-shadow:0 12px 40px rgba(60,45,20,.22)}\n#wl.wl-clair :where(p,li,b,strong,em,i,figcaption,code,pre){color:inherit!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair :where(h1,h2,h3,h4,h5,h6){color:rgba(31,26,18,.82)!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair a:not(.btn):not(.chip){color:#0a7a45!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair p.muted,#wl.wl-clair p.hint,#wl.wl-clair p.cz-s{color:rgba(31,26,18,.68)!important;-webkit-text-fill-color:currentColor!important}";
+  var CSS_CLAIR_MAIN = "#wl.wl-clair .floor svg rect[fill=\"#0a0806\"]{fill:#ddd5c6}\n#wl.wl-clair .floor svg rect[fill=\"#100d09\"]{fill:#e9e2d5}\n#wl.wl-clair .floor svg rect[fill=\"#16110b\"]{fill:#f7f0e4}\n#wl.wl-clair .floor svg rect[fill=\"#0b1216\"]{fill:#ebf2f6}\n#wl.wl-clair .floor svg rect[fill=\"#120e19\"]{fill:#f1ecf7}\n#wl.wl-clair .floor svg rect[fill=\"#0c1414\"]{fill:#e9f4f3}\n#wl.wl-clair .floor svg rect[fill=\"#0f140c\"]{fill:#eff5e9}\n#wl.wl-clair .floor svg rect[fill=\"#0c0f16\"]{fill:#ebeef7}\n#wl.wl-clair .floor svg rect[fill=\"#0a0d0b\"]{fill:#eef2ef}\n#wl.wl-clair .floor svg rect[fill=\"#16100c\"]{fill:#f8efe7}\n#wl.wl-clair .floor svg rect[fill=\"#110d07\"]{fill:#f5efe3}\n#wl.wl-clair .floor svg rect[fill=\"#08120f\"]{fill:#e7f4ef}\n#wl.wl-clair .floor svg rect[stroke=\"rgba(243,236,224,.16)\"]{stroke:rgba(31,26,18,.2)}\n#wl.wl-clair .floor svg path[stroke=\"rgba(0,0,0,.6)\"]{stroke:rgba(60,45,20,.1)}\n#wl.wl-clair .floor svg path[stroke=\"rgba(255,190,90,.18)\"]{stroke:rgba(150,100,30,.38)}\n#wl.wl-clair .floor svg pattern path[stroke=\"rgba(255,255,255,.035)\"]{stroke:rgba(31,26,18,.06)}\n#wl.wl-clair .floor svg pattern path[stroke=\"rgba(255,190,90,.05)\"]{stroke:rgba(150,100,30,.12)}\n#wl.wl-clair .tip,#wl.wl-clair .paper{box-shadow:0 12px 40px rgba(60,45,20,.22)}\n#wl.wl-clair :where(p,li,b,strong,em,i,figcaption,code,pre){color:inherit!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair :where(h1,h2,h3,h4,h5,h6){color:rgba(31,26,18,.82)!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair a:not(.btn):not(.chip){color:#0a7a45!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}\n#wl.wl-clair p.muted,#wl.wl-clair p.hint,#wl.wl-clair p.cz-s{color:rgba(31,26,18,.68)!important;-webkit-text-fill-color:currentColor!important}\n#wl.wl-clair .mls-btn,#wl.wl-clair .mls-av{color:#fff!important;-webkit-text-fill-color:#fff!important}";
   CSS_CLAIR_MAIN += "\n#wl.wl-clair .ml .ml-save{background:linear-gradient(180deg,transparent,rgba(247,240,228,.96) 30%)}\n#wl.wl-clair .ml label.ml-l{color:rgba(31,26,18,.85)}\n#wl.wl-clair .ml .ml-b,#wl.wl-clair .ml .ml-col{border-color:rgba(31,26,18,.15)}"; // ✉️ Mails marketing en mode clair
   CSS_CLAIR_MAIN += "\n#wl.wl-clair .rl-d del{background:rgba(200,30,60,.12)!important;color:#9b1c33!important;-webkit-text-fill-color:currentColor!important;text-decoration-color:rgba(155,28,51,.7)!important}#wl.wl-clair .rl-d ins{background:rgba(10,122,69,.14)!important;color:#08552f!important;-webkit-text-fill-color:currentColor!important}"; // 🖍️ Correcteur : barré/ajouté lisibles sur le papier
   CSS_CLAIR_MAIN += "\n#wl.wl-clair .ob-trou{box-shadow:0 0 0 200vmax rgba(24,18,10,.58)!important;outline-color:#0a7a45!important}#wl.wl-clair .ob-voile.plein{background:rgba(24,18,10,.58)!important}#wl.wl-clair .ob-carte{box-shadow:0 24px 70px rgba(40,30,15,.35),0 0 0 6px rgba(10,122,69,.08)!important}"; // visite guidée : le projecteur reste sombre en mode clair
@@ -1399,7 +1400,7 @@
     h += '<h4>📩 Demandes (' + dem.length + ')</h4><div class="dos">' + (dem.map(mcard).join('') || '<div class="muted">Aucune demande en attente.</div>') + '</div>';
     h += '<h4 style="margin-top:16px">❔ À vérifier (' + ver.length + ')</h4><div class="dos">' + (ver.map(mcard).join('') || '<div class="muted">Rien à vérifier.</div>') + '</div>';
     if (faits.length) h += '<h4 style="margin-top:16px">✅ Répondu récemment</h4><div class="dos">' + faits.map(mcard).join('') + '</div>';
-    if (k === 'mk' && D().me.chef) h += mlSection(); // ✉️ Mails marketing : composant monté par mlRattacher()
+    if (k === 'mk' && D().me.chef) h += mlSection(); // ✉️ Mails marketing : cartes ; le studio s'ouvre par-dessus (mlStudio)
     if (k === 'mk') h += prospection();
     return h + '</div>';
   }
@@ -3960,33 +3961,24 @@
     formaterActif: function () { return LS.get('wl-mef') !== '0'; },
     miseEnForme: function (dit) { return pushApi({ action: 'dictee', texte: dit }).then(function (r) { return r && r.ok ? r.texte : ''; }); }
   });
-  // ================= ✉️ Mails marketing (bureau Marketing, rédacteur en chef) — 23/10/2026 =================
-  // Éditeur UNIQUE des mails automatiques. Les types viennent de shared/wl-mails.json (copie WL_MAILS) : un nouveau type
-  // d'une source déjà gérée (automation Ghost, gabarit n8n) apparaît dans la liste sans code. Serveur : fonction wl-mails
-  // (rédacteur en chef vérifié côté serveur). Rien n'est enregistré, appliqué ni envoyé sans un clic : la suggestion de l'IA
-  // s'affiche à côté de l'actuel (Appliquer / Garder), « Enregistrer » écrit la version (historique + restauration),
-  // « Envoyer un test » demande une confirmation. Composant persistant comme la base de connaissances : monté dans
-  // #wl-ml-slot par mlRattacher() (appelé par paintPanel), démonté à la fermeture (requêtes interrompues, écouteurs retirés).
+  // ================= ✉️ Mails marketing (bureau Marketing, rédacteur en chef) =================
+  // 27/10/2026 (Jonathan : « l'éditeur est horrible, pas intuitif, tout en vrac ») : refait en STUDIO plein écran.
+  //   · le panneau Marketing ne montre plus que des cartes (un mail = une carte : état, délai, « ✏️ Modifier ») ;
+  //   · le studio : à gauche le mail tel qu'il se lit (objet, puis le texte directement éditable sur une feuille blanche,
+  //     gras / italique / lien, boutons, intertitres, listes, séparateurs ; Entrée = nouveau paragraphe, Maj+Entrée = retour
+  //     à la ligne), à droite l'APERÇU EXACT de Ghost, rafraîchi tout seul ~1 s après chaque modification (mobile / ordinateur).
+  //     Sur téléphone, onglets « ✏️ Écrire · 👁️ Aperçu · ✨ Julien · ⚙️ Envoi · 🕘 Versions ».
+  //   · rien n'est enregistré ni envoyé sans clic : « 💾 Enregistrer » (confirmation), « 📨 Test » (confirmation) ; un brouillon
+  //     non enregistré est gardé tant que la page reste ouverte (« ● Non enregistré », « ↺ Annuler mes modifications »).
+  // Serveur inchangé : fonction wl-mails (etat · apercu · enregistrer · reglages · suggerer · test · restaurer), mêmes blocs
+  // { t: p|h|ul|ol|bouton|hr|raw } et même mise en forme **gras**, *italique*, [texte](lien) que le module lexique.ts.
+  // Les types viennent de shared/wl-mails.json (copie WL_MAILS) : un nouveau type d'une source déjà gérée apparaît sans code.
   var ML_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-mails';
-  var ML = { racine: null, ec: [], ac: null, type: null, etat: {}, brouillon: {}, sugg: null, apercu: null, versions: null, consigne: {}, email: '', err: null, charge: false };
+  var ML = { bg: null, ec: [], ac: null, type: null, etat: {}, brouillon: {}, sugg: null, ap: {}, apSeq: 0, apT: null, versions: null, consigne: {}, email: '', onglet: 'ecrire', ecran: 'mobile', vueSugg: false, focus: -1, lien: null, charge: {} };
   function mlTypes() { return (WL_MAILS && WL_MAILS.types) || []; }
   function mlType(id) { return mlTypes().filter(function (t) { return t.id === id; })[0] || null; }
   function mlReg(k) { return (WL_MAILS && WL_MAILS.reglages && WL_MAILS.reglages[k]) || null; }
-  function mlSection() { return '<div class="set ml" id="wl-ml-slot"></div>'; }
-  function mlRattacher() {
-    var slot = S.root && S.panel === 'mk' && D().me.chef ? S.root.querySelector('#wl-ml-slot') : null;
-    if (!slot) { mlDemonter(); return; }
-    if (!ML.racine) mlMonter();
-    if (ML.racine.parentNode !== slot) slot.appendChild(ML.racine);
-  }
-  function mlDemonter() {
-    if (!ML.racine) return;
-    if (ML_DICTEE.actif()) ML_DICTEE.arreter();
-    if (ML.ac) { try { ML.ac.abort(); } catch (e) { /* rien */ } ML.ac = null; }
-    kbRetirer(ML.ec);
-    if (ML.racine.parentNode) ML.racine.parentNode.removeChild(ML.racine);
-    ML.racine.innerHTML = ''; ML.racine = null; ML.charge = false;
-  }
+  function mlTxt(s, v) { return String(s || '').replace('{n}', v).replace('{v}', v); }
   function mlApi(body) {
     if (!ML.ac) ML.ac = new AbortController();
     var sig = ML.ac.signal;
@@ -3999,235 +3991,562 @@
       });
     }).then(function (r) { return r; }, function (e) { return { ok: false, why: e && e.name === 'AbortError' ? 'interrompu' : 'connexion perdue, réessayez', abort: !!(e && e.name === 'AbortError') }; });
   }
-  function mlMonter() {
-    var r = document.createElement('div'), ts = mlTypes();
-    r.className = 'ml-in';
-    var dep = ML.type || LS.get('wl-ml-type'); if (!mlType(dep)) dep = ts[0] ? ts[0].id : null; ML.type = dep;
-    r.innerHTML = '<div class="set-h"><div><b>✉️ Mails marketing</b><div class="set-s">Les mails automatiques de Posthumain, au même endroit : contenu, suggestion de l’IA, test, réglages d’envoi. Rien n’est enregistré ni envoyé sans votre clic.</div></div></div>' +
-      '<div class="kb-row"><label class="ml-l" for="wl-ml-type">Quel mail éditer ?</label><select class="in" id="wl-ml-type" data-ml="type">' + ts.map(function (t) { return '<option value="' + esc(t.id) + '"' + (t.id === dep ? ' selected' : '') + '>' + esc(t.emoji + ' ' + t.nom) + '</option>'; }).join('') + '</select></div>' +
-      '<div class="ml-corps"></div>';
-    ML.racine = r;
-    kbEcoute(ML.ec, r, 'click', mlClic);
-    kbEcoute(ML.ec, r, 'input', mlSaisie);
-    kbEcoute(ML.ec, r, 'change', mlChange);
-    if (dep) mlCharger(false); else r.querySelector('.ml-corps').innerHTML = '<p class="muted">Aucun type de mail déclaré (shared/wl-mails.json).</p>';
-  }
-  function mlCorps() { return ML.racine ? ML.racine.querySelector('.ml-corps') : null; }
-  function mlCharger(force) {
-    var t = ML.type, c = mlCorps(); if (!c || !t) return;
-    if (ML.etat[t] && !force) { mlPeindre(); return; }
-    c.innerHTML = '<p class="muted">Chargement du mail…</p>';
-    mlApi({ action: 'etat', type: t }).then(function (r) {
-      if (r.abort || !ML.racine || ML.type !== t) return;
-      if (!r.ok) { ML.err = r.why; c.innerHTML = mlErreur(r.why) + '<button type="button" class="btn small" data-ml="recharger">↻ Réessayer</button>'; return; }
-      ML.err = null; ML.etat[t] = r; ML.sugg = null; ML.apercu = null; ML.versions = null;
-      if (!ML.brouillon[t]) ML.brouillon[t] = JSON.parse(JSON.stringify(r.contenu || {}));
-      mlPeindre();
-    });
-  }
   function mlErreur(why) {
     var w = String(why || '');
-    if (/GHOST_STAFF_API_KEY/.test(w)) return '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🔑 <b>Il manque le jeton de personnel Ghost dans Supabase.</b><div class="cz-s">Ghost réserve les automations (mails de bienvenue) et les aperçus de mails à un jeton de personnel. Ghost Admin → votre profil → <b>Staff access token</b> → copier ; puis Supabase PosthumanOS → Edge Functions → Secrets → nouveau secret <b>GHOST_STAFF_API_KEY</b>. L’éditeur fonctionne dès qu’il est enregistré.</div></div>';
-    return '<div class="mb-al">⚠️ ' + esc(w || 'erreur inconnue') + '</div>';
+    if (/GHOST_STAFF_API_KEY/.test(w)) return '<div class="mls-al">🔑 <b>Il manque le jeton de personnel Ghost dans Supabase.</b><br>Ghost réserve les automations (mails de bienvenue) et les aperçus de mails à un jeton de personnel : Ghost Admin → votre profil → <b>Staff access token</b> → copier ; puis Supabase PosthumanOS → Edge Functions → Secrets → nouveau secret <b>GHOST_STAFF_API_KEY</b>.</div>';
+    return '<div class="mls-al">⚠️ ' + esc(w || 'erreur inconnue') + '</div>';
   }
-  function mlTxt(s, v) { return String(s || '').replace('{n}', v).replace('{v}', v); }
-  // ---------- rendu ----------
-  function mlPeindre() {
-    var c = mlCorps(), t = mlType(ML.type), E = ML.etat[ML.type]; if (!c || !t || !E) return;
-    var B = ML.brouillon[ML.type] || {}, gab = t.source === 'n8n_gabarit', h = '';
-    h += '<p class="muted ml-aide">' + esc(t.aide) + '</p>';
-    if (!gab && E.modifie_dans_ghost) h += '<div class="mb-al">✏️ Ce mail a été modifié directement dans Ghost depuis le dernier enregistrement ici : c’est la version de Ghost qui est affichée (elle fait foi).</div>';
-    if (!gab && E.automation_active === false) h += '<div class="mb-al">⏸️ La série de bienvenue est en pause dans Ghost : aucun de ces mails ne part.</div>';
-    h += mlReglagesHTML(t, E);
-    h += '<div class="kb-bloc"><div class="kb-t">📝 Contenu</div>' + (gab ? mlGabaritHTML(t, B) : mlBlocsHTML(t, B, E)) + '</div>';
-    h += mlIAHTML(t, B);
-    h += '<div class="kb-bloc"><div class="kb-t">👁️ Aperçu et test</div>' +
-      (gab ? '<p class="set-s">Aperçu et test : le dernier Grand Format créé dans Ghost, avec la mise en page ACTUELLE (gabarit figé). Vos textes enregistrés s’appliquent au prochain Grand Format.</p>' : '<p class="set-s">Aperçu exact du mail tel que Ghost l’enverra, avec le contenu affiché ci-dessus (même non enregistré).</p>') +
-      '<div class="kb-ar"><button type="button" class="btn" data-ml="apercu">👁️ Aperçu</button></div><div class="ml-ap">' + (ML.apercu ? '<iframe class="ml-if" sandbox="" referrerpolicy="no-referrer" title="Aperçu du mail"></iframe>' : '') + '</div>' +
-      '<div class="kb-row"><input class="in" type="email" id="wl-ml-email" data-ml-email="1" value="' + esc(ML.email) + '" placeholder="adresse du test" autocomplete="email"><button type="button" class="btn" data-ml="test">📨 Envoyer un test</button></div>' +
-      '<p class="set-s">Objet préfixé « [TEST] »' + (gab ? ' (Ghost ajoute lui-même son préfixe de test)' : '') + '. Une confirmation vous est demandée avant l’envoi.</p>' + (gab ? '<details class="ml-av"><summary>Mode avancé : code HTML (lecture seule)</summary><p class="set-s">La structure (tableaux, boutons compatibles Outlook et Gmail) est figée et ne se modifie pas ici.</p><pre class="kb-pre ml-code"></pre></details>' : '') + '</div>';
-    h += '<div class="kb-ar ml-save"><input class="in" id="wl-ml-note" placeholder="Note de version (facultatif)" maxlength="200"><button type="button" class="btn go" data-ml="enregistrer">💾 Enregistrer</button></div>';
-    h += mlVersionsHTML();
-    c.innerHTML = h;
-    var f = c.querySelector('.ml-if'); if (f && ML.apercu) f.srcdoc = ML.apercu.html || '';
-    var pre = c.querySelector('.ml-code'); if (pre && ML.apercu) pre.textContent = ML.apercu.html || '';
+
+  // ---------- panneau Marketing : une carte par mail ----------
+  function mlSection() {
+    var ts = mlTypes();
+    if (!ts.length) return '<div class="set ml"><b>✉️ Mails marketing</b><p class="muted">Aucun type de mail déclaré (shared/wl-mails.json).</p></div>';
+    return '<div class="set ml" id="wl-ml-slot"><div class="set-h"><div><b>✉️ Mails marketing</b><div class="set-s">Les mails automatiques de Posthumain. Touchez un mail pour l’ouvrir dans l’éditeur, avec l’aperçu exact à côté.</div></div></div>' +
+      '<div class="mlc-l">' + ts.map(function (t) {
+        var E = ML.etat[t.id], R = (E && E.reglages) || null, st = '';
+        if (R) {
+          st = R.actif === false ? '<span class="mlc-off">⏸️ désactivé</span>' : '<span class="mlc-on">✅ activé</span>';
+          if (R.jours != null) st += ' · ' + R.jours + ' jour' + (Number(R.jours) > 1 ? 's' : '') + ' après l’inscription';
+          if (R.jour != null) { var dj = mlReg('jour'), fq = mlReg('frequence'); var lj = dj ? ((dj.valeurs || []).filter(function (x) { return String(x[0]) === String(R.jour); })[0] || [0, ''])[1] : ''; var lf = fq ? ((fq.valeurs || []).filter(function (x) { return String(x[0]) === String(R.frequence); })[0] || [0, ''])[1] : ''; st += ' · ' + esc(lj) + (lf ? ', ' + esc(lf) : ''); }
+        }
+        var non = ML.brouillon[t.id] && mlSale(t.id);
+        return '<button type="button" class="mlc" data-ml-ouvrir="' + esc(t.id) + '"><span class="mlc-e">' + esc(t.emoji) + '</span><span class="mlc-t"><b>' + esc(t.nom) + '</b><span class="mlc-s">' + (st || 'Ouvrir pour voir l’état') + (non ? ' · <span class="mlc-ns">● non enregistré</span>' : '') + '</span></span><span class="mlc-go">✏️ Modifier</span></button>';
+      }).join('') + '</div></div>';
   }
-  function mlReglagesHTML(t, E) {
-    var R = E.reglages || {}, h = '<div class="kb-bloc"><div class="kb-t">⚙️ Réglages d’envoi</div>';
-    (t.reglages || []).forEach(function (k) {
-      var d = mlReg(k); if (!d) return; var v = R[k];
-      if (d.type === 'interrupteur') h += '<div class="set-h ml-r"><div><b>' + esc(d.nom) + '</b><div class="set-s">' + esc(v ? d.aide_on : d.aide_off) + '</div></div><button type="button" class="sw' + (v ? ' on' : '') + '" data-ml="reg-sw" data-k="' + k + '" aria-pressed="' + (v ? 'true' : 'false') + '" aria-label="' + esc(d.nom) + '"><i></i></button></div>';
-      else if (d.type === 'nombre') h += '<div class="set-h ml-r"><div><b>' + esc(d.nom) + '</b><div class="set-s">' + esc(mlTxt(d.aide, v)) + '</div></div><span class="ml-num"><input class="in" type="number" min="' + d.min + '" max="' + d.max + '" step="1" value="' + esc(v) + '" data-ml-reg="' + k + '" aria-label="' + esc(d.nom) + '"> ' + esc(d.unite || '') + (Number(v) > 1 ? 's' : '') + '</span></div>';
-      else if (d.type === 'choix') { var lab = ((d.valeurs || []).filter(function (x) { return String(x[0]) === String(v); })[0] || [v, v])[1]; h += '<div class="set-h ml-r"><div><b>' + esc(d.nom) + '</b><div class="set-s">' + esc(mlTxt(d.aide, lab).replace(/^./, function (x) { return x.toUpperCase(); })) + '</div></div><select class="in ml-sel" data-ml-reg="' + k + '" aria-label="' + esc(d.nom) + '">' + (d.valeurs || []).map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(x[0]) === String(v) ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select></div>'; }
+  // appelé par paintPanel : écoute des cartes et lecture discrète de l'état de chaque mail (une fois)
+  function mlRattacher() {
+    var slot = S.root && S.panel === 'mk' && D().me.chef ? S.root.querySelector('#wl-ml-slot') : null;
+    if (!slot || slot.getAttribute('data-ml-ok')) return;
+    slot.setAttribute('data-ml-ok', '1');
+    slot.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-ml-ouvrir]'); if (b) { e.preventDefault(); e.stopPropagation(); mlStudio(b.getAttribute('data-ml-ouvrir')); } });
+    mlTypes().forEach(function (t) {
+      if (ML.etat[t.id] || ML.charge[t.id]) return;
+      ML.charge[t.id] = 1;
+      mlApi({ action: 'etat', type: t.id }).then(function (r) { delete ML.charge[t.id]; if (r && r.ok) { ML.etat[t.id] = r; mlCartes(); } });
     });
-    if (t.source === 'ghost_automation') h += '<p class="set-s">Ces réglages s’appliquent aux inscrits du site (Ghost) et aux leads Meta (rejeu n8n de 9 h). Changer un délai ne touche pas les inscrits déjà en cours de série chez Ghost.</p>';
-    if (t.source === 'n8n_gabarit') h += '<p class="set-s">Lus par n8n à chaque passage (9 h 45) ; hors du jour réglé, n8n s’arrête aussitôt sans rien préparer.</p>';
-    return h + '</div>';
   }
-  var ML_BLOCS = { p: 'Paragraphe', h: 'Intertitre', ul: 'Liste à puces', ol: 'Liste numérotée', bouton: 'Bouton', hr: 'Séparateur', raw: 'Bloc protégé' };
-  function mlBlocsHTML(t, B, E) {
-    var bl = B.blocs || [], mep = B.mise_en_page || 'ghost', h = '';
-    h += '<label class="ml-l" for="wl-ml-sujet">Objet</label><input class="in" id="wl-ml-sujet" data-mlf="sujet" maxlength="300" value="' + esc(B.sujet || '') + '">';
-    h += '<p class="set-s">Dans le texte : <b>**gras**</b>, <i>*italique*</i>, [texte du lien](https://posthumain.com/…), retour à la ligne = saut de ligne.</p>';
-    bl.forEach(function (b, i) {
-      h += '<div class="ml-b"><div class="ml-bh"><span class="tag">' + esc(ML_BLOCS[b.t] || b.t) + '</span><span class="ml-bx"><button type="button" class="btn small" data-ml="b-haut" data-i="' + i + '" aria-label="Monter"' + (i ? '' : ' disabled') + '>↑</button><button type="button" class="btn small" data-ml="b-bas" data-i="' + i + '" aria-label="Descendre"' + (i < bl.length - 1 ? '' : ' disabled') + '>↓</button><button type="button" class="btn small" data-ml="b-suppr" data-i="' + i + '" aria-label="Supprimer">✕</button></span></div>';
-      if (b.t === 'p' || b.t === 'h') h += (b.t === 'h' ? '<select class="in ml-sel" data-mlb="tag" data-i="' + i + '"><option value="h2"' + (b.tag === 'h2' ? ' selected' : '') + '>grand intertitre</option><option value="h3"' + (b.tag !== 'h2' ? ' selected' : '') + '>petit intertitre</option></select>' : '') + '<textarea class="in ml-ta" rows="' + Math.min(8, Math.max(2, Math.ceil(String(b.md || '').length / 70))) + '" data-mlb="md" data-i="' + i + '">' + esc(b.md || '') + '</textarea>';
-      else if (b.t === 'ul' || b.t === 'ol') h += '<textarea class="in ml-ta" rows="' + Math.max(2, (b.items || []).length) + '" data-mlb="items" data-i="' + i + '" placeholder="Un élément par ligne">' + esc((b.items || []).join('\n')) + '</textarea>';
-      else if (b.t === 'bouton') h += '<div class="kb-row"><input class="in" data-mlb="label" data-i="' + i + '" maxlength="60" placeholder="Texte du bouton" value="' + esc(b.label || '') + '"><input class="in" data-mlb="url" data-i="' + i + '" placeholder="https://posthumain.com/…" value="' + esc(b.url || '') + '"></div><p class="set-s">Bouton HTML du Grand Format : cliquable sur toute sa surface, Outlook et Gmail compris.</p>';
-      else if (b.t === 'hr') h += '<div class="ml-hr"></div>';
-      else if (b.t === 'raw') h += '<p class="set-s">🔒 ' + esc(b.resume || 'bloc Ghost') + ' — gardé tel quel (modifiable seulement dans Ghost).</p>';
-      h += '</div>';
+  function mlCartes() { var s = S.root && S.root.querySelector('#wl-ml-slot'); if (s) { var p = document.createElement('div'); p.innerHTML = mlSection(); s.innerHTML = p.firstChild.innerHTML; } }
+  function mlDemonter() { /* le studio vit hors du panneau : rien à démonter quand le panneau se ferme */ }
+
+  // ---------- contenu : brouillon, modifications ----------
+  function mlB() { return ML.brouillon[ML.type] || (ML.brouillon[ML.type] = {}); }
+  // blocs vides (paragraphe sans texte, liste sans élément) : retirés de ce qui part (aperçu, test, enregistrement)
+  function mlNets(bl) { return (bl || []).filter(function (b) { return !b || !((b.t === 'p' || b.t === 'h') && !String(b.md || '').trim()) && !((b.t === 'ul' || b.t === 'ol') && !(b.items || []).length); }); }
+  function mlContenu(id) {
+    var t = mlType(id || ML.type), B = ML.brouillon[id || ML.type] || {};
+    if (t.source === 'n8n_gabarit') return { emplacements: B.emplacements || {} };
+    return { sujet: B.sujet || '', blocs: mlNets(B.blocs), mise_en_page: B.mise_en_page === 'carte' ? 'carte' : 'ghost' };
+  }
+  function mlOrigine(id) {
+    var E = ML.etat[id], t = mlType(id), C = (E && E.contenu) || {};
+    if (t.source === 'n8n_gabarit') { var em = {}; (t.emplacements || []).forEach(function (e) { em[e.id] = C.emplacements && C.emplacements[e.id] != null ? C.emplacements[e.id] : e.defaut; }); return { emplacements: em }; }
+    return { sujet: C.sujet || '', blocs: mlNets(C.blocs), mise_en_page: C.mise_en_page === 'carte' ? 'carte' : 'ghost' };
+  }
+  function mlSale(id) { id = id || ML.type; if (!ML.etat[id] || !ML.brouillon[id]) return false; return JSON.stringify(mlContenu(id)) !== JSON.stringify(mlOrigine(id)); }
+
+  // ---------- mise en forme : **gras**, *italique*, [texte](lien) ⇄ HTML éditable (même grammaire que lexique.ts) ----------
+  function mlMdHtml(md) {
+    md = String(md || ''); var out = '', fmt = 0, buf = '';
+    var ouvre = function (f) { return (f & 1 ? '<b>' : '') + (f & 2 ? '<i>' : ''); }, ferme = function (f) { return (f & 2 ? '</i>' : '') + (f & 1 ? '</b>' : ''); };
+    var flush = function () { if (buf) { out += ouvre(fmt) + esc(buf).replace(/\n/g, '<br>') + ferme(fmt); buf = ''; } };
+    for (var i = 0; i < md.length; i++) {
+      var c = md[i];
+      if (c === '\\' && i + 1 < md.length) { buf += md[++i]; continue; }
+      if (c === '[') {
+        var j = i + 1, prof = 0;
+        for (; j < md.length; j++) { if (md[j] === '\\') { j++; continue; } if (md[j] === '[') prof++; else if (md[j] === ']') { if (!prof) break; prof--; } }
+        var m = j < md.length ? md.slice(j + 1).match(/^\(([^()\s]+)\)/) : null;
+        if (m) { flush(); var inner = mlMdHtml(md.slice(i + 1, j)); out += '<a href="' + esc(m[1]) + '">' + ouvre(fmt) + inner + ferme(fmt) + '</a>'; i = j + m[0].length; continue; }
+      }
+      if (c === '*') { var n = 1; while (md[i + n] === '*' && n < 3) n++; flush(); fmt ^= n === 3 ? 3 : n === 2 ? 1 : 2; i += n - 1; continue; }
+      buf += c;
+    }
+    flush();
+    return out;
+  }
+  function mlEscMd(s) { return String(s).replace(/([\\*\[\]])/g, '\\$1'); }
+  // DOM éditable → morceaux { texte, fmt, url } → markdown (balises inconnues : leur texte seul ; div/p créés par le navigateur = retour à la ligne)
+  function mlHtmlMd(el) {
+    var runs = [];
+    (function marche(n, fmt, url) {
+      for (var c = n.firstChild; c; c = c.nextSibling) {
+        if (c.nodeType === 3) { if (c.nodeValue) runs.push({ x: c.nodeValue.replace(/ /g, ' ').replace(/​/g, ''), f: fmt, u: url }); continue; }
+        if (c.nodeType !== 1) continue;
+        var tg = c.tagName, f = fmt, u = url, w = (c.style && c.style.fontWeight) || '';
+        if (tg === 'BR') { runs.push({ x: '\n', f: 0, u: url }); continue; }
+        if (tg === 'B' || tg === 'STRONG' || /^(bold|[6-9]00)$/.test(w)) f |= 1;
+        if (tg === 'I' || tg === 'EM' || (c.style && c.style.fontStyle === 'italic')) f |= 2;
+        if (tg === 'A') { var h = c.getAttribute('href') || ''; u = /^(https?:\/\/|mailto:)/i.test(h) ? h : url; }
+        if ((tg === 'DIV' || tg === 'P') && runs.length && runs[runs.length - 1].x.slice(-1) !== '\n') runs.push({ x: '\n', f: 0, u: null });
+        marche(c, f, u);
+      }
+    })(el, 0, null);
+    var md = '', i = 0;
+    var seg = function (list) {
+      var s = '', k = 0;
+      while (k < list.length) {
+        var f = list[k].f, txt = '';
+        while (k < list.length && list[k].f === f) { txt += list[k].x; k++; }
+        var parts = txt.split('\n');
+        s += parts.map(function (p) {
+          var m = p.match(/^(\s*)([\s\S]*?)(\s*)$/), mk = f === 3 ? '***' : f === 1 ? '**' : f === 2 ? '*' : '';
+          return m[2] ? m[1] + mk + mlEscMd(m[2]) + mk + m[3] : mlEscMd(p);
+        }).join('\n');
+      }
+      return s;
+    };
+    while (i < runs.length) {
+      var u = runs[i].u, grp = [];
+      while (i < runs.length && runs[i].u === u) { grp.push(runs[i]); i++; }
+      md += u ? '[' + seg(grp) + '](' + u.replace(/[()\s]/g, encodeURIComponent) + ')' : seg(grp);
+    }
+    return md.replace(/\n+$/, '').replace(/^\n+/, '');
+  }
+
+  // ---------- le studio ----------
+  function mlStudio(id) {
+    if (!D().me.chef) { toast('Réservé au rédacteur en chef', true); return; }
+    var ts = mlTypes(); if (!ts.length) return;
+    if (!mlType(id)) id = mlType(ML.type) ? ML.type : (mlType(LS.get('wl-ml-type')) ? LS.get('wl-ml-type') : ts[0].id);
+    ML.type = id; LS.set('wl-ml-type', id); ML.sugg = null; ML.versions = null; ML.vueSugg = false; ML.focus = -1; ML.lien = null;
+    if (!ML.bg) {
+      var bg = document.createElement('div'); bg.className = 'mls-bg';
+      bg.innerHTML = '<div class="mls" role="dialog" aria-modal="true" aria-label="Éditeur des mails marketing"><div class="mls-top"></div><div class="mls-tabs"></div><div class="mls-main"><div class="mls-g"></div><div class="mls-d"></div></div></div>';
+      ML.bg = bg; ML.retour = document.activeElement; S.root.appendChild(bg);
+      kbEcoute(ML.ec, bg, 'click', mlClic);
+      kbEcoute(ML.ec, bg, 'input', mlSaisie);
+      kbEcoute(ML.ec, bg, 'change', mlChange);
+      kbEcoute(ML.ec, bg, 'keydown', mlTouche);
+      kbEcoute(ML.ec, bg, 'paste', mlColler);
+      kbEcoute(ML.ec, bg, 'focusin', mlFocus);
+      // garder la sélection de la feuille : un clic sur la barre (souris ou doigt) ne doit pas la perdre
+      kbEcoute(ML.ec, bg, 'mousedown', function (e) { if (e.target.closest && e.target.closest('.mls-bar button')) e.preventDefault(); });
+      kbEcoute(ML.ec, document, 'selectionchange', mlSelGarder);
+      requestAnimationFrame(function () { bg.classList.add('on'); });
+    }
+    mlCharger(false);
+  }
+  function mlFermer() {
+    if (!ML.bg) return;
+    if (ML_DICTEE.actif()) ML_DICTEE.arreter();
+    if (ML.ac) { try { ML.ac.abort(); } catch (e) { /* rien */ } ML.ac = null; }
+    clearTimeout(ML.apT); kbRetirer(ML.ec);
+    if (ML.bg.parentNode) ML.bg.parentNode.removeChild(ML.bg);
+    ML.bg = null; mlCartes();
+    if (ML.retour && ML.retour.focus && document.contains(ML.retour)) { try { ML.retour.focus({ preventScroll: true }); } catch (e) { /* rien */ } }
+  }
+  function mlQ(sel) { return ML.bg ? ML.bg.querySelector(sel) : null; }
+  function mlCharger(force) {
+    var t = ML.type; if (!ML.bg) return;
+    if (ML.etat[t] && !force) { mlPrepare(t); mlTout(); return; }
+    mlQ('.mls-g').innerHTML = '<p class="mls-m">Chargement du mail…</p>'; mlEntete(); mlOnglets(); mlQ('.mls-d').innerHTML = '';
+    mlApi({ action: 'etat', type: t }).then(function (r) {
+      if (r.abort || !ML.bg || ML.type !== t) return;
+      if (!r.ok) { mlQ('.mls-g').innerHTML = mlErreur(r.why) + '<button type="button" class="btn small" data-mls="recharger">↻ Réessayer</button>'; return; }
+      ML.etat[t] = r; mlPrepare(t); mlTout();
     });
-    h += '<div class="kb-ar ml-add"><span class="set-s">Ajouter :</span>' + ['p', 'h', 'ul', 'bouton', 'hr'].map(function (k) { return '<button type="button" class="btn small" data-ml="b-ajout" data-k="' + k + '">+ ' + ML_BLOCS[k] + '</button>'; }).join('') + '</div>';
-    var prop = t.mise_en_page_proposee;
-    if (prop) h += '<div class="ml-mep"><b>Mise en page</b><div class="seg" role="group" aria-label="Mise en page"><button type="button" data-ml="mep" data-k="ghost" class="' + (mep !== 'carte' ? 'on' : '') + '">Actuelle (Ghost)</button><button type="button" data-ml="mep" data-k="carte" class="' + (mep === 'carte' ? 'on' : '') + '">Nouvelle mise en page proposée</button></div>' +
-      '<p class="set-s">' + (mep === 'carte' ? '✨ Proposition : les styles éprouvés du Grand Format (texte 17 px, intertitres gras, liens couleur d’accent, boutons HTML compatibles Outlook). <b>Rien n’est appliqué</b> : faites d’abord « 👁️ Aperçu » et « 📨 Envoyer un test », puis « 💾 Enregistrer » pour l’adopter.' : 'Les blocs natifs de Ghost, comme aujourd’hui.') + '</p></div>';
+  }
+  function mlPrepare(t) { if (!ML.brouillon[t]) ML.brouillon[t] = JSON.parse(JSON.stringify(mlOrigine(t))); }
+  function mlTout() { mlEntete(); mlOnglets(); mlGauche(); mlDroite(true); }
+  function mlEntete() {
+    var t = mlType(ML.type), sale = mlSale(), busy = ML.occupe || '';
+    mlQ('.mls-top').innerHTML = '<button type="button" class="mls-x" data-mls="fermer" aria-label="Fermer l’éditeur">✕</button>' +
+      '<select class="mls-type" data-mls-type="1" aria-label="Mail à modifier">' + mlTypes().map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === t.id ? ' selected' : '') + '>' + esc(x.emoji + ' ' + x.nom) + (ML.brouillon[x.id] && mlSale(x.id) ? ' ●' : '') + '</option>'; }).join('') + '</select>' +
+      '<span class="mls-st' + (sale ? ' sale' : '') + '">' + (sale ? '● Non enregistré' : '✓ Enregistré') + '</span>' +
+      '<span class="mls-act">' + (sale ? '<button type="button" class="btn small" data-mls="annuler" title="Revenir à la version enregistrée">↺ Annuler</button>' : '') +
+      '<button type="button" class="btn" data-mls="test-ouvrir"' + (busy ? ' disabled' : '') + '>📨 Test</button>' +
+      '<button type="button" class="btn go" data-mls="enregistrer"' + (busy || !sale ? ' disabled' : '') + '>' + (busy === 'save' ? '⏳ Enregistrement…' : '💾 Enregistrer') + '</button></span>' +
+      (ML.testOuvert ? '<div class="mls-test"><label for="wl-mls-email">Envoyer un test à</label><input class="in" type="email" id="wl-mls-email" value="' + esc(ML.email) + '" autocomplete="email" placeholder="adresse e-mail"><button type="button" class="btn go" data-mls="test"' + (busy === 'test' ? ' disabled' : '') + '>' + (busy === 'test' ? '⏳ Envoi…' : '📨 Envoyer') + '</button><button type="button" class="btn small" data-mls="test-fermer">Annuler</button><span class="mls-m">Objet préfixé « [TEST] »' + (t.source === 'n8n_gabarit' ? ' : dernier Grand Format, mise en page actuelle' : ' : le contenu affiché, même non enregistré') + '.</span></div>' : '');
+  }
+  var ML_ONGLETS = [['ecrire', '✏️ Écrire'], ['apercu', '👁️ Aperçu'], ['julien', '✨ Julien'], ['envoi', '⚙️ Envoi'], ['versions', '🕘 Versions']];
+  function mlOnglets() {
+    mlQ('.mls-tabs').innerHTML = ML_ONGLETS.map(function (o) { return '<button type="button" class="mls-tab' + (o[0] === 'apercu' ? ' mls-mob' : '') + (ML.onglet === o[0] ? ' on' : '') + '" data-mls="onglet" data-k="' + o[0] + '">' + o[1] + (o[0] === 'julien' && ML.sugg && ML.sugg.type === ML.type ? ' <span class="mls-pt"></span>' : '') + '</button>'; }).join('');
+    ML.bg.classList.toggle('vue-apercu', ML.onglet === 'apercu');
+  }
+  function mlGauche() {
+    var g = mlQ('.mls-g'), t = mlType(ML.type), E = ML.etat[ML.type]; if (!g || !t || !E) return;
+    var o = ML.onglet === 'apercu' ? 'ecrire' : ML.onglet, h = '';
+    if (ML.sugg && ML.sugg.type === ML.type && o !== 'julien') h += '<div class="mls-sg">✨ <b>Julien propose une nouvelle version.</b> <button type="button" class="btn small" data-mls="onglet" data-k="julien">Voir la proposition</button></div>';
+    if (o === 'ecrire') h += t.source === 'n8n_gabarit' ? mlGabarit(t) : mlEditeur(t, E);
+    else if (o === 'julien') h += mlJulien(t);
+    else if (o === 'envoi') h += mlEnvoi(t, E);
+    else if (o === 'versions') h += mlVersions();
+    g.innerHTML = h;
+    if (o === 'ecrire' && t.source !== 'n8n_gabarit') mlRemplir();
+    if (o === 'versions' && !ML.versions) mlApi({ action: 'versions', type: ML.type }).then(function (r) { if (r && r.ok && ML.bg) { ML.versions = r.versions || []; if (ML.onglet === 'versions') mlGauche(); } });
+  }
+
+  // ---------- ✏️ Écrire (mails de bienvenue) ----------
+  var ML_BLOCS = { p: 'Paragraphe', h: 'Intertitre', ul: 'Liste à puces', ol: 'Liste numérotée', bouton: 'Bouton', hr: 'Séparateur', raw: 'Bloc Ghost' };
+  function mlEditeur(t, E) {
+    var B = mlB(), h = '';
+    if (E.modifie_dans_ghost) h += '<div class="mls-al">✏️ Ce mail a été modifié directement dans Ghost depuis le dernier enregistrement ici : c’est la version de Ghost qui est affichée (elle fait foi).</div>';
+    if (E.automation_active === false) h += '<div class="mls-al">⏸️ La série de bienvenue est en pause dans Ghost : aucun de ces mails ne part.</div>';
+    if (E.reglages && E.reglages.actif === false) h += '<div class="mls-al">⏸️ Ce mail est désactivé (onglet ⚙️ Envoi) : vous pouvez le modifier, il ne part pas.</div>';
+    h += '<label class="mls-l" for="wl-mls-sujet">Objet du mail <span class="mls-c" id="wl-mls-cpt">' + String(B.sujet || '').length + ' car.</span></label>' +
+      '<input class="mls-sujet" id="wl-mls-sujet" maxlength="300" value="' + esc(B.sujet || '') + '" placeholder="L’objet que le lecteur verra dans sa boîte">' +
+      '<div class="mls-boite"><span class="mls-av">P</span><span><b>Posthumain</b><br><span class="mls-bs">' + esc(B.sujet || '(sans objet)') + '</span></span></div>';
+    h += '<div class="mls-bar" role="toolbar" aria-label="Mise en forme">' +
+      '<button type="button" data-mls="fmt" data-k="bold" title="Gras (Ctrl+B)"><b>G</b></button><button type="button" data-mls="fmt" data-k="italic" title="Italique (Ctrl+I)"><i>I</i></button><button type="button" data-mls="lien" title="Lien">🔗 Lien</button>' +
+      '<select data-mls-forme="1" aria-label="Type du bloc"><option value="p">¶ Paragraphe</option><option value="h2">Grand intertitre</option><option value="h3">Petit intertitre</option><option value="ul">• Liste</option><option value="ol">1. Liste</option></select>' +
+      '<span class="mls-sep"></span><button type="button" data-mls="ajout-menu" title="Ajouter un bloc sous celui-ci">＋ Ajouter</button></div>' +
+      '<div class="mls-lien-z"></div>' +
+      (ML.menu ? '<div class="mls-menu">' + ['p', 'h', 'ul', 'bouton', 'hr'].map(function (k) { return '<button type="button" class="btn small" data-mls="ajout" data-k="' + k + '">' + { p: '¶ Paragraphe', h: 'Intertitre', ul: '• Liste', bouton: '🟢 Bouton', hr: '— Séparateur' }[k] + '</button>'; }).join('') + '</div>' : '');
+    h += '<div class="mls-feuille' + (B.mise_en_page === 'carte' ? ' carte' : '') + '" id="wl-mls-feuille"></div>';
+    h += '<p class="mls-m">Écrivez directement dans la feuille. <b>Entrée</b> = nouveau paragraphe · <b>Maj + Entrée</b> = retour à la ligne · sélectionnez un mot puis <b>G</b>, <b>I</b> ou <b>🔗</b>. L’aperçu exact de Ghost se met à jour tout seul.</p>';
+    if (t.mise_en_page_proposee) h += '<div class="mls-mep"><b>Mise en page</b><div class="seg"><button type="button" data-mls="mep" data-k="ghost" class="' + (B.mise_en_page !== 'carte' ? 'on' : '') + '">Actuelle (Ghost)</button><button type="button" data-mls="mep" data-k="carte" class="' + (B.mise_en_page === 'carte' ? 'on' : '') + '">✨ Nouvelle (style Grand Format)</button></div><p class="mls-m">' + (B.mise_en_page === 'carte' ? 'Texte plus grand, intertitres gras, liens en couleur, boutons compatibles Outlook. Regardez l’aperçu, faites un test, puis enregistrez pour l’adopter.' : 'Les blocs natifs de Ghost, comme aujourd’hui.') + '</p></div>';
     return h;
   }
-  function mlGabaritHTML(t, B) {
-    var em = B.emplacements || {}, h = '<p class="set-s">🔒 Structure HTML figée (tableaux, pastilles, boutons « bulletproof » Outlook et Gmail) : seuls ces textes changent. L’objet, l’intro et l’accroche de chaque vidéo sont écrits chaque semaine par l’IA, d’après les consignes ci-dessous.</p>';
+  function mlBlocHTML(b, i) {
+    var ctl = '<span class="mls-ctl" contenteditable="false"><button type="button" data-mls="haut" data-i="' + i + '" title="Monter" aria-label="Monter">↑</button><button type="button" data-mls="bas" data-i="' + i + '" title="Descendre" aria-label="Descendre">↓</button><button type="button" data-mls="suppr" data-i="' + i + '" title="Supprimer" aria-label="Supprimer">🗑</button></span>';
+    var d = '<div class="mls-b mls-' + b.t + (i === ML.focus ? ' focus' : '') + '" data-i="' + i + '">' + ctl;
+    if (b.t === 'p') return d + '<div class="mls-ed" contenteditable="true" data-i="' + i + '" data-ph="Écrivez ici…"></div></div>';
+    if (b.t === 'h') return d + '<div class="mls-ed mls-' + (b.tag === 'h2' ? 'h2' : 'h3') + '" contenteditable="true" data-i="' + i + '" data-ph="Intertitre"></div></div>';
+    if (b.t === 'ul' || b.t === 'ol') return d + '<' + b.t + ' class="mls-ed mls-li" contenteditable="true" data-i="' + i + '"></' + b.t + '></div>';
+    if (b.t === 'bouton') return d + '<div class="mls-btn-w"><span class="mls-btn">' + esc(b.label || 'Texte du bouton') + '</span></div><div class="mls-btn-f"><label>Texte du bouton<input class="in" data-mls-btn="label" data-i="' + i + '" maxlength="60" value="' + esc(b.label || '') + '"></label><label>Lien<input class="in" data-mls-btn="url" data-i="' + i + '" value="' + esc(b.url || '') + '" placeholder="https://posthumain.com/…"></label></div></div>';
+    if (b.t === 'hr') return d + '<hr class="mls-hr"></div>';
+    return d + '<div class="mls-raw">🔒 ' + esc(b.resume || 'bloc Ghost') + '<span class="mls-m"> · image, carte ou bloc spécial : gardé tel quel, modifiable seulement dans Ghost</span></div></div>';
+  }
+  function mlRemplir() {
+    var f = mlQ('#wl-mls-feuille'); if (!f) return;
+    var bl = mlB().blocs || [];
+    f.innerHTML = bl.map(mlBlocHTML).join('') + '<button type="button" class="mls-plus" data-mls="ajout" data-k="p" data-fin="1">＋ Ajouter un paragraphe à la fin</button>';
+    bl.forEach(function (b, i) {
+      var ed = f.querySelector('.mls-ed[data-i="' + i + '"]'); if (!ed) return;
+      if (b.t === 'ul' || b.t === 'ol') ed.innerHTML = ((b.items || []).length ? b.items : ['']).map(function (x) { return '<li>' + (mlMdHtml(x) || '<br>') + '</li>'; }).join('');
+      else ed.innerHTML = mlMdHtml(b.md || '');
+    });
+    mlFormeSync();
+  }
+  function mlLire(ed) {
+    var i = Number(ed.getAttribute('data-i')), b = (mlB().blocs || [])[i]; if (!b) return;
+    if (b.t === 'ul' || b.t === 'ol') {
+      var lis = ed.querySelectorAll('li');
+      b.items = lis.length ? Array.prototype.map.call(lis, function (li) { return mlHtmlMd(li).replace(/\n/g, ' ').trim(); }).filter(Boolean) : mlHtmlMd(ed).split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+    } else b.md = mlHtmlMd(ed);
+  }
+  function mlModifie() { mlEnteteMaj(); mlApercuPlus(); }
+  function mlEnteteMaj() { var s = mlSale(), st = mlQ('.mls-st'), sv = mlQ('[data-mls="enregistrer"]'); if (st) { st.className = 'mls-st' + (s ? ' sale' : ''); st.textContent = s ? '● Non enregistré' : '✓ Enregistré'; } if (sv && !ML.occupe) sv.disabled = !s; var an = mlQ('[data-mls="annuler"]'); if (!!an !== s) mlEntete(); }
+  function mlFocus(e) {
+    var b = e.target.closest && e.target.closest('.mls-b'); if (!b || !ML.bg) return;
+    var i = Number(b.getAttribute('data-i')); if (i === ML.focus) return;
+    ML.focus = i;
+    Array.prototype.forEach.call(ML.bg.querySelectorAll('.mls-b.focus'), function (x) { x.classList.remove('focus'); }); b.classList.add('focus');
+    mlFormeSync();
+  }
+  function mlFormeSync() { var s = mlQ('[data-mls-forme]'), b = (mlB().blocs || [])[ML.focus]; if (!s) return; s.disabled = !b || ['p', 'h', 'ul', 'ol'].indexOf(b.t) < 0; if (b) s.value = b.t === 'h' ? (b.tag === 'h2' ? 'h2' : 'h3') : b.t === 'ul' || b.t === 'ol' ? b.t : 'p'; }
+  function mlTexteBloc(b) { return b.t === 'ul' || b.t === 'ol' ? (b.items || []).join('\n') : b.md || ''; }
+  function mlForme(v) {
+    var B = mlB(), b = (B.blocs || [])[ML.focus]; if (!b || ['p', 'h', 'ul', 'ol'].indexOf(b.t) < 0) return;
+    var txt = mlTexteBloc(b), n;
+    if (v === 'p') n = { t: 'p', md: txt.replace(/\n/g, '\n') };
+    else if (v === 'h2' || v === 'h3') n = { t: 'h', tag: v, md: txt.replace(/\n/g, ' ') };
+    else n = { t: v, items: txt.split('\n').map(function (x) { return x.trim(); }).filter(Boolean) };
+    B.blocs[ML.focus] = n; mlRemplir(); mlFocaliser(ML.focus, true); mlModifie();
+  }
+  function mlFocaliser(i, fin) {
+    var ed = mlQ('.mls-ed[data-i="' + i + '"]'); if (!ed) { var bx = mlQ('.mls-b[data-i="' + i + '"] input'); if (bx) bx.focus(); return; }
+    ed.focus();
+    try { var r = document.createRange(), s = window.getSelection(); var cible = ed.lastElementChild && (ed.tagName === 'UL' || ed.tagName === 'OL') ? ed.lastElementChild : ed; r.selectNodeContents(cible); r.collapse(!fin ? true : false); s.removeAllRanges(); s.addRange(r); } catch (e) { /* rien */ }
+  }
+  function mlAjouter(k, apres) {
+    var B = mlB(); B.blocs = B.blocs || [];
+    var n = k === 'p' ? { t: 'p', md: '' } : k === 'h' ? { t: 'h', tag: 'h3', md: '' } : k === 'ul' ? { t: 'ul', items: [] } : k === 'bouton' ? { t: 'bouton', label: 'Lire sur Posthumain', url: 'https://posthumain.com/' } : { t: 'hr' };
+    var at = apres == null || apres < 0 ? B.blocs.length : apres + 1;
+    B.blocs.splice(at, 0, n); ML.focus = at; ML.menu = false;
+    mlGauche(); mlFocaliser(at, true); mlModifie();
+  }
+  // Entrée = nouveau paragraphe (le texte après le curseur part dans le nouveau bloc) ; Retour arrière dans un bloc vide = le supprimer.
+  function mlTouche(e) {
+    var ed = e.target && e.target.closest && e.target.closest('.mls-ed');
+    if (e.key === 'Escape' && ML.bg) { if (ML.lien) { ML.lien = null; mlLienBarre(); } else if (ML.menu) { ML.menu = false; mlGauche(); } else mlDemanderFermer(); e.preventDefault(); return; }
+    if (!ed) { if (e.key === 'Enter' && e.target && e.target.id === 'wl-mls-url') { e.preventDefault(); mlLienOk(); } return; }
+    var i = Number(ed.getAttribute('data-i')), B = mlB(), b = B.blocs[i];
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'i')) { e.preventDefault(); document.execCommand(e.key === 'b' ? 'bold' : 'italic'); mlLire(ed); mlModifie(); return; }
+    if (e.key === 'Enter' && !e.shiftKey && b && (b.t === 'p' || b.t === 'h')) {
+      e.preventDefault();
+      var s = window.getSelection(); if (!s.rangeCount) return;
+      var r = s.getRangeAt(0); r.deleteContents();
+      var reste = document.createRange(); reste.setStart(r.startContainer, r.startOffset); reste.setEnd(ed, ed.childNodes.length);
+      var tmp = document.createElement('div'); tmp.appendChild(reste.extractContents());
+      mlLire(ed);
+      B.blocs.splice(i + 1, 0, { t: 'p', md: mlHtmlMd(tmp) }); ML.focus = i + 1;
+      mlRemplir(); mlFocaliser(i + 1, false); mlModifie();
+      return;
+    }
+    if (e.key === 'Enter' && e.shiftKey && b && (b.t === 'p' || b.t === 'h')) { e.preventDefault(); document.execCommand('insertLineBreak'); mlLire(ed); mlModifie(); return; }
+    if (e.key === 'Backspace' && !String(ed.textContent || '').trim() && B.blocs.length > 1 && (b.t === 'p' || b.t === 'h' || ((b.t === 'ul' || b.t === 'ol') && !(b.items || []).length))) {
+      e.preventDefault(); B.blocs.splice(i, 1); ML.focus = Math.max(0, i - 1); mlRemplir(); mlFocaliser(ML.focus, true); mlModifie();
+    }
+  }
+  function mlSelEd() { var s = window.getSelection(); if (!s || !s.rangeCount || !s.anchorNode) return null; var n = s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentNode; return n && n.closest ? n.closest('.mls-ed') : null; }
+  function mlSelGarder() { if (!ML.bg) return; var ed = mlSelEd(); if (ed && ML.bg.contains(ed)) ML.sel = window.getSelection().getRangeAt(0).cloneRange(); }
+  // remet la dernière sélection de la feuille si le clic sur la barre l'a fait perdre ; renvoie le bloc éditable visé
+  function mlSelRemettre() {
+    var ed = mlSelEd(); if (ed && ML.bg.contains(ed)) return ed;
+    var r = ML.sel; if (!r || !document.contains(r.startContainer)) return null;
+    var n = r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentNode, e2 = n.closest && n.closest('.mls-ed'); if (!e2) return null;
+    e2.focus(); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); return e2;
+  }
+  function mlColler(e) {
+    var ed = e.target && e.target.closest && e.target.closest('.mls-ed'); if (!ed) return;
+    e.preventDefault();
+    var t = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+    document.execCommand('insertText', false, t);
+  }
+  // lien : on garde la sélection, on demande l'adresse dans la barre, puis on l'applique
+  function mlLienOuvrir() {
+    var ed = mlSelRemettre(), s = window.getSelection();
+    if (!ed) { toast('Sélectionnez d’abord le texte à transformer en lien', true); return; }
+    var a = (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentNode).closest('a');
+    if (s.isCollapsed && !a) { toast('Sélectionnez d’abord le texte à transformer en lien', true); return; }
+    ML.lien = { range: s.getRangeAt(0).cloneRange(), i: Number(ed.getAttribute('data-i')), url: a ? a.getAttribute('href') : '', a: a };
+    mlLienBarre();
+    var inp = mlQ('#wl-mls-url'); if (inp) { inp.focus(); inp.select(); }
+  }
+  // la barre du lien est remplie à part : la feuille n'est pas redessinée, la sélection gardée reste valable
+  function mlLienBarre() {
+    var z = mlQ('.mls-lien-z'), L = ML.lien; if (!z) return;
+    z.innerHTML = L ? '<div class="mls-lien"><label for="wl-mls-url">Adresse du lien</label><input class="in" id="wl-mls-url" inputmode="url" placeholder="https://posthumain.com/…" value="' + esc(L.url || '') + '"><button type="button" class="btn small go" data-mls="lien-ok">OK</button>' + (L.url ? '<button type="button" class="btn small" data-mls="lien-retirer">Retirer le lien</button>' : '') + '<button type="button" class="btn small" data-mls="lien-annuler">Annuler</button></div>' : '';
+  }
+  function mlLienOk(retirer) {
+    var L = ML.lien; if (!L) return;
+    var url = retirer ? '' : String((mlQ('#wl-mls-url') || {}).value || '').trim();
+    if (!retirer && !/^(https?:\/\/|mailto:)\S+$/i.test(url)) { toast('Adresse invalide : elle doit commencer par https://', true); return; }
+    ML.lien = null;
+    var B = mlB(), b = B.blocs[L.i];
+    // la feuille a pu être redessinée : on applique le lien sur la sélection gardée si elle est encore dans la page, sinon on recharge le bloc
+    var ed = mlQ('.mls-ed[data-i="' + L.i + '"]');
+    if (ed && document.contains(L.range.startContainer)) {
+      var s = window.getSelection(); ed.focus(); s.removeAllRanges(); s.addRange(L.range);
+      if (L.a && document.contains(L.a)) { if (retirer) { var p = L.a.parentNode; while (L.a.firstChild) p.insertBefore(L.a.firstChild, L.a); p.removeChild(L.a); } else L.a.setAttribute('href', url); }
+      else if (!retirer) document.execCommand('createLink', false, url);
+      mlLire(ed);
+    }
+    mlLienBarre(); if (b && !ed) mlRemplir(); mlModifie();
+  }
+
+  // ---------- ✏️ Écrire (Grand Format : textes fixes d'un gabarit figé) ----------
+  function mlGabarit(t) {
+    var em = mlB().emplacements || {}, h = '<div class="mls-al mls-info">🔒 La mise en page du Grand Format (tableaux, boutons compatibles Outlook et Gmail) est figée. Chaque semaine, l’IA écrit l’objet, l’intro et l’accroche de chaque vidéo ; ici, vous réglez les <b>textes fixes</b> et vos <b>consignes</b> à l’IA. L’aperçu montre le dernier Grand Format envoyé.</div>';
     (t.emplacements || []).forEach(function (e) {
       var v = em[e.id] != null ? em[e.id] : e.defaut;
-      h += '<label class="ml-l">' + esc(e.nom) + ' <span class="set-s" data-ml-cpt="' + esc(e.id) + '">' + String(v).length + ' / ' + e.max + '</span></label>' +
-        (e.multiligne ? '<textarea class="in ml-ta" rows="4" maxlength="' + e.max + '" data-mle="' + esc(e.id) + '" placeholder="(aucune)">' + esc(v) + '</textarea>' : '<input class="in" maxlength="' + e.max + '" data-mle="' + esc(e.id) + '" value="' + esc(v) + '">');
+      h += '<div class="mls-champ"><label class="mls-l" for="wl-mls-e-' + esc(e.id) + '">' + esc(e.nom) + ' <span class="mls-c" data-mls-cpt="' + esc(e.id) + '">' + String(v).length + ' / ' + e.max + '</span></label>' +
+        (e.multiligne ? '<textarea class="in mls-ta" rows="5" id="wl-mls-e-' + esc(e.id) + '" maxlength="' + e.max + '" data-mls-e="' + esc(e.id) + '" placeholder="(aucune)">' + esc(v) + '</textarea>' : '<input class="in" id="wl-mls-e-' + esc(e.id) + '" maxlength="' + e.max + '" data-mls-e="' + esc(e.id) + '" value="' + esc(v) + '">') +
+        (e.defaut && v !== e.defaut ? '<button type="button" class="mls-def" data-mls="defaut" data-k="' + esc(e.id) + '">↺ Texte d’origine : « ' + esc(e.defaut.length > 60 ? e.defaut.slice(0, 59) + '…' : e.defaut) + ' »</button>' : '') + '</div>';
     });
-    (t.futurs || []).forEach(function (f) { h += '<div class="ml-futur"><b>' + esc(f.nom) + '</b> <span class="tag">' + (f.actif ? 'activé' : 'préparé, désactivé') + '</span><div class="set-s">' + esc(f.aide) + '</div></div>'; });
+    (t.futurs || []).forEach(function (f) { h += '<div class="mls-al mls-info"><b>' + esc(f.nom) + '</b> <span class="tag">' + (f.actif ? 'activé' : 'préparé, désactivé') + '</span><br>' + esc(f.aide) + '</div>'; });
     return h;
   }
-  function mlIAHTML(t, B) {
-    var S2 = ML.sugg, cons = ML.consigne[ML.type] || '', h = '<div class="kb-bloc"><div class="kb-t">✨ Suggestion par IA</div><p class="set-s">Julien propose une version selon les règles de ce mail et la base de connaissances Marketing. Vous comparez, puis appliquez ou gardez l’actuel ; rien n’est enregistré sans « 💾 Enregistrer ».</p>' +
-      '<textarea class="in ml-ta" id="wl-ml-consigne" rows="2" maxlength="1500" placeholder="Consigne libre (facultatif) : plus court, ajouter un lien vers…, ton plus chaleureux…">' + esc(cons) + '</textarea>' +
-      '<div class="kb-ar"><button type="button" class="btn" data-ml="suggerer">✨ Suggestion par IA</button>' + (ML_DICTEE.dispo ? '<button type="button" class="btn small" data-ml="dicter">🎙️ Dicter</button>' : '') + '</div>';
-    if (S2 && S2.type === ML.type) {
-      var P = S2.p, gab = t.source === 'n8n_gabarit';
-      h += '<div class="ml-cmp"><div class="ml-col"><div class="kb-t">Actuel</div>' + mlResume(t, B) + '</div><div class="ml-col ml-new"><div class="kb-t">Suggestion</div>' + mlResume(t, gab ? { emplacements: P.emplacements } : P) + '</div></div>' +
-        (P.explication ? '<p class="set-s">💡 ' + esc(P.explication) + '</p>' : '') +
-        '<div class="kb-ar"><button type="button" class="btn go" data-ml="appliquer">✅ Appliquer la suggestion</button><button type="button" class="btn" data-ml="garder">Garder l’actuel</button></div>';
+
+  // ---------- ✨ Julien (suggestion par IA) ----------
+  function mlJulien(t) {
+    var S2 = ML.sugg && ML.sugg.type === ML.type ? ML.sugg : null, h = '';
+    h += '<p class="mls-m">Julien réécrit ce mail selon ses règles (vouvoiement, pas de chiffres inventés, liens Posthumain seulement) et la base de connaissances Marketing. Vous voyez sa version dans l’aperçu avant de décider ; rien n’est enregistré sans « 💾 Enregistrer ».</p>' +
+      '<label class="mls-l" for="wl-ml-consigne">Que voulez-vous changer ? (facultatif)</label><textarea class="in mls-ta" id="wl-ml-consigne" rows="3" maxlength="1500" placeholder="Ex. : plus court, ton plus chaleureux, ajouter un lien vers la page Premium…">' + esc(ML.consigne[ML.type] || '') + '</textarea>' +
+      '<div class="mls-row"><button type="button" class="btn go" data-mls="suggerer"' + (ML.occupe ? ' disabled' : '') + '>' + (ML.occupe === 'sugg' ? '⏳ Julien écrit…' : '✨ ' + (S2 ? 'Autre proposition' : 'Demander une proposition')) + '</button>' + (ML_DICTEE.dispo ? '<button type="button" class="btn small" data-mls="dicter">🎙️ Dicter</button>' : '') + '</div>';
+    if (S2) {
+      var P = S2.p;
+      h += '<div class="mls-prop"><div class="mls-prop-h">✨ Proposition de Julien</div>' + (P.explication ? '<p class="mls-m">💡 ' + esc(P.explication) + '</p>' : '') +
+        (t.source === 'n8n_gabarit' ? mlComparer(t, P) : '<p class="mls-m">Objet proposé : <b>' + esc(P.sujet || '') + '</b></p><div class="seg"><button type="button" data-mls="vue-sugg" data-k="0" class="' + (!ML.vueSugg ? 'on' : '') + '">Aperçu : version actuelle</button><button type="button" data-mls="vue-sugg" data-k="1" class="' + (ML.vueSugg ? 'on' : '') + '">Aperçu : proposition</button></div>') +
+        '<div class="mls-row"><button type="button" class="btn go" data-mls="appliquer">✅ Reprendre cette version</button><button type="button" class="btn" data-mls="ignorer">✕ Ignorer</button></div><p class="mls-m">« Reprendre » la met dans l’éditeur : vous pouvez encore la retoucher avant d’enregistrer.</p></div>';
     }
-    return h + '</div>';
+    return h;
   }
-  function mlResume(t, C) {
-    if (t.source === 'n8n_gabarit') return (t.emplacements || []).map(function (e) { var v = (C.emplacements || {})[e.id]; return '<div class="ml-ri"><span class="set-s">' + esc(e.nom) + '</span><div>' + (v ? esc(v) : '<i class="set-s">(vide)</i>') + '</div></div>'; }).join('');
-    return '<div class="ml-ri"><span class="set-s">Objet</span><div><b>' + esc(C.sujet || '') + '</b></div></div>' + (C.blocs || []).map(function (b) {
-      var x = b.t === 'p' || b.t === 'h' ? b.md : b.t === 'ul' || b.t === 'ol' ? (b.items || []).map(function (y) { return '• ' + y; }).join('\n') : b.t === 'bouton' ? '[' + b.label + '] → ' + b.url : b.t === 'hr' ? '———' : '🔒 ' + (b.resume || 'bloc protégé');
-      return '<div class="ml-ri' + (b.t === 'h' ? ' ml-rh' : '') + '">' + esc(x || '') + '</div>';
-    }).join('');
+  function mlComparer(t, P) {
+    var em = mlB().emplacements || {};
+    return (t.emplacements || []).map(function (e) { var a = em[e.id] != null ? em[e.id] : e.defaut, n = (P.emplacements || {})[e.id]; if (n == null || n === a) return ''; return '<div class="mls-cmp"><div class="mls-m">' + esc(e.nom) + '</div><div class="mls-avant">' + (esc(a) || '<i>(vide)</i>') + '</div><div class="mls-apres">' + (esc(n) || '<i>(vide)</i>') + '</div></div>'; }).join('') || '<p class="mls-m">Aucun texte changé.</p>';
   }
-  function mlVersionsHTML() {
-    var E = ML.etat[ML.type] || {}, vs = ML.versions || E.versions || [];
-    var h = '<details class="kb-bloc ml-hist"' + (ML.versions ? ' open' : '') + '><summary class="kb-t">🕘 Historique (' + vs.length + ')</summary>';
-    if (!vs.length) h += '<p class="set-s">Aucune version enregistrée ici pour l’instant.</p>';
-    else h += vs.map(function (v) { return '<div class="kb-src"><div class="kb-n"><b>' + esc(kbDate(v.created_at)) + (v.auteur ? ' · ' + esc(v.auteur) : '') + '</b><span class="set-s">' + esc(v.note || 'sans note') + '</span></div><div class="kb-b"><button type="button" class="btn small" data-ml="restaurer" data-id="' + esc(v.id) + '">↩︎ Charger</button></div></div>'; }).join('');
-    return h + '<p class="set-s">« Charger » remet cette version dans l’éditeur ; elle n’est appliquée qu’après « 💾 Enregistrer ».</p></details>';
-  }
-  // ---------- événements ----------
-  function mlB() { return ML.brouillon[ML.type] || (ML.brouillon[ML.type] = {}); }
-  function mlSaisie(e) {
-    var el = e.target; if (!el || !ML.racine || !ML.racine.contains(el)) return;
-    var B = mlB(), i = Number(el.getAttribute('data-i'));
-    if (el.id === 'wl-ml-consigne') { ML.consigne[ML.type] = el.value; return; }
-    if (el.getAttribute('data-ml-email')) { ML.email = el.value.trim(); return; }
-    if (el.getAttribute('data-mlf') === 'sujet') { B.sujet = el.value; return; }
-    var f = el.getAttribute('data-mlb');
-    if (f && B.blocs && B.blocs[i]) { if (f === 'items') B.blocs[i].items = el.value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean); else B.blocs[i][f] = el.value; return; }
-    var em = el.getAttribute('data-mle');
-    if (em) { B.emplacements = B.emplacements || {}; B.emplacements[em] = el.value; var cpt = ML.racine.querySelector('[data-ml-cpt="' + em + '"]'), d = (mlType(ML.type).emplacements || []).filter(function (x) { return x.id === em; })[0]; if (cpt && d) cpt.textContent = el.value.length + ' / ' + d.max; }
-  }
-  function mlChange(e) {
-    var el = e.target; if (!el || !ML.racine || !ML.racine.contains(el)) return;
-    if (el.getAttribute('data-ml') === 'type') { ML.type = el.value; LS.set('wl-ml-type', el.value); ML.sugg = null; ML.apercu = null; ML.versions = null; mlCharger(false); return; }
-    var k = el.getAttribute('data-ml-reg'); if (k) { var d = mlReg(k), v = d && d.type === 'nombre' ? Math.round(Number(el.value)) : el.value; mlRegler(k, v); }
+
+  // ---------- ⚙️ Envoi (réglages, appliqués tout de suite) ----------
+  function mlEnvoi(t, E) {
+    var R = E.reglages || {}, h = '<p class="mls-m">Ces réglages s’appliquent dès que vous les changez (pas besoin d’« Enregistrer »).</p>';
+    (t.reglages || []).forEach(function (k) {
+      var d = mlReg(k); if (!d) return; var v = R[k];
+      if (d.type === 'interrupteur') h += '<div class="mls-reg"><div><b>' + esc(d.nom) + '</b><div class="mls-m">' + esc(v ? d.aide_on : d.aide_off) + '</div></div><button type="button" class="sw' + (v ? ' on' : '') + '" data-mls="reg-sw" data-k="' + k + '" aria-pressed="' + (v ? 'true' : 'false') + '" aria-label="' + esc(d.nom) + '"><i></i></button></div>';
+      else if (d.type === 'nombre') h += '<div class="mls-reg"><div><b>' + esc(d.nom) + '</b><div class="mls-m">' + esc(mlTxt(d.aide, v)) + '</div></div><span class="mls-num"><button type="button" class="btn small" data-mls="reg-moins" data-k="' + k + '" aria-label="Moins">−</button><input class="in" type="number" inputmode="numeric" min="' + d.min + '" max="' + d.max + '" step="1" value="' + esc(v) + '" data-mls-reg="' + k + '" aria-label="' + esc(d.nom) + '"><button type="button" class="btn small" data-mls="reg-plus" data-k="' + k + '" aria-label="Plus">+</button> ' + esc(d.unite || '') + (Number(v) > 1 ? 's' : '') + '</span></div>';
+      else if (d.type === 'choix') { var lab = ((d.valeurs || []).filter(function (x) { return String(x[0]) === String(v); })[0] || [v, v])[1]; h += '<div class="mls-reg"><div><b>' + esc(d.nom) + '</b><div class="mls-m">' + esc(mlTxt(d.aide, lab).replace(/^./, function (x) { return x.toUpperCase(); })) + '</div></div><select class="in" data-mls-reg="' + k + '" aria-label="' + esc(d.nom) + '">' + (d.valeurs || []).map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(x[0]) === String(v) ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select></div>'; }
+    });
+    if (t.source === 'ghost_automation') h += '<p class="mls-m">S’applique aux inscrits du site (Ghost) et aux leads Meta (rejeu n8n de 9 h). Changer un délai ne touche pas les inscrits déjà en cours de série.</p>';
+    if (t.source === 'n8n_gabarit') h += '<p class="mls-m">Lus par n8n à chaque passage (9 h 45) ; hors du jour réglé, n8n s’arrête aussitôt sans rien préparer.</p>';
+    return h + '<p class="mls-m">' + esc(t.aide) + '</p>';
   }
   function mlRegler(k, v) {
     var t = mlType(ML.type), E = ML.etat[ML.type]; if (!t || !E) return;
     var d = mlReg(k), R = Object.assign({}, E.reglages); R[k] = v;
-    if (d && d.type === 'nombre' && (!isFinite(v) || v < d.min || v > d.max)) { toast(d.nom + ' : entre ' + d.min + ' et ' + d.max, true); mlPeindre(); return; }
+    if (d && d.type === 'nombre' && (!isFinite(v) || v < d.min || v > d.max)) { toast(d.nom + ' : entre ' + d.min + ' et ' + d.max, true); mlGauche(); return; }
     var go = function () {
       mlApi({ action: 'reglages', type: ML.type, reglages: R }).then(function (r) {
-        if (r.abort || !ML.racine) return;
+        if (r.abort || !ML.bg) return;
         if (!r.ok) { toast(r.why || 'réglage non enregistré', true); mlCharger(true); return; }
         toast(t.source === 'ghost_automation' ? (r.ghost_modifie ? '✅ Réglage enregistré, série Ghost mise à jour' : '✅ Réglage enregistré') : '✅ Réglage enregistré : pris en compte au prochain passage');
-        // les réglages d'un mail de bienvenue peuvent changer la série entière : on relit les mails frères
-        mlTypes().forEach(function (x) { if (x.source === t.source && x.automation === t.automation) delete ML.etat[x.id]; });
-        mlCharger(true);
+        var id = ML.type; mlTypes().forEach(function (x) { if (x.source === t.source && x.automation === t.automation && x.id !== id) delete ML.etat[x.id]; });
+        mlApi({ action: 'etat', type: id }).then(function (r2) { if (r2 && r2.ok && ML.bg) { ML.etat[id] = r2; if (ML.type === id) mlGauche(); } });
       });
     };
-    if (k === 'actif' && !v) confirmer('Désactiver « ' + t.nom + ' » ? ' + (t.source === 'ghost_automation' ? 'Il ne partira plus, ni chez Ghost ni pour les leads Meta, jusqu’à ce que vous le réactiviez. Son contenu est gardé.' : 'Aucun Grand Format ne sera préparé ni envoyé jusqu’à ce que vous le réactiviez.')).then(function (ok) { if (ok) go(); else mlPeindre(); });
+    if (k === 'actif' && !v) confirmer('Désactiver « ' + t.nom + ' » ? ' + (t.source === 'ghost_automation' ? 'Il ne partira plus, ni chez Ghost ni pour les leads Meta, jusqu’à ce que vous le réactiviez. Son contenu est gardé.' : 'Aucun Grand Format ne sera préparé ni envoyé jusqu’à ce que vous le réactiviez.')).then(function (ok) { if (ok) go(); else mlGauche(); });
     else go();
   }
-  function mlContenuEnvoye() {
-    var t = mlType(ML.type), B = mlB();
-    if (t.source === 'n8n_gabarit') return { emplacements: B.emplacements || {} };
-    return { sujet: B.sujet || '', blocs: B.blocs || [], mise_en_page: B.mise_en_page === 'carte' ? 'carte' : 'ghost' };
+
+  // ---------- 🕘 Versions ----------
+  function mlVersions() {
+    var E = ML.etat[ML.type] || {}, vs = ML.versions || E.versions || [];
+    var h = '<label class="mls-l" for="wl-ml-note">Note pour le prochain enregistrement (facultatif)</label><input class="in" id="wl-ml-note" maxlength="200" placeholder="Ex. : nouveau lien vers l’offre de Noël" value="' + esc(ML.note || '') + '">';
+    h += '<p class="mls-m">« Charger » remet une ancienne version dans l’éditeur (avec son aperçu) ; elle n’est appliquée qu’après « 💾 Enregistrer ».</p>';
+    if (!vs.length) return h + '<p class="mls-m">Aucune version enregistrée ici pour l’instant.</p>';
+    return h + '<div class="mls-vs">' + vs.map(function (v) { return '<div class="mls-v"><div><b>' + esc(kbDate(v.created_at)) + '</b>' + (v.auteur ? ' · ' + esc(v.auteur) : '') + '<div class="mls-m">' + esc(v.note || 'sans note') + '</div></div><button type="button" class="btn small" data-mls="restaurer" data-id="' + esc(v.id) + '">↩︎ Charger</button></div>'; }).join('') + '</div>';
   }
+
+  // ---------- 👁️ Aperçu exact (Ghost), rafraîchi tout seul ----------
+  function mlDroite(force) {
+    var d = mlQ('.mls-d'), t = mlType(ML.type); if (!d || !t) return;
+    var sugg = ML.sugg && ML.sugg.type === ML.type && ML.vueSugg && t.source !== 'n8n_gabarit';
+    if (force || !d.querySelector('.mls-cadre')) {
+      d.innerHTML = '<div class="mls-dh"><b>👁️ ' + (sugg ? 'Aperçu de la proposition de Julien' : 'Aperçu exact (Ghost)') + '</b><span class="mls-ap-st"></span><span class="seg mls-ecr"><button type="button" data-mls="ecran" data-k="mobile" class="' + (ML.ecran === 'mobile' ? 'on' : '') + '">📱 Téléphone</button><button type="button" data-mls="ecran" data-k="pc" class="' + (ML.ecran === 'pc' ? 'on' : '') + '">🖥️ Ordinateur</button></span></div>' +
+        '<div class="mls-sujet-ap"></div><div class="mls-cadre ' + ML.ecran + '"><iframe class="mls-if" sandbox="" referrerpolicy="no-referrer" title="Aperçu du mail"></iframe></div>';
+    }
+    mlApercu();
+  }
+  function mlApercuPlus() { clearTimeout(ML.apT); var st = mlQ('.mls-ap-st'); if (st) st.textContent = '⏳ mise à jour…'; ML.apT = setTimeout(mlApercu, 1100); }
+  function mlApercu() {
+    var t = mlType(ML.type), id = ML.type; if (!ML.bg || !t) return;
+    var sugg = ML.sugg && ML.sugg.type === id && ML.vueSugg && t.source !== 'n8n_gabarit';
+    var contenu = sugg ? { sujet: ML.sugg.p.sujet, blocs: ML.sugg.p.blocs, mise_en_page: mlB().mise_en_page } : mlContenu(id);
+    var cle = id + '|' + (t.source === 'n8n_gabarit' ? 'gf' : JSON.stringify(contenu));
+    var montrer = function (A) {
+      if (!ML.bg || ML.type !== id) return;
+      var f = mlQ('.mls-if'), st = mlQ('.mls-ap-st'), sj = mlQ('.mls-sujet-ap');
+      if (A.err) { if (st) st.textContent = ''; var c = mlQ('.mls-cadre'); if (c) c.innerHTML = mlErreur(A.err) + '<button type="button" class="btn small" data-mls="apercu-reessayer">↻ Réessayer</button>'; return; }
+      if (sj) sj.innerHTML = 'Objet : <b>' + esc(A.sujet || '') + '</b>';
+      if (f && f.getAttribute('data-cle') !== cle) { f.setAttribute('data-cle', cle); f.srcdoc = A.html || ''; }
+      if (st) st.textContent = '';
+    };
+    if (ML.ap[cle]) { montrer(ML.ap[cle]); return; }
+    var seq = ++ML.apSeq, st0 = mlQ('.mls-ap-st'); if (st0) st0.textContent = '⏳ mise à jour…';
+    mlApi({ action: 'apercu', type: id, contenu: contenu }).then(function (r) {
+      if (r.abort || seq !== ML.apSeq) return;
+      var A = r.ok ? { html: r.html, sujet: r.sujet } : { err: r.why };
+      if (r.ok) ML.ap[cle] = A;
+      montrer(A);
+    });
+  }
+
+  // ---------- événements ----------
+  function mlSaisie(e) {
+    var el = e.target; if (!el || !ML.bg) return;
+    var B = mlB();
+    if (el.classList && el.classList.contains('mls-ed')) { mlLire(el); mlModifie(); return; }
+    if (el.id === 'wl-mls-sujet') { B.sujet = el.value; var c = mlQ('#wl-mls-cpt'), bs = mlQ('.mls-bs'); if (c) c.textContent = el.value.length + ' car.'; if (bs) bs.textContent = el.value || '(sans objet)'; mlModifie(); return; }
+    if (el.id === 'wl-ml-consigne') { ML.consigne[ML.type] = el.value; return; }
+    if (el.id === 'wl-mls-email') { ML.email = el.value.trim(); return; }
+    if (el.id === 'wl-ml-note') { ML.note = el.value; return; }
+    var bt = el.getAttribute('data-mls-btn');
+    if (bt) { var i = Number(el.getAttribute('data-i')), b = B.blocs[i]; if (b) { b[bt] = el.value; if (bt === 'label') { var s = el.closest('.mls-b').querySelector('.mls-btn'); if (s) s.textContent = el.value || 'Texte du bouton'; } mlModifie(); } return; }
+    var em = el.getAttribute('data-mls-e');
+    if (em) { B.emplacements = B.emplacements || {}; B.emplacements[em] = el.value; var cpt = mlQ('[data-mls-cpt="' + em + '"]'), d = (mlType(ML.type).emplacements || []).filter(function (x) { return x.id === em; })[0]; if (cpt && d) cpt.textContent = el.value.length + ' / ' + d.max; mlEnteteMaj(); }
+  }
+  function mlChange(e) {
+    var el = e.target; if (!el || !ML.bg) return;
+    if (el.getAttribute('data-mls-type')) { mlStudio(el.value); return; }
+    if (el.getAttribute('data-mls-forme')) { mlForme(el.value); return; }
+    var k = el.getAttribute('data-mls-reg'); if (k) { var d = mlReg(k), v = d && d.type === 'nombre' ? Math.round(Number(el.value)) : el.value; mlRegler(k, v); }
+  }
+  function mlDemanderFermer() { mlFermer(); if (mlTypes().some(function (x) { return ML.brouillon[x.id] && mlSale(x.id); })) toast('Vos modifications non enregistrées sont gardées tant que la page reste ouverte.'); }
   function mlClic(e) {
-    var b = e.target.closest && e.target.closest('[data-ml]'); if (!b || !ML.racine || !ML.racine.contains(b) || b.disabled) return;
-    var a = b.getAttribute('data-ml'), t = mlType(ML.type), B = mlB(), i = Number(b.getAttribute('data-i')), k = b.getAttribute('data-k');
-    if (a === 'type') return;
+    var b = e.target.closest && e.target.closest('[data-mls]');
+    if (!b) { if (e.target === ML.bg) mlDemanderFermer(); return; }
+    if (b.disabled) return;
+    var a = b.getAttribute('data-mls'), t = mlType(ML.type), B = mlB(), i = Number(b.getAttribute('data-i')), k = b.getAttribute('data-k');
+    e.preventDefault();
+    if (a === 'fermer') { mlDemanderFermer(); return; }
     if (a === 'recharger') { mlCharger(true); return; }
-    if (a === 'reg-sw') { var E = ML.etat[ML.type]; mlRegler(k, !(E && E.reglages && E.reglages[k])); return; }
-    if (a === 'b-haut' && i > 0) { var x = B.blocs.splice(i, 1)[0]; B.blocs.splice(i - 1, 0, x); mlPeindre(); return; }
-    if (a === 'b-bas' && i < B.blocs.length - 1) { var y = B.blocs.splice(i, 1)[0]; B.blocs.splice(i + 1, 0, y); mlPeindre(); return; }
-    if (a === 'b-suppr') { var bb = B.blocs[i]; if (bb && bb.t === 'raw') { confirmer('Retirer ce bloc protégé ? Il ne pourra être recréé que dans Ghost.').then(function (ok) { if (ok) { B.blocs.splice(i, 1); mlPeindre(); } }); return; } B.blocs.splice(i, 1); mlPeindre(); return; }
-    if (a === 'b-ajout') { B.blocs = B.blocs || []; B.blocs.push(k === 'p' ? { t: 'p', md: '' } : k === 'h' ? { t: 'h', tag: 'h3', md: '' } : k === 'ul' ? { t: 'ul', items: [] } : k === 'bouton' ? { t: 'bouton', label: '', url: 'https://posthumain.com/' } : { t: 'hr' }); mlPeindre(); return; }
-    if (a === 'mep') { B.mise_en_page = k; ML.apercu = null; mlPeindre(); return; }
-    if (a === 'dicter') { if (ML_DICTEE.actif()) ML_DICTEE.arreter(); else ML_DICTEE.demarrer(); return; }
-    if (a === 'garder') { ML.sugg = null; mlPeindre(); return; }
-    if (a === 'appliquer' && ML.sugg) { var P = ML.sugg.p; if (t.source === 'n8n_gabarit') B.emplacements = Object.assign({}, B.emplacements, P.emplacements); else { B.sujet = P.sujet; B.blocs = P.blocs; } ML.sugg = null; ML.apercu = null; mlPeindre(); toast('Suggestion appliquée dans l’éditeur : relisez, testez puis enregistrez'); return; }
-    var occupe = function (on, txt) { b.disabled = on; if (on) { b.setAttribute('data-txt', b.textContent); b.textContent = txt; } else if (b.getAttribute('data-txt')) b.textContent = b.getAttribute('data-txt'); };
-    if (a === 'apercu') {
-      occupe(true, '⏳ Aperçu…');
-      mlApi({ action: 'apercu', type: ML.type, contenu: mlContenuEnvoye() }).then(function (r) { if (r.abort || !ML.racine) return; occupe(false); if (!r.ok) { mlErr(r.why); return; } ML.apercu = { html: r.html, sujet: r.sujet }; mlPeindre(); var ap = ML.racine.querySelector('.ml-ap'); if (ap && ap.scrollIntoView) ap.scrollIntoView({ block: 'nearest' }); });
+    if (a === 'onglet') { ML.onglet = k; mlOnglets(); mlGauche(); if (k === 'apercu') mlApercu(); return; }
+    if (a === 'ecran') { ML.ecran = k; var c = mlQ('.mls-cadre'); if (c) c.className = 'mls-cadre ' + k; Array.prototype.forEach.call(ML.bg.querySelectorAll('[data-mls="ecran"]'), function (x) { x.classList.toggle('on', x.getAttribute('data-k') === k); }); return; }
+    if (a === 'apercu-reessayer') { mlDroite(true); return; }
+    if (a === 'fmt') { var ed = mlSelRemettre(); if (!ed) { toast('Sélectionnez d’abord du texte dans la feuille', true); return; } document.execCommand(k); mlLire(ed); mlModifie(); return; }
+    if (a === 'lien') { mlLienOuvrir(); return; }
+    if (a === 'lien-ok') { mlLienOk(false); return; }
+    if (a === 'lien-retirer') { mlLienOk(true); return; }
+    if (a === 'lien-annuler') { ML.lien = null; mlLienBarre(); return; }
+    if (a === 'ajout-menu') { ML.menu = !ML.menu; mlGauche(); return; }
+    if (a === 'ajout') { mlAjouter(k, b.getAttribute('data-fin') ? null : ML.focus); return; }
+    if (a === 'haut' && i > 0) { var x = B.blocs.splice(i, 1)[0]; B.blocs.splice(i - 1, 0, x); ML.focus = i - 1; mlRemplir(); mlModifie(); return; }
+    if (a === 'bas' && i < B.blocs.length - 1) { var y = B.blocs.splice(i, 1)[0]; B.blocs.splice(i + 1, 0, y); ML.focus = i + 1; mlRemplir(); mlModifie(); return; }
+    if (a === 'suppr') {
+      var bb = B.blocs[i], fin = function () { B.blocs.splice(i, 1); ML.focus = -1; mlRemplir(); mlModifie(); };
+      if (bb && bb.t === 'raw') confirmer('Retirer ce bloc Ghost (image, carte…) ? Il ne pourra être recréé que dans Ghost.').then(function (ok) { if (ok) fin(); }); else fin();
       return;
+    }
+    if (a === 'mep') { B.mise_en_page = k; mlGauche(); mlModifie(); return; }
+    if (a === 'defaut') { var de = (t.emplacements || []).filter(function (x) { return x.id === k; })[0]; if (de) { B.emplacements = B.emplacements || {}; B.emplacements[k] = de.defaut; mlGauche(); mlEnteteMaj(); } return; }
+    if (a === 'reg-sw') { var E = ML.etat[ML.type]; mlRegler(k, !(E && E.reglages && E.reglages[k])); return; }
+    if (a === 'reg-moins' || a === 'reg-plus') { var E2 = ML.etat[ML.type], v0 = Number((E2 && E2.reglages && E2.reglages[k]) || 0); mlRegler(k, v0 + (a === 'reg-plus' ? 1 : -1)); return; }
+    if (a === 'dicter') { if (ML_DICTEE.actif()) ML_DICTEE.arreter(); else ML_DICTEE.demarrer(); return; }
+    if (a === 'annuler') { confirmer('Revenir à la version enregistrée ? Vos modifications de ce mail seront perdues.').then(function (ok) { if (!ok) return; ML.brouillon[ML.type] = JSON.parse(JSON.stringify(mlOrigine(ML.type))); ML.focus = -1; mlTout(); }); return; }
+    if (a === 'vue-sugg') { ML.vueSugg = k === '1'; mlGauche(); mlDroite(true); if (ML.vueSugg && window.innerWidth < 1000) { ML.onglet = 'apercu'; mlOnglets(); } return; }
+    if (a === 'ignorer') { ML.sugg = null; ML.vueSugg = false; mlOnglets(); mlGauche(); mlDroite(true); return; }
+    if (a === 'appliquer' && ML.sugg) {
+      var P = ML.sugg.p;
+      if (t.source === 'n8n_gabarit') B.emplacements = Object.assign({}, B.emplacements, P.emplacements); else { B.sujet = P.sujet; B.blocs = P.blocs; }
+      ML.sugg = null; ML.vueSugg = false; ML.onglet = 'ecrire'; mlTout(); toast('Version de Julien reprise dans l’éditeur : relisez, testez puis enregistrez'); return;
     }
     if (a === 'suggerer') {
-      occupe(true, '⏳ Julien écrit…');
-      mlApi({ action: 'suggerer', type: ML.type, contenu: mlContenuEnvoye(), consigne: ML.consigne[ML.type] || '' }).then(function (r) { if (r.abort || !ML.racine) return; occupe(false); if (!r.ok) { mlErr(r.why); return; } ML.sugg = { type: ML.type, p: r.proposition }; mlPeindre(); var cm = ML.racine.querySelector('.ml-cmp'); if (cm && cm.scrollIntoView) cm.scrollIntoView({ block: 'nearest' }); });
+      ML.occupe = 'sugg'; mlGauche();
+      mlApi({ action: 'suggerer', type: ML.type, contenu: mlContenu(), consigne: ML.consigne[ML.type] || '' }).then(function (r) {
+        ML.occupe = ''; if (r.abort || !ML.bg) return;
+        if (!r.ok) { mlGauche(); toast(r.why || 'proposition impossible', true); return; }
+        ML.sugg = { type: ML.type, p: r.proposition }; ML.vueSugg = t.source !== 'n8n_gabarit'; mlOnglets(); mlGauche(); mlDroite(true);
+      });
       return;
     }
+    if (a === 'test-ouvrir') { ML.testOuvert = true; mlEntete(); var inp = mlQ('#wl-mls-email'); if (inp) inp.focus(); return; }
+    if (a === 'test-fermer') { ML.testOuvert = false; mlEntete(); return; }
     if (a === 'test') {
-      var mail = (ML.racine.querySelector('#wl-ml-email') || {}).value || ''; mail = mail.trim(); ML.email = mail;
+      var mail = String((mlQ('#wl-mls-email') || {}).value || '').trim(); ML.email = mail;
       if (!/^[^\s@<>,;]+@[^\s@<>,;]+\.[a-z]{2,}$/i.test(mail)) { toast('Adresse de test invalide', true); return; }
-      confirmer('Envoyer un test de « ' + t.nom + ' » à ' + mail + ' ?' + (t.source === 'n8n_gabarit' ? ' (dernier Grand Format, mise en page actuelle)' : ' (contenu affiché, même non enregistré)')).then(function (ok) {
-        if (!ok) return; occupe(true, '⏳ Envoi…');
-        mlApi({ action: 'test', type: ML.type, email: mail, confirme: true, contenu: mlContenuEnvoye() }).then(function (r) { if (r.abort || !ML.racine) return; occupe(false); if (!r.ok) { mlErr(r.why); return; } toast('📨 Test envoyé à ' + r.envoye); });
+      confirmer('Envoyer un test de « ' + t.nom + ' » à ' + mail + ' ?').then(function (ok) {
+        if (!ok) return; ML.occupe = 'test'; mlEntete();
+        mlApi({ action: 'test', type: ML.type, email: mail, confirme: true, contenu: mlContenu() }).then(function (r) { ML.occupe = ''; if (r.abort || !ML.bg) return; if (!r.ok) { mlEntete(); toast(r.why || 'test non envoyé', true); return; } ML.testOuvert = false; mlEntete(); toast('📨 Test envoyé à ' + r.envoye); });
       });
       return;
     }
     if (a === 'enregistrer') {
-      var note = (ML.racine.querySelector('#wl-ml-note') || {}).value || '';
-      confirmer(t.source === 'n8n_gabarit' ? 'Enregistrer ces textes ? Ils s’appliqueront au prochain Grand Format.' : 'Enregistrer « ' + t.nom + ' » ? Ghost reçoit cette version : les prochains envois (site et leads Meta) l’utiliseront.' + (B.mise_en_page === 'carte' ? ' Mise en page : nouvelle (cartes).' : '')).then(function (ok) {
-        if (!ok) return; occupe(true, '⏳ Enregistrement…');
-        mlApi({ action: 'enregistrer', type: ML.type, contenu: mlContenuEnvoye(), note: note }).then(function (r) { if (r.abort || !ML.racine) return; occupe(false); if (!r.ok) { mlErr(r.why); return; } toast('💾 ' + (r.effet || 'enregistré')); delete ML.brouillon[ML.type]; mlCharger(true); });
+      confirmer(t.source === 'n8n_gabarit' ? 'Enregistrer ces textes ? Ils s’appliqueront au prochain Grand Format.' : 'Enregistrer « ' + t.nom + ' » ? Ghost reçoit cette version : les prochains envois (site et leads Meta) l’utiliseront.').then(function (ok) {
+        if (!ok) return; ML.occupe = 'save'; mlEntete();
+        var id = ML.type;
+        mlApi({ action: 'enregistrer', type: id, contenu: mlContenu(id), note: ML.note || '' }).then(function (r) {
+          ML.occupe = ''; if (r.abort || !ML.bg) return;
+          if (!r.ok) { mlEntete(); toast(r.why || 'enregistrement impossible', true); return; }
+          toast('💾 ' + (r.effet || 'enregistré')); ML.note = ''; ML.versions = null; delete ML.brouillon[id]; delete ML.etat[id]; mlCharger(true);
+        });
       });
       return;
     }
     if (a === 'restaurer') {
       mlApi({ action: 'restaurer', type: ML.type, version_id: b.getAttribute('data-id') }).then(function (r) {
-        if (r.abort || !ML.racine) return; if (!r.ok) { mlErr(r.why); return; }
-        var C = r.contenu || {}; if (t.source === 'n8n_gabarit') ML.brouillon[ML.type] = { emplacements: C.emplacements || {} }; else ML.brouillon[ML.type] = { sujet: C.sujet, blocs: C.blocs || [], mise_en_page: C.mise_en_page || 'ghost' };
-        ML.apercu = null; mlPeindre(); toast('Version chargée dans l’éditeur : relisez puis « 💾 Enregistrer » pour l’appliquer');
+        if (r.abort || !ML.bg) return; if (!r.ok) { toast(r.why || 'version introuvable', true); return; }
+        var C = r.contenu || {}; ML.brouillon[ML.type] = t.source === 'n8n_gabarit' ? { emplacements: C.emplacements || {} } : { sujet: C.sujet, blocs: C.blocs || [], mise_en_page: C.mise_en_page || 'ghost' };
+        ML.onglet = 'ecrire'; ML.focus = -1; mlTout(); toast('Version chargée dans l’éditeur : relisez puis « 💾 Enregistrer » pour l’appliquer');
       });
     }
   }
-  function mlErr(why) { if (/GHOST_STAFF_API_KEY/.test(String(why || ''))) { var c = mlCorps(); if (c) c.insertAdjacentHTML('afterbegin', mlErreur(why)); } toast(String(why || 'erreur'), true); }
   var ML_DICTEE = !PHL.dictee ? { dispo: false, demarrer: function () {}, arreter: function () {}, actif: function () { return false; } } : PHL.dictee({
-    champ: function () { return ML.racine ? ML.racine.querySelector('#wl-ml-consigne') : null; },
+    champ: function () { return mlQ('#wl-ml-consigne'); },
     lang: function () { return LS.get('wl-dictee-lang') || 'fr-FR'; },
     brouillon: function (t) { ML.consigne[ML.type] = t; },
-    etat: function (on) { var b = ML.racine && ML.racine.querySelector('[data-ml="dicter"]'); if (b) { b.classList.toggle('on', on); b.textContent = on ? '⏹️ Arrêter' : '🎙️ Dicter'; } },
-    verrou: function (on) { var t = ML.racine && ML.racine.querySelector('#wl-ml-consigne'); if (t) { t.disabled = on; t.classList.toggle('wl-mef', on); } },
+    etat: function (on) { var b = mlQ('[data-mls="dicter"]'); if (b) { b.classList.toggle('on', on); b.textContent = on ? '⏹️ Arrêter' : '🎙️ Dicter'; } },
+    verrou: function (on) { var t = mlQ('#wl-ml-consigne'); if (t) { t.disabled = on; t.classList.toggle('wl-mef', on); } },
     toast: function (t, bad) { toast(t, bad); },
     formaterActif: function () { return LS.get('wl-mef') !== '0'; },
     miseEnForme: function (dit) { return pushApi({ action: 'dictee', texte: dit }).then(function (r) { return r && r.ok ? r.texte : ''; }); }
   });
-  // Exécuteur de page de la capacité « mails_marketing » (☎️ de Julien · Marketing) : ouvre l'éditeur sur le bon mail, consigne prête.
+  // Exécuteur de page de la capacité « mails_marketing » (☎️ de Julien · Marketing) : ouvre le studio sur le bon mail, consigne prête.
   function mlOuvrir(p) {
     if (!D().me.chef) return Promise.resolve({ ok: false, why: 'réservé au rédacteur en chef' });
-    if (p && mlType(p.type)) { ML.type = p.type; LS.set('wl-ml-type', p.type); if (p.consigne) ML.consigne[p.type] = String(p.consigne); }
-    if (S.panel !== 'mk') openPanel('mk'); else paintPanel();
-    if (ML.racine) { var sel = ML.racine.querySelector('#wl-ml-type'); if (sel && sel.value !== ML.type) { sel.value = ML.type; mlCharger(false); } else mlPeindre(); }
-    setTimeout(function () { var s = S.root && S.root.querySelector('#wl-ml-slot'); if (s && s.scrollIntoView) s.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
+    var id = p && mlType(p.type) ? p.type : null;
+    if (id && p.consigne) { ML.consigne[id] = String(p.consigne); ML.onglet = 'julien'; }
+    if (S.panel !== 'mk') openPanel('mk');
+    mlStudio(id || ML.type);
     return Promise.resolve({});
   }
   function panelParams() {

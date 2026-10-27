@@ -64,5 +64,8 @@ avec `index.ts`, `lexique.ts`, `types.ts`, `equipe.ts` et `kb.ts` (copie de `_sh
 - n8n lit les réglages à chaque passage avec repli sur les valeurs d'origine : « Série de bienvenue (leads Meta) »
   (O2KTg4ei7beStC6g) et le nœud « Grand Format » du workflow « Best-of premium mensuel » (dSPO5tEWq09YPvk1, déclencheur quotidien
   9h45 avec arrêt silencieux hors du jour réglé). Le gabarit HTML du Grand Format ne se modifie jamais depuis le lab.
+- Page (27/10/2026) : le panneau Marketing ne montre que des cartes ; l'édition se fait dans un **studio plein écran** (`mlStudio` dans
+  app.js) : texte directement éditable sur une feuille blanche (même grammaire **gras** / *italique* / [lien](url) que `lexique.ts`),
+  aperçu exact de Ghost rafraîchi seul ~1 s après chaque modification, onglets Écrire · Aperçu (téléphone) · Julien · Envoi · Versions.
 - Historique : table `wl_mails_versions` (versions, sauvegarde de l'automation Ghost avant chaque écriture) ; réglages : `wl_reglages`
   (clé `mails:<type>`).
