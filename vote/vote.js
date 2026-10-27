@@ -115,7 +115,7 @@
     return api('etat').then(function (r) {
       if (!r || !r.ok) { if (!silencieux) { S.alerte = { ko: true, t: (r && r.why) || 'Le vote ne répond pas.' }; rendre(); } return; }
       if (r.serveur) S.decalage = Date.parse(r.serveur) - Date.now();
-      // relecture silencieuse (toutes les 25 s) : on ne redessine que si quelque chose a vraiment changé (sinon décalages inutiles)
+      // relecture silencieuse : on ne redessine que si quelque chose a vraiment changé (sinon décalages inutiles)
       var avant = silencieux && S.d ? JSON.stringify(Object.assign({}, S.d, { serveur: 0 })) : null;
       fusionner(r);
       if (avant && avant === JSON.stringify(Object.assign({}, S.d, { serveur: 0 })) && !(r.equipe && location.hash === '#redaction')) return;
@@ -134,16 +134,25 @@
   function chargerRedaction() {
     return api('redaction_etat').then(function (r) { if (r && r.ok) S.red = r; rendre(); });
   }
-  function sonder() {
+  // 27/10/2026 (Jonathan : « trop de requêtes, les gens s'en fichent », instance Supabase gratuite) : plus de relecture en boucle.
+  // La page relit l'état : au chargement, après chaque action (la réponse contient déjà le nouvel état), au retour sur l'onglet
+  // s'il a été quitté plus de 5 minutes, et pendant que l'IA forme les 3 sujets : 3 vérifications espacées (30 s, 1 min 30,
+  // 4 min), seulement si l'onglet est visible. Un robot ou un onglet oublié ne génère donc plus aucune requête.
+  var ATTENTES_IA = [30000, 90000, 240000];
+  function sonder(n) {
     clearTimeout(S.sondage);
-    var enFusion = S.d && S.d.tour && S.d.tour.ia_etat === 'en_cours';
+    n = n || 0;
+    if (!(S.d && S.d.tour && S.d.tour.ia_etat === 'en_cours') || n >= ATTENTES_IA.length) return;
     S.sondage = setTimeout(function () {
-      var a = sh.activeElement;
-      var saisie = a && root.contains(a) && /^(TEXTAREA|INPUT)$/.test(a.tagName);
-      if (document.visibilityState === 'visible' && !saisie && !S.occupe && !sh.querySelector('.phv-fond')) charger(true).then(sonder); else sonder();
-    }, enFusion ? 6000 : 25000);
+      if (document.visibilityState !== 'visible') { S.iaEnAttente = true; return; }
+      S.dernier = Date.now(); charger(true).then(function () { sonder(n + 1); });
+    }, ATTENTES_IA[n]);
   }
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.d) charger(true); });
+  S.dernier = Date.now();
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !S.d) return;
+    if (S.iaEnAttente || Date.now() - S.dernier > 300000) { S.iaEnAttente = false; S.dernier = Date.now(); charger(true).then(function () { sonder(0); }); }
+  });
 
   // ---------------------------------------------------------------- rendu
   function phaseCible(t) {
@@ -382,7 +391,7 @@
         if (r && r.ok) { S.titre = ''; S.detail = ''; S.theme = ''; fusionner(r); S.alerte = { t: r.ia ? 'Merci ! C’était la 6e proposition : l’IA forme maintenant les 3 sujets du vote.' : 'Merci ! Votre proposition est en ligne, et votre vote lui est attribué.' }; }
         else if (r && (r.why === 'premium' || r.why === 'connexion')) { fenetre(r.why === 'connexion' ? 'visiteur' : 'gratuit'); }
         else S.alerte = { ko: true, t: (r && r.why) || 'Envoi impossible.' };
-        rendre();
+        rendre(); sonder(0); // 6e proposition : l'IA forme les 3 sujets, quelques vérifications espacées
       });
       return;
     }
@@ -408,7 +417,7 @@
     }
     if (act === 'relancer-ia') {
       S.occupe = true;
-      api('relancer_ia').then(function (r) { S.occupe = false; S.alerte = { ko: !(r && r.ok), t: (r && r.why) || (r && r.ok ? 'L’IA travaille.' : 'Impossible.') }; charger(true).then(sonder); });
+      api('relancer_ia').then(function (r) { S.occupe = false; S.alerte = { ko: !(r && r.ok), t: (r && r.why) || (r && r.ok ? 'L’IA travaille.' : 'Impossible.') }; charger(true).then(function () { sonder(0); }); });
       return;
     }
     if (act === 'publier-page') {
@@ -465,5 +474,5 @@
   }
 
   window.addEventListener('hashchange', function () { if (location.hash === '#redaction' && S.d && S.d.equipe) chargerRedaction(); });
-  charger(false).then(sonder);
+  charger(false).then(function () { sonder(0); });
 })();
