@@ -353,6 +353,10 @@
 #wl .paper .acts button.go{background:#0a7a45!important;border-color:#0a7a45!important;color:#fff!important;-webkit-text-fill-color:#fff!important}\
 #wl .paper .acts button.red{color:#a3122a!important;-webkit-text-fill-color:#a3122a!important;border-color:#e6b8c0!important}\
 #wl .paper .acts button[disabled]{opacity:.45;cursor:not-allowed}\
+#wl .paper .wl-tr-bar{white-space:normal;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font:600 12.5px/1.35 Inter,system-ui,sans-serif;color:#5e5544!important;-webkit-text-fill-color:#5e5544!important;background:#efe6d0;border-radius:8px;padding:6px 8px 6px 10px;margin:0 0 10px}\
+#wl .paper button.wl-tr-b{padding:5px 10px!important;font-size:12.5px!important;border-radius:8px!important}#wl .paper button.wl-tr-b[disabled]{opacity:.6;cursor:wait}\
+#wl .paper .wl-trb-l{margin:8px 0 2px}#wl .paper .wl-trb-box{border:1px dashed #b9ab8a;border-radius:8px;background:#fbf8f1;padding:10px 12px;margin:8px 0}#wl .paper .wl-trb-box.vieux .wl-trb-t{opacity:.6}\
+#wl .paper .wl-trb-t{white-space:pre-wrap;word-wrap:break-word;font-size:15.5px;line-height:1.5;color:#1f1a12!important;-webkit-text-fill-color:#1f1a12!important}\
 #wl .paper .tl{font-family:Inter,sans-serif;font-size:13px;color:#5e5544;margin:0;padding:0;list-style:none}\
 #wl .paper .tl li{padding:4px 0;border-bottom:1px dashed #e2d8c2;color:#5e5544!important;-webkit-text-fill-color:#5e5544!important}\
 #wl .paper .prop{border:1px solid #d9ccb0;border-radius:10px;padding:12px;margin:10px 0;background:#fffdf7}\
@@ -1440,6 +1444,132 @@
     });
     return h;
   }
+  // ---------- 🇫🇷 Traductions pour l'équipe (27/10/2026) ----------
+  // Demande de Jonathan : comprendre les mails qui ne sont pas en français — ceux qu'on reçoit, et ceux que l'IA rédige dans la langue
+  // du contact (allemand…). Traduction par Sonnet (wl-push « traduire »), gardée dans Supabase (table wl_traductions, clé = empreinte du
+  // texte) : dès qu'un texte a été traduit une fois, sa traduction s'affiche d'office à chaque ouverture, avec « Voir l'original ».
+  // Réservé aux humains : aucune IA du lab ne lit ces traductions (elles travaillent sur l'original), et ce qui part reste toujours
+  // le texte du champ, jamais remplacé (pour un brouillon, la traduction s'affiche à part, sous le champ).
+  var TR_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-traduire';
+  var TR_LANGUES = { en: 'anglais', de: 'allemand', es: 'espagnol', it: 'italien', pt: 'portugais', nl: 'néerlandais' };
+  var TR_MOTS = (function () {
+    var m = {
+      fr: 'le la les des du une est et pour que qui dans pas vous nous avec sur ce cette mais très merci bonjour je suis être avez votre vos notre sont aussi bien cordialement madame monsieur',
+      en: 'the and is are you we with for that this not have be thank thanks your our of to in would could will it can please regards dear best which from',
+      de: 'der die das und ist nicht ich sie wir mit für auf ein eine zu den dem bitte danke vielen ihre ihr haben sehr gerne grüße freundlichen sind auch wie können',
+      es: 'el los las y es que de en por para con una un no gracias usted su muy pero como saludos estimado está',
+      it: 'il lo gli e è che di per con una un non grazie lei suo molto ma come sono della cordiali saluti',
+      pt: 'o os as e é que de em por para com uma um não obrigado você seu muito mas como atenciosamente',
+      nl: 'de het een en is niet ik wij met voor op van dank u uw zijn graag groeten vriendelijke'
+    }, o = {};
+    Object.keys(m).forEach(function (k) { o[k] = {}; m[k].split(' ').forEach(function (w) { o[k][w] = 1; }); });
+    return o;
+  })();
+  function trNorm(t) { return String(t == null ? '' : t).replace(/\r\n?/g, '\n').trim(); }
+  // Même empreinte que wl-traduire (trCle) : ne pas changer l'une sans l'autre.
+  function trCle(t) {
+    var s = trNorm(t), h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    var x = function (n) { return ('00000000' + (n >>> 0).toString(16)).slice(-8); };
+    return x(h2) + x(h1) + '-' + s.length;
+  }
+  // Langue probable (sans appel à l'IA) : mots outils les plus fréquents, en ignorant le fil cité (souvent notre propre mail en français).
+  // '' = trop court ou indécis : pas de bouton. 'fr' = français.
+  function trLangue(t) {
+    var s = trNorm(t);
+    var haut = s.split(/\n\s*(?:>|-{2,}\s*(?:original|message|mensaje|messaggio|nachricht)|_{5,}|(?:le|on|am|el|il|op)\s[^\n]{4,120}(?:a écrit|wrote|schrieb|escribió|ha scritto|escreveu|schreef)\s*:|(?:de|from|von|da|van)\s*:\s)/i)[0];
+    if (haut.length < 40) haut = s;
+    var mots = haut.toLowerCase().match(/[a-zà-ÿœß']+/g) || [], n = {}, tot = 0, best = '', bn = 0;
+    mots.forEach(function (w) { w = w.replace(/^[a-z]'/, ''); Object.keys(TR_MOTS).forEach(function (l) { if (TR_MOTS[l][w]) { n[l] = (n[l] || 0) + 1; tot++; } }); });
+    Object.keys(n).forEach(function (l) { if (l !== 'fr' && n[l] > bn) { bn = n[l]; best = l; } });
+    if (tot < 3) return '';
+    if ((n.fr || 0) >= bn) return 'fr';
+    return best;
+  }
+  function trDe(src) { src = String(src || '').trim(); return !src ? '' : /^[aeiouyhéèêâîô]/i.test(src) ? 'de l’' + src : 'du ' + src; }
+  function TR() { return S.trs || (S.trs = { e: {}, txt: {}, vue: {}, busy: {}, ask: {}, last: {} }); }
+  function trBtn(act, k, label, off) { return '<button type="button" class="pb2 wl-tr-b" data-act="' + act + '" data-id="' + esc(k) + '"' + (off ? ' disabled' : '') + '>' + label + '</button>'; }
+  function trBar(txt, btn) { return '<div class="wl-tr-bar"><span>' + txt + '</span>' + btn + '</div>'; }
+  // Texte lu (mail reçu, ou mail déjà envoyé) : le conteneur garde les attributs de l'appelant (classe, style).
+  function trLu(texte, attrs) {
+    var t = trNorm(texte), k = trCle(t); TR().txt[k] = t;
+    return '<div ' + (attrs || '') + ' data-trk="' + esc(k) + '">' + trInnerLu(k) + '</div>';
+  }
+  function trInnerLu(k) {
+    var R = TR(), t = R.txt[k] || '', e = R.e[k], busy = !!R.busy[k];
+    if (e && e.t) {
+      if (R.vue[k] === 'orig') return trBar('📄 Texte original' + (e.src ? ' (' + esc(e.src) + ')' : ''), trBtn('tr-fr', k, '🇫🇷 Voir la traduction')) + esc(t);
+      return trBar('🇫🇷 Traduit ' + esc(trDe(e.src) || 'en français') + ' pour vous', trBtn('tr-orig', k, 'Voir l’original')) + esc(e.t);
+    }
+    var lg = trLangue(t);
+    if ((e && e.fr) || lg === 'fr' || !lg) return esc(t);
+    return trBar('🌐 ' + (TR_LANGUES[lg] ? 'Écrit en ' + TR_LANGUES[lg] : 'Écrit dans une autre langue'), trBtn('tr-go', k, busy ? '⏳ Traduction…' : '🇫🇷 Traduire en français', busy)) + esc(t);
+  }
+  // Brouillon modifiable : la traduction s'affiche SOUS le champ, à part (le champ, lui, part tel quel).
+  function trBrTexte(sujet, corps) { return trNorm(corps) ? (trNorm(sujet) ? 'Objet : ' + trNorm(sujet) + '\n\n' : '') + trNorm(corps) : ''; }
+  function trBr(sujetId, corpsId, sujet, corps) {
+    return '<div class="wl-trb" data-trb="' + esc(corpsId) + '" data-trs="' + esc(sujetId) + '">' + trInnerBr(corpsId, sujet, corps) + '</div>';
+  }
+  function trInnerBr(id, sujet, corps) {
+    var R = TR(), t = trBrTexte(sujet, corps); if (!t) return '';
+    var k = trCle(t), e = R.e[k], busy = !!R.busy[k], lieu = id + '|' + (S.doc ? S.doc.id : ''), last = R.last[lieu];
+    R.txt[k] = t;
+    if (e && e.t) {
+      R.last[lieu] = k;
+      if (R.vue[k] === 'cache') return '<div class="wl-trb-l">' + trBtn('tr-montre', k, '🇫🇷 Afficher la traduction pour moi') + '</div>';
+      return '<div class="wl-trb-box">' + trBar('🇫🇷 Traduction ' + esc(trDe(e.src)) + ', pour vous seulement : le mail part tel qu’écrit ci-dessus', trBtn('tr-cache', k, 'Masquer')) + '<div class="wl-trb-t">' + esc(e.t) + '</div></div>';
+    }
+    var old = last && R.e[last] && R.e[last].t ? R.e[last] : null;
+    if (old) return '<div class="wl-trb-box vieux">' + trBar('🇫🇷 Traduction de la version précédente : le texte a changé depuis', trBtn('tr-go', k, busy ? '⏳ Traduction…' : '🔁 Retraduire', busy)) + '<div class="wl-trb-t">' + esc(old.t) + '</div></div>';
+    var lg = trLangue(corps);
+    if ((e && e.fr) || lg === 'fr' || !lg) return '';
+    return '<div class="wl-trb-l">' + trBtn('tr-go', k, busy ? '⏳ Traduction…' : '🇫🇷 Traduire pour moi' + (TR_LANGUES[lg] ? ' (mail en ' + TR_LANGUES[lg] + ')' : '') + ' · rien n’est envoyé', busy) + '</div>';
+  }
+  function trValeur(id) { var el = S.root && S.root.querySelector('#' + id); return el ? el.value : null; }
+  function trRepeindre() {
+    if (!S.root) return;
+    Array.prototype.forEach.call(S.root.querySelectorAll('[data-trk]'), function (el) { el.innerHTML = trInnerLu(el.getAttribute('data-trk')); });
+    Array.prototype.forEach.call(S.root.querySelectorAll('[data-trb]'), function (el) {
+      var c = trValeur(el.getAttribute('data-trb')), s = trValeur(el.getAttribute('data-trs'));
+      if (c !== null) el.innerHTML = trInnerBr(el.getAttribute('data-trb'), s || '', c);
+    });
+  }
+  // Après chaque affichage d'un document : va chercher en une fois les traductions déjà faites des textes visibles.
+  function trCharger() {
+    if (!S.root) return;
+    var R = TR(), cles = [];
+    Array.prototype.forEach.call(S.root.querySelectorAll('[data-trk]'), function (el) { cles.push(el.getAttribute('data-trk')); });
+    Array.prototype.forEach.call(S.root.querySelectorAll('[data-trb]'), function (el) {
+      var c = trValeur(el.getAttribute('data-trb')), s = trValeur(el.getAttribute('data-trs')), t = trBrTexte(s || '', c || '');
+      if (t) { var k = trCle(t); R.txt[k] = t; cles.push(k); }
+    });
+    cles = cles.filter(function (k, i) { return cles.indexOf(k) === i && !R.ask[k] && !(k in R.e) && trLangue(R.txt[k] || '') !== 'fr'; });
+    if (!cles.length) return;
+    cles.forEach(function (k) { R.ask[k] = 1; });
+    PHL.supa(TR_FN, { action: 'traductions', cles: cles.slice(0, 80) }).then(function (r) {
+      if (!r || !r.ok) { cles.forEach(function (k) { delete R.ask[k]; }); return; }
+      var vu = false; Object.keys(r.traductions || {}).forEach(function (k) { R.e[k] = r.traductions[k]; vu = true; });
+      if (vu) trRepeindre();
+    });
+  }
+  function trTraduire(k) {
+    var R = TR(), t = R.txt[k]; if (!t || R.busy[k]) return;
+    R.busy[k] = 1; trRepeindre();
+    PHL.supa(TR_FN, { action: 'traduire', texte: t }).then(function (r) {
+      delete R.busy[k];
+      if (!r || !r.ok) { toast('⚠️ Traduction impossible : ' + ((r && r.why) || 'réessayez'), true); trRepeindre(); return; }
+      R.e[k] = { t: r.t, src: r.src, fr: r.fr }; delete R.vue[k];
+      if (r.fr) toast('Ce texte est déjà en français.');
+      trRepeindre();
+    });
+  }
+  var trMinuterie = null;
+  function trSaisie(t) {
+    if (!t || !t.id || !S.root || !S.root.querySelector('[data-trb="' + t.id + '"],[data-trs="' + t.id + '"]')) return;
+    clearTimeout(trMinuterie); trMinuterie = setTimeout(trRepeindre, 350);
+  }
   function docProspect(x) {
     var c = campagne(x.campagne_id), busy = !!S.busy.mk, t = PST[x.statut] || ['•', x.statut];
     var ed = (S.pEdit && S.pEdit[x.prospect_id]) || { sujet: x.mail_sujet || '', corps: x.mail_corps || '', email: x.email || '' };
@@ -1451,7 +1581,7 @@
       (x.pourquoi ? '<div style="border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 14px"><b>Pourquoi maintenant :</b> ' + esc(x.pourquoi) + '</div>' : '');
     if (x.envoye_le) h += '<p class="muted">Premier mail envoyé ' + esc(when(x.envoye_le)) + (x.relance_le ? ' · relancé ' + esc(when(x.relance_le)) : '') + '.</p>';
     if (x.statut === 'refus') return h + '<div class="lead">⛔ Ce prospect ne sera plus contacté.</div></div>';
-    if (!D().me.chef) return h + (x.mail_corps ? '<label>Mail</label><div><b>' + esc(x.mail_sujet) + '</b></div><div style="white-space:pre-wrap">' + esc(x.mail_corps) + '</div>' : '') + lectureSeule('') + '</div>';
+    if (!D().me.chef) return h + (x.mail_corps ? '<label>Mail</label><div><b>' + esc(x.mail_sujet) + '</b></div>' + trLu(x.mail_corps, 'style="white-space:pre-wrap"') : '') + lectureSeule('') + '</div>';
     var fini = x.statut === 'client' || x.statut === 'relance' || x.statut === 'repondu';
     var relance = x.statut === 'contacte';
     if (!fini) {
@@ -1459,10 +1589,10 @@
         '<div class="acts"><button data-act="p-rediger" data-id="' + esc(x.prospect_id) + '"' + (busy ? ' disabled' : '') + '>🤖 ' + (relance ? 'Rédiger la relance' : ed.corps ? 'Autre proposition' : 'Rédiger le mail') + '</button></div>' +
         '<label>Adresse</label><input class="pin" id="wl-p-email" value="' + esc(ed.email) + '" inputmode="email" autocomplete="off">' +
         '<label>Objet</label><input class="pin sub" id="wl-p-sujet" value="' + esc(ed.sujet) + '">' +
-        '<label>Message</label><textarea class="pin big" id="wl-p-corps" placeholder="Demandez une proposition à Julien ou écrivez le mail.">' + esc(ed.corps) + '</textarea>' +
+        '<label>Message</label><textarea class="pin big" id="wl-p-corps" placeholder="Demandez une proposition à Julien ou écrivez le mail.">' + esc(ed.corps) + '</textarea>' + trBr('wl-p-sujet', 'wl-p-corps', ed.sujet, ed.corps) +
         '<div class="acts"><button class="go" data-act="p-envoyer" data-id="' + esc(x.prospect_id) + '"' + (busy ? ' disabled' : '') + '>✅ Valider et envoyer' + (relance ? ' la relance' : '') + '</button>' +
         '<button data-act="p-garder" data-id="' + esc(x.prospect_id) + '">💾 Garder</button></div>';
-    } else if (x.mail_corps) h += '<label>Dernier mail</label><div><b>' + esc(x.mail_sujet) + '</b></div><div style="white-space:pre-wrap">' + esc(x.mail_corps) + '</div>';
+    } else if (x.mail_corps) h += '<label>Dernier mail</label><div><b>' + esc(x.mail_sujet) + '</b></div>' + trLu(x.mail_corps, 'style="white-space:pre-wrap"');
     h += '<div class="acts">' + (x.statut !== 'client' ? '<button data-act="p-statut" data-st="client" data-id="' + esc(x.prospect_id) + '">🤝 Devenu client</button>' : '') +
       (x.statut === 'contacte' || x.statut === 'relance' ? '<button data-act="p-statut" data-st="repondu" data-id="' + esc(x.prospect_id) + '">💬 A répondu</button>' : '') +
       '<button class="red" data-act="p-stop" data-id="' + esc(x.prospect_id) + '">⛔ Ne plus contacter</button></div>' +
@@ -1478,14 +1608,14 @@
     var h = '<div class="dtop"><span class="em">' + J.emoji + '</span><div><div class="nm">' + esc(m.sujet || '(sans objet)') + '</div><div class="st">' + esc(J.nom) + ' · ' + esc(adrM) + ' · reçu ' + esc(when(m.recu_le)) + '</div></div><span class="x" data-act="close-doc">✕</span></div>';
     h += '<div class="paper"><div class="kick">' + (m.categorie === 'demande' ? 'Demande' : 'À vérifier') + ' · ' + esc(m.motif || '') + '</div>' +
       '<div class="meta">De : <b>' + esc(m.de_nom) + '</b> &lt;' + esc(m.de_email) + '&gt;' + (m.abonne === 'oui' ? ' <span class="tag g">abonné payant</span>' : m.abonne === 'gratuit' ? ' <span class="tag">membre gratuit</span>' : '') + '</div>' +
-      '<div style="white-space:pre-wrap;border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px;max-height:340px;overflow:auto">' + esc(m.texte || '(message vide)') + '</div>' + piecesHTML(m.pieces) +
+      (m.texte ? trLu(m.texte, 'style="white-space:pre-wrap;border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px;max-height:340px;overflow:auto"') : '<div style="border-left:3px solid #d8cfbd;padding:6px 12px;margin:10px 0 18px">(message vide)</div>') + piecesHTML(m.pieces) +
       (m.membre_id ? '<div class="acts" style="margin-top:0"><a class="btn" href="https://the-last-journal.ghost.io/ghost/#/members/' + esc(m.membre_id) + '" target="_blank" rel="noopener" data-stop="1" style="text-decoration:none">👤 Ouvrir le membre dans Ghost</a></div>' : '<p class="muted" style="margin:0 0 12px">Aucun compte Posthumain à cette adresse.</p>');
-    if (fait) return h + '<div class="lead">✅ Réponse envoyée ' + esc(when(m.envoye_le)) + '.</div><label>Objet</label><div>' + esc(m.brouillon_sujet) + '</div><label>Message</label><div style="white-space:pre-wrap">' + esc(m.brouillon_corps) + '</div></div>';
+    if (fait) return h + '<div class="lead">✅ Réponse envoyée ' + esc(when(m.envoye_le)) + '.</div><label>Objet</label><div>' + esc(m.brouillon_sujet) + '</div><label>Message</label>' + trLu(m.brouillon_corps, 'style="white-space:pre-wrap"') + '</div>';
     if (!D().me.chef) return h + lectureSeule('') + '</div>';
     h += '<label>Consigne pour Julien (facultatif)</label><input class="pin" id="wl-m-consigne" placeholder="ex. proposer de résilier pour lui, ton plus chaleureux…">' +
       '<div class="acts"><button data-act="m-propose" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>🤖 ' + (ed.corps ? 'Autre proposition' : 'Proposer une réponse') + '</button></div>' +
       '<label>Objet</label><input class="pin sub" id="wl-m-sujet" value="' + esc(ed.sujet) + '">' +
-      '<label>Réponse</label><textarea class="pin big" id="wl-m-corps" placeholder="Écrivez la réponse ou demandez une proposition à Julien.">' + esc(ed.corps) + '</textarea>' + pjWidget('m:' + m.mail_id) +
+      '<label>Réponse</label><textarea class="pin big" id="wl-m-corps" placeholder="Écrivez la réponse ou demandez une proposition à Julien.">' + esc(ed.corps) + '</textarea>' + trBr('wl-m-sujet', 'wl-m-corps', ed.sujet, ed.corps) + pjWidget('m:' + m.mail_id) +
       '<div class="acts"><button class="go" data-act="m-send" data-id="' + esc(m.mail_id) + '"' + (busy ? ' disabled' : '') + '>✅ Valider et envoyer</button>' +
       '<button data-act="m-save" data-id="' + esc(m.mail_id) + '">💾 Garder</button>' +
       (m.categorie !== 'demande' ? '<button data-act="m-demande" data-id="' + esc(m.mail_id) + '">📩 C’est une vraie demande</button>' : '') +
@@ -1961,7 +2091,7 @@
 
   // ---------- documents (feuille de papier plein écran) ----------
   function openDoc(kind, id) { masquerTip(); S.docRetour = S.doc && S.doc.kind === 'prep' && kind !== 'prep' ? { kind: 'prep', id: S.doc.id } : kind === 'prep' ? null : S.docRetour; S.doc = { kind: kind, id: id }; paintDoc(); S.root.querySelector('.doc').classList.add('open'); S.root.querySelector('.doc').scrollTop = 0; }
-  function closeDoc() { if (S.appel) { S.appel.actif = false; clearInterval(S.appel.timer); try { if (S.appel.rec) S.appel.rec.stop(); } catch (e) {} S.appel = null; } S.doc = null; S.docRetour = null; S.cit = null; S.colle = false; S.root.querySelector('.doc').classList.remove('open'); }
+  function closeDoc() { if (S.appel) { S.appel.actif = false; clearInterval(S.appel.timer); try { if (S.appel.rec) S.appel.rec.stop(); } catch (e) {} S.appel = null; } S.doc = null; S.docRetour = null; S.cit = null; S.colle = false; if (S.trs) S.trs.vue = {}; S.root.querySelector('.doc').classList.remove('open'); }
   // Fermer (✕, Échap, après un envoi ou un archivage) : un mail ouvert depuis la fenêtre des interviews y revient.
   function fermerDoc() {
     var r = S.docRetour;
@@ -1971,7 +2101,7 @@
   }
   function paintDoc() {
     if (!S.doc) return;
-    setTimeout(markBusy, 0);
+    setTimeout(markBusy, 0); setTimeout(trCharger, 0);
     var el = S.root.querySelector('.doc'), keep = el.scrollTop, ae = document.activeElement;
     if (ae && el.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
     if (S.doc.kind === 'aide') { el.innerHTML = docAide(); el.scrollTop = keep; return; }
@@ -2009,7 +2139,7 @@
     h += dejaHTML(dejaContacte(f.contact.email, f.fiche_id));
     if (!okMail) h += '<div class="warn">Il manque l’adresse e-mail du contact.<label>Adresse e-mail</label><input class="pin" id="wl-v-email" type="email" inputmode="email" placeholder="prenom.nom@universite.edu"><div class="acts"><button data-act="v-email" data-id="' + esc(f.fiche_id) + '">Enregistrer l’adresse</button></div></div>';
     h += '<label>Objet</label><input class="pin sub" id="wl-v-sujet" value="' + esc(ed.sujet) + '">' +
-      '<label>Message</label><textarea class="pin big" id="wl-v-corps">' + esc(ed.corps) + '</textarea>' + sigApercu(f) +
+      '<label>Message</label><textarea class="pin big" id="wl-v-corps">' + esc(ed.corps) + '</textarea>' + trBr('wl-v-sujet', 'wl-v-corps', ed.sujet, ed.corps) + sigApercu(f) +
       pjWidget('v:' + f.fiche_id) +
       (branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : vous pouvez enregistrer, l’envoi viendra plus tard.</div>') +
       '<div class="acts"><button class="go" data-act="v-send" data-id="' + esc(f.fiche_id) + '"' + (okMail && branchee && !S.busy.secretaire ? '' : ' disabled') + '>✅ Valider et envoyer</button>' +
@@ -2049,7 +2179,7 @@
     if (f.statut === 'brouillon' && rw) h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
     // la réponse et son insertion dans l'article
     if (f.reponse) {
-      h += '<h2>Sa réponse' + (f.reponse_le ? ' · ' + esc(when(f.reponse_le)) : '') + '</h2>' + canalHTML(f, rw) + '<div class="txt">' + esc(f.reponse) + '</div>' + piecesHTML(f.pieces);
+      h += '<h2>Sa réponse' + (f.reponse_le ? ' · ' + esc(when(f.reponse_le)) : '') + '</h2>' + canalHTML(f, rw) + trLu(f.reponse, 'class="txt"') + piecesHTML(f.pieces);
       if (f.statut === 'inséré') h += '<div class="lead">✅ Cité dans l’article :<br>' + nl(f.citation) + '</div>';
       if (f.article_id && rw) h += citationBlock(f);
       else h += '<p class="lead">Cette fiche n’est liée à aucun article : rattachez-la depuis l’Assistant pour pouvoir insérer la réponse.</p>';
@@ -2069,7 +2199,7 @@
     var traduites = qe.length && qo.length && qe.join('|') !== qo.join('|');
     if (qe.length || qo.length) h += '<h2>Questions ' + (f.statut === 'brouillon' ? 'prévues' : 'posées') + (traduites ? ' <span class="tag">' + (f.langue === 'en' ? 'en anglais, telles qu’envoyées' : 'telles qu’envoyées') + '</span>' : '') + '</h2><ol>' + (qe.length ? qe : qo).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol>' +
       (traduites ? '<details><summary>Version choisie dans le lab</summary><ol>' + qo.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol></details>' : '');
-    if (f.mail_corps && f.statut !== 'brouillon') h += '<details><summary>Le mail envoyé · ' + esc(f.mail_sujet) + '</summary><div class="txt" style="font-size:15px">' + esc(f.mail_corps) + '</div></details>';
+    if (f.mail_corps && f.statut !== 'brouillon') h += '<details><summary>Le mail envoyé · ' + esc(f.mail_sujet) + '</summary>' + trLu(f.mail_corps, 'class="txt" style="font-size:15px"') + '</details>';
     h += '<h2>Historique</h2><ul class="tl">' + (f.historique || []).slice().reverse().map(function (e) { return '<li>' + esc(day(e.t) + ' ' + hm(e.t)) + ' — ' + histTxt(e.e) + (e.par && e.par !== 'courrier' ? ' (' + esc(membre(e.par).nom) + ')' : '') + '</li>'; }).join('') + '</ul>';
     if (rw) h += '<div class="acts"><button class="red" data-act="archive" data-id="' + esc(f.fiche_id) + '">🗄️ Archiver la fiche</button></div>';
     h += '</div>';
@@ -2082,7 +2212,7 @@
   function relanceBlock(f) {
     var w = membre(f.redacteur), ed = (S.rEdit && S.rEdit[f.fiche_id]) || { sujet: f.relance_sujet || (/^re\s*:/i.test(f.mail_sujet || '') ? f.mail_sujet : 'Re: ' + (f.mail_sujet || '')), corps: f.relance_corps || '' };
     return '<div class="relance"><h2>⏰ Relance prête</h2><p class="lead" style="margin-top:0">Pas de réponse depuis l’envoi (' + esc(when(f.envoye_le)) + '). La Secrétaire a préparé une relance courte, qui partira <b>dans le même fil</b> que le premier mail. Relisez, corrigez si besoin.</p>' +
-      '<label>Objet</label><input class="pin sub" id="wl-r-sujet" value="' + esc(ed.sujet) + '"><label>Message</label><textarea class="pin big" id="wl-r-corps">' + esc(ed.corps) + '</textarea>' + sigApercu(f) +
+      '<label>Objet</label><input class="pin sub" id="wl-r-sujet" value="' + esc(ed.sujet) + '"><label>Message</label><textarea class="pin big" id="wl-r-corps">' + esc(ed.corps) + '</textarea>' + trBr('wl-r-sujet', 'wl-r-corps', ed.sujet, ed.corps) + sigApercu(f) +
       (w.branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : l’envoi n’est pas possible pour l’instant.</div>') +
       '<div class="acts"><button class="go" data-act="r-send" data-id="' + esc(f.fiche_id) + '"' + (w.branchee && !S.busy.secretaire ? '' : ' disabled') + '>📨 Envoyer la relance</button><button data-act="r-skip" data-id="' + esc(f.fiche_id) + '">Pas maintenant</button></div></div>';
   }
@@ -2111,7 +2241,7 @@
     if (x.corps && S.suOuvert !== f.fiche_id) {
       var ed = (S.suEdit || {})[f.fiche_id] || { sujet: x.sujet, corps: x.corps };
       return h + '<div class="relance suite"><h2>✉️ Réponse dans le fil, à valider</h2><p class="lead" style="margin-top:0">La Secrétaire a préparé cette réponse' + (x.prete_le ? ' (' + esc(when(x.prete_le)) + ')' : '') + '. Elle partira à <b>' + esc(x.a || f.contact.email || '') + '</b>, <b>dans le même fil</b> que vos échanges. Relisez, corrigez si besoin.</p>' +
-        '<label>Objet</label><input class="pin sub" id="wl-su-sujet" value="' + esc(ed.sujet) + '"><label>Message</label><textarea class="pin big" id="wl-su-corps">' + esc(ed.corps) + '</textarea>' + sigApercu(f) +
+        '<label>Objet</label><input class="pin sub" id="wl-su-sujet" value="' + esc(ed.sujet) + '"><label>Message</label><textarea class="pin big" id="wl-su-corps">' + esc(ed.corps) + '</textarea>' + trBr('wl-su-sujet', 'wl-su-corps', ed.sujet, ed.corps) + sigApercu(f) +
         (w.branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : l’envoi n’est pas possible pour l’instant.</div>') +
         '<div class="acts"><button class="go" data-act="su-send" data-id="' + id + '"' + (w.branchee && !busy ? '' : ' disabled') + '>' + (busy ? '⏳ Envoi…' : '✅ Valider et envoyer') + '</button><button data-act="su-refaire" data-id="' + id + '"' + (busy ? ' disabled' : '') + '>✍️ Refaire</button><button data-act="su-skip" data-id="' + id + '"' + (busy ? ' disabled' : '') + '>🗑️ Écarter</button></div></div>';
     }
@@ -4462,6 +4592,11 @@
         break;
       case 'close-panel': closePanel(); break;
       case 'close-doc': fermerDoc(); break;
+      case 'tr-go': trTraduire(id); break;
+      case 'tr-orig': TR().vue[id] = 'orig'; trRepeindre(); break;
+      case 'tr-fr': delete TR().vue[id]; trRepeindre(); break;
+      case 'tr-cache': TR().vue[id] = 'cache'; trRepeindre(); break;
+      case 'tr-montre': delete TR().vue[id]; trRepeindre(); break;
       case 'voir-mails': masquerTip(); voirMails(id); break;
       case 'cons-apercu': consApercu(); break;
       case 'bx-ajouter': S.bxW = { etape: 1, fournisseur: 'ovh', offre: 'mxplan', numero: '1' }; bxPreremplir(); paintPanel(); break;
@@ -4872,6 +5007,7 @@
   }
   function onInput(e) {
     var t = e.target, k;
+    trSaisie(t);
     if (t.id && /^bx-/.test(t.id) && S.bxW) { var kb = t.id.slice(3); S.bxW[kb] = t.value; if (kb === 'numero') { bxPreremplir(); var ih = S.root.querySelector('#bx-imap_host'), sh = S.root.querySelector('#bx-smtp_host'); if (ih) ih.value = S.bxW.imap_host; if (sh) sh.value = S.bxW.smtp_host; } if (kb === 'mdp' || kb === 'adresse') { S.bxW.test = null; } return; }
     if (t.id && /^eq-/.test(t.id)) { S.eqDraft = S.eqDraft || {}; S.eqDraft[t.id.slice(3)] = t.type === 'checkbox' ? !!t.checked : t.value; return; }
     if (t.classList && t.classList.contains('pub-in')) { S.pub = S.pub || {}; S.pub[t.getAttribute('data-pub')] = !!t.checked; return; }

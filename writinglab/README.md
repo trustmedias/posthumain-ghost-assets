@@ -52,3 +52,16 @@ le Videolab.
 ## Briques communes avec le Videolab (22/10/2026)
 Écran de chargement, appels au webhook, boutons occupés, confirmations, toasts, thème, porte de couloir « Aller au Videolab » :
 voir `shared/README.md`. `page.html` ne contient plus que la configuration de l'écran de chargement.
+
+## Traductions pour l'équipe (27/10/2026)
+- Tout mail affiché dans le lab qui n'est pas en français (réponse d'un chercheur, mail du Courrier, mail déjà envoyé) a un bouton
+  « 🇫🇷 Traduire en français ». Une fois traduit, la traduction s'affiche **d'office** à chaque ouverture, avec « Voir l'original ».
+- Brouillons rédigés par l'IA dans une autre langue (Secrétaire, relances, réponses dans le fil, Julien, prospects) : « 🇫🇷 Traduire pour
+  moi » affiche la traduction **sous** le champ, à part ; le champ (ce qui part) n'est jamais remplacé. Si le texte est modifié, l'ancienne
+  traduction reste visible, grisée, avec « 🔁 Retraduire ».
+- Fonction `wl-traduire` (Sonnet 5.5, effort bas ; jeton du membre Ghost vérifié), table `wl_traductions` (clé = empreinte du texte,
+  même calcul que `trCle` dans app.js), coût compté dans `wl_couts` (usage « traduction »).
+- **Réservé aux humains** : aucune IA du lab (Assistant, Secrétaire, Julien, Correcteur…) ne lit ces traductions ; elles travaillent
+  toujours sur l'original. Ne jamais brancher `wl_traductions` dans un prompt.
+- Détection de la langue côté page, sans IA (mots outils, fil cité ignoré) : pas de bouton sur un texte en français ou trop court.
+- Déploiement : `supabase/functions/wl-traduire` avec `index.ts` et `equipe.ts` (copie identique), `verify_jwt` désactivé.
