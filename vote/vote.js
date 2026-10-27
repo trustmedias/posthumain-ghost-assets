@@ -134,24 +134,29 @@
   function chargerRedaction() {
     return api('redaction_etat').then(function (r) { if (r && r.ok) S.red = r; rendre(); });
   }
-  // 27/10/2026 (Jonathan : « trop de requêtes, les gens s'en fichent », instance Supabase gratuite) : plus de relecture en boucle.
-  // La page relit l'état : au chargement, après chaque action (la réponse contient déjà le nouvel état), au retour sur l'onglet
-  // s'il a été quitté plus de 5 minutes, et pendant que l'IA forme les 3 sujets : 3 vérifications espacées (30 s, 1 min 30,
-  // 4 min), seulement si l'onglet est visible. Un robot ou un onglet oublié ne génère donc plus aucune requête.
-  var ATTENTES_IA = [30000, 90000, 240000];
-  function sonder(n) {
+  // 27/10/2026 (Jonathan : « réduire la fréquence », instance Supabase gratuite, robots) : mise à jour toutes les 3 minutes au lieu
+  // de 25 s, seulement si l'onglet est visible, et pendant 30 minutes au plus après la dernière action du lecteur (un onglet oublié
+  // ou un robot s'arrête tout seul). Pendant que l'IA forme les 3 sujets : toutes les 30 s (au lieu de 6 s), 6 fois au plus.
+  var FREQ = 180000, FREQ_IA = 30000, DUREE_MAX = 1800000;
+  S.actif = Date.now(); S.nIa = 0;
+  ['click', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) { coque.addEventListener(ev, function () { S.actif = Date.now(); }, { passive: true }); });
+  function sonder() {
     clearTimeout(S.sondage);
-    n = n || 0;
-    if (!(S.d && S.d.tour && S.d.tour.ia_etat === 'en_cours') || n >= ATTENTES_IA.length) return;
+    var enFusion = S.d && S.d.tour && S.d.tour.ia_etat === 'en_cours';
+    if (!enFusion) S.nIa = 0;
+    if (enFusion && S.nIa >= 6) enFusion = false;
     S.sondage = setTimeout(function () {
-      if (document.visibilityState !== 'visible') { S.iaEnAttente = true; return; }
-      S.dernier = Date.now(); charger(true).then(function () { sonder(n + 1); });
-    }, ATTENTES_IA[n]);
+      var a = sh.activeElement;
+      var saisie = a && root.contains(a) && /^(TEXTAREA|INPUT)$/.test(a.tagName);
+      if (Date.now() - S.actif > DUREE_MAX) return; // personne ne regarde : on arrête (reprise au retour sur l'onglet)
+      if (document.visibilityState === 'visible' && !saisie && !S.occupe && !sh.querySelector('.phv-fond')) { if (enFusion) S.nIa++; S.dernier = Date.now(); charger(true).then(sonder); } else sonder();
+    }, enFusion ? FREQ_IA : FREQ);
   }
   S.dernier = Date.now();
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState !== 'visible' || !S.d) return;
-    if (S.iaEnAttente || Date.now() - S.dernier > 300000) { S.iaEnAttente = false; S.dernier = Date.now(); charger(true).then(function () { sonder(0); }); }
+    S.actif = Date.now();
+    if (Date.now() - S.dernier > 60000) { S.dernier = Date.now(); charger(true).then(sonder); } else sonder();
   });
 
   // ---------------------------------------------------------------- rendu
@@ -391,7 +396,7 @@
         if (r && r.ok) { S.titre = ''; S.detail = ''; S.theme = ''; fusionner(r); S.alerte = { t: r.ia ? 'Merci ! C’était la 6e proposition : l’IA forme maintenant les 3 sujets du vote.' : 'Merci ! Votre proposition est en ligne, et votre vote lui est attribué.' }; }
         else if (r && (r.why === 'premium' || r.why === 'connexion')) { fenetre(r.why === 'connexion' ? 'visiteur' : 'gratuit'); }
         else S.alerte = { ko: true, t: (r && r.why) || 'Envoi impossible.' };
-        rendre(); sonder(0); // 6e proposition : l'IA forme les 3 sujets, quelques vérifications espacées
+        rendre(); sonder(); // 6e proposition : l'IA forme les 3 sujets, quelques vérifications espacées
       });
       return;
     }
@@ -417,7 +422,7 @@
     }
     if (act === 'relancer-ia') {
       S.occupe = true;
-      api('relancer_ia').then(function (r) { S.occupe = false; S.alerte = { ko: !(r && r.ok), t: (r && r.why) || (r && r.ok ? 'L’IA travaille.' : 'Impossible.') }; charger(true).then(function () { sonder(0); }); });
+      api('relancer_ia').then(function (r) { S.occupe = false; S.alerte = { ko: !(r && r.ok), t: (r && r.why) || (r && r.ok ? 'L’IA travaille.' : 'Impossible.') }; charger(true).then(function () { sonder(); }); });
       return;
     }
     if (act === 'publier-page') {
@@ -474,5 +479,5 @@
   }
 
   window.addEventListener('hashchange', function () { if (location.hash === '#redaction' && S.d && S.d.equipe) chargerRedaction(); });
-  charger(false).then(function () { sonder(0); });
+  charger(false).then(function () { sonder(); });
 })();
