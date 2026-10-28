@@ -56,7 +56,7 @@ const ko = (m) => err.push(m);
 const TYPES_PARAM = ["article", "fiche", "mail", "contact", "liste", "qr", "texte", "choix", "cible"];
 const MODES = ["brouillon", "immediat", "clic"];
 const DROITS = ["chef", "journaliste", "tous"];
-const CONTEXTES = ["fiches", "courrier", "pieces", "compta", "relectures"];
+const CONTEXTES = ["fiches", "courrier", "pieces", "compta", "relectures", "prospection", "mails_marketing"];
 
 // --- postes ---
 const postes = Array.isArray(cat.postes) ? cat.postes : (ko("« postes » doit être une liste"), []);
@@ -69,7 +69,7 @@ for (const p of postes) {
   if (p.id && !/^[a-z][a-z0-9_]{1,30}$/.test(p.id)) ko(n + " : id en minuscules sans espace (a-z, 0-9, _)");
   if (ids.has(p.id)) ko(n + " : id en double"); ids.add(p.id);
   if (p.acces && !["chef", "tous"].includes(p.acces)) ko(n + " : acces = « chef » ou « tous »");
-  if (!Array.isArray(p.contexte)) ko(n + " : « contexte » doit être une liste (fiches, courrier, pieces, compta, relectures), éventuellement vide");
+  if (!Array.isArray(p.contexte)) ko(n + " : « contexte » doit être une liste (fiches, courrier, pieces, compta, relectures, prospection, mails_marketing), éventuellement vide");
   else for (const c of p.contexte) if (!CONTEXTES.includes(c)) ko(n + " : contexte inconnu « " + c + " »");
   if (!Array.isArray(p.capacites) || !p.capacites.length) ko(n + " : au moins une capacité");
   if (p.plan != null && (typeof p.plan.x !== "number" || typeof p.plan.y !== "number")) ko(n + " : plan = { x, y, teinte? } ou null");

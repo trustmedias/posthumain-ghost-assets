@@ -38,7 +38,7 @@ via son `executeur`, sans `switch` à compléter.
 **Poste** : `id` (minuscules), `nom`, `emoji`, `couleur`, `acces` (`tous` | `chef`), `titre` (sous le nom sur le
 plan), `role` (texte pour l'IA, à la 2e personne), `aide` (une phrase claire pour les humains, bouton ⓘ), `exemples`
 (au moins 2 phrases à dire au ☎️), `aiguillage` (ce que les autres postes doivent lui transmettre : sert à générer les
-règles d'aiguillage des IA et l'aide ⓘ), `contexte` (données lues pour lui : `fiches`, `courrier`, `pieces`, `compta` — articles comptés, factures, gains et paiements, `relectures` — relectures du Correcteur, rédacteur en chef seulement), `mail`
+règles d'aiguillage des IA et l'aide ⓘ), `contexte` (données lues pour lui : `fiches`, `courrier`, `pieces`, `compta` — articles comptés, factures, gains et paiements, `relectures` — relectures du Correcteur, `prospection` — campagnes et prospects, `mails_marketing` — réglages et versions des mails automatiques ; ces trois-là pour le rédacteur en chef seulement), `mail`
 ({ boite, adresse, role } si `courrier`), `plan` ({ x, y, teinte } ou `null`), `capacites` (ids), `connaissances` (id d'un
 domaine de `connaissances`, ou `null` : obligatoire).
 

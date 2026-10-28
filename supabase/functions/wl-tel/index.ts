@@ -89,10 +89,11 @@ function ficheCitee(texte: string, ctx: any): any {
 // ---------- Contexte (lu en base, filtré selon le rôle) ----------
 // deno-lint-ignore no-explicit-any
 const pj = (v: any) => { if (v == null) return null; if (typeof v !== "string") return v; try { return JSON.parse(v); } catch { return null; } };
+const heureZ = (d: unknown) => d ? new Date(String(d)).toLocaleString("fr-CH", { timeZone: "Europe/Zurich", dateStyle: "short", timeStyle: "short" }) : null;
 const court = (s: unknown, n: number) => { const t = String(s || "").replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1) + "…" : t; };
 // deno-lint-ignore no-explicit-any
 async function fichesVisibles(me: Membre, articleId: string, texte: string): Promise<any[]> {
-  let q = db.from("wl_fiches").select("fiche_id,article_id,article_titre,redacteur,contact_nom,contact_email,contact_role,contact_institution,langue,statut,questions,reponse,reponse_le,envoye_le,updated_at").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(120);
+  let q = db.from("wl_fiches").select("fiche_id,article_id,article_titre,redacteur,contact_nom,contact_email,contact_role,contact_institution,langue,statut,questions,reponse,reponse_le,envoye_le,updated_at,created_at,reponse_canal,relances,relance_envoyee_le,relance_prete_le,rebond,rebond_motif,suite_prete_le,suites,citation,historique").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(120);
   if (!me.chef) q = q.eq("redacteur", me.id);
   const { data } = await q;
   const l = data || [], t = texte.toLowerCase();
@@ -104,13 +105,70 @@ function ficheCtx(f: any) {
   const qs = pj(f.questions);
   return { fiche_id: f.fiche_id, nom: f.contact_nom || "", contact: [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", "), email: f.contact_email || "", langue: f.langue || "fr",
     statut: f.statut, article_id: f.article_id, article: court(f.article_titre, 90), redacteur: f.redacteur, questions: Array.isArray(qs) ? qs.slice(0, 8).map((x: unknown) => court(x, 220)) : [],
-    reponse: f.reponse ? court(f.reponse, 400) : "" };
+    reponse: f.reponse ? court(f.reponse, 400) : "",
+    // suivi (28/10/2026) : dates, relances, rebonds, échanges dans le fil, citation, derniers événements
+    creee_le: heureZ(f.created_at), envoye_le: heureZ(f.envoye_le), reponse_le: heureZ(f.reponse_le), reponse_canal: f.reponse_canal || null,
+    jours_sans_reponse: f.envoye_le && !f.reponse_le ? Math.floor((Date.now() - Date.parse(f.envoye_le)) / 864e5) : null,
+    relances_envoyees: Number(f.relances || 0), derniere_relance_le: heureZ(f.relance_envoyee_le), relance_a_valider: !!f.relance_prete_le && !f.relance_envoyee_le,
+    adresse_refusee: f.rebond ? court(f.rebond_motif || "oui", 160) : null, reponse_dans_le_fil_a_valider: !!f.suite_prete_le,
+    echanges_envoyes_dans_le_fil: (Array.isArray(f.suites) ? f.suites : (pj(f.suites) || [])).length, citee_dans_l_article: !!f.citation,
+    // deno-lint-ignore no-explicit-any
+    historique: ((Array.isArray(f.historique) ? f.historique : pj(f.historique)) || []).slice(-6).map((h: any) => ({ le: heureZ(h.t), quoi: court(h.e, 120), par: h.par || null })) };
+}
+// Bilan de toutes les fiches visibles, archivées comprises (28/10/2026) : pour « combien d'interviews ce mois-ci », « qui n'a pas répondu ».
+async function fichesBilan(me: Membre) {
+  let q = db.from("wl_fiches").select("fiche_id,redacteur,contact_nom,article_titre,statut,envoye_le,reponse_le,citation,relances,created_at").order("created_at", { ascending: false }).limit(1000);
+  if (!me.chef) q = q.eq("redacteur", me.id);
+  const { data } = await q;
+  const l = data || [], mois = new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit" }).format(new Date());
+  const dansMois = (d: unknown) => !!d && new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit" }).format(new Date(String(d))) === mois;
+  const parStatut: Record<string, number> = {}, parRedacteur: Record<string, number> = {};
+  for (const f of l) { parStatut[f.statut] = (parStatut[f.statut] || 0) + 1; parRedacteur[f.redacteur] = (parRedacteur[f.redacteur] || 0) + 1; }
+  return { total: l.length, par_statut: parStatut, par_redacteur: parRedacteur,
+    ce_mois: { mails_envoyes: l.filter((f) => dansMois(f.envoye_le)).length, reponses_recues: l.filter((f) => dansMois(f.reponse_le)).length, citees: l.filter((f) => f.citation && dansMois(f.reponse_le)).length },
+    sans_reponse_depuis_5_jours: l.filter((f) => f.statut !== "archivé" && f.envoye_le && !f.reponse_le && Date.now() - Date.parse(f.envoye_le) > 5 * 864e5)
+      .slice(0, 20).map((f) => ({ fiche_id: f.fiche_id, nom: f.contact_nom, article: court(f.article_titre, 80), envoye_le: heureZ(f.envoye_le), relances: Number(f.relances || 0) })) };
 }
 async function courrierBureau(mail: { boite: string; role: string }) {
   const { data: bx } = await db.from("wl_boites").select("id,role").eq("role", mail.role);
   const boites = [mail.boite].concat((bx || []).map((b) => String(b.id)));
   const { data } = await db.from("wl_courrier").select("mail_id,boite,de_nom,de_email,sujet,texte,categorie,statut,abonne,brouillon_corps,recu_le").in("boite", boites).not("statut", "in", "(répondu,archivé)").order("recu_le", { ascending: false }).limit(15);
   return (data || []).map((m) => ({ mail_id: m.mail_id, de: (m.de_nom || "") + " <" + m.de_email + ">", sujet: court(m.sujet, 140), categorie: m.categorie, abonne: m.abonne, brouillon: !!m.brouillon_corps, recu_le: m.recu_le, extrait: court(m.texte, 350) }));
+}
+// Courrier déjà traité du bureau (28/10/2026) : réponses envoyées et mails archivés, pour « à qui ai-je répondu », « qu'a-t-on dit à X ».
+async function courrierTraite(mail: { boite: string; role: string }) {
+  const { data: bx } = await db.from("wl_boites").select("id,adresse").eq("role", mail.role);
+  const boites = [mail.boite].concat((bx || []).map((b) => String(b.id)));
+  const [{ data }, { data: tous }] = await Promise.all([
+    db.from("wl_courrier").select("mail_id,boite,de_nom,de_email,sujet,texte,categorie,statut,abonne,brouillon_corps,recu_le,envoye_le,historique").in("boite", boites).in("statut", ["répondu", "archivé"]).order("updated_at", { ascending: false }).limit(15),
+    db.from("wl_courrier").select("boite,statut,recu_le").in("boite", boites).limit(2000)]);
+  const parStatut: Record<string, number> = {}, parBoite: Record<string, number> = {};
+  for (const m of tous || []) { parStatut[m.statut] = (parStatut[m.statut] || 0) + 1; parBoite[m.boite] = (parBoite[m.boite] || 0) + 1; }
+  return { boites: [mail.boite].concat((bx || []).map((b) => String(b.adresse || b.id))), total: (tous || []).length, par_statut: parStatut, par_boite: parBoite,
+    derniers_traites: (data || []).map((m) => ({ mail_id: m.mail_id, de: (m.de_nom || "") + " <" + m.de_email + ">", sujet: court(m.sujet, 140), categorie: m.categorie, statut: m.statut, abonne: m.abonne,
+      recu_le: heureZ(m.recu_le), repondu_le: heureZ(m.envoye_le), extrait_recu: court(m.texte, 200), notre_reponse: m.statut === "répondu" ? court(m.brouillon_corps, 300) : null,
+      // deno-lint-ignore no-explicit-any
+      historique: ((Array.isArray(m.historique) ? m.historique : pj(m.historique)) || []).slice(-4).map((h: any) => ({ le: heureZ(h.t), quoi: court(h.e, 100), par: h.par || null })) })) };
+}
+// Prospection du Marketing (campagnes et prospects) et réglages des mails marketing automatiques (28/10/2026).
+async function prospectionCtx() {
+  const [{ data: cs }, { data: ps }] = await Promise.all([
+    db.from("wl_campagnes").select("campagne_id,nom,offres,cible,zone,statut,notes,created_at").order("created_at", { ascending: false }).limit(10),
+    db.from("wl_prospects").select("prospect_id,campagne_id,entreprise,site,secteur,pays,contact_nom,contact_role,email,statut,pourquoi,mail_sujet,envoye_le,relance_le").order("updated_at", { ascending: false }).limit(60)]);
+  const parStatut: Record<string, number> = {}; for (const p of ps || []) parStatut[p.statut] = (parStatut[p.statut] || 0) + 1;
+  return { campagnes: (cs || []).map((c) => ({ ...c, notes: court(c.notes, 300), offres: typeof c.offres === "string" ? court(c.offres, 300) : c.offres, created_at: heureZ(c.created_at) })),
+    prospects_par_statut: parStatut,
+    prospects: (ps || []).slice(0, 30).map((p) => ({ prospect_id: p.prospect_id, campagne_id: p.campagne_id, entreprise: p.entreprise, site: p.site, secteur: p.secteur, pays: p.pays, contact: [p.contact_nom, p.contact_role].filter(Boolean).join(", "),
+      email: p.email, statut: p.statut, pourquoi: court(p.pourquoi, 160), sujet_du_mail: court(p.mail_sujet, 120), envoye_le: heureZ(p.envoye_le), relance_le: heureZ(p.relance_le) })) };
+}
+async function mailsMarketingCtx() {
+  const [{ data: rg }, { data: vs }] = await Promise.all([
+    db.from("wl_reglages").select("cle,valeur,updated_at").like("cle", "mails:%"),
+    db.from("wl_mails_versions").select("type,note,auteur,created_at").order("created_at", { ascending: false }).limit(10)]);
+  // deno-lint-ignore no-explicit-any
+  const types = (rg || []).map((r) => { let v: any = {}; try { v = JSON.parse(r.valeur); } catch (_) { v = {}; } return { type: r.cle.slice(6), reglages: v.reglages || null, modifie_le: heureZ(v.maj || r.updated_at), par: v.par || null }; });
+  return { types, dernieres_versions: (vs || []).map((v) => ({ type: v.type, note: court(v.note, 160), par: v.auteur, le: heureZ(v.created_at) })),
+    reperes: "bienvenue_1 / bienvenue_2 : mails de bienvenue (jours = jours après l'inscription, conservation = jours dans l'historique Ghost) ; grand_format : Le Grand Format (jour 0 = dimanche … 6 = samedi)." };
 }
 async function piecesCtx(me: Membre) {
   let q = db.from("wl_pieces").select("membre,montant,statut,motif,contact,article_titre,created_at,conversion_id").order("created_at", { ascending: false }).limit(300);
@@ -209,7 +267,6 @@ async function comptaCtx(me: Membre, texte: string) {
 // Correcteur (28/10/2026) : ce qu'il a relu, ce qui est en cours, à valider ou en erreur, ce qui a été laissé de côté (corrections
 // non appliquées, points « à vérifier », sources inaccessibles, graphiques imprécis non refaits), et les brouillons pas encore relus.
 // Lu dans wl_relectures (écrites par wl-relecture) : le Correcteur répond sur son propre travail, en lecture seule.
-const heureZ = (d: unknown) => d ? new Date(String(d)).toLocaleString("fr-CH", { timeZone: "Europe/Zurich", dateStyle: "short", timeStyle: "short" }) : null;
 const VERDICTS_SOURCE_A_SIGNALER = ["inaccessible", "retiree", "remplacee", "corrigee", "ajoutee"];
 // deno-lint-ignore no-explicit-any
 function relectureCtx(r: any, detail: boolean) {
@@ -418,7 +475,10 @@ async function contexte(me: Membre, p: Poste, b: any) {
     const { data } = await q; if (data && data[0]) ctx.fiches.unshift(ficheCtx(data[0]));
   }
   if (b.fiche_id) ctx.fiche_ouverte = String(b.fiche_id);
-  if (p.contexte.includes("courrier") && p.mail) ctx.courrier = await courrierBureau(p.mail);
+  if (p.contexte.includes("fiches")) ctx.fiches_bilan = await fichesBilan(me);
+  if (p.contexte.includes("courrier") && p.mail) { ctx.courrier = await courrierBureau(p.mail); ctx.courrier_traite = await courrierTraite(p.mail); }
+  if (p.contexte.includes("prospection") && me.chef) ctx.prospection = await prospectionCtx();
+  if (p.contexte.includes("mails_marketing") && me.chef) ctx.mails_marketing = await mailsMarketingCtx();
   if (p.contexte.includes("pieces")) ctx.pieces = await piecesCtx(me);
   if (p.contexte.includes("compta")) ctx.compta = await comptaCtx(me, String(b.texte || ""));
   if (p.contexte.includes("relectures") && me.chef) ctx.relectures = await relecturesCtx(String(b.texte || ""), articles);
