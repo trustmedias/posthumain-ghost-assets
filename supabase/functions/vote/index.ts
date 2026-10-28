@@ -232,7 +232,7 @@ async function annoncer(texte: string, titrePush: string, msgPush: string, qui: 
   const { data } = await db.from("wl_push").select("sid").in("membre", qui);
   await Promise.all((data || []).map((r: { sid: string }) => fetch("https://api.webpushr.com/v1/notification/send/sid", {
     method: "POST", headers: { webpushrKey: key, webpushrAuthToken: token, "Content-Type": "application/json" },
-    body: JSON.stringify({ title: titrePush.slice(0, 100), message: (msgPush || " ").replace(/\s+/g, " ").slice(0, 250), target_url: SITE + "/vote/#redaction", sid: String(r.sid), auto_hide: 0, expire_push: "2d" }),
+    body: JSON.stringify({ title: titrePush.slice(0, 100), message: (msgPush || " ").replace(/\s+/g, " ").slice(0, 250), target_url: SITE + "/vote/#redaction", sid: String(r.sid), auto_hide: 0, expire_push: "24h" }),
   }).catch(() => null)));
 }
 

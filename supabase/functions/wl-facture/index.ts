@@ -52,7 +52,7 @@ async function pousser(membres: string[], title: string, message: string) {
   if (!key || !token) return;
   const { data } = await db.from("wl_push").select("membre,sid").in("membre", membres);
   await Promise.all((data || []).map((r: any) => fetch("https://api.webpushr.com/v1/notification/send/sid", { method: "POST", headers: { webpushrKey: key, webpushrAuthToken: token, "Content-Type": "application/json" },
-    body: JSON.stringify({ title: title.slice(0, 100), message: message.slice(0, 250), target_url: SITE + "/writinglab/#factures", sid: String(r.sid), auto_hide: 0, expire_push: "3d" }) }).catch(() => null)));
+    body: JSON.stringify({ title: title.slice(0, 100), message: message.slice(0, 250), target_url: SITE + "/writinglab/#factures", sid: String(r.sid), auto_hide: 0, expire_push: "24h" }) }).catch(() => null)));
 }
 async function annoncer(texte: string, membres: string[], titre: string, msg: string) {
   await db.from("wl_messages").insert({ auteur: "compta", nom: "🧮 Le Comptable", texte });

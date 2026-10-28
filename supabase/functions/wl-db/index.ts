@@ -94,7 +94,7 @@ async function push(to: string[], title: string, message: string, ancre = "") {
       const res = await fetch("https://api.webpushr.com/v1/notification/send/sid", {
         method: "POST", signal: ctl.signal,
         headers: { webpushrKey: key, webpushrAuthToken: token, "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.slice(0, 100), message: (message || " ").replace(/\s+/g, " ").slice(0, 250), target_url: (SITE + (ancre ? "#" + ancre : "")).slice(0, 255), sid: String(r.sid), auto_hide: 0, expire_push: "2d" }),
+        body: JSON.stringify({ title: title.slice(0, 100), message: (message || " ").replace(/\s+/g, " ").slice(0, 250), target_url: (SITE + (ancre ? "#" + ancre : "")).slice(0, 255), sid: String(r.sid), auto_hide: 0, expire_push: "24h" }),
       });
       clearTimeout(t); if (res.ok) sent++;
     } catch (_) { /* push perdu, l'écriture passe avant */ }

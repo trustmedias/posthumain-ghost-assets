@@ -43,7 +43,7 @@ async function envoyer(sid: string, title: string, message: string) {
   if (!key || !token) return { ok: false, why: "secrets Webpushr absents" };
   const r = await fetch("https://api.webpushr.com/v1/notification/send/sid", {
     method: "POST", headers: { webpushrKey: key, webpushrAuthToken: token, "Content-Type": "application/json" },
-    body: JSON.stringify({ title, message, target_url: SITE + "/writinglab/", sid, auto_hide: 0, expire_push: "1d" }),
+    body: JSON.stringify({ title, message, target_url: SITE + "/writinglab/", sid, auto_hide: 0, expire_push: "24h" }),
   });
   const t = await r.text();
   return { ok: r.ok, status: r.status, detail: t.slice(0, 200) };
