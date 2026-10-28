@@ -18,6 +18,11 @@
 //        fil (In-Reply-To = dernier message du contact, sinon notre mail ; References complètes ; copie dans « Envoyés »),
 //        depuis la boîte de la fiche, signature du membre dans la langue de la fiche ; historique « suite envoyée ». Statut inchangé.
 //  - suite_ecarter { fiche_id } / suites → brouillon écarté / brouillons et réponses envoyées dans le fil (pour la page)
+//    28/10/2026 : suite_rediger accepte « a » = l'adresse d'une personne que le contact a mise en copie (son assistante…) : la réponse
+//    lui est adressée et le contact passe en copie (suite_a / suite_cc), toujours dans le même fil. Sans « a », si le dernier échange
+//    envoyé était déjà adressé à une personne en copie, le fil continue avec elle. Seuls le contact et ses copies sont acceptés.
+//  - copies_rattraper { fiche_id } → personnes en copie de la dernière réponse du contact, relues dans la boîte (wl-mail « entetes »)
+//    pour les réponses arrivées avant la relève des copies ; enregistrées dans wl_fiches.copies (une seule fois).
 //  - fiche_traitee { fiche_id } → « ✓ Marquer comme traitée » : historique « réponse marquée traitée » (statut réel inchangé)
 // Rôles : une journaliste n'a que Secrétaire, Assistant, Comptable, et seulement ses fiches ; Julien (mk, sc) = rédacteur en chef.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -93,7 +98,7 @@ const heureZ = (d: unknown) => d ? new Date(String(d)).toLocaleString("fr-CH", {
 const court = (s: unknown, n: number) => { const t = String(s || "").replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1) + "…" : t; };
 // deno-lint-ignore no-explicit-any
 async function fichesVisibles(me: Membre, articleId: string, texte: string): Promise<any[]> {
-  let q = db.from("wl_fiches").select("fiche_id,article_id,article_titre,redacteur,contact_nom,contact_email,contact_role,contact_institution,langue,statut,questions,reponse,reponse_le,envoye_le,updated_at,created_at,reponse_canal,relances,relance_envoyee_le,relance_prete_le,rebond,rebond_motif,suite_prete_le,suites,citation,historique").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(120);
+  let q = db.from("wl_fiches").select("fiche_id,article_id,article_titre,redacteur,contact_nom,contact_email,contact_role,contact_institution,langue,statut,questions,reponse,reponse_le,envoye_le,updated_at,created_at,reponse_canal,relances,relance_envoyee_le,relance_prete_le,rebond,rebond_motif,suite_prete_le,suites,citation,historique,copies").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(120);
   if (!me.chef) q = q.eq("redacteur", me.id);
   const { data } = await q;
   const l = data || [], t = texte.toLowerCase();
@@ -112,6 +117,9 @@ function ficheCtx(f: any) {
     relances_envoyees: Number(f.relances || 0), derniere_relance_le: heureZ(f.relance_envoyee_le), relance_a_valider: !!f.relance_prete_le && !f.relance_envoyee_le,
     adresse_refusee: f.rebond ? court(f.rebond_motif || "oui", 160) : null, reponse_dans_le_fil_a_valider: !!f.suite_prete_le,
     echanges_envoyes_dans_le_fil: (Array.isArray(f.suites) ? f.suites : (pj(f.suites) || [])).length, citee_dans_l_article: !!f.citation,
+    // personnes que le contact a mises en copie de sa réponse (28/10/2026) : « a » de suite_interview pour leur répondre
+    // deno-lint-ignore no-explicit-any
+    en_copie: (pj(f.copies) || []).slice(0, 6).map((c: any) => ({ nom: c.nom || "", email: c.email })),
     // deno-lint-ignore no-explicit-any
     historique: ((Array.isArray(f.historique) ? f.historique : pj(f.historique)) || []).slice(-6).map((h: any) => ({ le: heureZ(h.t), quoi: court(h.e, 120), par: h.par || null })) };
 }
@@ -637,12 +645,45 @@ Deno.serve(async (req) => {
     }
     // ---------- Réponse dans le fil d'une fiche d'interview (capacité du catalogue dont l'exécuteur est « suite_rediger ») ----------
     if (b.action === "suites") {
-      let q = db.from("wl_fiches").select("fiche_id,suite_sujet,suite_corps,suite_consigne,suite_a,suite_prete_le,suites").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(400);
+      let q = db.from("wl_fiches").select("fiche_id,suite_sujet,suite_corps,suite_consigne,suite_a,suite_cc,suite_prete_le,suites").neq("statut", "archivé").order("updated_at", { ascending: false }).limit(400);
       if (!me.chef) q = q.eq("redacteur", me.id);
       const [{ data }, { data: eqTel }] = await Promise.all([q, db.from("wl_equipe").select("telephone").eq("id", me.id).limit(1)]);
       const l: Record<string, unknown> = {};
-      for (const f of data || []) { const env0 = Array.isArray(f.suites) ? f.suites : (pj(f.suites) || []); if (f.suite_corps || env0.length) l[f.fiche_id] = { sujet: f.suite_sujet || "", corps: f.suite_corps || "", consigne: f.suite_consigne || "", a: f.suite_a || "", prete_le: f.suite_prete_le, envoyees: env0 }; }
+      for (const f of data || []) { const env0 = Array.isArray(f.suites) ? f.suites : (pj(f.suites) || []); if (f.suite_corps || env0.length) l[f.fiche_id] = { sujet: f.suite_sujet || "", corps: f.suite_corps || "", consigne: f.suite_consigne || "", a: f.suite_a || "", cc: Array.isArray(f.suite_cc) ? f.suite_cc : [], prete_le: f.suite_prete_le, envoyees: env0 }; }
       return out({ ok: true, suites: l, telephone: String((eqTel && eqTel[0] && eqTel[0].telephone) || "") });
+    }
+    // ---------- Personnes en copie d'une réponse déjà reçue (28/10/2026) ----------
+    if (b.action === "copies_rattraper") {
+      let q = db.from("wl_fiches").select("fiche_id,boite,redacteur,contact_email,reponse_preuve,copies").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
+      const { data: f0 } = await q; const f = f0 && f0[0];
+      if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
+      if (f.copies != null) return out({ ok: true, copies: pj(f.copies) || [] });
+      const pv = pj(f.reponse_preuve) || {}, idm = String(pv.reponse_message_id || "").trim();
+      if (!/^<[^<>\s]+@[^<>\s]+>$/.test(idm) || pv.lien === "telephone") { await db.from("wl_fiches").update({ copies: "[]" }).eq("fiche_id", f.fiche_id); return out({ ok: true, copies: [] }); }
+      let adr = ADRESSES[String(f.boite || "")] || "";
+      if (!adr && f.boite) { const { data: bx } = await db.from("wl_boites").select("adresse").eq("id", f.boite).limit(1); adr = String((bx && bx[0] && bx[0].adresse) || ""); }
+      if (!adr) return out({ ok: false, why: "boîte de la fiche inconnue" });
+      // deno-lint-ignore no-explicit-any
+      let r: any = null;
+      try {
+        const rr = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-mail", { method: "POST", signal: AbortSignal.timeout(40000), headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
+          body: JSON.stringify({ action: "entetes", boite: adr, message_id: idm }) });
+        r = await rr.json().catch(() => null);
+      } catch (_) { r = null; }
+      if (!r || !r.ok) return out({ ok: false, why: "boîte mail injoignable pour l’instant" });
+      const nous = new Set([...Object.values(ADRESSES), adr, ...(await equipe(db)).map((m) => m.email)].map((x) => String(x).toLowerCase()));
+      const { data: bxs } = await db.from("wl_boites").select("adresse"); for (const x of bxs || []) nous.add(String(x.adresse || "").toLowerCase());
+      const exclus = new Set([String(f.contact_email || "").toLowerCase(), String(pv.de || "").toLowerCase(), String((r.de && r.de.email) || "")]);
+      // deno-lint-ignore no-explicit-any
+      const copies: any[] = [];
+      // deno-lint-ignore no-explicit-any
+      for (const [champ, l] of [["cc", r.cc || []], ["to", r.to || []]] as [string, any[]][]) for (const a of l) {
+        const e = String(a.email || "").toLowerCase();
+        if (!e || nous.has(e) || /@posthumain\.com$/.test(e) || exclus.has(e) || copies.some((c) => c.email === e)) continue;
+        copies.push({ email: e, nom: String(a.nom || "").replace(/["<>\r\n]/g, "").trim().slice(0, 120), champ, vu_le: pv.recu_le || null });
+      }
+      await db.from("wl_fiches").update({ copies: JSON.stringify(copies.slice(0, 10)) }).eq("fiche_id", f.fiche_id);
+      return out({ ok: true, copies: copies.slice(0, 10) });
     }
     if (b.action === "suite_rediger" || b.action === "suite_envoyer" || b.action === "suite_ecarter") {
       let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
@@ -654,7 +695,7 @@ Deno.serve(async (req) => {
       const hist = pj(f.historique) || [], now = new Date().toISOString();
       if (b.action === "suite_ecarter") {
         hist.push({ t: now, e: "réponse dans le fil écartée", par: me.id });
-        await db.from("wl_fiches").update({ suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_prete_le: null, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
+        await db.from("wl_fiches").update({ suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_cc: null, suite_prete_le: null, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
         return out({ ok: true });
       }
       if (!statuts.includes(String(f.statut))) return out({ ok: false, why: "pas de réponse dans le fil possible pour cette fiche (statut : " + f.statut + ")" });
@@ -663,12 +704,26 @@ Deno.serve(async (req) => {
       const pv = pj(f.reponse_preuve) || {}, contact = String(f.contact_email || "").trim().toLowerCase(), de = String(pv.de || "").trim().toLowerCase();
       const dom = (e: string) => e.split("@")[1] || "";
       // On répond à la personne qui a écrit (autre adresse du même domaine que le contact, déjà validée dans la preuve), sinon au contact.
-      const dest = de && emailOk(de) && pv.lien !== "telephone" && (de === contact || dom(de) === dom(contact)) ? de : contact;
-      if (!emailOk(dest)) return out({ ok: false, why: "adresse e-mail du contact manquante ou invalide" });
+      const destContact = de && emailOk(de) && pv.lien !== "telephone" && (de === contact || dom(de) === dom(contact)) ? de : contact;
+      if (!emailOk(destContact)) return out({ ok: false, why: "adresse e-mail du contact manquante ou invalide" });
+      // 28/10/2026 : on peut répondre à une personne que le contact a mise en copie (son assistante, sa secrétaire…) : elle devient
+      // la destinataire et le contact passe en copie, dans le même fil. Seuls le contact et les personnes en copie sont acceptés.
+      // deno-lint-ignore no-explicit-any
+      const copiesF: any[] = (pj(f.copies) || []).filter((c: any) => c && emailOk(String(c.email || "")));
+      const nomDe = (e: string) => e === contact || e === de ? String(f.contact_nom || "") : String((copiesF.find((c) => c.email === e) || {}).nom || "");
+      const permis = (e: string) => !!e && (e === contact || e === destContact || copiesF.some((c) => c.email === e));
       const base = String(f.mail_sujet || "").trim();
       const sujetDef = (/^\s*(re|tr|fwd?)\s*:/i.test(base) ? base : "Re: " + base).slice(0, 300);
       // deno-lint-ignore no-explicit-any
       const envoyees: any[] = Array.isArray(f.suites) ? f.suites : (pj(f.suites) || []);
+      // Destinataire : demandé par la page (« Répondre à … »), sinon celui du brouillon en cours, sinon le dernier échange redirigé.
+      const dern = envoyees.length ? envoyees[envoyees.length - 1] : null;
+      const aDemande = String(b.a || "").trim().toLowerCase();
+      if (aDemande && !permis(aDemande)) return out({ ok: false, why: "cette adresse n’est ni le contact ni une personne qu’il a mise en copie" });
+      const aSuite = String(f.suite_a || "").toLowerCase(), aDern = dern && Array.isArray(dern.cc) && dern.cc.length ? String(dern.a || "").toLowerCase() : "";
+      const dest = b.action === "suite_envoyer" ? (permis(aSuite) ? aSuite : destContact) : aDemande || (permis(aDern) ? aDern : destContact);
+      const redirige = dest !== contact && dest !== destContact;
+      const cc: string[] = redirige ? [destContact] : [];
       const { data: eqRows } = await db.from("wl_equipe").select("id,nom,boite,signature,signature_en,telephone,actif").or("id.eq." + String(f.redacteur || "_") + (f.boite ? ",boite.eq." + String(f.boite) : ""));
       const boite = String(f.boite || ((eqRows || []).find((x) => x.id === f.redacteur) || {}).boite || "");
       const owner = (eqRows || []).find((x) => x.boite === boite && x.actif !== false) || (eqRows || []).find((x) => x.id === f.redacteur) || { id: f.redacteur, nom: "", signature: "", signature_en: "" };
@@ -678,10 +733,13 @@ Deno.serve(async (req) => {
         const telOk = tel.replace(/\D/g, "").length >= 6 ? tel : "";
         const en = f.langue === "en";
         const outil = { name: "mail", description: "Le texte de la réponse.", input_schema: { type: "object", additionalProperties: false, required: ["corps"], properties: { corps: { type: "string", description: "Texte du mail : formule d'appel, message, formule de politesse courte, SANS signature ni nom." } } } };
-        const sys = "Tu es la Secrétaire du Writinglab de Posthumain (média suisse francophone sur la science et la technologie, posthumain.com). Tu rédiges une réponse courte dans le FIL d'une demande d'interview, au nom de " + (owner.nom || me.nom) + ". " +
+        const nomA = nomDe(dest);
+        const pour = redirige ? "Ce message est adressé à " + (nomA ? nomA + " (" + dest + ")" : dest) + ", que " + (f.contact_nom || "le contact") + " a mis(e) en copie de sa réponse ; " + (f.contact_nom || "le contact") + " reste en copie. " +
+          "N'invente pas sa fonction : si la réponse du contact la précise (assistante, secrétaire…), tu peux t'appuyer dessus. Formule d'appel avec le nom de cette personne s'il est connu (sinon « Bonjour, » / « Dear Sir or Madam, »), et fais le lien avec le contact (« comme convenu avec le Professeur X… »). " : "";
+        const sys = "Tu es la Secrétaire du Writinglab de Posthumain (média suisse francophone sur la science et la technologie, posthumain.com). Tu rédiges une réponse courte dans le FIL d'une demande d'interview, au nom de " + (owner.nom || me.nom) + ". " + pour +
           "Langue : " + (en ? "anglais" : "français") + ". Vouvoiement, ton cordial et professionnel, 3 à 8 phrases, naturel (pas de formules creuses). Suis fidèlement la consigne du membre : n'ajoute aucun engagement, aucune date, aucun fait qui n'y est pas. " +
           "Réponds au dernier message du contact s'il y en a un, sans le recopier. " + (telOk ? "Donne ce numéro de téléphone tel quel : " + telOk + "." : "Ne mentionne aucun numéro de téléphone et n'en invente aucun.") +
-          " Commence par la formule d'appel avec le nom du contact (« Bonjour Monsieur X, » / « Dear Dr X, »), termine par une formule de politesse courte, SANS signature ni nom : la signature est ajoutée à l'envoi. Réponds avec l'outil « mail ».";
+          (redirige ? " Commence par la formule d'appel indiquée ci-dessus" : " Commence par la formule d'appel avec le nom du contact (« Bonjour Monsieur X, » / « Dear Dr X, »)") + ", termine par une formule de politesse courte, SANS signature ni nom : la signature est ajoutée à l'envoi. Réponds avec l'outil « mail ».";
         const user = "Contact : " + [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", ") + "\nArticle : " + (f.article_titre || "") +
           "\n\nNOTRE PREMIER MAIL (objet : " + base + ") :\n" + String(f.mail_corps || "").slice(0, 2500) +
           (f.reponse ? "\n\nSA RÉPONSE (" + (f.reponse_le || "") + ") :\n" + String(f.reponse).slice(-3000) : "\n\n(Pas encore de réponse du contact.)") +
@@ -690,9 +748,9 @@ Deno.serve(async (req) => {
         const r = await claude(sys + await kbTexte(kbDeCapacite("suite_interview"), consigne), [{ role: "user", content: user }], outil, 8000, "telephone", me.id, "low"); // réponse dans le fil d'une fiche : mail simple
         const corps = String(r.corps || "").trim().slice(0, 8000); if (!corps) return out({ ok: false, why: "rédaction impossible, réessayez" });
         hist.push({ t: now, e: "réponse dans le fil préparée (à valider)", par: me.id });
-        const { error } = await db.from("wl_fiches").update({ suite_sujet: sujetDef, suite_corps: corps, suite_consigne: consigne, suite_a: dest, suite_prete_le: now, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
+        const { error } = await db.from("wl_fiches").update({ suite_sujet: sujetDef, suite_corps: corps, suite_consigne: consigne, suite_a: dest, suite_cc: cc, suite_prete_le: now, historique: JSON.stringify(hist.slice(-60)) }).eq("fiche_id", f.fiche_id);
         if (error) return out({ ok: false, why: "enregistrement impossible" }, 500);
-        return out({ ok: true, fiche_id: f.fiche_id, sujet: sujetDef, corps, a: dest });
+        return out({ ok: true, fiche_id: f.fiche_id, sujet: sujetDef, corps, a: dest, a_nom: nomA, cc });
       }
       // suite_envoyer : seulement après « Valider et envoyer » dans la fiche
       if (b.valide !== true) return out({ ok: false, why: "la réponse doit être relue et validée" });
@@ -724,7 +782,8 @@ Deno.serve(async (req) => {
       const html = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#1f1a12">' + escH(texte).replace(/\n/g, "<br>") + (sigHtml ? '<br><br><div style="color:#444">' + sigHtml + "</div>" : "") + "</div>";
       const nomQ = (s: unknown) => String(s || "").replace(/["<>\r\n]/g, "").trim();
       const from = (nomQ(owner.nom) ? '"' + nomQ(owner.nom) + ' – Posthumain" ' : "") + "<" + adr + ">";
-      const to = (nomQ(f.contact_nom) ? '"' + nomQ(f.contact_nom) + '" ' : "") + "<" + dest + ">";
+      const to = (nomQ(nomDe(dest)) ? '"' + nomQ(nomDe(dest)) + '" ' : "") + "<" + dest + ">";
+      const ccTxt = cc.map((e) => (nomQ(nomDe(e)) ? '"' + nomQ(nomDe(e)) + '" ' : "") + "<" + e + ">").join(", ");
       // Verrou : un seul envoi à la fois (deux clics, deux onglets) ; libéré après l'envoi ou au bout de 3 minutes.
       const lim = new Date(Date.now() - 180000).toISOString();
       const { data: lk } = await db.from("wl_fiches").update({ suite_verrou: now }).eq("fiche_id", f.fiche_id).or("suite_verrou.is.null,suite_verrou.lt." + lim).select("fiche_id");
@@ -733,14 +792,15 @@ Deno.serve(async (req) => {
       let rm: any = null;
       try {
         const rr = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-mail", { method: "POST", signal: AbortSignal.timeout(58000), headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
-          body: JSON.stringify({ from, to, sujet, corps: sigTxt ? texte + "\n\n" + sigTxt : texte, html, in_reply_to: irt, references: refs.join(" "), attachments: [] }) });
+          body: JSON.stringify({ from, to, cc: ccTxt, sujet, corps: sigTxt ? texte + "\n\n" + sigTxt : texte, html, in_reply_to: irt, references: refs.join(" "), attachments: [] }) });
         rm = await rr.json().catch(() => null);
       } catch (e) { rm = { ok: false, why: court((e as Error)?.message || e, 120) }; }
       if (!rm || !rm.ok) { await db.from("wl_fiches").update({ suite_verrou: null }).eq("fiche_id", f.fiche_id); return out({ ok: false, why: "envoi impossible : " + ((rm && rm.why) || "erreur") }); }
       hist.push({ t: now, e: "suite envoyée", par: me.id });
-      envoyees.push({ le: now, a: dest, sujet, message_id: String(rm.message_id || ""), par: me.id });
-      await db.from("wl_fiches").update({ suites: envoyees.slice(-30), suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_prete_le: null, suite_verrou: null, historique: JSON.stringify(hist.slice(-60)), updated_at: now }).eq("fiche_id", f.fiche_id);
-      return out({ ok: true, fiche_id: f.fiche_id, a: dest });
+      if (redirige) hist.push({ t: now, e: "réponse adressée à " + (nomDe(dest) || dest) + " (en copie du contact), " + (f.contact_nom || "le contact") + " en copie", par: me.id });
+      envoyees.push({ le: now, a: dest, cc, sujet, message_id: String(rm.message_id || ""), par: me.id });
+      await db.from("wl_fiches").update({ suites: envoyees.slice(-30), suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_cc: null, suite_prete_le: null, suite_verrou: null, historique: JSON.stringify(hist.slice(-60)), updated_at: now }).eq("fiche_id", f.fiche_id);
+      return out({ ok: true, fiche_id: f.fiche_id, a: dest, cc });
     }
     return out({ ok: false, why: "action inconnue" }, 400);
   } catch (e) {

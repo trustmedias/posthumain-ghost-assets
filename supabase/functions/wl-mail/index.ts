@@ -11,6 +11,10 @@
 // 23/10/2026 : boîtes ajoutées depuis le lab (table wl_boites, actives) acceptées EN PLUS des 4 boîtes historiques, qui gardent
 // exactement le même chemin (secrets WL_SMTP_*, mail.infomaniak.com). Pour ces boîtes : mot de passe lu dans Supabase Vault
 // (fonction wl_boite_secret_lire, service role), serveurs SMTP / IMAP du fournisseur enregistrés dans wl_boites.
+// 28/10/2026 : champ « cc » facultatif (adresse ou liste) : personnes en copie, ajoutées à l'en-tête Cc ET à l'enveloppe SMTP.
+//   Sert à « Répondre à la personne en copie » (l'assistante d'un chercheur) : elle passe en destinataire, le chercheur en copie.
+// 28/10/2026 : action « entetes » { action, boite (adresse), message_id } : relit dans la boîte de réception (IMAP) les destinataires
+//   et les personnes en copie d'un mail déjà reçu (rattrapage des réponses arrivées avant la relève des copies). Rien n'est modifié.
 import nodemailer from "npm:nodemailer@6.9.14";
 import MailComposer from "npm:nodemailer@6.9.14/lib/mail-composer/index.js";
 import { ImapFlow } from "npm:imapflow@1.0.164";
@@ -31,6 +35,14 @@ function safeEqual(a: string, b: string) {
   if (a.length !== b.length) return false;
   let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return r === 0;
+}
+// Liste d'adresses (« "Nom, Prénom" <a@b.ch>, c@d.org » ou tableau) → adresses valides, sans doublon, 10 au plus.
+const emailOk = (e: string) => /^[^\s@<>",;]+@[^\s@<>",;]+\.[a-z]{2,}$/i.test(e);
+function listeAdresses(v: unknown): string[] {
+  const brut = Array.isArray(v) ? v.map(String) : String(v || "").split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+  const out: string[] = [];
+  for (const x of brut) { const m = x.match(/<([^>]+)>/); const e = String(m ? m[1] : x).trim().toLowerCase(); if (emailOk(e) && !out.includes(e)) out.push(e); }
+  return out.slice(0, 10);
 }
 const mid = (s: unknown) => { const v = String(s || "").trim(); return /^<[^<>\s]+@[^<>\s]+>$/.test(v) ? v : ""; };
 async function alerter(cle: string, titre: string, texte: string) {
@@ -67,12 +79,47 @@ async function deposerEnvoyes(srv: any, user: string, pass: string, raw: Uint8Ar
   } finally { await c.logout().catch(() => {}); }
 }
 
+// Identifiants d'une boîte (historique ou ajoutée depuis le lab) : { srv, login, pass } ou null.
+// deno-lint-ignore no-explicit-any
+async function acces(user: string): Promise<any> {
+  if (SECRETS[user]) { const pass = Deno.env.get(SECRETS[user]) || Deno.env.get("WL_SMTP_PASS") || ""; return pass ? { srv: INFOMANIAK, login: user, pass } : null; }
+  const bx = await boiteLab(user).catch(() => null);
+  return bx ? { srv: bx, login: String(bx.identifiant || bx.adresse), pass: bx.pass } : null;
+}
+// 28/10/2026 : destinataires et copies d'un mail reçu, relus dans la boîte de réception (lecture seule, sans marquer le mail lu).
+// deno-lint-ignore no-explicit-any
+async function entetes(b: any) {
+  const user = String(b.boite || "").trim().toLowerCase(), id = mid(b.message_id);
+  if (!user || !id) return { ok: false, why: "boîte ou identifiant du mail manquant" };
+  const ac = await acces(user); if (!ac) return { ok: false, why: "boîte inconnue ou sans mot de passe" };
+  const c = new ImapFlow({ host: ac.srv.imap_host, port: ac.srv.imap_port, secure: ac.srv.imap_port === 993, auth: { user: ac.login, pass: ac.pass }, logger: false, connectionTimeout: 10000, greetingTimeout: 8000, socketTimeout: 20000 });
+  const lire = async () => {
+    await c.connect();
+    try {
+      const lock = await c.getMailboxLock("INBOX", { readOnly: true });
+      try {
+        const uids = await c.search({ header: { "message-id": id } }, { uid: true });
+        if (!uids || !uids.length) return { ok: true, trouve: false, to: [], cc: [] };
+        // deno-lint-ignore no-explicit-any
+        const msg: any = await c.fetchOne(String(uids[uids.length - 1]), { envelope: true }, { uid: true });
+        // deno-lint-ignore no-explicit-any
+        const conv = (l: any[]) => (l || []).map((a: any) => ({ email: String(a.address || "").toLowerCase(), nom: String(a.name || "").trim() })).filter((a: any) => emailOk(a.email));
+        const env = (msg && msg.envelope) || {};
+        return { ok: true, trouve: true, de: conv(env.from)[0] || null, to: conv(env.to), cc: conv(env.cc) };
+      } finally { lock.release(); }
+    } finally { await c.logout().catch(() => {}); }
+  };
+  try { return await Promise.race([lire(), new Promise<never>((_, ko) => setTimeout(() => ko(new Error("délai IMAP dépassé")), 30000))]); }
+  catch (e) { return { ok: false, why: "imap: " + String((e as Error)?.message || e).slice(0, 160) }; }
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ ok: false, why: "method" }, 405);
   const secret = Deno.env.get("TV_ADMIN_SECRET") || "";
   if (!secret || !safeEqual(req.headers.get("x-tv-secret") || "", secret)) return json({ ok: false, why: "unauthorized" }, 401);
   // deno-lint-ignore no-explicit-any
   let b: any; try { b = await req.json(); } catch { return json({ ok: false, why: "bad_json" }); }
+  if (b.action === "entetes") return json(await entetes(b));
   const m = String(b.from || "").match(/<([^>]+)>/);
   const user = String(m ? m[1] : b.from || "").trim().toLowerCase();
   // Expéditeur : boîte historique (chemin inchangé) ou boîte active ajoutée depuis le lab.
@@ -97,8 +144,12 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     filename: String(a.nom || "fichier").slice(0, 200), contentType: String(a.type || "application/octet-stream"), content: String(a.data || ""), encoding: "base64" })).filter((a: any) => a.content);
   const html = typeof b.html === "string" && b.html.trim() ? String(b.html).slice(0, 80000) : undefined;
+  // Copie (28/10/2026) : jamais l'expéditeur ni un destinataire principal ; l'en-tête garde les noms tels que fournis.
+  const toAdr = listeAdresses(b.to), ccAdr = listeAdresses(b.cc).filter((e) => e !== user && !toAdr.includes(e));
+  const ccHdr = ccAdr.length ? (Array.isArray(b.cc) ? b.cc.map(String) : String(b.cc).split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)).map((x) => x.trim())
+    .filter((x) => { const mm = x.match(/<([^>]+)>/); return ccAdr.includes(String(mm ? mm[1] : x).trim().toLowerCase()); }).join(", ") : "";
   // deno-lint-ignore no-explicit-any
-  const opts: any = { from: b.from, to: b.to, subject: String(b.sujet).slice(0, 300), text: String(b.corps).slice(0, 50000), html, date: new Date(),
+  const opts: any = { from: b.from, to: b.to, cc: ccHdr || undefined, subject: String(b.sujet).slice(0, 300), text: String(b.corps).slice(0, 50000), html, date: new Date(),
     messageId, inReplyTo: irt || undefined, references: refs.length ? refs.join(" ") : undefined, attachments };
   let raw: Uint8Array;
   try { raw = new Uint8Array(await new MailComposer(opts).compile().build()); }
@@ -108,7 +159,7 @@ Deno.serve(async (req) => {
   try {
     const t = nodemailer.createTransport({ host: srv.smtp_host, port: srv.smtp_port, secure: srv.smtp_port === 465, auth: { user: login, pass }, connectionTimeout: 10000, greetingTimeout: 8000, socketTimeout: 20000 });
     // Envoi du message déjà composé : la copie déposée dans « Envoyés » est identique, octet pour octet.
-    const dest = ([] as string[]).concat(b.to).join(",");
+    const dest = [...toAdr, ...ccAdr].join(",") || ([] as string[]).concat(b.to).join(",");
     info = await t.sendMail({ envelope: { from: user, to: dest }, raw: Buffer.from(raw) });
   } catch (e) {
     const why = String((e as Error)?.message || e).slice(0, 200);
@@ -126,5 +177,5 @@ Deno.serve(async (req) => {
     });
   // deno-lint-ignore no-explicit-any
   try { (globalThis as any).EdgeRuntime?.waitUntil(copie); } catch (_) { /* hors Supabase : la promesse continue seule */ }
-  return json({ ok: true, via: "supabase", message_id: messageId, accepted: info.accepted || [], copie_envoyes: "en cours" });
+  return json({ ok: true, via: "supabase", message_id: messageId, cc: ccAdr, accepted: info.accepted || [], copie_envoyes: "en cours" });
 });

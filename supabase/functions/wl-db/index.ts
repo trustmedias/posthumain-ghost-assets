@@ -7,6 +7,7 @@
 // Répond toujours par un TABLEAU (n8n en fait un élément par ligne), avec createdAt / updatedAt et des liens signés (1 h).
 // Équipe (23/10/2026) : table wl_equipe (equipe.ts, cache 60 s) au lieu des listes codées en dur ; action « equipe » lue par le nœud
 // « Équipe — lire » du workflow Writinglab (juste avant « Accès »).
+// 28/10/2026 : colonne « copies » (fiches et courrier) = personnes mises en copie par le contact (JSON texte), relevée par n8n.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { equipe } from "./equipe.ts";
 
@@ -15,9 +16,9 @@ const BUCKET = "writinglab";
 const CATEGORIES = ["factures", "documents", "images", "contrats", "articles", "autres"];
 
 const TABLES: Record<string, { name: string; key: string | null; cols: string[] }> = {
-  fiches: { name: "wl_fiches", key: "fiche_id", cols: ["fiche_id", "article_id", "article_titre", "redacteur", "boite", "contact_nom", "contact_email", "contact_role", "contact_institution", "langue", "statut", "questions", "mail_sujet", "mail_corps", "message_id", "conversation_id", "envoye_le", "reponse", "reponse_le", "citation", "paragraphe", "historique", "messages_vus", "pieces", "relance_sujet", "relance_corps", "relance_prete_le", "relances", "relance_envoyee_le", "rebond", "rebond_motif", "rebond_le"] },
+  fiches: { name: "wl_fiches", key: "fiche_id", cols: ["fiche_id", "article_id", "article_titre", "redacteur", "boite", "contact_nom", "contact_email", "contact_role", "contact_institution", "langue", "statut", "questions", "mail_sujet", "mail_corps", "message_id", "conversation_id", "envoye_le", "reponse", "reponse_le", "citation", "paragraphe", "historique", "messages_vus", "pieces", "relance_sujet", "relance_corps", "relance_prete_le", "relances", "relance_envoyee_le", "rebond", "rebond_motif", "rebond_le", "copies"] },
   messages: { name: "wl_messages", key: null, cols: ["auteur", "nom", "texte", "article_id", "article_titre", "categorie"] },
-  courrier: { name: "wl_courrier", key: "mail_id", cols: ["mail_id", "boite", "de_email", "de_nom", "sujet", "texte", "recu_le", "categorie", "motif", "abonne", "statut", "brouillon_sujet", "brouillon_corps", "envoye_le", "historique", "message_id", "refs", "pieces", "membre_id", "reponse_message_id"] },
+  courrier: { name: "wl_courrier", key: "mail_id", cols: ["mail_id", "boite", "de_email", "de_nom", "sujet", "texte", "recu_le", "categorie", "motif", "abonne", "statut", "brouillon_sujet", "brouillon_corps", "envoye_le", "historique", "message_id", "refs", "pieces", "membre_id", "reponse_message_id", "copies"] },
   campagnes: { name: "wl_campagnes", key: "campagne_id", cols: ["campagne_id", "nom", "offres", "cible", "zone", "statut", "notes"] },
   prospects: { name: "wl_prospects", key: "prospect_id", cols: ["prospect_id", "campagne_id", "entreprise", "site", "secteur", "pays", "contact_nom", "contact_role", "email", "source_email", "pourquoi", "statut", "mail_sujet", "mail_corps", "envoye_le", "relance_le", "message_id", "historique"] },
   optout: { name: "wl_optout", key: "cle", cols: ["cle", "raison"] },
