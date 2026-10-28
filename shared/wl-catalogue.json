@@ -428,6 +428,7 @@
     "action_faite": "note sur le fil qu'une proposition a été exécutée",
     "canal": "« Reçue par » choisi à la main dans la fiche",
     "appel_traiter": "réponse par téléphone : structuration de la transcription (aucune écriture)",
+    "appel_extraire": "réponse par téléphone longue (plus de ~20 min) : lecture partie par partie avant la fusion par appel_traiter (aucune écriture)",
     "fiche_traitee": "« ✓ Marquer comme traitée » : réponse purement logistique, la fiche s'affiche en attente (statut réel inchangé)",
     "copies_rattraper": "ouverture d'une fiche dont la réponse est arrivée avant la relève des copies : personnes en copie relues une fois dans la boîte",
     "suite_texte_rattraper": "ouverture d'une fiche dont une réponse envoyée dans le fil date d'avant la conservation du texte : texte relu une fois dans les Éléments envoyés"

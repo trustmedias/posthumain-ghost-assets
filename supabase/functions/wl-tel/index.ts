@@ -10,6 +10,9 @@
 //          Réponse : faire (action proposée) | transmettre (UNE fois, au bon poste, qui traite à son tour) | question.
 //  - action_faite { id, resultat }          → note sur le fil que la proposition a été exécutée
 //  - appel_traiter { fiche_id, transcription } → l'Assistant tire résumé + réponses par question (aucune écriture)
+//    28/10/2026 : plus aucune coupure silencieuse (avant : 30 000 caractères, soit ~25 min d'appel). Au-delà de ~24 000 caractères,
+//    la page découpe la transcription et appelle appel_extraire { fiche_id, morceau, i, n } pour chaque partie (chaque appel reste
+//    sous la limite de 150 s des fonctions), puis appel_traiter { fiche_id, partiels } fusionne les réponses partielles.
 //  - appel_enregistrer { fiche_id, resume, reponses, transcription, source: appel|notes, consentement }
 //        → réponse de la fiche « reçue par téléphone le … » ; pièces éventuelles « à vérifier » (motif « réponse par téléphone »).
 //  - suite_rediger { fiche_id, consigne, telephone? } → réponse dans le FIL de la fiche d'interview, rédigée par la Secrétaire,
@@ -367,7 +370,7 @@ const TARIF = [4, 20]; // USD / million de jetons (Opus 5.5), conversion EUR app
 // deno-lint-ignore no-explicit-any
 async function claude(system: string, messages: any[], tool: any, maxTokens = 6000, usage = "telephone", qui = "", effort: "low" | "medium" = "medium"): Promise<any> {
   const key = env("ANTHROPIC_API_KEY"); if (!key) throw new Error("clé Anthropic absente");
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(110000),
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(135000), // < 150 s, limite des fonctions Supabase
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     // tool_choice « tool » / « any » refusé par ce modèle : « auto » + consigne ferme dans le système, et repli sur le texte.
     body: JSON.stringify({ model: MODELE, max_tokens: maxTokens, thinking: { type: "adaptive" }, output_config: { effort }, system: system + "\n\nIMPORTANT : réponds UNIQUEMENT en appelant l'outil « " + tool.name + " », sans texte autour.", messages, tools: [tool], tool_choice: { type: "auto" } }) });
@@ -590,48 +593,77 @@ Deno.serve(async (req) => {
     }
 
     // ---------- Réponse par téléphone dans une fiche ----------
-    if (b.action === "appel_traiter" || b.action === "appel_enregistrer") {
+    if (b.action === "appel_traiter" || b.action === "appel_extraire" || b.action === "appel_enregistrer") {
       let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
       const { data: f0 } = await q; const f = f0 && f0[0];
       if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
       if (!["envoyé", "a répondu", "relance", "inséré"].includes(String(f.statut))) return out({ ok: false, why: "cette fiche n’attend pas de réponse (statut : " + f.statut + ")" });
       const qs: string[] = (pj(f.questions) || []).map((x: unknown) => String(x || "")).filter(Boolean);
-      if (b.action === "appel_traiter") {
-        const tr = String(b.transcription || "").trim(); if (tr.length < 20) return out({ ok: false, why: "transcription trop courte" });
-        const outil = { name: "reponses", description: "Réponse d'interview structurée.", input_schema: { type: "object", additionalProperties: false, required: ["resume", "reponses"], properties: {
-          resume: { type: "string", description: "Résumé fidèle de ce qu'a dit le contact (3 à 6 phrases), dans la langue de l'interview." },
-          reponses: { type: "array", items: { type: "object", additionalProperties: false, required: ["question", "reponse"], properties: { question: { type: "string" }, reponse: { type: "string", description: "Ce que le contact a répondu à cette question, fidèlement (propos rapportés ; garde ses formulations fortes entre guillemets quand elles sont nettes). Vide si rien n'a été dit." } } } },
-          citations: { type: "array", items: { type: "string" }, description: "2 à 4 phrases du contact, citables telles quelles (corrigées seulement de l'oral : hésitations, répétitions)." },
-          manque: { type: "string", description: "Questions restées sans réponse ou passages incompréhensibles de la transcription." } } } };
-        const sys = "Tu es l’Assistant du Writinglab de Posthumain. Une journaliste a mené une interview PAR TÉLÉPHONE ; voici la transcription automatique (reconnaissance vocale : mots mal reconnus possibles, les deux voix mélangées) ou ses notes d'appel. Tu en tires un résumé et la réponse du contact à CHAQUE question de la fiche, dans l'ordre. N'invente rien : si une question n'a pas été abordée, laisse sa réponse vide et signale-la dans « manque ». Réponds avec l'outil « reponses ».";
-        const user = "Article : " + (f.article_titre || "") + "\nContact : " + [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", ") + "\nLangue de l'interview : " + (f.langue === "en" ? "anglais" : "français") +
-          "\nQuestions de la fiche :\n" + (qs.length ? qs.map((x, i) => (i + 1) + ". " + x).join("\n") : "(aucune question enregistrée : structure par thème)") + "\n\nTRANSCRIPTION / NOTES :\n" + tr.slice(0, 30000);
-        const r = await claude(sys + await kbTexte(kbDeCapacite("reponse_fiche"), tr.slice(0, 600)), [{ role: "user", content: user }], outil, 8000, "telephone", me.id);
+      const SEUIL = 24000; // caractères traités en un seul appel (~20 min d'interview) ; au-delà : par parties, puis fusion
+      const ctxFiche = "Article : " + (f.article_titre || "") + "\nContact : " + [f.contact_nom, f.contact_role, f.contact_institution].filter(Boolean).join(", ") + "\nLangue de l'interview : " + (f.langue === "en" ? "anglais" : "français") +
+        "\nQuestions de la fiche :\n" + (qs.length ? qs.map((x, i) => (i + 1) + ". " + x).join("\n") : "(aucune question enregistrée : structure par thème)");
+      const regles = "La transcription vient de l'enregistrement de l'appel (lignes « [mm:ss] Voix N : … » ; les étiquettes de voix sont attribuées automatiquement et peuvent se tromper : déduis du contenu qui est la journaliste et qui est le contact) ou de la reconnaissance vocale du navigateur, ou de notes d'appel. Une ligne « ⚠️ partie non retranscrite » signale un trou : mentionne-le dans « manque » si une question tombe dedans.";
+      if (b.action === "appel_extraire") {
+        const morceau = String(b.morceau || "").trim().slice(0, 30000), i = Number(b.i) || 1, n = Number(b.n) || 1;
+        if (morceau.length < 20) return out({ ok: true, reponses: [], citations: [], manque: "" });
+        const outilP = { name: "partiel", description: "Ce que le contact dit dans CETTE partie de l'interview.", input_schema: { type: "object", additionalProperties: false, required: ["reponses"], properties: {
+          reponses: { type: "array", items: { type: "object", additionalProperties: false, required: ["question", "reponse"], properties: { question: { type: "string" }, reponse: { type: "string", description: "Ce que le contact répond à cette question DANS CETTE PARTIE, fidèlement (garde ses formulations fortes entre guillemets). Vide si rien ici." } } } },
+          citations: { type: "array", items: { type: "string" }, description: "Phrases du contact citables telles quelles dans cette partie (0 à 4)." },
+          autres: { type: "string", description: "Propos importants du contact hors des questions prévues, dans cette partie." } } } };
+        const sysP = "Tu es l’Assistant du Writinglab de Posthumain. Une journaliste a mené une interview PAR TÉLÉPHONE ; tu lis la partie " + i + " sur " + n + " de la transcription. " + regles + " Pour CHAQUE question de la fiche, dans l'ordre, rapporte ce que le contact en dit dans cette partie seulement (vide sinon). N'invente rien. Réponds avec l'outil « partiel ».";
+        const r = await claude(sysP, [{ role: "user", content: ctxFiche + "\n\nPARTIE " + i + "/" + n + " DE LA TRANSCRIPTION :\n" + morceau }], outilP, 12000, "telephone", me.id);
         const reps = (Array.isArray(r.reponses) ? r.reponses : []).map((x: { question?: string; reponse?: string }) => ({ question: String(x.question || ""), reponse: String(x.reponse || "") }));
-        return out({ ok: true, resume: String(r.resume || ""), reponses: reps, citations: Array.isArray(r.citations) ? r.citations.map(String).slice(0, 6) : [], manque: String(r.manque || ""), questions: qs });
+        return out({ ok: true, i, n, reponses: reps, citations: Array.isArray(r.citations) ? r.citations.map(String).slice(0, 6) : [], autres: String(r.autres || "") });
+      }
+      if (b.action === "appel_traiter") {
+        const partiels = Array.isArray(b.partiels) ? b.partiels.slice(0, 20) : null;
+        const tr = String(b.transcription || "").trim();
+        if (!partiels && tr.length < 20) return out({ ok: false, why: "transcription trop courte" });
+        if (!partiels && tr.length > SEUIL) return out({ ok: false, decouper: true, seuil: SEUIL, why: "transcription longue : elle doit être traitée par parties" });
+        const outil = { name: "reponses", description: "Réponse d'interview structurée.", input_schema: { type: "object", additionalProperties: false, required: ["resume", "reponses"], properties: {
+          resume: { type: "string", description: "Résumé fidèle de ce qu'a dit le contact (3 à 6 phrases, jusqu'à 10 pour un long entretien), dans la langue de l'interview." },
+          reponses: { type: "array", items: { type: "object", additionalProperties: false, required: ["question", "reponse"], properties: { question: { type: "string" }, reponse: { type: "string", description: "Ce que le contact a répondu à cette question, fidèlement (propos rapportés ; garde ses formulations fortes entre guillemets quand elles sont nettes). Vide si rien n'a été dit." } } } },
+          citations: { type: "array", items: { type: "string" }, description: "2 à 6 phrases du contact, citables telles quelles (corrigées seulement de l'oral : hésitations, répétitions)." },
+          manque: { type: "string", description: "Questions restées sans réponse, passages incompréhensibles ou parties de l'enregistrement manquantes." } } } };
+        let sys: string, user: string;
+        if (partiels) {
+          // fusion : réponses partielles (dans l'ordre de l'appel) → une réponse par question, sans doublon ni perte
+          // deno-lint-ignore no-explicit-any
+          const txt = partiels.map((p: any, k: number) => "— PARTIE " + (k + 1) + " —\n" + (Array.isArray(p.reponses) ? p.reponses : []).filter((x: any) => x && String(x.reponse || "").trim()).map((x: any) => "Q : " + String(x.question || "").slice(0, 400) + "\nR : " + String(x.reponse || "").slice(0, 8000)).join("\n") +
+            (Array.isArray(p.citations) && p.citations.length ? "\nCitations : " + p.citations.map((c: unknown) => "« " + String(c).slice(0, 600) + " »").join(" ") : "") + (p.autres ? "\nAutres propos : " + String(p.autres).slice(0, 3000) : "")).join("\n\n");
+          sys = "Tu es l’Assistant du Writinglab de Posthumain. Une longue interview PAR TÉLÉPHONE a été lue partie par partie ; voici, dans l'ordre de l'appel, ce que le contact a dit dans chaque partie. Fusionne en UNE réponse par question de la fiche (dans l'ordre), sans rien perdre ni répéter, en gardant ses formulations fortes, puis un résumé et les meilleures citations. N'invente rien. Réponds avec l'outil « reponses ».";
+          user = ctxFiche + "\n\nRÉPONSES PAR PARTIE :\n" + txt.slice(0, 120000) + (b.trous ? "\n\nPARTIES DE L'ENREGISTREMENT MANQUANTES : " + String(b.trous).slice(0, 1000) : "");
+        } else {
+          sys = "Tu es l’Assistant du Writinglab de Posthumain. Une journaliste a mené une interview PAR TÉLÉPHONE ; voici la transcription. " + regles + " Tu en tires un résumé et la réponse du contact à CHAQUE question de la fiche, dans l'ordre. N'invente rien : si une question n'a pas été abordée, laisse sa réponse vide et signale-la dans « manque ». Réponds avec l'outil « reponses ».";
+          user = ctxFiche + "\n\nTRANSCRIPTION / NOTES :\n" + tr;
+        }
+        const r = await claude(sys + await kbTexte(kbDeCapacite("reponse_fiche"), (tr || JSON.stringify(partiels || [])).slice(0, 600)), [{ role: "user", content: user }], outil, 16000, "telephone", me.id);
+        const reps = (Array.isArray(r.reponses) ? r.reponses : []).map((x: { question?: string; reponse?: string }) => ({ question: String(x.question || ""), reponse: String(x.reponse || "") }));
+        return out({ ok: true, resume: String(r.resume || ""), reponses: reps, citations: Array.isArray(r.citations) ? r.citations.map(String).slice(0, 8) : [], manque: String(r.manque || ""), questions: qs });
       }
       // appel_enregistrer
       const source = b.source === "appel" ? "appel" : "notes";
       if (source === "appel" && b.consentement !== true) return out({ ok: false, why: "consentement de la personne requis avant d’enregistrer un appel écouté" });
-      const reps = (Array.isArray(b.reponses) ? b.reponses : []).map((x: { question?: unknown; reponse?: unknown }) => ({ question: String((x && x.question) || "").slice(0, 600), reponse: String((x && x.reponse) || "").trim().slice(0, 6000) })).filter((x: { reponse: string }) => x.reponse).slice(0, 12);
-      const resume = String(b.resume || "").trim().slice(0, 3000);
+      const reps = (Array.isArray(b.reponses) ? b.reponses : []).map((x: { question?: unknown; reponse?: unknown }) => ({ question: String((x && x.question) || "").slice(0, 600), reponse: String((x && x.reponse) || "").trim().slice(0, 12000) })).filter((x: { reponse: string }) => x.reponse).slice(0, 20);
+      const resume = String(b.resume || "").trim().slice(0, 6000);
       if (!reps.length && !resume) return out({ ok: false, why: "réponse vide" });
       const now = new Date(), quand = now.toLocaleString("fr-CH", { timeZone: "Europe/Zurich", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
       const en = f.langue === "en";
       const texte = "📞 " + (en ? "Answer received by phone on " : "Réponse reçue par téléphone le ") + quand + " (" + (source === "appel" ? (en ? "call transcribed with consent" : "appel retranscrit avec l’accord de la personne") : (en ? "call notes" : "notes d’appel")) + ", " + me.nom + ")\n\n" +
+        (b.note ? "⚠️ " + String(b.note).trim().slice(0, 600) + "\n\n" : "") + // 28/10/2026 : enregistrement interrompu, parties manquantes
         (resume ? (en ? "Summary: " : "Résumé : ") + resume + "\n\n" : "") + reps.map((x: { question: string; reponse: string }, i: number) => (x.question ? (i + 1) + ". " + x.question + "\n" : "") + x.reponse).join("\n\n");
       const hist = pj(f.historique) || []; hist.push({ t: now.toISOString(), e: "réponse reçue par téléphone" + (source === "appel" ? " (appel retranscrit, accord de la personne)" : " (notes d’appel)"), par: me.id });
       // Fiche qui a déjà une réponse (par mail) : la réponse au téléphone s'AJOUTE, et une preuve par mail déjà obtenue est gardée.
       const avant = String(f.reponse || "").trim(), pv0 = pj(f.reponse_preuve);
       const garderPreuve = !!(f.reponse_verifiee && pv0 && pv0.lien !== "telephone");
-      const row: Record<string, unknown> = { reponse: ((avant ? avant + "\n\n— — —\n\n" : "") + texte).slice(0, 40000), reponse_le: now.toISOString(), historique: JSON.stringify(hist.slice(-60)) };
+      const row: Record<string, unknown> = { reponse: ((avant ? avant + "\n\n— — —\n\n" : "") + texte).slice(0, 150000), reponse_le: now.toISOString(), historique: JSON.stringify(hist.slice(-60)) };
       if (f.statut !== "inséré") row.statut = "a répondu";
       // Passage par wl-db (mêmes notifications qu'une réponse reçue), puis la preuve « téléphone » (colonnes hors wl-db).
       const r = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-db", { method: "POST", headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") }, signal: AbortSignal.timeout(30000),
         body: JSON.stringify({ action: "update", table: "fiches", where: { fiche_id: f.fiche_id }, row }) });
       if (!r.ok) return out({ ok: false, why: "enregistrement impossible (wl-db " + r.status + ")" }, 500);
       if (!garderPreuve) await db.from("wl_fiches").update({ reponse_verifiee: true, reponse_preuve: JSON.stringify({ lien: "telephone", de: String(f.contact_email || "").toLowerCase(), recu_le: now.toISOString(), par: me.id, source, consentement: source === "appel" ? true : null, note: "réponse par téléphone : pas de preuve par les en-têtes de mail, pièces à vérifier" }) }).eq("fiche_id", f.fiche_id);
-      await db.from("wl_appels").insert({ fiche_id: f.fiche_id, membre: me.id, source, consentement: source === "appel", transcription: String(b.transcription || "").slice(0, 60000) || null, resume: resume || null, reponses: reps });
+      await db.from("wl_appels").insert({ fiche_id: f.fiche_id, membre: me.id, source, consentement: source === "appel", transcription: String(b.transcription || "").slice(0, 600000) || null, resume: resume || null, reponses: reps, session_id: /^[0-9a-f-]{36}$/i.test(String(b.session_id || "")) ? String(b.session_id) : null });
       return out({ ok: true, fiche_id: f.fiche_id, reponse: texte });
     }
     // « ✓ Marquer comme traitée » (23/10/2026) : réponse purement logistique, sans contenu à citer. Seul l'historique change : la page
