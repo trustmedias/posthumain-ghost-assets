@@ -206,6 +206,88 @@ async function comptaCtx(me: Membre, texte: string) {
   out.par_membre = Object.values(M);
   return out;
 }
+// Correcteur (28/10/2026) : ce qu'il a relu, ce qui est en cours, à valider ou en erreur, ce qui a été laissé de côté (corrections
+// non appliquées, points « à vérifier », sources inaccessibles, graphiques imprécis non refaits), et les brouillons pas encore relus.
+// Lu dans wl_relectures (écrites par wl-relecture) : le Correcteur répond sur son propre travail, en lecture seule.
+const heureZ = (d: unknown) => d ? new Date(String(d)).toLocaleString("fr-CH", { timeZone: "Europe/Zurich", dateStyle: "short", timeStyle: "short" }) : null;
+const VERDICTS_SOURCE_A_SIGNALER = ["inaccessible", "retiree", "remplacee", "corrigee", "ajoutee"];
+// deno-lint-ignore no-explicit-any
+function relectureCtx(r: any, detail: boolean) {
+  // deno-lint-ignore no-explicit-any
+  const res: any = r.resultat || {}, app: any = r.appliquees || {}, meta: any = r.meta || {};
+  // deno-lint-ignore no-explicit-any
+  const corr: any[] = Array.isArray(res.corrections) ? res.corrections : [];
+  const appl = new Set<number>(Array.isArray(app.corrections) ? app.corrections.map(Number) : []);
+  const parCat: Record<string, number> = {};
+  for (const c of corr) for (const k of (Array.isArray(c.categories) ? c.categories : ["autre"])) parCat[k] = (parCat[k] || 0) + 1;
+  // deno-lint-ignore no-explicit-any
+  const sources: any[] = Array.isArray(res.sources_audit) ? res.sources_audit : [];
+  const parVerdict: Record<string, number> = {}; for (const x of sources) parVerdict[x.verdict || "?"] = (parVerdict[x.verdict || "?"] || 0) + 1;
+  // deno-lint-ignore no-explicit-any
+  const graphs: any[] = Array.isArray(res.graphiques) ? res.graphiques : [];
+  // deno-lint-ignore no-explicit-any
+  const refaits: any[] = Array.isArray(r.graphes) ? r.graphes : [];
+  // deno-lint-ignore no-explicit-any
+  const blocs: any[] = Array.isArray(r.blocs) ? r.blocs : [];
+  // deno-lint-ignore no-explicit-any
+  const avant = (n: number) => { const b = blocs.find((x: any) => Number(x.i ?? x.n ?? x.bloc) === n) || blocs[n]; return b ? court(b.md || (Array.isArray(b.items) ? b.items.join(" · ") : "") || b.legende || b.resume || "", 280) : ""; };
+  const valide = r.statut === "validee";
+  // deno-lint-ignore no-explicit-any
+  const o: any = {
+    relecture_id: r.id, post_id: r.post_id, titre: court(r.titre, 120), statut: r.statut,
+    article: meta.statut === "published" ? "déjà publié au moment de la relecture" : "brouillon", auto: !!r.auto, lancee_par: r.lance_par || null,
+    lancee_le: heureZ(r.created_at), validee_le: heureZ(r.validee_le), validee_par: r.validee_par || null,
+    cout_euros: r.cout_eur != null ? Number(r.cout_eur) : null, erreur: r.erreur ? court(r.erreur, 300) : null,
+    resume: court(res.resume, detail ? 1200 : 400),
+    corrections: { proposees: corr.length, appliquees: valide ? appl.size : null, par_categorie: parCat },
+    a_verifier: (Array.isArray(res.a_verifier) ? res.a_verifier : []).map((x: unknown) => court(x, detail ? 420 : 200)),
+    sources: { verifiees: sources.length, par_verdict: parVerdict },
+    graphiques: graphs.map((g) => ({ bloc: g.bloc, verdict: g.verdict, note: court(g.note, detail ? 300 : 140) })),
+    graphiques_refaits: refaits.map((g) => ({ k: g.k, statut: g.statut, erreur: g.erreur ? court(g.erreur, 160) : null })),
+  };
+  if (valide) {
+    // ce qui a été proposé mais NON appliqué lors de la validation (choix du rédacteur en chef ou conflit)
+    o.non_appliquees = corr.map((c, i) => ({ i, c })).filter((x) => !appl.has(x.i)).map((x) => ({ bloc: x.c.bloc, categories: x.c.categories, resume: court(x.c.resume, 220) }));
+    o.conflits = Array.isArray(app.conflits) ? app.conflits.slice(0, 10) : [];
+    o.titre_propose_applique = app.titre ? true : (res.titre ? false : null);
+  }
+  if (detail) {
+    o.corrections_detail = corr.slice(0, 40).map((c, i) => ({ bloc: c.bloc, categories: c.categories, resume: court(c.resume, 260), appliquee: valide ? appl.has(i) : null,
+      ...((Array.isArray(c.categories) && c.categories.includes("fact_check")) ? { avant: avant(Number(c.bloc)), apres: court(c.md, 280) } : {}) }));
+    o.sources_signalees = sources.filter((x) => VERDICTS_SOURCE_A_SIGNALER.includes(x.verdict)).slice(0, 20).map((x) => ({ n: x.n, verdict: x.verdict, url: court(x.url, 160), note: court(x.note, 260) }));
+    o.suggestions = (Array.isArray(res.suggestions) ? res.suggestions : []).slice(0, 8).map((x: unknown) => court(x, 260));
+    o.rejets = (Array.isArray(res.rejets) ? res.rejets : []).slice(0, 8).map((x: unknown) => court(typeof x === "string" ? x : JSON.stringify(x), 200));
+    o.titre_propose = res.titre ? court(res.titre, 160) : null;
+    o.titre_raison = res.titre_raison ? court(res.titre_raison, 260) : null;
+  }
+  return o;
+}
+// deno-lint-ignore no-explicit-any
+async function relecturesCtx(texte: string, articles: any[]) {
+  const { data } = await db.from("wl_relectures").select("id,post_id,titre,statut,auto,lance_par,tours,erreur,cout_eur,created_at,updated_at,validee_le,validee_par,meta,resultat,appliquees,graphes")
+    .order("created_at", { ascending: false }).limit(40);
+  const l = data || [], t = sansAccent(texte);
+  // Détail complet : relectures en cours, à valider, les 3 plus récentes, et celles dont le titre est cité dans la demande.
+  const cite = (titre: string) => { const mots = sansAccent(titre).replace(/[^a-z0-9]+/g, " ").split(" ").filter((w) => w.length > 4); return mots.filter((w) => t.includes(w)).length >= 2; };
+  let n = 0;
+  const detail = l.map((r) => { const d = ["en_cours", "prete", "erreur"].includes(r.statut) || n < 3 || cite(r.titre || ""); if (r.statut === "validee" || r.statut === "ecartee") n++; return d; });
+  // texte d'origine des blocs (pour « avant / après » des corrections de fait) : seulement pour les relectures détaillées
+  const ids = l.filter((_, i) => detail[i]).map((r) => r.id);
+  const { data: bl } = ids.length ? await db.from("wl_relectures").select("id,blocs").in("id", ids) : { data: [] };
+  const blocsDe = new Map((bl || []).map((x) => [x.id, x.blocs]));
+  const relectures = l.map((r, i) => relectureCtx({ ...r, blocs: blocsDe.get(r.id) || [] }, detail[i]));
+  const relus = new Set(l.filter((r) => r.statut !== "ecartee" && r.statut !== "erreur").map((r) => r.post_id));
+  const brouillons = articles.filter((a) => /draft|brouillon/i.test(a.statut || ""));
+  const { data: ra } = await db.from("wl_reglages").select("valeur").eq("cle", "relecture_auto").limit(1);
+  let auto: unknown = null; try { auto = ra && ra[0] ? JSON.parse(ra[0].valeur) : null; } catch (_) { auto = null; }
+  return {
+    reperes: "Statuts : en_cours = lot Anthropic en traitement ; prete = résultat prêt, à valider par le rédacteur en chef ; validee = corrections choisies poussées dans Ghost ; ecartee = relecture jetée sans rien appliquer ; erreur = échec. Catégories de correction : fact_check (fait ou chiffre faux) et sources sont les plus graves, surtout sur un article déjà publié ; redaction, vulgarisation, anti_ia, putaclic, sommaire, vitrine relèvent de la forme. Verdicts des sources : ok, corrigee, remplacee, ajoutee, retiree, inaccessible (= NON vérifiée). Graphiques : juste, imprecision, faute (une faute est refaite automatiquement).",
+    relecture_auto: auto,
+    en_cours: l.filter((r) => r.statut === "en_cours").length, a_valider: l.filter((r) => r.statut === "prete").length, en_erreur: l.filter((r) => r.statut === "erreur").length,
+    brouillons_pas_encore_relus: brouillons.filter((a) => !relus.has(a.id)).map((a) => ({ id: a.id, titre: a.titre })),
+    relectures,
+  };
+}
 // deno-lint-ignore no-explicit-any
 async function filDe(me: Membre, poste: string, n = 12): Promise<any[]> {
   const { data } = await db.from("wl_tel").select("id,de,transmis_par,mode,texte,action,created_at").eq("membre", me.id).eq("poste", poste).order("created_at", { ascending: false }).limit(n);
@@ -339,6 +421,7 @@ async function contexte(me: Membre, p: Poste, b: any) {
   if (p.contexte.includes("courrier") && p.mail) ctx.courrier = await courrierBureau(p.mail);
   if (p.contexte.includes("pieces")) ctx.pieces = await piecesCtx(me);
   if (p.contexte.includes("compta")) ctx.compta = await comptaCtx(me, String(b.texte || ""));
+  if (p.contexte.includes("relectures") && me.chef) ctx.relectures = await relecturesCtx(String(b.texte || ""), articles);
   return ctx;
 }
 // Base de connaissances du domaine du poste (catalogue : « connaissances »), récupérée au moment d'agir ; vide si rien n'est renseigné.
