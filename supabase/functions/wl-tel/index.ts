@@ -21,7 +21,7 @@
 //  - fiche_traitee { fiche_id } → « ✓ Marquer comme traitée » : historique « réponse marquée traitée » (statut réel inchangé)
 // Rôles : une journaliste n'a que Secrétaire, Assistant, Comptable, et seulement ses fiches ; Julien (mk, sc) = rédacteur en chef.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import { parEmail, type Membre } from "./equipe.ts";
+import { equipe, parEmail, type Membre } from "./equipe.ts";
 import { CATALOGUE } from "./catalogue.ts";
 import { contexteKb } from "./kb.ts"; // base de connaissances par domaine (Paramètres → Base de connaissances), 23/10/2026
 
@@ -122,6 +122,89 @@ async function piecesCtx(me: Membre) {
     if (p.statut === "a_verifier" && aVerifier.length < 10) aVerifier.push({ membre: p.membre, montant: p.montant, motif: court(p.motif, 160), contact: p.contact });
   }
   return { taux_euros_par_piece: taux, soldes_non_convertis: soldes, a_verifier: aVerifier, recentes: (data || []).slice(0, 8).map((p) => ({ membre: p.membre, montant: p.montant, statut: p.statut, contact: p.contact, le: p.created_at })) };
+}
+// Comptable (28/10/2026) : articles comptés et gains de chaque journaliste, pour répondre à « combien d'articles a-t-elle faits,
+// combien a-t-elle déjà gagné ». Sources : factures émises (wl_factures, mois clos), pièces converties (wl_conversions) et, pour le
+// mois en cours, le décompte en direct dans Ghost par le workflow n8n des factures en mode « aperçu » (même règle que la facture :
+// autrice/co-autrice ou relecture prouvée par les révisions ; aucune facture créée). Aperçu gardé 30 min dans wl_reglages et
+// demandé seulement si la question porte sur les articles ou l'argent (une exécution n8n par demande au plus).
+// Une journaliste ne voit que ses propres chiffres ; le rédacteur en chef voit tout le monde.
+const N8N_FACTURES = "https://trustmedias.app.n8n.cloud/webhook/wl-factures";
+const QUESTION_COMPTE = /article|enqu[êe]te|relu|relecture|publi|gagn|factur|pay|vers|combien|total|mois|euro|€|r[ée]mun|argent|salaire|compt/i;
+const moisZurich = () => new Intl.DateTimeFormat("fr-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit" }).format(new Date());
+// deno-lint-ignore no-explicit-any
+async function apercuMois(mois: string): Promise<any> {
+  const cle = "compta_apercu:" + mois;
+  const { data } = await db.from("wl_reglages").select("valeur,updated_at").eq("cle", cle).limit(1);
+  if (data && data[0] && Date.now() - Date.parse(data[0].updated_at) < 30 * 60e3) { try { return JSON.parse(data[0].valeur); } catch (_) { /* recompte */ } }
+  const r = await fetch(N8N_FACTURES, { method: "POST", signal: AbortSignal.timeout(45000), headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
+    body: JSON.stringify({ mois, apercu: true }) }).catch(() => null);
+  const j = r && r.ok ? await r.json().catch(() => null) : null;
+  if (!j || !Array.isArray(j.factures)) return null;
+  // deno-lint-ignore no-explicit-any
+  const art = (l: any[]) => (l || []).map((a) => ({ titre: court(a.titre, 110), publie_le: String(a.publie_le || "").slice(0, 10), role: a.role }));
+  // deno-lint-ignore no-explicit-any
+  const v = { mois, compte_le: new Date().toISOString(), par_membre: j.factures.map((f: any) => ({ membre: f.membre, enquetes_premium: art(f.premium), articles_standards: art(f.standard) })) };
+  await db.from("wl_reglages").upsert({ cle, valeur: JSON.stringify(v), updated_at: new Date().toISOString() }, { onConflict: "cle" });
+  return v;
+}
+async function comptaCtx(me: Membre, texte: string) {
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  let qf = db.from("wl_factures").select("membre,mois,numero,total,statut,emise_le,payee_le,lignes,details").order("mois", { ascending: false }).limit(36);
+  let qc = db.from("wl_conversions").select("membre,type,statut,pieces,montant,created_at,facture_le").limit(500);
+  let qp = db.from("wl_pieces").select("membre,montant,statut,conversion_id").limit(5000);
+  if (!me.chef) { qf = qf.eq("membre", me.id); qc = qc.eq("membre", me.id); qp = qp.eq("membre", me.id); }
+  const [{ data: fs }, { data: cs }, { data: ps }, { data: rg }, liste] = await Promise.all([qf, qc, qp,
+    db.from("wl_reglages").select("cle,valeur").in("cle", ["tarif_premium", "tarif_standard", "taux_piece"]), equipe(db)]);
+  const reg: Record<string, number> = {}; for (const x of rg || []) reg[x.cle] = Number(x.valeur);
+  const tp = reg.tarif_premium || 7, ts = reg.tarif_standard || 5, taux = reg.taux_piece || 0.2;
+  const tests = new Set(liste.filter((m) => m.test).map((m) => m.id));
+  // deno-lint-ignore no-explicit-any
+  const M: Record<string, any> = {};
+  const de = (id: string) => M[id] || (M[id] = { membre: id, nom: (liste.find((m) => m.id === id) || { nom: id }).nom, compte_de_test: tests.has(id) || undefined,
+    factures: [], cumul_factures: { enquetes_premium: 0, articles_standards: 0, total_facture_euros: 0, deja_paye_euros: 0, emis_non_paye_euros: 0 },
+    pieces: { acquises: 0, a_verifier: 0, non_converties: 0, converties: 0, euros_convertis: 0, euros_a_ajouter_a_la_facture: 0 } });
+  for (const f of fs || []) {
+    const m = de(f.membre), d = f.details || {}, aj = d.ajust || {};
+    const np = aj.premium_qte != null ? Number(aj.premium_qte) : (d.premium || []).length, ns = aj.standard_qte != null ? Number(aj.standard_qte) : (d.standard || []).length;
+    // deno-lint-ignore no-explicit-any
+    const inter = (f.lignes || []).find((l: any) => /interview/i.test(l.libelle || ""));
+    m.factures.push({ mois: f.mois, numero: f.numero, statut: f.statut === "payee" ? "payée" : "émise, pas encore payée", payee_le: f.payee_le ? String(f.payee_le).slice(0, 10) : null,
+      enquetes_premium: np, articles_standards: ns, interviews_euros: inter ? Number(inter.total) : 0, total_euros: Number(f.total),
+      // titres : seulement pour les 3 dernières factures (taille du contexte)
+      titres: m.factures.length < 3 ? { premium: (d.premium || []).map((a: { titre?: string }) => court(a.titre, 100)), standard: (d.standard || []).map((a: { titre?: string }) => court(a.titre, 100)) } : undefined });
+    const c = m.cumul_factures; c.enquetes_premium += np; c.articles_standards += ns; c.total_facture_euros = r2(c.total_facture_euros + Number(f.total));
+    if (f.statut === "payee") c.deja_paye_euros = r2(c.deja_paye_euros + Number(f.total)); else c.emis_non_paye_euros = r2(c.emis_non_paye_euros + Number(f.total));
+  }
+  for (const p of ps || []) {
+    const m = de(p.membre).pieces, n = Number(p.montant || 0);
+    if (p.statut === "acquis") { m.acquises += n; if (!p.conversion_id) m.non_converties += n; }
+    if (p.statut === "a_verifier") m.a_verifier += n;
+  }
+  for (const c of cs || []) {
+    if (c.type !== "conversion") continue;
+    const m = de(c.membre).pieces; m.converties += Number(c.pieces || 0); m.euros_convertis = r2(m.euros_convertis + Number(c.montant || 0));
+    if (c.statut === "a_facturer") m.euros_a_ajouter_a_la_facture = r2(m.euros_a_ajouter_a_la_facture + Number(c.montant || 0));
+  }
+  // deno-lint-ignore no-explicit-any
+  const out: any = { tarifs: { enquete_premium_euros: tp, article_standard_euros: ts, piece_euros: taux },
+    regles: "Payé = factures marquées payées. Facturé = factures émises (fin de mois, dernier jour à 23 h). Le mois en cours n'est pas encore facturé : son décompte vient de Ghost en direct et son montant est une ESTIMATION aux tarifs actuels (la facture peut être ajustée). Les paiements antérieurs à l'ouverture du lab (octobre 2026) ne sont pas enregistrés ici : ne les invente pas.",
+    par_membre: [] };
+  const mois = moisZurich();
+  if (QUESTION_COMPTE.test(texte)) {
+    const a = await apercuMois(mois).catch(() => null);
+    if (!a) out.mois_en_cours = { mois, indisponible: "décompte Ghost injoignable pour l'instant" };
+    else for (const x of a.par_membre || []) {
+      if (!me.chef && x.membre !== me.id) continue;
+      if ((fs || []).some((f) => f.membre === x.membre && f.mois === mois)) continue; // déjà facturé : la facture fait foi
+      const np = x.enquetes_premium.length, ns = x.articles_standards.length, m = de(x.membre);
+      m.mois_en_cours = { mois, compte_le: a.compte_le, enquetes_premium: np, articles_standards: ns, total_articles: np + ns,
+        estimation_euros: r2(np * tp + ns * ts + m.pieces.euros_a_ajouter_a_la_facture), dont_pieces_converties_euros: m.pieces.euros_a_ajouter_a_la_facture,
+        enquetes_premium_detail: x.enquetes_premium, articles_standards_detail: x.articles_standards };
+    }
+  }
+  out.par_membre = Object.values(M);
+  return out;
 }
 // deno-lint-ignore no-explicit-any
 async function filDe(me: Membre, poste: string, n = 12): Promise<any[]> {
@@ -255,6 +338,7 @@ async function contexte(me: Membre, p: Poste, b: any) {
   if (b.fiche_id) ctx.fiche_ouverte = String(b.fiche_id);
   if (p.contexte.includes("courrier") && p.mail) ctx.courrier = await courrierBureau(p.mail);
   if (p.contexte.includes("pieces")) ctx.pieces = await piecesCtx(me);
+  if (p.contexte.includes("compta")) ctx.compta = await comptaCtx(me, String(b.texte || ""));
   return ctx;
 }
 // Base de connaissances du domaine du poste (catalogue : « connaissances »), récupérée au moment d'agir ; vide si rien n'est renseigné.
