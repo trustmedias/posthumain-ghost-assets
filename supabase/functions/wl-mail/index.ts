@@ -15,11 +15,14 @@
 //   Sert à « Répondre à la personne en copie » (l'assistante d'un chercheur) : elle passe en destinataire, le chercheur en copie.
 // 28/10/2026 : action « entetes » { action, boite (adresse), message_id } : relit dans la boîte de réception (IMAP) les destinataires
 //   et les personnes en copie d'un mail déjà reçu (rattrapage des réponses arrivées avant la relève des copies). Rien n'est modifié.
+//   Options (28/10/2026) : dossier "envoyes" (cherche dans « Éléments envoyés » au lieu de la boîte de réception) et texte: true
+//   (renvoie aussi le texte brut du mail) : sert à retrouver le texte d'une réponse déjà envoyée dans le fil d'une fiche.
 import nodemailer from "npm:nodemailer@6.9.14";
 import MailComposer from "npm:nodemailer@6.9.14/lib/mail-composer/index.js";
 import { ImapFlow } from "npm:imapflow@1.0.164";
 import { Buffer } from "node:buffer";
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { simpleParser } from "npm:mailparser@3.7.1";
 
 const SECRETS: Record<string, string> = {
   "jonathan.paiano@posthumain.com": "WL_SMTP_JONATHAN",
@@ -96,16 +99,25 @@ async function entetes(b: any) {
   const lire = async () => {
     await c.connect();
     try {
-      const lock = await c.getMailboxLock("INBOX", { readOnly: true });
+      let dossier = "INBOX";
+      if (b.dossier === "envoyes") {
+        const boites = await c.list();
+        // deno-lint-ignore no-explicit-any
+        const sent = boites.find((x: any) => x.specialUse === "\\Sent") || boites.find((x: any) => /^(sent|envoy|éléments envoyés|sent items)/i.test(String(x.name || x.path)));
+        dossier = sent ? sent.path : "Sent";
+      }
+      const lock = await c.getMailboxLock(dossier, { readOnly: true });
       try {
         const uids = await c.search({ header: { "message-id": id } }, { uid: true });
         if (!uids || !uids.length) return { ok: true, trouve: false, to: [], cc: [] };
         // deno-lint-ignore no-explicit-any
-        const msg: any = await c.fetchOne(String(uids[uids.length - 1]), { envelope: true }, { uid: true });
+        const msg: any = await c.fetchOne(String(uids[uids.length - 1]), { envelope: true, source: b.texte === true }, { uid: true });
+        let texte = "";
+        if (b.texte === true && msg && msg.source) { try { const pm = await simpleParser(msg.source); texte = String(pm.text || "").trim().slice(0, 20000); } catch (_) { texte = ""; } }
         // deno-lint-ignore no-explicit-any
         const conv = (l: any[]) => (l || []).map((a: any) => ({ email: String(a.address || "").toLowerCase(), nom: String(a.name || "").trim() })).filter((a: any) => emailOk(a.email));
         const env = (msg && msg.envelope) || {};
-        return { ok: true, trouve: true, de: conv(env.from)[0] || null, to: conv(env.to), cc: conv(env.cc) };
+        return { ok: true, trouve: true, de: conv(env.from)[0] || null, to: conv(env.to), cc: conv(env.cc), ...(b.texte === true ? { texte } : {}) };
       } finally { lock.release(); }
     } finally { await c.logout().catch(() => {}); }
   };

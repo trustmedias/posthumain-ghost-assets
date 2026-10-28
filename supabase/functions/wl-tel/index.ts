@@ -23,6 +23,9 @@
 //    envoyé était déjà adressé à une personne en copie, le fil continue avec elle. Seuls le contact et ses copies sont acceptés.
 //  - copies_rattraper { fiche_id } → personnes en copie de la dernière réponse du contact, relues dans la boîte (wl-mail « entetes »)
 //    pour les réponses arrivées avant la relève des copies ; enregistrées dans wl_fiches.copies (une seule fois).
+//  - 28/10/2026 : le TEXTE de chaque réponse envoyée dans le fil est gardé (suites[].corps) pour que l'équipe puisse la relire.
+//    suite_texte_rattraper { fiche_id, message_id } → pour les réponses envoyées avant ce changement : texte relu une fois dans
+//    les « Éléments envoyés » de la boîte de la fiche (wl-mail « entetes », dossier envoyés) puis enregistré.
 //  - fiche_traitee { fiche_id } → « ✓ Marquer comme traitée » : historique « réponse marquée traitée » (statut réel inchangé)
 // Rôles : une journaliste n'a que Secrétaire, Assistant, Comptable, et seulement ses fiches ; Julien (mk, sc) = rédacteur en chef.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -685,6 +688,36 @@ Deno.serve(async (req) => {
       await db.from("wl_fiches").update({ copies: JSON.stringify(copies.slice(0, 10)) }).eq("fiche_id", f.fiche_id);
       return out({ ok: true, copies: copies.slice(0, 10) });
     }
+    // ---------- Texte d'une réponse déjà envoyée dans le fil (28/10/2026) ----------
+    if (b.action === "suite_texte_rattraper") {
+      let q = db.from("wl_fiches").select("fiche_id,boite,suites").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
+      const { data: f0 } = await q; const f = f0 && f0[0];
+      if (!f) return out({ ok: false, why: "fiche introuvable (ou pas la vôtre)" }, 404);
+      // deno-lint-ignore no-explicit-any
+      const envS: any[] = Array.isArray(f.suites) ? f.suites : (pj(f.suites) || []);
+      const idm = String(b.message_id || "").trim(), k = envS.findIndex((x) => x && x.message_id === idm);
+      if (k < 0) return out({ ok: false, why: "réponse introuvable" });
+      if (typeof envS[k].corps === "string") return out({ ok: true, corps: envS[k].corps });
+      let adr = ADRESSES[String(f.boite || "")] || "";
+      if (!adr && f.boite) { const { data: bx } = await db.from("wl_boites").select("adresse").eq("id", f.boite).limit(1); adr = String((bx && bx[0] && bx[0].adresse) || ""); }
+      if (!adr) return out({ ok: false, why: "boîte de la fiche inconnue" });
+      // deno-lint-ignore no-explicit-any
+      let r: any = null;
+      try {
+        const rr = await fetch(env("SUPABASE_URL") + "/functions/v1/wl-mail", { method: "POST", signal: AbortSignal.timeout(40000), headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
+          body: JSON.stringify({ action: "entetes", boite: adr, message_id: idm, dossier: "envoyes", texte: true }) });
+        r = await rr.json().catch(() => null);
+      } catch (_) { r = null; }
+      if (!r || !r.ok) return out({ ok: false, why: "boîte mail injoignable pour l’instant" });
+      // introuvable dans les Envoyés : on note une chaîne vide pour ne pas redemander à chaque ouverture
+      const corps = r.trouve ? String(r.texte || "").slice(0, 8000) : "";
+      const { data: cur } = await db.from("wl_fiches").select("suites").eq("fiche_id", f.fiche_id).limit(1);
+      // deno-lint-ignore no-explicit-any
+      const env2: any[] = cur && cur[0] ? (Array.isArray(cur[0].suites) ? cur[0].suites : (pj(cur[0].suites) || [])) : envS;
+      const k2 = env2.findIndex((x) => x && x.message_id === idm);
+      if (k2 >= 0 && typeof env2[k2].corps !== "string") { env2[k2] = { ...env2[k2], corps }; await db.from("wl_fiches").update({ suites: env2 }).eq("fiche_id", f.fiche_id); }
+      return out({ ok: true, corps, trouve: !!r.trouve });
+    }
     if (b.action === "suite_rediger" || b.action === "suite_envoyer" || b.action === "suite_ecarter") {
       let q = db.from("wl_fiches").select("*").eq("fiche_id", String(b.fiche_id || "")).limit(1); if (!me.chef) q = q.eq("redacteur", me.id);
       const { data: f0 } = await q; const f = f0 && f0[0];
@@ -798,7 +831,7 @@ Deno.serve(async (req) => {
       if (!rm || !rm.ok) { await db.from("wl_fiches").update({ suite_verrou: null }).eq("fiche_id", f.fiche_id); return out({ ok: false, why: "envoi impossible : " + ((rm && rm.why) || "erreur") }); }
       hist.push({ t: now, e: "suite envoyée", par: me.id });
       if (redirige) hist.push({ t: now, e: "réponse adressée à " + (nomDe(dest) || dest) + " (en copie du contact), " + (f.contact_nom || "le contact") + " en copie", par: me.id });
-      envoyees.push({ le: now, a: dest, cc, sujet, message_id: String(rm.message_id || ""), par: me.id });
+      envoyees.push({ le: now, a: dest, cc, sujet, corps: (sigTxt ? texte + "\n\n" + sigTxt : texte).slice(0, 8000), message_id: String(rm.message_id || ""), par: me.id });
       await db.from("wl_fiches").update({ suites: envoyees.slice(-30), suite_sujet: null, suite_corps: null, suite_consigne: null, suite_a: null, suite_cc: null, suite_prete_le: null, suite_verrou: null, historique: JSON.stringify(hist.slice(-60)), updated_at: now }).eq("fiche_id", f.fiche_id);
       return out({ ok: true, fiche_id: f.fiche_id, a: dest, cc });
     }

@@ -429,7 +429,8 @@
     "canal": "« Reçue par » choisi à la main dans la fiche",
     "appel_traiter": "réponse par téléphone : structuration de la transcription (aucune écriture)",
     "fiche_traitee": "« ✓ Marquer comme traitée » : réponse purement logistique, la fiche s'affiche en attente (statut réel inchangé)",
-    "copies_rattraper": "ouverture d'une fiche dont la réponse est arrivée avant la relève des copies : personnes en copie relues une fois dans la boîte"
+    "copies_rattraper": "ouverture d'une fiche dont la réponse est arrivée avant la relève des copies : personnes en copie relues une fois dans la boîte",
+    "suite_texte_rattraper": "ouverture d'une fiche dont une réponse envoyée dans le fil date d'avant la conservation du texte : texte relu une fois dans les Éléments envoyés"
   },
   "interne_radar": {
     "_pourquoi": "Actions de la fonction wl-radar (salle des décisions : Radar, Marbre, Usine). Ce ne sont pas des capacités de poste : boutons du lab avec validation humaine, ou appels serveur à serveur de l'Usine (x-tv-secret). Toute nouvelle action de wl-radar doit figurer ici avec sa raison, sinon le test échoue.",
