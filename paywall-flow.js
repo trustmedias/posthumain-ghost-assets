@@ -149,6 +149,7 @@
     localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
     try { localStorage.removeItem(STRIPE_RETOUR_KEY); } catch (e) {}
     try { localStorage.removeItem(STRIPE_SUCCES_KEY); } catch (e) {}
+    try { localStorage.removeItem(LIEN_MAGIQUE_KEY); } catch (e) {}
   }
 
   // Annulation chez Stripe : Stripe renvoie sur l'article avec ?stripe=cancel (adresse d'arrivée, que Portal efface ensuite de la barre)
@@ -180,6 +181,49 @@
     var t = 0; try { t = Number(localStorage.getItem(STRIPE_SUCCES_KEY)) || 0; } catch (e) {}
     return !!t && Date.now() - t < EMAIL_CHECK_WINDOW;
   }
+
+  // 29/10/2026 : PREUVE D'ENVOI DU LIEN MAGIQUE (inscription ou connexion sans passer par Stripe).
+  // La fenêtre Portal est un cadre du même domaine : on y lit l'écran que Ghost affiche quand le lien est parti
+  // (« Now check your email! », section .gh-portal-inbox-notification). En secours : l'appel send-magic-link réussi,
+  // compté seulement si la fenêtre Portal est ouverte (le popup newsletter, qui appelle aussi send-magic-link, ne compte pas).
+  const LIEN_MAGIQUE_KEY = 'posthumain_lien_magique_envoye';
+  function noterLienMagique() {
+    try { localStorage.setItem(LIEN_MAGIQUE_KEY, String(Date.now())); } catch (e) {}
+  }
+  function lienMagiqueRecent() {
+    var t = 0; try { t = Number(localStorage.getItem(LIEN_MAGIQUE_KEY)) || 0; } catch (e) {}
+    return !!t && Date.now() - t < EMAIL_CHECK_WINDOW;
+  }
+  function cadrePortal() {
+    try { return document.querySelector('iframe[title="portal-popup"]'); } catch (e) { return null; }
+  }
+  var lienMagiqueVu = false;
+  setInterval(function () {
+    try {
+      var f = cadrePortal();
+      var doc = f && f.contentDocument;
+      var vu = !!(doc && doc.querySelector('.gh-portal-inbox-notification'));
+      if (vu && !lienMagiqueVu) noterLienMagique();
+      lienMagiqueVu = vu;
+    } catch (e) {}
+  }, 1000);
+  try {
+    var fetchOrigine = window.fetch;
+    if (typeof fetchOrigine === 'function' && !fetchOrigine.__phLienMagique) {
+      var fetchSurveille = function (entree, options) {
+        var promesse = fetchOrigine.apply(this, arguments);
+        try {
+          var adresse = String((entree && entree.url) || entree || '');
+          if (/\/members\/api\/send-magic-link\/?/.test(adresse) && cadrePortal()) {
+            promesse.then(function (r) { if (r && r.ok) noterLienMagique(); }, function () {});
+          }
+        } catch (e) {}
+        return promesse;
+      };
+      fetchSurveille.__phLienMagique = true;
+      window.fetch = fetchSurveille;
+    }
+  } catch (e) {}
 
   function getSavedPaywalledArticleUrl() {
     const savedDataRaw = localStorage.getItem(LAST_PAYWALLED_ARTICLE_KEY);
@@ -311,8 +355,8 @@
       return;
     }
 
-    // Pas de paiement Stripe constaté : la personne a juste ouvert puis fermé la fenêtre d'inscription.
-    if (!paiementStripeRecent()) {
+    // Ni paiement Stripe ni lien magique envoyé : la personne a juste ouvert puis fermé la fenêtre d'inscription.
+    if (!paiementStripeRecent() && !lienMagiqueRecent()) {
       return;
     }
 
