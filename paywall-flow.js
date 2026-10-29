@@ -148,6 +148,7 @@
     localStorage.removeItem(SUBSCRIPTION_FLOW_STARTED_KEY);
     localStorage.removeItem(EMAIL_CHECK_REDIRECTED_KEY);
     try { localStorage.removeItem(STRIPE_RETOUR_KEY); } catch (e) {}
+    try { localStorage.removeItem(STRIPE_SUCCES_KEY); } catch (e) {}
   }
 
   // Annulation chez Stripe : Stripe renvoie sur l'article avec ?stripe=cancel (adresse d'arrivée, que Portal efface ensuite de la barre)
@@ -163,6 +164,22 @@
     return !!t && Date.now() - t < LAST_PAYWALLED_ARTICLE_MAX_AGE;
   }
   noterRetourStripe();
+
+  // 29/10/2026 : PREUVE DE PAIEMENT. Après un paiement, Stripe renvoie sur la page de départ avec ?stripe=success
+  // (Portal, utils/api.js). On note ce retour ; la page « Votre accès est presque prêt » n'est montrée que dans les
+  // 30 minutes qui suivent un vrai paiement. Avant, un simple lien de mail ouvrant #/portal/signup suffisait à
+  // armer la redirection : le lecteur fermait la fenêtre, allait sur l'accueil et tombait sur cette page sans avoir payé.
+  const STRIPE_SUCCES_KEY = 'posthumain_stripe_succes';
+  (function noterPaiementStripe() {
+    var navUrl = ''; try { navUrl = performance.getEntriesByType('navigation')[0].name; } catch (e) {}
+    if (/[?&]stripe=success/.test(window.location.search + ' ' + navUrl)) {
+      try { localStorage.setItem(STRIPE_SUCCES_KEY, String(Date.now())); } catch (e) {}
+    }
+  })();
+  function paiementStripeRecent() {
+    var t = 0; try { t = Number(localStorage.getItem(STRIPE_SUCCES_KEY)) || 0; } catch (e) {}
+    return !!t && Date.now() - t < EMAIL_CHECK_WINDOW;
+  }
 
   function getSavedPaywalledArticleUrl() {
     const savedDataRaw = localStorage.getItem(LAST_PAYWALLED_ARTICLE_KEY);
@@ -291,6 +308,11 @@
     // Pas après une annulation chez Stripe : la personne n'a pas payé, « Votre accès est presque prêt » serait faux.
     // Le filet de sécurité reste pour tous les autres cas (connexion pas faite après un clic d'abonnement).
     if (retourStripeRecent()) {
+      return;
+    }
+
+    // Pas de paiement Stripe constaté : la personne a juste ouvert puis fermé la fenêtre d'inscription.
+    if (!paiementStripeRecent()) {
       return;
     }
 
