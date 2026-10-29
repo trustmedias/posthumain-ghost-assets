@@ -184,8 +184,7 @@
 
   // 29/10/2026 : PREUVE D'ENVOI DU LIEN MAGIQUE (inscription ou connexion sans passer par Stripe).
   // La fenêtre Portal est un cadre du même domaine : on y lit l'écran que Ghost affiche quand le lien est parti
-  // (« Now check your email! », section .gh-portal-inbox-notification). En secours : l'appel send-magic-link réussi,
-  // compté seulement si la fenêtre Portal est ouverte (le popup newsletter, qui appelle aussi send-magic-link, ne compte pas).
+  // (« Now check your email! », section .gh-portal-inbox-notification). Le popup newsletter n'est pas dans ce cadre : il ne compte pas.
   const LIEN_MAGIQUE_KEY = 'posthumain_lien_magique_envoye';
   function noterLienMagique() {
     try { localStorage.setItem(LIEN_MAGIQUE_KEY, String(Date.now())); } catch (e) {}
@@ -207,23 +206,9 @@
       lienMagiqueVu = vu;
     } catch (e) {}
   }, 1000);
-  try {
-    var fetchOrigine = window.fetch;
-    if (typeof fetchOrigine === 'function' && !fetchOrigine.__phLienMagique) {
-      var fetchSurveille = function (entree, options) {
-        var promesse = fetchOrigine.apply(this, arguments);
-        try {
-          var adresse = String((entree && entree.url) || entree || '');
-          if (/\/members\/api\/send-magic-link\/?/.test(adresse) && cadrePortal()) {
-            promesse.then(function (r) { if (r && r.ok) noterLienMagique(); }, function () {});
-          }
-        } catch (e) {}
-        return promesse;
-      };
-      fetchSurveille.__phLienMagique = true;
-      window.fetch = fetchSurveille;
-    }
-  } catch (e) {}
+  // RÈGLE (29/10/2026, Jonathan) : ce script ne doit JAMAIS se placer sur le chemin de l'inscription ou du paiement.
+  // Il observe en lecture seule (adresse, écran du Portal) et ne touche ni à fetch, ni aux formulaires, ni aux boutons de Ghost.
+  // Si quelque chose casse ici, seule la redirection est perdue, jamais une inscription ou un abonnement.
 
   function getSavedPaywalledArticleUrl() {
     const savedDataRaw = localStorage.getItem(LAST_PAYWALLED_ARTICLE_KEY);
