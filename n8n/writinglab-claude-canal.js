@@ -46,6 +46,6 @@ else {
     + 'Ajoute dans chaque insertion les champs "canal" (« email », « telephone » ou « personne » : le canal d’OÙ vient cet extrait) et "canal_precise" (true seulement si ce texte mentionne le canal).';
 }
 // 31/10/2026 (Jonathan) : la personne n'est présentée qu'une fois (nom, fonction, institution) ; déjà citée = plus de présentation.
-if (deja) t += '\nPRÉSENTATION : ' + nom + ' apparaît DÉJÀ dans l’article : ne redonne NI sa fonction NI son institution ; le nom seul, « le chercheur » / « la chercheuse » ou un pronom suffisent.';
+if (deja) t += '\nPRÉSENTATION : ' + nom + ' apparaît DÉJÀ dans l’article : ne redonne NI sa fonction NI son institution, mais nomme-la toujours au moins par son nom de famille (« selon ' + (famille || nom) + ' », « ajoute ' + (famille || nom) + ' ») : l’article peut citer d’autres experts.';
 inserer(t);
 return [{ json: it }];
