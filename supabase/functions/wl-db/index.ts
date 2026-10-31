@@ -180,29 +180,54 @@ function preuveDe(f: any): { de: string; lien: string } {
   const lien = (p && p.lien) || (de === email ? "meme_adresse" : domaineDe(de) && domaineDe(de) === domaineDe(email) ? "meme_domaine" : "autre_adresse");
   return { de, lien };
 }
-// Barème selon le délai après publication (date de Ghost, transmise par l'insertion n8n). 31/10/2026 : réglable par le rédacteur en chef
-// (wl_reglages bareme_pieces = 3 paliers [{pieces, jours}], jours croissants) ; par défaut ≤ 2 jours → 10 · ≤ 4 → 5 · ≤ 7 → 2 · au-delà → 0.
-// Brouillon / programmé → premier palier.
-const BAREME_DEF = [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }];
+// Barème des pièces (31/10/2026, réglable par le rédacteur en chef : wl_reglages bareme_pieces = { avant, paliers: 3 × {pieces, jours} }).
+// - « avant » (défaut 15) : citation insérée AVANT LA PREMIÈRE PUBLICATION de l'article, sans délai. Un article déjà publié puis remis en
+//   brouillon ne compte pas : Ghost garde la date de première publication (published_at) quand on dépublie, et wl_publications garde
+//   la première publication vue par le lab (relevé horaire de wl-citations + chaque insertion dans un article publié).
+// - paliers : délai compté depuis la première publication ; défaut ≤ 2 jours → 10 · ≤ 4 → 5 · ≤ 7 → 2 · au-delà → 0 (créneau manqué).
+const BAREME_DEF = { avant: 15, paliers: [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }] };
 function baremeValide(v: any) {
-  if (!Array.isArray(v) || v.length !== 3) return null;
-  const b = v.map((x: any) => ({ pieces: Math.round(Number(x && x.pieces)), jours: Math.round(Number(x && x.jours)) }));
-  if (b.some((x) => !isFinite(x.pieces) || x.pieces < 0 || x.pieces > 1000 || !isFinite(x.jours) || x.jours < 1 || x.jours > 365)) return null;
+  const pl = Array.isArray(v) ? v : v && Array.isArray(v.paliers) ? v.paliers : null;
+  if (!pl || pl.length !== 3) return null;
+  const n = (x: any) => Math.round(Number(String(x).replace(",", ".")));
+  const b = pl.map((x: any) => ({ pieces: n(x && x.pieces), jours: n(x && x.jours) }));
+  if (b.some((x: any) => !isFinite(x.pieces) || x.pieces < 0 || x.pieces > 1000 || !isFinite(x.jours) || x.jours < 1 || x.jours > 365)) return null;
   if (!(b[0].jours < b[1].jours && b[1].jours < b[2].jours)) return null;
-  return b;
+  const avant = Array.isArray(v) || v.avant === undefined || v.avant === null || v.avant === "" ? BAREME_DEF.avant : n(v.avant);
+  if (!isFinite(avant) || avant < 0 || avant > 1000) return null;
+  return { avant, paliers: b };
 }
 async function baremeLu() {
   const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "bareme_pieces").limit(1);
   let v: any = null; try { v = JSON.parse(String((data && data[0] && data[0].valeur) || "")); } catch { v = null; }
   return baremeValide(v) || BAREME_DEF;
 }
-async function bareme(meta: any) {
-  const B = await baremeLu(), max = B[B.length - 1].jours;
-  const pub = meta && meta.__statut_article === "published" && meta.__publie_le ? Date.parse(String(meta.__publie_le)) : NaN;
-  if (!isFinite(pub)) return { montant: B[0].pieces, note: "avant publication", max };
+// Première publication connue d'un article : la plus ancienne entre le registre du lab et la date de Ghost (si elle est passée, ou si
+// l'article est en ligne). Une date future sur un brouillon ou un article programmé = jamais publié. Renvoie NaN si jamais publié.
+async function premierePublication(articleId: string, meta: any) {
+  const st = String((meta && meta.__statut_article) || ""), enLigne = st === "published" || st === "sent";
+  const g = meta && meta.__publie_le ? Date.parse(String(meta.__publie_le)) : NaN;
+  const ghost = isFinite(g) && (enLigne || g <= Date.now()) ? g : NaN;
+  let reg = NaN;
+  if (articleId) {
+    const { data } = await db.from("wl_publications").select("premiere_publication").eq("article_id", articleId).limit(1);
+    reg = data && data[0] ? Date.parse(String(data[0].premiere_publication)) : NaN;
+    if (enLigne && !isFinite(reg)) await db.from("wl_publications").upsert({ article_id: articleId, premiere_publication: new Date(isFinite(g) ? g : Date.now()).toISOString(), source: "insertion" }, { onConflict: "article_id", ignoreDuplicates: true });
+  }
+  const t = [reg, ghost].filter((x) => isFinite(x));
+  return t.length ? Math.min(...t) : (enLigne ? Date.now() : NaN);
+}
+async function bareme(meta: any, f: any) {
+  const B = await baremeLu(), P = B.paliers, max = P[P.length - 1].jours;
+  const st = String((meta && meta.__statut_article) || "");
+  const pub = await premierePublication(String((f && f.article_id) || ""), meta);
+  if (!isFinite(pub)) {
+    if (st === "draft" || st === "scheduled") return { montant: B.avant, note: "insérée avant la première publication de l'article", max };
+    return { montant: P[0].pieces, note: "statut de l'article inconnu (premier palier)", max };
+  }
   const j = (Date.now() - pub) / 864e5, jj = Math.max(0, Math.floor(j));
-  const quand = "ajoutée " + (jj ? jj + " jour" + (jj > 1 ? "s" : "") : "moins d'un jour") + " après publication";
-  for (let k = 0; k < B.length; k++) if (j <= B[k].jours) return { montant: B[k].pieces, note: quand + (k ? " (palier " + (k + 1) + " : jusqu'à " + B[k].jours + " jours)" : ""), max };
+  const quand = "ajoutée " + (jj ? jj + " jour" + (jj > 1 ? "s" : "") : "moins d'un jour") + " après la première publication" + (st === "published" || st === "sent" ? "" : " (article remis en brouillon depuis)");
+  for (let k = 0; k < P.length; k++) if (j <= P[k].jours) return { montant: P[k].pieces, note: quand + (k ? " (palier " + (k + 1) + " : jusqu'à " + P[k].jours + " jours)" : ""), max };
   return { montant: 0, note: quand + " : créneau de " + max + " jours dépassé", max };
 }
 async function recompenser(data: any[] | null, meta: any = null) {
@@ -218,7 +243,7 @@ async function recompenser(data: any[] | null, meta: any = null) {
     else if (pr.lien === "telephone") doutes.push("réponse par téléphone"); // 23/10/2026 : pas de preuve par les en-têtes de mail → le chef valide
     { const wm = await webmailsAVerifier(), d2 = wm.includes(dom) ? dom : wm.includes(domDe) ? domDe : ""; if (d2) doutes.push("adresse de messagerie gratuite (" + d2 + ")"); }
     if (String(f.reponse || "").replace(/\s+/g, " ").trim().length < 120) doutes.push("réponse très courte");
-    const bm = await bareme(meta);
+    const bm = await bareme(meta, f);
     const statut = bm.montant === 0 ? "manque" : doutes.length ? "a_verifier" : "acquis";
     const motif = [bm.note].concat(doutes).join(" · ");
     const { data: ins } = await db.from("wl_pieces").upsert({ membre: qui, fiche_id: f.fiche_id, montant: bm.montant, statut, motif, article_titre: String(f.article_titre || "").slice(0, 300), contact: String(f.contact_nom || "").slice(0, 160) }, { onConflict: "fiche_id", ignoreDuplicates: true }).select();

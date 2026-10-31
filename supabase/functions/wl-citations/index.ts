@@ -13,6 +13,9 @@
 // Corps JSON : { token, action, ... }
 //   citations_lire { fiche_id } · citations_enregistrer { fiche_id, props, nouvelles? } · citations_validation { fiche_id, etape, le? }
 //   citations_echeances {} · brouillon_lire { article_id } · brouillon_ecrire { article_id, data }
+//   publications { secret, tout? } (pg_cron « writinglab-publications », sans jeton : secret wl_reglages publications_cron_secret) :
+//     registre wl_publications = première publication de chaque article vue dans Ghost (pour le bonus « avant publication » des pièces,
+//     calculé par wl-db : un article déjà publié puis remis en brouillon n'y donne plus droit).
 // Règles de calcul (échéance, auto-validation, mail) : citations.ts, testées hors ligne (deno test supabase/functions/wl-citations).
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
@@ -77,6 +80,39 @@ async function citEcheance(c: any, f: any): Promise<any> {
   return c2;
 }
 
+// ---------- Registre des premières publications (31/10/2026) ----------
+const enc = new TextEncoder();
+const b64e = (x: ArrayBuffer | string) => { const by = typeof x === "string" ? enc.encode(x) : new Uint8Array(x); let r = ""; for (const c of by) r += String.fromCharCode(c); return btoa(r).replace(/=+$/g, "").replace(/\+/g, "-").replace(/\//g, "_"); };
+async function ghostJwt() {
+  const [id, sec] = env("GHOST_ADMIN_API_KEY").split(":");
+  if (!id || !sec) throw new Error("clé Ghost absente");
+  const iat = Math.floor(Date.now() / 1000), head = b64e(JSON.stringify({ alg: "HS256", kid: id, typ: "JWT" })), body = b64e(JSON.stringify({ iat, exp: iat + 300, aud: "/admin/" }));
+  const k = await crypto.subtle.importKey("raw", new Uint8Array(sec.match(/.{2}/g)!.map((x) => parseInt(x, 16))), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return head + "." + body + "." + b64e(await crypto.subtle.sign("HMAC", k, enc.encode(head + "." + body)));
+}
+async function releverPublications(tout: boolean) {
+  const base = (env("GHOST_ADMIN_API_URL") || "https://the-last-journal.ghost.io").replace(/\/+$/g, "");
+  const depuis = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 19).replace("T", " ");
+  const filtre = "status:[published,sent]" + (tout ? "" : "+published_at:>'" + depuis + "'");
+  // deno-lint-ignore no-explicit-any
+  const vus: any[] = [];
+  for (let page = 1; page <= (tout ? 40 : 3); page++) {
+    const u = base + "/ghost/api/admin/posts/?fields=id,title,published_at,status&limit=100&page=" + page + "&filter=" + encodeURIComponent(filtre);
+    const r = await fetch(u, { headers: { Authorization: "Ghost " + await ghostJwt(), "Accept-Version": "v5.0" }, signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new Error("Ghost " + r.status);
+    const j = await r.json();
+    for (const p of j.posts || []) if (p.id && p.published_at) vus.push(p);
+    if (!j.meta || !j.meta.pagination || !j.meta.pagination.next) break;
+  }
+  if (!vus.length) return { vus: 0, nouveaux: 0 };
+  const { data: deja } = await db.from("wl_publications").select("article_id,premiere_publication").in("article_id", vus.map((p) => p.id));
+  const m = new Map((deja || []).map((x) => [x.article_id, Date.parse(String(x.premiere_publication))]));
+  const lignes = vus.filter((p) => !m.has(p.id) || Date.parse(p.published_at) < (m.get(p.id) as number))
+    .map((p) => ({ article_id: p.id, titre: String(p.title || "").slice(0, 300), premiere_publication: new Date(Date.parse(p.published_at)).toISOString(), source: "ghost" }));
+  if (lignes.length) { const { error } = await db.from("wl_publications").upsert(lignes, { onConflict: "article_id" }); if (error) throw error; }
+  return { vus: vus.length, nouveaux: lignes.length };
+}
+
 Deno.serve(async (req) => {
   const h = { ...cors(req), "Content-Type": "application/json", "Cache-Control": "no-store" };
   if (req.method === "OPTIONS") return new Response(null, { headers: h });
@@ -85,6 +121,12 @@ Deno.serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   let b: any; try { b = await req.json(); } catch { return out({ ok: false, why: "bad_json" }, 400); }
   try {
+    if (b.action === "publications") {
+      const { data: sc } = await db.from("wl_reglages").select("valeur").eq("cle", "publications_cron_secret").limit(1);
+      const attendu = String((sc && sc[0] && sc[0].valeur) || "");
+      if (!attendu || String(b.secret || "") !== attendu) return out({ ok: false, why: "secret" }, 401);
+      return out({ ok: true, ...(await releverPublications(b.tout === true)) });
+    }
     const me = await membre(String(b.token || "")).catch(() => null);
     if (!me) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
 

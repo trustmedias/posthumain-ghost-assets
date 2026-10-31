@@ -5114,23 +5114,32 @@
     }).join('') + '</details>';
     return h + '</div>';
   }
-  // Barème des pièces (31/10/2026) : 3 paliers réglables par le rédacteur en chef (wl-push action « bareme », clé bareme_pieces).
-  function barG() { var b = (S.pieces || {}).bareme; return Array.isArray(b) && b.length === 3 ? b : [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }]; }
+  // Barème des pièces (31/10/2026) : bonus « avant la première publication » + 3 paliers après publication, réglables par le rédacteur
+  // en chef (wl-push action « bareme », clé bareme_pieces = { avant, paliers }). L'ancien format (tableau des 3 paliers) reste lu.
+  function barO() {
+    var b = (S.pieces || {}).bareme, pl = Array.isArray(b) ? b : b && Array.isArray(b.paliers) ? b.paliers : null;
+    if (!pl || pl.length !== 3) pl = [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }];
+    return { avant: b && !Array.isArray(b) && b.avant != null ? Number(b.avant) : 15, paliers: pl };
+  }
   function jTxt(n) { return n + ' jour' + (n > 1 ? 's' : ''); }
   function pTxt(n) { return n + ' pièce' + (n > 1 ? 's' : ''); }
   function barDetail() {
-    var b = barG();
-    return 'Citation insérée avant la publication ou jusqu’à ' + jTxt(b[0].jours) + ' après : <b>' + pTxt(b[0].pieces) + '</b><br>jusqu’à ' + jTxt(b[1].jours) + ' : <b>' + pTxt(b[1].pieces) + '</b><br>jusqu’à ' + jTxt(b[2].jours) + ' : <b>' + pTxt(b[2].pieces) + '</b><br>au-delà de ' + jTxt(b[2].jours) + ' : 0, ce sera pour la prochaine fois.';
+    var o = barO(), b = o.paliers;
+    return 'Citation insérée <b>avant la première publication</b> de l’article (sans délai : tout le parcours est fait avant la mise en ligne) : <b>' + pTxt(o.avant) + '</b><br>' +
+      'jusqu’à ' + jTxt(b[0].jours) + ' après la première publication : <b>' + pTxt(b[0].pieces) + '</b><br>jusqu’à ' + jTxt(b[1].jours) + ' : <b>' + pTxt(b[1].pieces) + '</b><br>jusqu’à ' + jTxt(b[2].jours) + ' : <b>' + pTxt(b[2].pieces) + '</b><br>au-delà de ' + jTxt(b[2].jours) + ' : 0, ce sera pour la prochaine fois.<br>' +
+      '<span class="muted">Un article déjà publié puis remis en brouillon compte comme publié : le délai part de sa première publication.</span>';
   }
   function barLigne() {
-    var b = barG();
-    return 'avant publication ou jusqu’à ' + jTxt(b[0].jours) + ' après → <b>' + pTxt(b[0].pieces) + '</b> · jusqu’à ' + jTxt(b[1].jours) + ' → <b>' + b[1].pieces + '</b> · jusqu’à ' + jTxt(b[2].jours) + ' → <b>' + b[2].pieces + '</b> · au-delà de ' + jTxt(b[2].jours) + ' → 0 (ce sera pour la prochaine).';
+    var o = barO(), b = o.paliers;
+    return 'avant la première publication de l’article (sans délai) → <b>' + pTxt(o.avant) + '</b> · jusqu’à ' + jTxt(b[0].jours) + ' après → <b>' + b[0].pieces + '</b> · jusqu’à ' + jTxt(b[1].jours) + ' → <b>' + b[1].pieces + '</b> · jusqu’à ' + jTxt(b[2].jours) + ' → <b>' + b[2].pieces + '</b> · au-delà de ' + jTxt(b[2].jours) + ' → 0 (ce sera pour la prochaine). Un article dépublié puis republié garde sa date de première publication.';
   }
   function barEdit(cls) {
-    var b = barG(), inp = function (id, v) { return '<input class="' + cls + '" id="' + id + '" value="' + v + '" style="width:64px;margin:0" inputmode="numeric">'; };
-    return '<div style="margin:10px 0 4px"><b>Barème des pièces</b> (délai compté depuis la publication de l’article)</div>' +
+    var o = barO(), b = o.paliers, inp = function (id, v) { return '<input class="' + cls + '" id="' + id + '" value="' + v + '" style="width:64px;margin:0" inputmode="numeric">'; };
+    return '<div style="margin:10px 0 4px"><b>Barème des pièces</b></div>' +
+      '<div class="row" style="gap:6px;align-items:center;margin:4px 0">' + inp('wl-bav', o.avant) + ' pièces si la citation est insérée avant la première publication (pas de délai)</div>' +
+      '<div class="muted" style="font-size:13px;margin:8px 0 2px">Après la première publication :</div>' +
       [0, 1, 2].map(function (k) { return '<div class="row" style="gap:6px;align-items:center;margin:4px 0">' + inp('wl-bp' + k, b[k].pieces) + ' pièces jusqu’à ' + inp('wl-bj' + k, b[k].jours) + ' jours</div>'; }).join('') +
-      '<div class="muted" style="font-size:13px;margin:4px 0">Avant publication : premier palier. Au-delà du dernier délai : 0 pièce. Délais de plus en plus longs.</div>' +
+      '<div class="muted" style="font-size:13px;margin:4px 0">Au-delà du dernier délai : 0 pièce. Délais de plus en plus longs.</div>' +
       '<button class="btn small" data-act="pc-bareme">Enregistrer le barème</button>';
   }
   function docPieces() {
@@ -5716,9 +5725,9 @@
         });
         break;
       case 'pc-bareme':
-        pushApi({ action: 'bareme', bareme: [0, 1, 2].map(function (k) { return { pieces: val('wl-bp' + k), jours: val('wl-bj' + k) }; }) }).then(function (r) {
+        pushApi({ action: 'bareme', bareme: { avant: val('wl-bav'), paliers: [0, 1, 2].map(function (k) { return { pieces: val('wl-bp' + k), jours: val('wl-bj' + k) }; }) } }).then(function (r) {
           if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'barème invalide'), true); return; }
-          var b = r.bareme; toast('Barème : ' + b.map(function (x) { return x.pieces + ' pièces jusqu’à ' + x.jours + ' j'; }).join(' · ')); chargerPieces();
+          var b = r.bareme; toast('Barème : ' + b.avant + ' pièces avant publication · ' + b.paliers.map(function (x) { return x.pieces + ' jusqu’à ' + x.jours + ' j'; }).join(' · ')); chargerPieces();
         });
         break;
       case 'pc-taux':

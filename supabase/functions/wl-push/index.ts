@@ -76,14 +76,19 @@ async function dictee(texte: string) {
 // la rédactrice est prévenue dans l'Interphone, ajoute le montant à sa prochaine facture et le confirme ici.
 const NOMS: Record<string, string> = { jonathan: "Jonathan Paiano", valisoa: "Valisoa Rasolofo" }; // complété par l’équipe à chaque appel
 async function taux() { const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "taux_piece").limit(1); const t = Number(data && data[0] && data[0].valeur); return isFinite(t) && t >= 0 ? t : 0.2; }
-// Barème des pièces (31/10/2026) : 3 paliers réglables par le rédacteur en chef (wl_reglages bareme_pieces) ; même défaut que wl-db.
-const BAREME_DEF = [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }];
+// Barème des pièces (31/10/2026) : { avant, paliers: 3 × {pieces, jours} } réglable par le rédacteur en chef (wl_reglages bareme_pieces) ;
+// même défaut et même contrôle que wl-db (« avant » = citation insérée avant la première publication, sans délai).
+const BAREME_DEF = { avant: 15, paliers: [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }] };
 function baremeValide(v: any) {
-  if (!Array.isArray(v) || v.length !== 3) return null;
-  const b = v.map((x: any) => ({ pieces: Math.round(Number(String(x && x.pieces).replace(",", "."))), jours: Math.round(Number(String(x && x.jours).replace(",", "."))) }));
-  if (b.some((x) => !isFinite(x.pieces) || x.pieces < 0 || x.pieces > 1000 || !isFinite(x.jours) || x.jours < 1 || x.jours > 365)) return null;
+  const pl = Array.isArray(v) ? v : v && Array.isArray(v.paliers) ? v.paliers : null;
+  if (!pl || pl.length !== 3) return null;
+  const n = (x: any) => Math.round(Number(String(x).replace(",", ".")));
+  const b = pl.map((x: any) => ({ pieces: n(x && x.pieces), jours: n(x && x.jours) }));
+  if (b.some((x: any) => !isFinite(x.pieces) || x.pieces < 0 || x.pieces > 1000 || !isFinite(x.jours) || x.jours < 1 || x.jours > 365)) return null;
   if (!(b[0].jours < b[1].jours && b[1].jours < b[2].jours)) return null;
-  return b;
+  const avant = Array.isArray(v) || v.avant === undefined || v.avant === null || v.avant === "" ? BAREME_DEF.avant : n(v.avant);
+  if (!isFinite(avant) || avant < 0 || avant > 1000) return null;
+  return { avant, paliers: b };
 }
 async function baremeLu() {
   const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "bareme_pieces").limit(1);
@@ -218,7 +223,7 @@ Deno.serve(async (req) => {
   if (b.action === "bareme") {
     if (!estChef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
     const nb = baremeValide(b.bareme);
-    if (!nb) return out({ ok: false, why: "barème invalide : 3 paliers, pièces de 0 à 1000, délais de 1 à 365 jours et de plus en plus longs" }, 400);
+    if (!nb) return out({ ok: false, why: "barème invalide : pièces de 0 à 1000, délais de 1 à 365 jours et de plus en plus longs" }, 400);
     await db.from("wl_reglages").upsert({ cle: "bareme_pieces", valeur: JSON.stringify(nb), updated_at: new Date().toISOString() }, { onConflict: "cle" });
     return out({ ok: true, bareme: nb });
   }
