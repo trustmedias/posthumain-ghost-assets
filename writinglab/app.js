@@ -5104,15 +5104,34 @@
       return '<div class="cz-l"><div><b>' + (p.montant ? '+' + p.montant : '0') + '</b> <span class="tag ' + st[2] + '">' + st[0] + ' ' + esc(st[1]) + '</span>' + (me.chef ? ' · ' + esc(membre(p.membre).nom) : '') + '<div class="cz-s">' + esc(p.contact || '') + ' — ' + esc(p.article_titre || '') + ' · ' + esc(when(p.created_at)) + (me.chef ? '<br>' + esc(p.motif || '') : '') + '</div></div>' +
         (me.chef && p.statut === 'a_verifier' ? '<div class="row" style="gap:6px;margin-top:6px"><button class="btn small go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button><button class="btn small red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button></div>' : '') + '</div>';
     }).join('');
-    h += '<details class="cz-d"><summary>Barème</summary><p>Citation insérée avant la publication ou jusqu’à 2 jours après : <b>10 pièces</b><br>jusqu’à 4 jours : <b>5 pièces</b><br>jusqu’au 6e jour : <b>2 pièces</b><br>à partir du 7e jour : 0, ce sera pour la prochaine fois.</p></details>';
+    h += '<details class="cz-d"><summary>Barème</summary><p>' + barDetail() + '</p></details>';
     if (me.chef && testRec()) h += '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🧪 <b>Mode récompense (test) actif</b> : vous gagnez aussi des pièces, avec votre propre caisse. Désactivable dans ⚙️ Paramètres.</div>';
     if (me.chef) h += '<details class="cz-d"><summary>Réglages et contrôles (visible par vous seul)</summary><p>Une pièce n’est accordée que si le mail est parti du lab, que la réponse arrive dans le fil de ce mail (en-têtes vérifiés côté serveur ; depuis une autre adresse que celle du chercheur et hors de son domaine : « à vérifier »), et que la citation est insérée depuis le lab. Une seule récompense par fiche ; webmail gratuit, adresse de l’équipe ou réponse très courte → « à vérifier ».</p>' +
-      '<div class="row" style="gap:8px;align-items:center">Valeur d’une pièce : <input class="in" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div></details>';
+      '<div class="row" style="gap:8px;align-items:center">Valeur d’une pièce : <input class="in" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div>' + barEdit('in') + '</details>';
     var arch = (r.conversions || []).filter(function (c) { return c.statut !== 'a_facturer' && (me.chef || c.membre === me.id); });
     if (arch.length) h += '<details class="cz-d"><summary>Archives (' + arch.length + ')</summary>' + arch.map(function (c) {
       return '<div class="cz-l"><b>' + (c.type === 'conversion' ? eurTxt(Number(c.montant)) : '↺ remis à zéro') + '</b> · ' + c.pieces + ' pièces · ' + esc(membre(c.membre).nom) + '<div class="cz-s">' + (c.statut === 'facture' ? '✅ ajouté à la facture ' + esc(when(c.facture_le)) + (c.facture_note ? ' · ' + esc(c.facture_note) : '') : 'remis à zéro ' + esc(when(c.created_at))) + '</div></div>';
     }).join('') + '</details>';
     return h + '</div>';
+  }
+  // Barème des pièces (31/10/2026) : 3 paliers réglables par le rédacteur en chef (wl-push action « bareme », clé bareme_pieces).
+  function barG() { var b = (S.pieces || {}).bareme; return Array.isArray(b) && b.length === 3 ? b : [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }]; }
+  function jTxt(n) { return n + ' jour' + (n > 1 ? 's' : ''); }
+  function pTxt(n) { return n + ' pièce' + (n > 1 ? 's' : ''); }
+  function barDetail() {
+    var b = barG();
+    return 'Citation insérée avant la publication ou jusqu’à ' + jTxt(b[0].jours) + ' après : <b>' + pTxt(b[0].pieces) + '</b><br>jusqu’à ' + jTxt(b[1].jours) + ' : <b>' + pTxt(b[1].pieces) + '</b><br>jusqu’à ' + jTxt(b[2].jours) + ' : <b>' + pTxt(b[2].pieces) + '</b><br>au-delà de ' + jTxt(b[2].jours) + ' : 0, ce sera pour la prochaine fois.';
+  }
+  function barLigne() {
+    var b = barG();
+    return 'avant publication ou jusqu’à ' + jTxt(b[0].jours) + ' après → <b>' + pTxt(b[0].pieces) + '</b> · jusqu’à ' + jTxt(b[1].jours) + ' → <b>' + b[1].pieces + '</b> · jusqu’à ' + jTxt(b[2].jours) + ' → <b>' + b[2].pieces + '</b> · au-delà de ' + jTxt(b[2].jours) + ' → 0 (ce sera pour la prochaine).';
+  }
+  function barEdit(cls) {
+    var b = barG(), inp = function (id, v) { return '<input class="' + cls + '" id="' + id + '" value="' + v + '" style="width:64px;margin:0" inputmode="numeric">'; };
+    return '<div style="margin:10px 0 4px"><b>Barème des pièces</b> (délai compté depuis la publication de l’article)</div>' +
+      [0, 1, 2].map(function (k) { return '<div class="row" style="gap:6px;align-items:center;margin:4px 0">' + inp('wl-bp' + k, b[k].pieces) + ' pièces jusqu’à ' + inp('wl-bj' + k, b[k].jours) + ' jours</div>'; }).join('') +
+      '<div class="muted" style="font-size:13px;margin:4px 0">Avant publication : premier palier. Au-delà du dernier délai : 0 pièce. Délais de plus en plus longs.</div>' +
+      '<button class="btn small" data-act="pc-bareme">Enregistrer le barème</button>';
   }
   function docPieces() {
     var r = S.pieces || { pieces: [], totaux: {} }, me = D().me;
@@ -5123,7 +5142,7 @@
       return '<div style="flex-wrap:wrap;gap:8px"><span><b>' + esc(w.nom) + '</b><br><span class="muted" style="font-size:13px">' + totalPieces(w.id) + ' pièces gagnées au total</span></span><span style="text-align:right"><b>🪙 ' + so + '</b> à convertir<br><span class="muted" style="font-size:13px">soit ' + e2(so * tx) + '</span></span>' +
         (me.chef && so ? '<span class="acts" style="width:100%;margin:6px 0 0"><button class="go" data-act="pc-conv" data-id="' + esc(w.id) + '">💶 Convertir en ' + e2(so * tx) + ' (prochaine facture)</button><button data-act="pc-raz" data-id="' + esc(w.id) + '">↺ Remettre à zéro</button></span>' : '') + '</div>';
     }).join('') + '</div>';
-    if (me.chef) h += '<div class="row" style="gap:8px;align-items:center;margin:-4px 0 14px;font-size:14px">Valeur d’une pièce : <input class="pin" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px;margin:0" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div>';
+    if (me.chef) h += '<div class="row" style="gap:8px;align-items:center;margin:-4px 0 14px;font-size:14px">Valeur d’une pièce : <input class="pin" id="wl-taux" value="' + String(tx).replace('.', ',') + '" style="width:90px;margin:0" inputmode="decimal"> € <button class="btn small" data-act="pc-taux">Enregistrer</button></div><div style="margin:-6px 0 14px;font-size:14px">' + barEdit('pin') + '</div>';
     var cs = r.conversions || [];
     if (cs.length) {
       var conf = cs.filter(function (c) { return c.statut === 'facture'; }).reduce(function (a, c) { return a + Number(c.montant); }, 0), att = cs.filter(function (c) { return c.statut === 'a_facturer'; }).reduce(function (a, c) { return a + Number(c.montant); }, 0);
@@ -5138,7 +5157,7 @@
       '<li>La demande d’interview part <b>depuis le lab</b> (pas d’un autre logiciel).</li>' +
       '<li>Le chercheur <b>répond à ce mail</b> : le Courrier le reconnaît grâce aux en-têtes techniques du fil, impossibles à imiter. Une réponse collée à la main ne compte pas.</li>' +
       '<li>Sa citation est <b>insérée dans l’article depuis le lab</b>, et Ghost l’accepte.</li></ol>' +
-      '<p style="font-size:15px"><b>Barème :</b> avant publication ou jusqu’à 2 jours après → <b>10 pièces</b> · jusqu’à 4 jours → <b>5</b> · jusqu’au 6e jour → <b>2</b> · à partir du 7e jour → 0 (la semaine est passée, ce sera pour la prochaine).</p>' +
+      '<p style="font-size:15px"><b>Barème :</b> ' + barLigne() + '</p>' +
       '<p class="muted" style="font-size:13.5px">Contrôles : une seule récompense par fiche ; une adresse de messagerie gratuite (gmail…), une adresse de l’équipe ou une réponse très courte passent en « à vérifier » par le rédacteur en chef.</p></details>';
     h += '<h2>Historique</h2>' + ((r.pieces || []).map(function (p) {
       var st = PST2[p.statut] || ['·', p.statut, ''];
@@ -5694,6 +5713,12 @@
       case 'pc-dem':
         var ck6 = S.clicking; confirmer('Demander le paiement de tes pièces ?\n\nJonathan reçoit ta demande et comptabilise le montant pour ta prochaine facture.').then(function (ok) { if (!ok) return; S.clicking = ck6;
           pushApi({ action: 'demande_paiement' }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('💶 Demande envoyée à Jonathan.'); chargerPieces(); });
+        });
+        break;
+      case 'pc-bareme':
+        pushApi({ action: 'bareme', bareme: [0, 1, 2].map(function (k) { return { pieces: val('wl-bp' + k), jours: val('wl-bj' + k) }; }) }).then(function (r) {
+          if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'barème invalide'), true); return; }
+          var b = r.bareme; toast('Barème : ' + b.map(function (x) { return x.pieces + ' pièces jusqu’à ' + x.jours + ' j'; }).join(' · ')); chargerPieces();
         });
         break;
       case 'pc-taux':

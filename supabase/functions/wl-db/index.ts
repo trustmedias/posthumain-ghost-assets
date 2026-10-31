@@ -180,17 +180,30 @@ function preuveDe(f: any): { de: string; lien: string } {
   const lien = (p && p.lien) || (de === email ? "meme_adresse" : domaineDe(de) && domaineDe(de) === domaineDe(email) ? "meme_domaine" : "autre_adresse");
   return { de, lien };
 }
-// Barème selon le délai après publication (date de Ghost, transmise par l'insertion n8n) :
-// brouillon / programmé ou ≤ 2 jours → 10 · ≤ 4 jours → 5 · moins de 7 jours → 2 · 7 jours et plus → 0 (créneau manqué).
-function bareme(meta: any) {
+// Barème selon le délai après publication (date de Ghost, transmise par l'insertion n8n). 31/10/2026 : réglable par le rédacteur en chef
+// (wl_reglages bareme_pieces = 3 paliers [{pieces, jours}], jours croissants) ; par défaut ≤ 2 jours → 10 · ≤ 4 → 5 · ≤ 7 → 2 · au-delà → 0.
+// Brouillon / programmé → premier palier.
+const BAREME_DEF = [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }];
+function baremeValide(v: any) {
+  if (!Array.isArray(v) || v.length !== 3) return null;
+  const b = v.map((x: any) => ({ pieces: Math.round(Number(x && x.pieces)), jours: Math.round(Number(x && x.jours)) }));
+  if (b.some((x) => !isFinite(x.pieces) || x.pieces < 0 || x.pieces > 1000 || !isFinite(x.jours) || x.jours < 1 || x.jours > 365)) return null;
+  if (!(b[0].jours < b[1].jours && b[1].jours < b[2].jours)) return null;
+  return b;
+}
+async function baremeLu() {
+  const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "bareme_pieces").limit(1);
+  let v: any = null; try { v = JSON.parse(String((data && data[0] && data[0].valeur) || "")); } catch { v = null; }
+  return baremeValide(v) || BAREME_DEF;
+}
+async function bareme(meta: any) {
+  const B = await baremeLu(), max = B[B.length - 1].jours;
   const pub = meta && meta.__statut_article === "published" && meta.__publie_le ? Date.parse(String(meta.__publie_le)) : NaN;
-  if (!isFinite(pub)) return { montant: 10, note: "avant publication" };
+  if (!isFinite(pub)) return { montant: B[0].pieces, note: "avant publication", max };
   const j = (Date.now() - pub) / 864e5, jj = Math.max(0, Math.floor(j));
   const quand = "ajoutée " + (jj ? jj + " jour" + (jj > 1 ? "s" : "") : "moins d'un jour") + " après publication";
-  if (j <= 2) return { montant: 10, note: quand };
-  if (j <= 4) return { montant: 5, note: quand + " (moitié)" };
-  if (j < 7) return { montant: 2, note: quand + " (quart)" };
-  return { montant: 0, note: quand + " : créneau de 7 jours dépassé" };
+  for (let k = 0; k < B.length; k++) if (j <= B[k].jours) return { montant: B[k].pieces, note: quand + (k ? " (palier " + (k + 1) + " : jusqu'à " + B[k].jours + " jours)" : ""), max };
+  return { montant: 0, note: quand + " : créneau de " + max + " jours dépassé", max };
 }
 async function recompenser(data: any[] | null, meta: any = null) {
   for (const f of data || []) {
@@ -205,13 +218,13 @@ async function recompenser(data: any[] | null, meta: any = null) {
     else if (pr.lien === "telephone") doutes.push("réponse par téléphone"); // 23/10/2026 : pas de preuve par les en-têtes de mail → le chef valide
     { const wm = await webmailsAVerifier(), d2 = wm.includes(dom) ? dom : wm.includes(domDe) ? domDe : ""; if (d2) doutes.push("adresse de messagerie gratuite (" + d2 + ")"); }
     if (String(f.reponse || "").replace(/\s+/g, " ").trim().length < 120) doutes.push("réponse très courte");
-    const bm = bareme(meta);
+    const bm = await bareme(meta);
     const statut = bm.montant === 0 ? "manque" : doutes.length ? "a_verifier" : "acquis";
     const motif = [bm.note].concat(doutes).join(" · ");
     const { data: ins } = await db.from("wl_pieces").upsert({ membre: qui, fiche_id: f.fiche_id, montant: bm.montant, statut, motif, article_titre: String(f.article_titre || "").slice(0, 300), contact: String(f.contact_nom || "").slice(0, 160) }, { onConflict: "fiche_id", ignoreDuplicates: true }).select();
     if (ins && ins.length) {
       if (statut === "acquis") await push([qui], "🪙 +" + bm.montant + " pièces !", "Parcours complet avec " + (f.contact_nom || "votre contact") + " : interview envoyée, réponse reçue, citation dans l'article (" + bm.note + ").", "pieces");
-      if (statut === "manque") await push([qui], "⏳ Créneau manqué", "La citation de " + (f.contact_nom || "votre contact") + " a été ajoutée plus de 7 jours après publication : pas de pièces cette fois. Ce sera pour la prochaine !", "pieces");
+      if (statut === "manque") await push([qui], "⏳ Créneau manqué", "La citation de " + (f.contact_nom || "votre contact") + " a été ajoutée plus de " + bm.max + " jours après publication : pas de pièces cette fois. Ce sera pour la prochaine !", "pieces");
       if (!CHEFS.includes(qui)) await push(CHEFS, statut === "acquis" ? "🪙 " + qui + " gagne " + bm.montant + " pièces" : statut === "manque" ? "⏳ " + qui + " : créneau manqué" : "🪙 Pièces à vérifier (" + qui + ")", (f.contact_nom || "") + " — " + motif, "pieces");
       else if (statut === "a_verifier") await push(CHEFS, "🪙 Pièces à vérifier (test)", (f.contact_nom || "") + " — " + motif, "pieces");
     }

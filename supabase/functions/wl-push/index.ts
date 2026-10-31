@@ -76,6 +76,20 @@ async function dictee(texte: string) {
 // la rédactrice est prévenue dans l'Interphone, ajoute le montant à sa prochaine facture et le confirme ici.
 const NOMS: Record<string, string> = { jonathan: "Jonathan Paiano", valisoa: "Valisoa Rasolofo" }; // complété par l’équipe à chaque appel
 async function taux() { const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "taux_piece").limit(1); const t = Number(data && data[0] && data[0].valeur); return isFinite(t) && t >= 0 ? t : 0.2; }
+// Barème des pièces (31/10/2026) : 3 paliers réglables par le rédacteur en chef (wl_reglages bareme_pieces) ; même défaut que wl-db.
+const BAREME_DEF = [{ pieces: 10, jours: 2 }, { pieces: 5, jours: 4 }, { pieces: 2, jours: 7 }];
+function baremeValide(v: any) {
+  if (!Array.isArray(v) || v.length !== 3) return null;
+  const b = v.map((x: any) => ({ pieces: Math.round(Number(String(x && x.pieces).replace(",", "."))), jours: Math.round(Number(String(x && x.jours).replace(",", "."))) }));
+  if (b.some((x) => !isFinite(x.pieces) || x.pieces < 0 || x.pieces > 1000 || !isFinite(x.jours) || x.jours < 1 || x.jours > 365)) return null;
+  if (!(b[0].jours < b[1].jours && b[1].jours < b[2].jours)) return null;
+  return b;
+}
+async function baremeLu() {
+  const { data } = await db.from("wl_reglages").select("valeur").eq("cle", "bareme_pieces").limit(1);
+  let v: any = null; try { v = JSON.parse(String((data && data[0] && data[0].valeur) || "")); } catch { v = null; }
+  return baremeValide(v) || BAREME_DEF;
+}
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 async function prevenir(membre: string, title: string, message: string) {
   const { data } = await db.from("wl_push").select("sid").eq("membre", membre).limit(1);
@@ -177,7 +191,7 @@ Deno.serve(async (req) => {
     const [{ data: ps }, { data: vs }] = await Promise.all([q, qv]);
     const totaux: Record<string, number> = {};
     for (const p of ps || []) if (p.statut === "acquis") totaux[p.membre] = (totaux[p.membre] || 0) + Number(p.montant || 0);
-    const [{ data: cs }, t, so] = await Promise.all([db.from("wl_conversions").select("*").order("created_at", { ascending: false }).limit(200), taux(), soldes()]);
+    const [{ data: cs }, t, so, bareme] = await Promise.all([db.from("wl_conversions").select("*").order("created_at", { ascending: false }).limit(200), taux(), soldes(), baremeLu()]);
     const { data: dm } = await db.from("wl_reglages").select("cle,valeur").like("cle", "demande_%");
     const demandes: Record<string, string> = {}; for (const d of dm || []) demandes[String(d.cle).slice(8)] = String(d.valeur || "");
     // 23/10/2026 : recompense_test rétabli (perdu lors d'un redéploiement du 21/10) — la page s'en sert pour afficher la caisse du rédacteur en chef en mode test.
@@ -192,7 +206,7 @@ Deno.serve(async (req) => {
       const email = String(x.contact_email || "").toLowerCase(), de = String((pv && pv.de) || email).toLowerCase();
       preuves[x.fiche_id] = { de, lien: (pv && pv.lien) || (de === email ? "meme_adresse" : dom(de) && dom(de) === dom(email) ? "meme_domaine" : "autre_adresse") };
     }
-    return out({ ok: true, moi: qui, chef, recompense_test, membres, totaux, soldes: so, taux: t, demandes, mois: moisZurich(), jour: jourZurich(), conversions: cs || [], pieces: ps || [], verifiees: (vs || []).map((x: any) => x.fiche_id), preuves });
+    return out({ ok: true, moi: qui, chef, recompense_test, membres, totaux, soldes: so, taux: t, bareme, demandes, mois: moisZurich(), jour: jourZurich(), conversions: cs || [], pieces: ps || [], verifiees: (vs || []).map((x: any) => x.fiche_id), preuves });
   }
   if (b.action === "taux") {
     if (!estChef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
@@ -200,6 +214,13 @@ Deno.serve(async (req) => {
     if (!isFinite(t) || t < 0 || t > 100) return out({ ok: false, why: "taux invalide" }, 400);
     await db.from("wl_reglages").upsert({ cle: "taux_piece", valeur: String(t), updated_at: new Date().toISOString() }, { onConflict: "cle" });
     return out({ ok: true, taux: t });
+  }
+  if (b.action === "bareme") {
+    if (!estChef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+    const nb = baremeValide(b.bareme);
+    if (!nb) return out({ ok: false, why: "barème invalide : 3 paliers, pièces de 0 à 1000, délais de 1 à 365 jours et de plus en plus longs" }, 400);
+    await db.from("wl_reglages").upsert({ cle: "bareme_pieces", valeur: JSON.stringify(nb), updated_at: new Date().toISOString() }, { onConflict: "cle" });
+    return out({ ok: true, bareme: nb });
   }
   if (b.action === "convertir" || b.action === "remise_a_zero") {
     if (!estChef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
