@@ -38,12 +38,14 @@ let t = '\nCANAL DE LA RÉPONSE : ' + (NOMS[c] || NOMS.non_precise) + '.\n';
 if (!c || c === 'non_precise') t += 'Le canal n’est pas précisé : n’affirme RIEN sur la façon dont la réponse a été obtenue (ni téléphone, ni e-mail, ni entretien) ; attribue simplement (« explique X », « selon X »).';
 else {
   const restant = c === 'email+telephone' ? [!mailDit && 'e-mail', !telDit && 'téléphone'].filter(Boolean) : (deja && ((c === 'telephone' && telDit) || (c === 'email' && mailDit) || (c === 'personne' && /personne|rencontr/i.test(cit)))) ? [] : [c === 'email' ? 'e-mail' : c === 'telephone' ? 'téléphone' : 'en personne'];
-  t += 'Règle : comme dans un article de presse, le canal se précise UNE SEULE FOIS par personne, juste avant ou juste après sa PREMIÈRE citation dans l’article, puis on ne le répète plus. '
-    + (deja ? nom + ' est DÉJÀ cité(e) dans l’article' + (restant.length ? ', mais le canal « ' + restant.join(' » et « ') + ' » n’y a pas encore été précisé.' : ' et son canal y est déjà précisé : n’en parle plus du tout dans ces nouveaux extraits.') + ' ' : '')
+  t += 'Règle : comme dans un article de presse, le canal se précise UNE SEULE FOIS par personne, juste avant ou juste après sa PREMIÈRE citation dans l’article, puis on ne le répète plus (seule exception : le rappel bref permis dans un article long, voir FORME). '
+    + (deja ? nom + ' est DÉJÀ cité(e) dans l’article' + (restant.length ? ', mais le canal « ' + restant.join(' » et « ') + ' » n’y a pas encore été précisé.' : ' et son canal y est déjà précisé : n’en parle plus dans ces nouveaux extraits (hors rappel bref d’un article long).') + ' ' : '')
     + (restant.length ? 'Précise le canal « ' + restant.join(' » puis « ') + ' » une seule fois, à la première citation (dans l’ordre de l’article) qui vient de ce canal ; les autres extraits n’en parlent pas. ' : '')
     + (c === 'email+telephone' ? 'La réponse contient les deux canaux : les passages placés après un en-tête « 📞 Réponse reçue par téléphone » (ou « Answer received by phone ») ont été dits au téléphone ; le reste a été écrit par e-mail. ' : '')
     + (!restant.length ? '' : 'Tournures sobres et variées, à adapter (ne recopie pas mot pour mot, ne reprends pas une tournure déjà présente dans l’article) : « …, nous a répondu X dans un e-mail adressé à Posthumain », « …, explique X dans le cadre d’un entretien téléphonique », « joint par téléphone, X précise que… », « interrogée par courriel, X souligne… », « dans sa réponse écrite à Posthumain ». ')
     + 'Ajoute dans chaque insertion les champs "canal" (« email », « telephone » ou « personne » : le canal d’OÙ vient cet extrait) et "canal_precise" (true seulement si ce texte mentionne le canal).';
 }
+// 31/10/2026 (Jonathan) : la personne n'est présentée qu'une fois (nom, fonction, institution) ; déjà citée = plus de présentation.
+if (deja) t += '\nPRÉSENTATION : ' + nom + ' apparaît DÉJÀ dans l’article : ne redonne NI sa fonction NI son institution ; le nom seul, « le chercheur » / « la chercheuse » ou un pronom suffisent.';
 inserer(t);
 return [{ json: it }];

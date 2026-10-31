@@ -151,12 +151,31 @@
   function envoiTxt(f) { return f.attente ? (f.attente.type === 'suite' ? 'suite envoyée ' : 'réponse traitée ') + when(f.attente.le) : 'envoyé ' + when(f.envoye_le); }
   function tagStatut(f) { var s = stLib(f); return '<span class="tag ' + s[2] + '">' + s[0] + ' ' + esc(s[1]) + '</span>'; }
 
-  // brouillon de l'assistant, gardé par article dans ce navigateur (on ne perd rien en fermant la page)
-  function saveDraft() { if (S.art) LS.set('wl-brouillon-' + S.art, JSON.stringify({ contact: S.contact, contacts: S.contacts, qs: S.qs, angle: S.angle, echeance: S.echeance, consigneSec: S.consigneSec })); }
-  function loadDraft() {
-    var d = null; try { d = JSON.parse(LS.get('wl-brouillon-' + S.art) || 'null'); } catch (e) { d = null; }
+  // brouillon de l'assistant, gardé par article dans ce navigateur ET sur le serveur (31/10/2026, fonction wl-citations) :
+  // les questions proposées, gardées ou non, le contact et l'angle survivent à la fermeture de la page, au redémarrage de l'appareil
+  // et au changement d'appareil. Le plus récent des deux gagne (horodatage _t).
+  function draftObj() { return { contact: S.contact, contacts: S.contacts, qs: S.qs, angle: S.angle, echeance: S.echeance, consigneSec: S.consigneSec, _t: Date.now() }; }
+  function draftApply(d) {
     S.contact = (d && d.contact) || null; S.contacts = (d && d.contacts) || null; S.qs = (d && d.qs) || []; S.angle = (d && d.angle) || '';
     S.echeance = (d && d.echeance) || ''; S.consigneSec = (d && d.consigneSec) || ''; S.reformule = null;
+  }
+  function saveDraft() {
+    if (!S.art) return;
+    var aid = S.art, d = draftObj(); LS.set('wl-brouillon-' + aid, JSON.stringify(d));
+    clearTimeout(S.brT); S.brT = setTimeout(function () { citApi({ action: 'brouillon_ecrire', article_id: aid, data: d }).then(null, function () { /* réessayé à la prochaine modification */ }); }, 1200);
+  }
+  function loadDraft() {
+    var d = null; try { d = JSON.parse(LS.get('wl-brouillon-' + S.art) || 'null'); } catch (e) { d = null; }
+    draftApply(d);
+    var aid = S.art, tLoc = (d && d._t) || 0; if (!aid) return;
+    citApi({ action: 'brouillon_lire', article_id: aid }).then(function (r) {
+      if (!r || !r.ok || S.art !== aid) return;
+      var srv = r.data, tSrv = (srv && srv._t) || 0;
+      if (srv && tSrv > tLoc) {
+        var ae = document.activeElement; if (ae && S.root && S.root.contains(ae) && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT')) return; // jamais sous les doigts
+        draftApply(srv); LS.set('wl-brouillon-' + aid, JSON.stringify(srv)); paintPanel(); paintFloor();
+      } else if (d && tLoc > tSrv && ((d.qs || []).length || d.contact)) citApi({ action: 'brouillon_ecrire', article_id: aid, data: d }).then(null, function () {});
+    }, function () { /* hors ligne : le brouillon local suffit */ });
   }
 
   // ---------- appels au webhook (un seul : le champ « mode » dit ce qu'on demande) ----------
@@ -195,6 +214,7 @@
       var premier = !S.data;
       S.data = normaliserFiches(d); render(); chargerPieces();
       if (premier) chargerVu();
+      if (premier) citApi({ action: 'citations_echeances' }).then(null, function () {}); // 31/10/2026 : relectures restées 7 jours sans réponse → auto-validées
       if (premier) consVerifier(); // engagement de confidentialité : écran bloquant tant que le serveur n'a pas confirmé la signature
       if (premier && window.WL_LOADER) setTimeout(window.WL_LOADER.fin, 250); // l'écran de chargement s'efface quand la rédaction est en place
     }, function (e) { if (window.WL_LOADER) window.WL_LOADER.fin(); if (!silent) toast('⚠️ ' + e.message, true); });
@@ -297,7 +317,7 @@
 #wl .dossier{margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);transition:box-shadow .4s}#wl .dossier.flash{box-shadow:0 0 0 2px rgba(0,255,119,.6)}#wl .panel .dossier .dh{cursor:pointer}#wl .dossier .dh{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}#wl .av{display:inline-flex;flex-wrap:wrap;gap:6px}#wl .av b{font-weight:500;font-size:11.5px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);white-space:nowrap}#wl .av b.a{border-color:rgba(255,176,32,.5);color:#ffe0a3}#wl .av b.g{border-color:rgba(0,255,119,.5);color:#c9ffe0}\
 #wl .lb{display:grid;gap:6px;margin:6px 0 14px}#wl .lb div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f3ead6;border:1px solid #d8cfbd}#wl .pc{padding:10px 0;border-top:1px solid #e3dac8}#wl .parc{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 12px}#wl .parc .pa{font-size:12.5px;padding:4px 9px;border-radius:999px;border:1px dashed #b9ae98;color:#8a806e}#wl .parc .pa.on{border-style:solid;border-color:#1f8a52;background:#e5f6ea;color:#14532d;font-weight:600}#wl .parc i{width:14px;height:1px;background:#b9ae98}\
 #wl .fete{position:fixed;left:50%;top:38%;z-index:70;transform:translate(-50%,-50%);text-align:center;padding:24px 34px;border-radius:22px;background:#14110c;border:1px solid rgba(255,200,80,.6);box-shadow:0 0 0 6px rgba(255,200,80,.08),0 30px 80px rgba(0,0,0,.6);animation:wlfete .5s cubic-bezier(.2,1.4,.4,1)}#wl .fete.out{opacity:0;transition:opacity .5s}#wl .fete-c{font-size:54px;animation:wlspin2 1.2s ease-in-out}#wl .fete-t{font-weight:800;font-size:22px;color:#ffd77a;margin-top:6px}#wl .fete-s{font-size:13.5px;color:rgba(243,236,224,.7);margin-top:4px}@keyframes wlfete{from{transform:translate(-50%,-50%) scale(.6);opacity:0}}@keyframes wlspin2{0%{transform:rotateY(0)}100%{transform:rotateY(720deg)}}\
-#wl .al-b{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:#ff6b5a;color:#fff;font-size:11.5px;font-weight:700;line-height:18px;text-align:center}#wl .al-c.al-lu{opacity:.62}#wl .al-pt{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff6b5a;margin-right:6px;vertical-align:middle}#wl .jr-l{white-space:pre-wrap;font-size:13.5px;line-height:1.5}#wl .mb-al{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(255,107,90,.10);border:1px solid rgba(255,107,90,.45);font-size:13.5px;line-height:1.5}#wl .mb-ul{margin:4px 0 2px 18px;padding:0;font-size:13px;line-height:1.5}#wl .mb-ul li{margin:2px 0;word-break:break-word}#wl .mb-k{font-weight:700;font-size:13px;margin:10px 0 2px}#wl .mb-src{white-space:pre-wrap;font-size:12.5px;line-height:1.5;color:rgba(243,236,224,.8);word-break:break-word}#wl .mb-src a,#wl .mb-ul a{color:#9fffc8!important}#wl .pubwrap{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 12px;max-width:100%}#wl label.pubchk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;padding:0!important;font:500 12.5px/1.2 Inter,system-ui,sans-serif!important;opacity:.85;cursor:pointer;user-select:none;white-space:nowrap;text-transform:none!important;letter-spacing:normal!important;color:inherit}#wl label.pubchk:hover{opacity:1}#wl label.pubchk input{width:16px;height:16px;margin:0!important;accent-color:#18b45f;cursor:pointer;flex:0 0 auto}#wl label.cfm-pub{display:flex!important;justify-content:center;margin:2px 0 14px!important;font-size:13.5px!important}#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .rd-h{display:flex;gap:10px;align-items:flex-start}#wl .rd-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:rgba(0,255,119,.14);color:#9fffc8;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .rd-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0}#wl .rd-a{margin-top:6px;font-size:13.5px;line-height:1.5;color:rgba(243,236,224,.72);white-space:pre-wrap}#wl .rd-vote{border-color:rgba(0,255,119,.55)!important;background:rgba(0,255,119,.06)!important}#wl .mb-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block}#wl .mb-soc{width:100%;max-width:320px;border-radius:10px;margin:8px 0;display:block}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .sigprev .kd{display:block}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
+#wl .al-b{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:#ff6b5a;color:#fff;font-size:11.5px;font-weight:700;line-height:18px;text-align:center}#wl .al-c.al-lu{opacity:.62}#wl .al-pt{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff6b5a;margin-right:6px;vertical-align:middle}#wl .jr-l{white-space:pre-wrap;font-size:13.5px;line-height:1.5}#wl .mb-al{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(255,107,90,.10);border:1px solid rgba(255,107,90,.45);font-size:13.5px;line-height:1.5}#wl .mb-ul{margin:4px 0 2px 18px;padding:0;font-size:13px;line-height:1.5}#wl .mb-ul li{margin:2px 0;word-break:break-word}#wl .mb-k{font-weight:700;font-size:13px;margin:10px 0 2px}#wl .mb-src{white-space:pre-wrap;font-size:12.5px;line-height:1.5;color:rgba(243,236,224,.8);word-break:break-word}#wl .mb-src a,#wl .mb-ul a{color:#9fffc8!important}#wl .pubwrap{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 12px;max-width:100%}#wl label.pubchk{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;padding:0!important;font:500 12.5px/1.2 Inter,system-ui,sans-serif!important;opacity:.85;cursor:pointer;user-select:none;white-space:nowrap;text-transform:none!important;letter-spacing:normal!important;color:inherit}#wl label.pubchk:hover{opacity:1}#wl label.pubchk input{width:16px;height:16px;margin:0!important;accent-color:#18b45f;cursor:pointer;flex:0 0 auto}#wl label.cfm-pub{display:flex!important;justify-content:center;margin:2px 0 14px!important;font-size:13.5px!important}#wl .ctabs{display:flex;margin:4px 0 14px}#wl .dcard.r{background:linear-gradient(180deg,#ffeef0,#f6d3d8)}#wl .av b.r{border-color:rgba(255,61,90,.55);color:#ffb3bf}#wl .qbox{position:relative;margin:12px 0 4px}#wl .qbox input{width:100%;box-sizing:border-box;padding-left:38px!important}#wl .qbox:before{content:'🔎';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}#wl .relance{margin:16px 0;padding:14px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a}#wl .relance h2{margin-top:0!important}#wl .rebond{margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff0f2;border:1px solid #f2b8c1;color:#5a1622;font-size:15px;line-height:1.5}#wl .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}#wl .kpi{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09)}#wl .kpi b{display:block;font-size:22px;color:#f3ece0;font-variant-numeric:tabular-nums}#wl .kpi span{font-size:12.5px;color:rgba(243,236,224,.6)}#wl .bars{display:flex;flex-direction:column;gap:6px;margin:8px 0}#wl .bar{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;font-size:13px}#wl .bar i{display:block;height:10px;border-radius:5px;background:linear-gradient(90deg,#18b45f,#00ff77);min-width:2px}#wl .bar em{font-style:normal;text-align:right;color:rgba(243,236,224,.75);font-variant-numeric:tabular-nums}#wl .bar .lb{color:rgba(243,236,224,.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#wl .ctabs button{flex:1;padding:10px 14px!important;font-size:14.5px!important}#wl .rd-h{display:flex;gap:10px;align-items:flex-start}#wl .rd-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:rgba(0,255,119,.14);color:#9fffc8;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .rd-t{font-weight:700;font-size:15px;line-height:1.35;color:#f3ece0}#wl .rd-a{margin-top:6px;font-size:13.5px;line-height:1.5;color:rgba(243,236,224,.72);white-space:pre-wrap}#wl .rd-vote{border-color:rgba(0,255,119,.55)!important;background:rgba(0,255,119,.06)!important}#wl .mb-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block}#wl .mb-soc{width:100%;max-width:320px;border-radius:10px;margin:8px 0;display:block}#wl .cz-t{margin:20px 0 6px;font:700 15px Inter,system-ui,sans-serif!important;color:#f3ece0;letter-spacing:normal!important;text-transform:none!important}#wl .dot-off{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b5a;margin-left:4px;vertical-align:top}#wl .set{margin:14px 0;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}#wl .set.hot{border-color:rgba(255,176,32,.55);background:rgba(255,176,32,.07)}#wl .set-h{display:flex;justify-content:space-between;align-items:center;gap:14px}#wl .set-s{font-size:13px;color:rgba(243,236,224,.6);margin-top:3px;line-height:1.5}#wl button.sw{flex:0 0 auto;width:46px;height:26px;border-radius:99px;background:#3a3328!important;border:1px solid rgba(255,255,255,.15)!important;position:relative;padding:0!important;cursor:pointer;transition:background .2s}#wl button.sw i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#d8cfbf;transition:left .2s}#wl button.sw.on{background:#18b45f!important}#wl button.sw.on i{left:22px;background:#fff}#wl .seg{display:inline-flex;margin:12px 0 8px;border:1px solid rgba(255,255,255,.14);border-radius:10px;overflow:hidden}#wl .seg button{background:transparent!important;color:rgba(243,236,224,.7)!important;border:0!important;padding:7px 14px!important;font-size:13.5px!important;cursor:pointer}#wl .seg button.on{background:rgba(0,255,119,.14)!important;color:#9fffc8!important;font-weight:600}#wl .tb{display:flex;gap:4px;margin-bottom:6px}#wl .tb button{background:rgba(255,255,255,.06)!important;color:#f3ece0!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:7px;min-width:34px;height:30px;padding:0 8px!important;cursor:pointer;font-size:14px!important}#wl .sig-ed{min-height:96px;background:#fff;color:#1f1a12;border-radius:10px;padding:12px 14px;font:14.5px/1.55 Arial,Helvetica,sans-serif;outline:none;border:2px solid transparent}#wl .sig-ed:focus{border-color:#00ff77}#wl .sig-ed b,#wl .sig-ed i,#wl .sig-ed u,#wl .sigprev b,#wl .sigprev i,#wl .sigprev u,#wl .cit b{color:inherit!important;background:none!important}#wl .sig-ed a,#wl .sigprev a{color:#1a5fd0!important}#wl .tb button{min-width:38px!important;height:32px!important}#wl .sigprev{margin-top:8px;padding:10px 12px;border-left:3px solid #d4c8ad;background:#faf6ec;color:#444;font:14px/1.5 Arial,Helvetica,sans-serif;border-radius:0 8px 8px 0}#wl .sigprev .kd,#wl .cit .kd{display:inline-block;font:600 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#8a7d63;margin-bottom:4px}#wl .sigprev .kd{display:block}#wl .cit{margin:10px 0;border:1px solid #e0d5bd;border-radius:12px;background:#fffdf8;overflow:hidden}#wl .cit.done{border-color:#9fd9b4;background:#f3fbf5}#wl .cit.skip{opacity:.55}#wl .cit-h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer}#wl .cit-n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#1f1a12;color:#fff;font:700 13px/26px Inter,sans-serif;text-align:center}#wl .cit-t{flex:1;font-size:14.5px;line-height:1.4;color:#1f1a12}#wl .cit-t small{display:block;color:#8a7d63;font-size:12.5px;margin-top:2px}#wl .cit-c{color:#8a7d63}#wl .cit-b{padding:0 14px 14px}#wl .cit .ctx{color:#a59a84;font-size:14px;line-height:1.55;padding:6px 0}#wl .cit .neo{margin:6px 0;padding:10px 14px;border-left:4px solid #18b45f;background:#effaf3;border-radius:0 10px 10px 0;color:#1f1a12;font-size:15px;line-height:1.6}#wl .cit .neo p{margin:0 0 8px}#wl .cit .neo blockquote{margin:0;padding:0 0 0 12px;border-left:2px solid #c9bfa8;font-style:italic}#wl .cit .neo em{font-style:normal;color:#6b604c;font-size:14px}#wl .cit-meta{font-size:13px;color:#6b604c;margin:6px 0 4px;line-height:1.5}#wl .cv{margin:10px 0 14px;padding:12px 14px;border-radius:12px;background:#fff7e6;border:1px solid #f0d49a;color:#1f1a12;font-size:14.5px;line-height:1.5}#wl .cv p{margin:6px 0 0}#wl .cv .acts{margin-top:8px}#wl .chapo{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,#fff7df,#fffdf6);border:1px solid #ecd8a2}#wl .ch-t{font-weight:700;font-size:15.5px;color:#1f1a12}#wl .ch-s{font-size:13.5px;color:#6b604c;margin-top:4px;line-height:1.5}#wl .chapo mark{background:#c9f2d7;color:#0f3d22;padding:1px 3px;border-radius:3px}#wl label.chk{display:flex;gap:8px;align-items:baseline;margin:7px 0;font-size:14px;cursor:pointer}#wl label.chk input{transform:translateY(2px)}#wl .cit-ed summary{cursor:pointer;font-size:13.5px;color:#6b604c;margin:6px 0}\
 #wl .caisse{margin:12px 0;padding:14px 16px;border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,200,80,.16),rgba(255,200,80,.03) 60%);border:1px solid rgba(255,200,80,.35)}#wl .cz-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px}#wl .cz-n{font-size:34px;font-weight:800;color:#ffd77a;margin-top:6px;display:flex;align-items:baseline;gap:10px}#wl .cz-n small{font-size:15px;font-weight:600;color:rgba(243,236,224,.75)}#wl .cz-s{font-size:12.5px;color:rgba(243,236,224,.58)}#wl .cz-l{padding:10px 12px;margin:8px 0;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)}#wl .cz-d{margin-top:14px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);font-size:13.5px}#wl .fa-ed{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18)}#wl .fa-ed label{display:block;font-size:12.5px;color:rgba(243,236,224,.6);margin:8px 0 4px}#wl .cz-d summary{cursor:pointer;font-weight:600}#wl .cz-d p{color:rgba(243,236,224,.75);line-height:1.6}\
 " + PHL_CSS.confirmer + "\
 #wl .bub.bot{background:rgba(255,190,90,.08);border-color:rgba(255,190,90,.35);border-left:3px solid rgba(255,190,90,.8)}#wl .bub.bot .who{color:#ffcf8a;font-weight:600}\
@@ -2318,7 +2338,7 @@
       return h + '<div class="relance suite"><h2>✉️ Réponse dans le fil, à valider</h2><p class="lead" style="margin-top:0">La Secrétaire a préparé cette réponse' + (x.prete_le ? ' (' + esc(when(x.prete_le)) + ')' : '') + '. Elle partira à <b>' + esc(x.a ? ccQui(f, x.a) + ' <' + x.a + '>' : f.contact.email || '') + '</b>' + (x.cc && x.cc.length ? ' (en copie : ' + esc(x.cc.map(function (e) { return ccQui(f, e); }).join(', ')) + ')' : '') + ', <b>dans le même fil</b> que vos échanges. Relisez, corrigez si besoin.</p>' +
         '<label>Objet</label><input class="pin sub" id="wl-su-sujet" value="' + esc(ed.sujet) + '"><label>Message</label><textarea class="pin big" id="wl-su-corps">' + esc(ed.corps) + '</textarea>' + trBr('wl-su-sujet', 'wl-su-corps', ed.sujet, ed.corps) + sigApercu(f) +
         (w.branchee ? '' : '<div class="warn">La boîte mail de ' + esc(w.nom || 'cette personne') + ' n’est pas encore branchée : l’envoi n’est pas possible pour l’instant.</div>') +
-        '<div class="acts"><button class="go" data-act="su-send" data-id="' + id + '"' + (w.branchee && !busy ? '' : ' disabled') + '>' + (busy ? '⏳ Envoi…' : '✅ Valider et envoyer') + '</button><button data-act="su-refaire" data-id="' + id + '"' + (busy ? ' disabled' : '') + '>✍️ Refaire</button><button data-act="su-skip" data-id="' + id + '"' + (busy ? ' disabled' : '') + '>🗑️ Écarter</button></div></div>';
+        '<div class="acts"><button class="go" data-act="su-send" data-id="' + id + '"' + (w.branchee && !busy ? '' : ' disabled') + '>' + (busy ? '⏳ Envoi…' : '✅ Valider et envoyer') + '</button>' + (/^Demande de relecture des citations/.test(x.consigne || '') ? '' : '<button data-act="su-refaire" data-id="' + id + '"' + (busy ? ' disabled' : '') + '>✍️ Refaire</button>') + '<button data-act="su-skip" data-id="' + id + '"' + (busy ? ' disabled' : '') + '>🗑️ Écarter</button></div></div>';
     }
     if (S.suOuvert !== f.fiche_id) return h + '<div class="acts"><button data-act="su-ouvrir" data-id="' + id + '">✉️ Répondre dans le fil</button>' +
       (f.attente && relancable(f) ? '<button data-act="su-relance" data-id="' + id + '" title="Plus de 3 jours depuis notre dernier message : relance courte, dans le même fil">🔁 Relancer dans le fil</button>' : '') + '</div>';
@@ -2355,7 +2375,7 @@
       if (!ok) return; S.clicking = ck; setTimeout(function () { S.clicking = null; }, 0);
       S.suiteBusy = fid; paintDoc();
       work(c.executeur.bureau || 'secretaire', 'envoie la réponse', telApi({ action: c.executeur.envoi, fiche_id: fid, sujet: su, corps: co, valide: true }).then(function (r) { if (!r || !r.ok) throw new Error((r && r.why) || 'envoi impossible'); return r; })).then(function (r) {
-        S.suiteBusy = null; if (S.suEdit) delete S.suEdit[fid]; S.suites = null; if (S.suDest) delete S.suDest[fid]; toast('📨 Réponse envoyée à ' + (r.a ? ccQui(f, r.a) : f.contact.nom) + (r.cc && r.cc.length ? ' (copie : ' + r.cc.map(function (e) { return ccQui(f, e); }).join(', ') + ')' : '') + ', dans le fil.');
+        S.suiteBusy = null; if (S.suEdit) delete S.suEdit[fid]; S.suites = null; if (S.suDest) delete S.suDest[fid]; if (S.citS[fid]) citCharger(fid, true); toast('📨 Réponse envoyée à ' + (r.a ? ccQui(f, r.a) : f.contact.nom) + (r.cc && r.cc.length ? ' (copie : ' + r.cc.map(function (e) { return ccQui(f, e); }).join(', ') + ')' : '') + ', dans le fil.');
         return refresh(true).then(function () { paintDoc(); });
       }).catch(function () { S.suiteBusy = null; paintDoc(); });
     });
@@ -2365,30 +2385,97 @@
     var lg = f.langue === 'en' ? 'en' : 'fr';
     return '<div class="sigprev"><div class="kd">Signature ajoutée à l’envoi · ' + (lg === 'en' ? 'English' : 'français') + '</div>' + (sg[lg] || '') + '</div>';
   }
+  // 31/10/2026 (Jonathan, Valisoa) : les propositions sont gardées par fiche sur le serveur (fonction wl-citations) : on les retrouve
+  // après une fermeture, un redémarrage ou sur un autre appareil. Chaque passage est un paragraphe normal (citation entre « » dans
+  // la phrase, personne présentée une seule fois) ; un exergue au plus dans l'article. Relecture par le contact : mail au texte fixe
+  // préparé dans le fil, puis validée par le contact, ou validée automatiquement 7 jours après l'envoi sans réponse (tracé dans la fiche).
+  // Insérer sans attendre reste possible : c'est noté dans la fiche.
+  S.citS = {};
+  function citDepuis(fid, cit) {
+    var l = (cit && cit.props) || []; if (!l.length) return null;
+    var o = { fid: fid, ins: l.map(function (x) { var y = {}; for (var k in x) y[k] = x[k]; if (!y.texte) y.texte = [y.intro, y.citation].filter(Boolean).join(' '); return y; }), open: {}, fait: {}, skip: {}, done: '' };
+    o.ins.forEach(function (x, k) { if (x.fait) o.fait[k] = true; if (x.skip) o.skip[k] = true; });
+    var k0 = o.ins.findIndex(function (x, k) { return !o.fait[k] && !o.skip[k]; }); if (k0 >= 0) o.open[k0] = true;
+    return o;
+  }
+  function citCharger(fid, force) {
+    var e = S.citS[fid]; if (e && (e.ld || (!force && Date.now() - e.at < 60000))) return;
+    S.citS[fid] = { cit: e ? e.cit : null, peut: e ? e.peut : false, at: Date.now(), ld: true };
+    citApi({ action: 'citations_lire', fiche_id: fid }).then(function (r) {
+      S.citS[fid] = { cit: (r && r.ok && r.cit) || null, peut: !!(r && r.peut), at: Date.now(), ld: false };
+      if (!(S.cit && S.cit.fid === fid && S.cit.ins)) { var o = citDepuis(fid, S.citS[fid].cit); if (o) S.cit = o; }
+      if (S.doc && S.doc.kind === 'fiche' && S.doc.id === fid) paintDoc();
+    }, function () { S.citS[fid] = { cit: e ? e.cit : null, peut: false, at: Date.now(), ld: false }; });
+  }
+  function citProps(C) { return C.ins.map(function (x, k) { var y = {}; for (var j in x) y[j] = x[j]; y.fait = !!C.fait[k]; y.skip = !!C.skip[k]; return y; }); }
+  function citSauver(fid, nouvelles, C0) {
+    var C = C0 || S.cit; if (!C || C.fid !== fid || !C.ins) return Promise.resolve();
+    clearTimeout(S.citT);
+    return citApi({ action: 'citations_enregistrer', fiche_id: fid, props: citProps(C), nouvelles: !!nouvelles }).then(function (r) {
+      if (r && r.ok) { S.citS[fid] = { cit: r.cit, peut: r.peut, at: Date.now(), ld: false }; if (nouvelles) paintDoc(); }
+      else toast('⚠️ Propositions non enregistrées : ' + ((r && r.why) || 'erreur'), true);
+    }, function (e) { toast('⚠️ Propositions non enregistrées : ' + e.message, true); });
+  }
+  function citSauverPlusTard(fid) { var C = S.cit; clearTimeout(S.citT); S.citT = setTimeout(function () { citSauver(fid, false, C); }, 1200); }
+  function citEtat(fid) { var e = S.citS[fid]; return (e && e.cit) || null; }
+  function citAutoLe(c) { if (!c || !c.envoyee_le) return null; return new Date(Math.max(new Date(c.envoyee_le).getTime() + 7 * 864e5, c.echeance ? new Date(c.echeance).getTime() : 0)); }
+  // Texte gardé dans l'historique à l'insertion (et dans la confirmation) : d'où vient l'accord du contact.
+  function citValTxt(f) {
+    var c = citEtat(f.fiche_id), nom = f.contact.nom;
+    if (!c || c.etat === 'proposees') return 'sans relecture de ' + nom;
+    if (c.etat === 'validees') return 'validées par ' + nom + ' le ' + day(c.validee_le);
+    if (c.etat === 'auto_validees') return 'auto-validées par non-réponse le ' + day(c.validee_le) + ' (relecture demandée à ' + nom + ' le ' + day(c.envoyee_le) + ')';
+    return c.envoyee_le ? 'insérées sans attendre la relecture demandée à ' + nom + ' le ' + day(c.envoyee_le) : 'insérées avant l’envoi de la demande de relecture à ' + nom;
+  }
+  function citValide(f) { var c = citEtat(f.fiche_id); return !!c && (c.etat === 'validees' || c.etat === 'auto_validees'); }
+  function citValHTML(f) {
+    var c = citEtat(f.fiche_id), nom = esc(f.contact.nom), id = esc(f.fiche_id), b = !!S.busy.secretaire;
+    if (!c) return '';
+    var h = '<div class="cv">';
+    if (c.etat === 'proposees') {
+      h += '<b>📝 Relecture par ' + nom + '</b><p>Faites relire ces passages avant de les insérer : la Secrétaire prépare dans le fil un mail qui les reprend mot pour mot, avec une date limite à 7 jours. Sans réponse à cette date, ils seront validés automatiquement (noté dans la fiche).</p>' +
+        '<div class="acts"><button class="go" data-act="cv-demander" data-id="' + id + '"' + (b ? ' disabled' : '') + '>📮 Demander la relecture à ' + nom + '</button><button data-act="cv-deja" data-id="' + id + '">📨 Je les lui ai déjà envoyés</button></div>';
+    } else if (c.etat === 'a_valider') {
+      var x = S.suites && S.suites.l[f.fiche_id], attend = !c.envoyee_le && x && x.corps, auto = citAutoLe(c);
+      var repondu = c.envoyee_le && f.reponse_le && new Date(f.reponse_le) > new Date(c.envoyee_le);
+      if (!c.envoyee_le) h += attend ? '<b>📮 Mail de relecture prêt</b><p>Il attend votre « Valider et envoyer » plus bas, dans le fil. Le délai de 7 jours démarre à l’envoi.</p>'
+        : '<b>📮 Relecture demandée, mail pas encore parti</b><p>Le mail de relecture a été écarté ou n’est pas encore prêt.</p><div class="acts"><button data-act="cv-demander" data-id="' + id + '"' + (b ? ' disabled' : '') + '>📮 Le préparer à nouveau</button></div>';
+      else if (repondu) h += '<b>📬 ' + nom + ' a répondu le ' + esc(day(f.reponse_le)) + '</b><p>Lisez sa réponse ci-dessus : s’il valide, cliquez « ' + nom + ' a validé » ; s’il demande des changements, corrigez les passages concernés avant d’insérer.</p>';
+      else h += '<b>⏳ Relecture demandée le ' + esc(day(c.envoyee_le)) + '</b><p>Sans réponse de ' + nom + ', les passages seront validés automatiquement le <b>' + esc(day(auto)) + '</b> (noté dans la fiche). Vous pouvez aussi insérer sans attendre.</p>';
+      h += '<div class="acts"><button class="go" data-act="cv-validee" data-id="' + id + '">✅ ' + nom + ' a validé</button><button data-act="cv-annuler" data-id="' + id + '">↺ Annuler la demande</button></div>';
+    } else if (c.etat === 'validees') h += '<b>✅ Validés par ' + nom + '</b> le ' + esc(day(c.validee_le)) + '.';
+    else h += '<b>✅ Validés automatiquement</b> le ' + esc(day(c.validee_le)) + ' : pas de réponse de ' + nom + ' 7 jours après l’envoi de la relecture (' + esc(day(c.envoyee_le)) + '). C’est noté dans la fiche ; s’il se manifeste après, on corrigera.';
+    return h + '</div>';
+  }
   function citationBlock(f) {
-    var c = S.cit && S.cit.fid === f.fiche_id ? S.cit : null, busy = !!S.busy.assistant;
+    citCharger(f.fiche_id);
+    if (!(S.cit && S.cit.fid === f.fiche_id && S.cit.ins)) { var o = citDepuis(f.fiche_id, citEtat(f.fiche_id)); if (o && !(S.cit && S.cit.fid === f.fiche_id)) S.cit = o; }
+    var c = S.cit && S.cit.fid === f.fiche_id ? S.cit : null, busy = !!S.busy.assistant, ok = citValide(f);
     var h = '<h2>Dans l’article</h2>';
-    if (!c || !c.ins) return h + '<p class="lead">L’Assistant lit l’article, choisit les passages les plus forts de la réponse, corrige l’orthographe et la ponctuation sans toucher aux propos (et traduit si besoin), puis propose l’endroit idéal pour chacun.</p>' +
-      '<div class="acts"><button class="go" data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>✨ Proposer les emplacements dans l’article</button></div>' + chapoBlock(f);
+    if (!c || !c.ins) return h + '<p class="lead">L’Assistant lit l’article, choisit les passages les plus forts de la réponse et les rédige comme dans un article de presse : la citation entre « » dans la phrase, la personne présentée une seule fois. Il corrige l’orthographe et la ponctuation sans toucher aux propos (et traduit si besoin), puis propose l’endroit idéal pour chacun.</p>' +
+      '<div class="acts"><button class="go" data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy || (c && !c.ins) ? ' disabled' : '') + '>✨ Proposer les emplacements dans l’article</button></div>' + chapoBlock(f);
     var reste = c.ins.filter(function (x, k) { return !c.fait[k] && !c.skip[k]; }).length;
-    h += '<p class="lead">' + c.ins.length + ' extrait' + pl(c.ins.length) + ' proposé' + pl(c.ins.length) + ', chacun à sa place. Dépliez pour voir le passage tel qu’il apparaîtra, ajustez si besoin, puis insérez.</p>';
+    h += '<p class="lead">' + c.ins.length + ' passage' + pl(c.ins.length) + ' proposé' + pl(c.ins.length) + ', chacun à sa place. Ils restent ici même si vous fermez la fiche. Dépliez pour voir le passage tel qu’il apparaîtra, ajustez si besoin.</p>';
+    if (reste) h += citValHTML(f);
     var cut = function (t, n, fin) { t = String(t || ''); return t.length <= n ? t : fin ? '… ' + t.slice(-n) : t.slice(0, n) + ' …'; };
+    var lib1 = ok ? '✅ Insérer celle-ci' : '⏩ Insérer sans attendre';
     h += c.ins.map(function (x, k) {
       var ouvert = !!c.open[k], fait = !!c.fait[k], skip = !!c.skip[k];
-      var hd = '<div class="cit-h" data-act="cit-tog" data-i="' + k + '"><span class="cit-n">' + (k + 1) + '</span><span class="cit-t">' + esc(cut(x.citation.replace(/^«\s*|\s*»$/g, ''), 70)) + '<small>après « ' + esc(cut(x.avant, 60)) + ' »</small></span>' +
+      var hd = '<div class="cit-h" data-act="cit-tog" data-i="' + k + '"><span class="cit-n">' + (k + 1) + '</span><span class="cit-t">' + esc(cut(x.texte, 70)) + '<small>après « ' + esc(cut(x.avant, 60)) + ' »</small></span>' +
         (fait ? '<span class="tag g">✅ insérée</span>' : skip ? '<span class="tag">écartée</span>' : '') + '<span class="cit-c">' + (ouvert ? '▾' : '▸') + '</span></div>';
       if (!ouvert) return '<div class="cit' + (fait ? ' done' : '') + (skip ? ' skip' : '') + '">' + hd + '</div>';
       var corps = '<div class="ctx">' + esc(cut(x.avant, 260, true)) + '</div>' +
-        '<div class="neo">' + (x.intro ? '<p>' + esc(x.intro) + '</p>' : '') + '<blockquote>' + esc(x.citation) + (x.attribution ? '<br><em>— ' + esc(x.attribution.replace(/^[—–-]\s*/, '')) + '</em>' : '') + '</blockquote></div>' +
+        '<div class="neo"><p>' + esc(x.texte) + '</p>' + (x.encart && x.encart_citation ? '<blockquote>' + esc(x.encart_citation) + '</blockquote>' : '') + '</div>' +
         (x.ensuite ? '<div class="ctx">' + (x.ensuite_type && x.ensuite_type !== 'paragraphe' ? '<span class="kd">' + esc(x.ensuite_type) + '</span> ' : '') + esc(cut(x.ensuite, 220)) + '</div>' : '<div class="ctx">— fin de l’article —</div>') +
-        '<div class="cit-meta">' + (x.note ? '✍️ ' + esc(x.note) : '✍️ texte repris tel quel') + (x.pourquoi ? '<br>📍 ' + esc(x.pourquoi) : '') + '</div>';
-      if (!fait) corps += '<details class="cit-ed"><summary>Modifier le texte</summary><label>Phrase d’introduction (facultative)</label><textarea class="pin" style="min-height:60px" data-cp="' + k + ':intro">' + esc(x.intro || '') + '</textarea>' +
-        '<label>Citation</label><textarea class="pin" style="min-height:90px" data-cp="' + k + ':citation">' + esc(x.citation || '') + '</textarea>' +
-        '<label>Attribution</label><input class="pin" data-cp="' + k + ':attribution" value="' + esc(x.attribution || '') + '"><div class="acts"><button data-act="cit-maj" data-i="' + k + '">Voir le résultat</button></div></details>' +
-        '<div class="acts"><button class="go" data-act="cit-one" data-id="' + esc(f.fiche_id) + '" data-i="' + k + '"' + (S.busy.marbre ? ' disabled' : '') + '>✅ Insérer celle-ci</button><button data-act="cit-skip" data-i="' + k + '">' + (skip ? '↺ Reprendre' : 'Écarter') + '</button></div>';
+        '<div class="cit-meta">' + (x.note ? '✍️ ' + esc(x.note) : '✍️ texte repris tel quel') + (x.encart ? '<br>🔖 Exergue : la phrase est reprise en encart (un seul par article)' : '') + (x.pourquoi ? '<br>📍 ' + esc(x.pourquoi) : '') +
+        (x.attribution && !x.fait ? '<br>🪪 Ancienne proposition : signature d’origine « ' + esc(x.attribution) + ' ». Si la personne n’est pas encore présentée dans l’article, intégrez son nom et sa fonction à la phrase (une seule fois).' : '') + '</div>';
+      if (!fait) corps += '<details class="cit-ed"' + (x.attribution ? ' open' : '') + '><summary>Modifier le texte</summary><label>Paragraphe inséré</label><textarea class="pin" style="min-height:120px" data-cp="' + k + ':texte">' + esc(x.texte || '') + '</textarea>' +
+        (x.encart_citation ? '<label>Phrase en exergue</label><input class="pin" data-cp="' + k + ':encart_citation" value="' + esc(x.encart_citation || '') + '"><label class="muted" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" data-cpx="' + k + '"' + (x.encart ? ' checked' : '') + '> la reprendre en exergue (un seul par article)</label>' : '') +
+        '<div class="acts"><button data-act="cit-maj" data-i="' + k + '">Voir le résultat</button></div></details>' +
+        '<div class="acts"><button class="go" data-act="cit-one" data-id="' + esc(f.fiche_id) + '" data-i="' + k + '"' + (S.busy.marbre ? ' disabled' : '') + '>' + lib1 + '</button><button data-act="cit-skip" data-i="' + k + '">' + (skip ? '↺ Reprendre' : 'Écarter') + '</button></div>';
       return '<div class="cit open' + (fait ? ' done' : '') + (skip ? ' skip' : '') + '">' + hd + '<div class="cit-b">' + corps + '</div></div>';
     }).join('');
-    h += '<div class="acts">' + (reste ? '<button class="go" data-act="cit-all" data-id="' + esc(f.fiche_id) + '"' + (S.busy.marbre ? ' disabled' : '') + '>✅ Tout insérer (' + reste + ')</button>' : '') +
+    h += '<div class="acts">' + (reste ? '<button class="go" data-act="cit-all" data-id="' + esc(f.fiche_id) + '"' + (S.busy.marbre ? ' disabled' : '') + '>' + (ok ? '✅ Tout insérer (' + reste + ')' : '⏩ Tout insérer sans attendre (' + reste + ')') + '</button>' : '') +
       '<button data-act="cit" data-id="' + esc(f.fiche_id) + '"' + (busy ? ' disabled' : '') + '>↻ Autres propositions</button></div>';
     if (c.done) h += '<p class="lead">✅ Inséré. <a href="' + esc(c.done) + '" target="_blank" rel="noopener">Ouvrir l’article dans Ghost</a></p>';
     return h + chapoBlock(f);
@@ -3192,6 +3279,9 @@
   var TEL_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-tel';
   var TEL_POSTES = {}; (CAT.postes || []).forEach(function (p) { TEL_POSTES[p.id] = { nom: p.nom, em: p.emoji, chef: p.acces === 'chef' }; });
   function telApi(b) { return supa(TEL_FN, b); }
+  // Propositions (citations, brouillon de l'Assistant) gardées sur le serveur et relecture des citations (31/10/2026, fonction wl-citations).
+  var CIT_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-citations';
+  function citApi(b) { return supa(CIT_FN, b); }
   function telPeut(k) { var p = TEL_POSTES[k]; return !!p && (!p.chef || !!D().me.chef); }
   function telBouton(k) { return telPeut(k) ? '<button class="btn small tel-b" data-act="tel" data-id="' + k + '" title="Appeler ' + esc(TEL_POSTES[k].nom) + ' : une requête libre, écrite ou dictée">☎️</button>' : ''; }
   function telOuvrir(k) {
@@ -5473,10 +5563,34 @@
         break;
       // la citation dans l'article
       case 'cit':
-        S.cit = { fid: id, ins: null, open: {}, fait: {}, skip: {}, done: '' }; paintDoc();
-        work('assistant', 'place les citations dans l’article', api('citation', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '' })).then(function (r) {
-          if (S.cit && S.cit.fid === id) { S.cit.ins = r.insertions || []; S.cit.open = { 0: true }; } paintDoc();
-        }, function () { S.cit = null; paintDoc(); });
+        // 31/10/2026 : de nouvelles propositions remplacent les précédentes (gardées sur le serveur) : on prévient d'abord.
+        var cAv = citEtat(id), fcit = fiche(id), avP = S.cit && S.cit.fid === id && S.cit.ins ? S.cit : null, ckCit = S.clicking;
+        var resteAv = avP ? avP.ins.filter(function (x, k) { return !avP.fait[k] && !avP.skip[k]; }).length : 0;
+        (cAv && cAv.etat !== 'proposees' && resteAv ? confirmer('Demander d’autres propositions ?\n\nLes passages actuels seront remplacés et la relecture ' + (cAv.etat === 'a_valider' ? 'demandée à ' : 'faite par ') + ((fcit && fcit.contact.nom) || 'votre contact') + ' ne s’appliquera plus aux nouveaux.')
+          : resteAv ? confirmer('Demander d’autres propositions ?\n\nLes ' + resteAv + ' passage' + pl(resteAv) + ' pas encore inséré' + pl(resteAv) + ' seront remplacés.') : Promise.resolve(true)).then(function (okC) {
+          if (!okC) return; S.clicking = ckCit; setTimeout(function () { S.clicking = null; }, 0);
+          var garde = avP; S.cit = { fid: id, ins: null, open: {}, fait: {}, skip: {}, done: '' }; paintDoc();
+          work('assistant', 'place les citations dans l’article', api('citation', { fiche_id: id, article_id: (fiche(id) || {}).article_id || '' })).then(function (r) {
+            if (S.cit && S.cit.fid === id) { S.cit.ins = r.insertions || []; S.cit.open = { 0: true }; citSauver(id, true); } paintDoc();
+          }, function () { S.cit = garde; paintDoc(); });
+        });
+        break;
+      // relecture des citations par le contact (31/10/2026)
+      case 'cv-demander': case 'cv-deja': case 'cv-validee': case 'cv-annuler':
+        var fcv = fiche(id); if (!fcv) break;
+        var etp = { 'cv-demander': 'demander', 'cv-deja': 'deja_envoyee', 'cv-validee': 'validee', 'cv-annuler': 'annuler' }[name], ckV = S.clicking;
+        var qv = { demander: '', deja_envoyee: 'Vous avez déjà envoyé ces passages à ' + fcv.contact.nom + ' pour relecture ?\n\nLa date de votre dernière réponse dans le fil sera retenue comme date d’envoi. Sans réponse 7 jours après, ils seront validés automatiquement (noté dans la fiche).',
+          validee: fcv.contact.nom + ' a validé ces passages ?\n\nCe sera noté dans la fiche, avec votre nom.', annuler: 'Annuler la demande de relecture ?\n\nLes passages restent proposés ; un mail de relecture pas encore envoyé reste dans le fil (écartez-le si besoin).' }[etp];
+        (qv ? confirmer(qv) : Promise.resolve(true)).then(function (okV) {
+          if (!okV) return; S.clicking = ckV; setTimeout(function () { S.clicking = null; }, 0);
+          var go = function () { return work('secretaire', etp === 'demander' ? 'prépare le mail de relecture' : 'note la relecture', citApi({ action: 'citations_validation', fiche_id: id, etape: etp }).then(function (r) { if (!r || !r.ok) throw new Error((r && r.why) || 'impossible'); return r; })); };
+          (S.cit && S.cit.fid === id ? citSauver(id) : Promise.resolve()).then(go).then(function (r) {
+            S.citS[id] = { cit: r.cit, peut: r.peut, at: Date.now(), ld: false };
+            if (etp === 'demander') { S.suites = null; suitesCharger(true); toast('📮 Mail de relecture prêt dans le fil : relisez-le, puis « Valider et envoyer ».'); }
+            else toast(etp === 'validee' ? '✅ Validation notée dans la fiche.' : etp === 'annuler' ? 'Demande de relecture annulée.' : '📨 Envoi noté : validation automatique dans 7 jours sans réponse.');
+            paintDoc();
+          }, function () {});
+        });
         break;
       case 'chapo':
         var fc = fiche(id); if (!fc) break;
@@ -5495,15 +5609,17 @@
         break;
       case 'cit-tog': if (S.cit) { S.cit.open[i] = !S.cit.open[i]; paintDoc(); } break;
       case 'cit-maj': paintDoc(); break;
-      case 'cit-skip': if (S.cit) { S.cit.skip[i] = !S.cit.skip[i]; if (S.cit.skip[i]) S.cit.open[i] = false; paintDoc(); } break;
+      case 'cit-skip': if (S.cit) { S.cit.skip[i] = !S.cit.skip[i]; if (S.cit.skip[i]) S.cit.open[i] = false; citSauver(S.cit.fid); paintDoc(); } break;
       case 'cit-one': case 'cit-all':
         var C = S.cit; if (!C || !C.ins) break;
         var ks = name === 'cit-one' ? [i] : C.ins.map(function (x, k) { return k; }).filter(function (k) { return !C.fait[k] && !C.skip[k]; });
         if (!ks.length) break;
-        var items = ks.map(function (k) { var x = C.ins[k]; return { index: x.apres, ancre: x.ancre, intro: x.intro || '', citation: x.citation || '', attribution: x.attribution || '' }; });
-        var ckC = S.clicking; confirmer(ks.length > 1 ? 'Insérer les ' + ks.length + ' citations dans l’article ?\n\nChacune est placée après son paragraphe ; les encarts, cartes et le paywall ne sont pas touchés.' : 'Insérer cette citation dans l’article ?').then(function (ok) { if (!ok) return; S.clicking = ckC; setTimeout(function () { S.clicking = null; }, 0);
-          work('marbre', ks.length > 1 ? 'insère les citations' : 'insère la citation', api('inserer', { fiche_id: id, items: items })).then(function (r) {
-            ks.forEach(function (k) { C.fait[k] = true; C.open[k] = false; });
+        var items = ks.map(function (k) { var x = C.ins[k]; return { index: x.apres, ancre: x.ancre, texte: x.texte || '', encart: !!x.encart, encart_citation: x.encart ? x.encart_citation || '' : '' }; });
+        var fIns = fiche(id), vOk = fIns ? citValide(fIns) : true, vTxt = fIns ? citValTxt(fIns) : '';
+        var ckC = S.clicking; confirmer((ks.length > 1 ? 'Insérer les ' + ks.length + ' passages dans l’article ?\n\nChacun est placé après son paragraphe ; les encarts, cartes et le paywall ne sont pas touchés.' : 'Insérer ce passage dans l’article ?') +
+          (vOk ? '' : '\n\n⚠️ Pas encore validés par ' + ((fIns && fIns.contact.nom) || 'le contact') + ' : ce sera noté dans la fiche (« ' + vTxt + ' »).')).then(function (ok) { if (!ok) return; S.clicking = ckC; setTimeout(function () { S.clicking = null; }, 0);
+          work('marbre', ks.length > 1 ? 'insère les citations' : 'insère la citation', api('inserer', { fiche_id: id, items: items, validation: vTxt })).then(function (r) {
+            ks.forEach(function (k) { C.fait[k] = true; C.open[k] = false; C.ins[k].fait_le = new Date().toISOString(); }); citSauver(id, false, C);
             var suiv = C.ins.findIndex(function (x, k) { return !C.fait[k] && !C.skip[k]; }); if (suiv >= 0) C.open[suiv] = true;
             C.done = r.editeur; toast(ks.length > 1 ? '✅ ' + ks.length + ' citations insérées.' : '✅ Citation insérée dans l’article.'); return refresh(true);
           }).then(function () { paintDoc(); });
@@ -5689,7 +5805,8 @@
     else if ((k = t.getAttribute('data-l'))) { S.libre[k] = t.value; if (k === 'email') { var dl = S.root.querySelector('#wl-deja-l'); if (dl) dl.innerHTML = dejaHTML(dejaContacte(t.value), true); } }
     else if ((k = t.getAttribute('data-s'))) { S[k] = t.value; saveDraft(); }
     else if (t.hasAttribute('data-qi')) { var q = S.qs[Number(t.getAttribute('data-qi'))]; if (q) { q.q = t.value; saveDraft(); } }
-    else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.ins) { var pp = k.split(':'), pr = S.cit.ins[Number(pp[0])]; if (pr) pr[pp[1]] = t.value; }
+    else if ((k = t.getAttribute('data-cp')) && S.cit && S.cit.ins) { var pp = k.split(':'), pr = S.cit.ins[Number(pp[0])]; if (pr) { pr[pp[1]] = t.value; citSauverPlusTard(S.cit.fid); } }
+    else if ((k = t.getAttribute('data-cpx')) != null && S.cit && S.cit.ins && e.type === 'change') { var px = S.cit.ins[Number(k)]; if (px) { px.encart = !!t.checked; citSauver(S.cit.fid); paintDoc(); } }
     else if ((k = t.getAttribute('data-ch')) != null && S.chapo && S.chapo.props) { var xc = S.chapo.props[Number(k)]; if (xc) xc.texte = t.value; }
     else if (t.id === 'wl-dl') LS.set('wl-dictee-lang', t.value);
     else if (t.getAttribute && t.getAttribute('data-wm') != null && S.params && e.type === 'change') {
