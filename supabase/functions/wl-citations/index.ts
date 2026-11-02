@@ -13,6 +13,8 @@
 // Corps JSON : { token, action, ... }
 //   citations_lire { fiche_id } · citations_enregistrer { fiche_id, props, nouvelles? } · citations_validation { fiche_id, etape, le? }
 //   citations_echeances {} · brouillon_lire { article_id } · brouillon_ecrire { article_id, data }
+//   envoi_annuler { fiche_id } (02/11/2026) : un mail en file d'envoi (statut en_file) revient en brouillon ; le passage n8n qui attend
+//     son heure le retrouve hors file et n'envoie rien.
 //   publications { secret, tout? } (pg_cron « writinglab-publications », sans jeton : secret wl_reglages publications_cron_secret) :
 //     registre wl_publications = première publication de chaque article vue dans Ghost (pour le bonus « avant publication » des pièces,
 //     calculé par wl-db : un article déjà publié puis remis en brouillon n'y donne plus droit).
@@ -222,6 +224,19 @@ Deno.serve(async (req) => {
       return out({ ok: true, auto: n });
     }
     // Brouillon de l'Assistant (contact, questions proposées, angle), par membre et par article.
+    if (b.action === "envoi_annuler") {
+      const id = String(b.fiche_id || "");
+      const { data: f0 } = await db.from("wl_fiches").select("fiche_id,redacteur,statut,historique,contact_nom").eq("fiche_id", id).limit(1);
+      const f = f0 && f0[0];
+      if (!f) return out({ ok: false, why: "fiche introuvable" }, 404);
+      if (!me.chef && f.redacteur !== me.id) return out({ ok: false, why: "cette fiche n’est pas la vôtre" }, 403);
+      if (f.statut !== "en_file") return out({ ok: false, why: f.statut === "envoi_en_cours" ? "le mail est en train de partir : trop tard pour l’annuler" : "ce mail n’est plus en file d’envoi" });
+      let h: unknown[] = []; try { h = JSON.parse(String(f.historique || "[]")); } catch { h = []; }
+      h.push({ t: new Date().toISOString(), e: "envoi en file annulé (retour en brouillon)", par: me.id });
+      const { data: up } = await db.from("wl_fiches").update({ statut: "brouillon", envoi_prevu_le: null, historique: JSON.stringify(h.slice(-60)), updated_at: new Date().toISOString() }).eq("fiche_id", id).eq("statut", "en_file").select("fiche_id");
+      if (!up || !up.length) return out({ ok: false, why: "le mail vient de partir : trop tard pour l’annuler" });
+      return out({ ok: true });
+    }
     if (b.action === "brouillon_lire") {
       const aid = String(b.article_id || "").slice(0, 80); if (!aid) return out({ ok: false, why: "article manquant" }, 400);
       const { data } = await db.from("wl_brouillons").select("data,updated_at").eq("membre", me.id).eq("article_id", aid).limit(1);

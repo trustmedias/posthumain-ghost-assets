@@ -108,7 +108,7 @@
   function relancable(f) { var base = f.attente ? f.attente.le : f.envoye_le; return f.statut === 'envoyé' && !!base && Date.now() - new Date(base).getTime() > 3 * 864e5; }
   // Équipe (23/10/2026) : un membre désactivé garde son nom dans l'historique, suivi de « (inactif) ».
   function membre(id) { var w = (D().equipe || []).filter(function (x) { return x.id === id; })[0]; if (!w) return { nom: id || '?' }; return w.actif === false ? Object.assign({}, w, { nom: w.nom + ' (inactif)' }) : w; }
-  var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'rebond': ['✉️', 'adresse invalide', 'r'], 'envoi_en_cours': ['⏳', 'envoi en cours…', 'a'], 'relance_en_cours': ['⏳', 'relance en cours…', 'b'], 'archivé': ['🗄️', 'archivé', ''] };
+  var STATUTS = { 'brouillon': ['🟠', 'à valider', 'a'], 'envoyé': ['📨', 'envoyé', 'b'], 'a répondu': ['📬', 'a répondu', 'g'], 'inséré': ['✅', 'cité dans l’article', 'g'], 'rebond': ['✉️', 'adresse invalide', 'r'], 'envoi_en_cours': ['⏳', 'envoi en cours…', 'a'], 'en_file': ['⏳', 'en file d’envoi', 'a'], 'relance_en_cours': ['⏳', 'relance en cours…', 'b'], 'archivé': ['🗄️', 'archivé', ''] };
   // Relances : quand un chercheur ne répond pas, les coulisses préparent une relance (dans le même fil) à valider ici.
   // Rebond : le serveur du chercheur a refusé le mail (adresse invalide) → la fiche passe en « adresse invalide ».
   function estRebond(f) { return !!f && (f.statut === 'rebond' || !!f.rebond); }
@@ -147,6 +147,7 @@
     return t && new Date(t) > new Date(f.reponse_le) ? { type: type, le: t } : null;
   }
   function normaliserFiches(d) { (d && d.fiches || []).forEach(function (f) { var a = attenteDe(f); if (a) { f.statut_reel = f.statut; f.statut = 'envoyé'; f.attente = a; } }); return d; }
+  function heureTxt(d) { try { return new Date(d).toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }).replace(':', ' h '); } catch (e) { return ''; } }
   function stLib(f) { return f.attente ? ['📨', 'en attente de réponse', 'b'] : (STATUTS[f.statut] || ['·', f.statut, '']); }
   function envoiTxt(f) { return f.attente ? (f.attente.type === 'suite' ? 'suite envoyée ' : 'réponse traitée ') + when(f.attente.le) : 'envoyé ' + when(f.envoye_le); }
   function tagStatut(f) { var s = stLib(f); return '<span class="tag ' + s[2] + '">' + s[0] + ' ' + esc(s[1]) + '</span>'; }
@@ -1080,7 +1081,7 @@
       S.prepVu = S.prepVu || {}; var neuves = 0;
       h += '<div class="pp-h"><b>Les mails</b>' + avancement(fs) + '</div><p class="muted" style="margin:2px 0 10px">Touchez une carte pour relire, corriger et envoyer le mail. Une carte bleue est partie ; verte, le chercheur a répondu.</p><div class="dos pp-cards">' +
         fs.map(function (f) {
-          var x = f.statut === 'brouillon' ? '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>' : f.statut === 'envoyé' ? '<div class="su">' + esc(envoiTxt(f)) + '</div>' : f.statut === 'a répondu' ? '<div class="su">réponse reçue ' + esc(when(f.reponse_le)) + '</div>' : '';
+          var x = f.statut === 'brouillon' ? '<div class="su">✉️ ' + esc(f.mail_sujet) + '</div>' : f.statut === 'en_file' ? '<div class="su">⏳ part ' + (f.envoi_prevu_le ? 'vers ' + esc(heureTxt(f.envoi_prevu_le)) : 'bientôt') + '</div>' : f.statut === 'envoyé' ? '<div class="su">' + esc(envoiTxt(f)) + '</div>' : f.statut === 'a répondu' ? '<div class="su">réponse reçue ' + esc(when(f.reponse_le)) + '</div>' : '';
           var neuf = vivant && !S.prepVu[f.fiche_id]; if (neuf) neuves++;
           return '<div class="pp-c' + (neuf ? ' in' : '') + '" style="animation-delay:' + (neuf ? (neuves - 1) * 0.18 : 0).toFixed(2) + 's">' + dcard(f, x) + '</div>';
         }).join('') + '</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn small" data-act="dossier-sec" data-id="' + esc(id) + '">📮 Ouvrir le dossier chez la Secrétaire</button></div>';
@@ -2122,7 +2123,7 @@
     var fs = D().fiches.filter(function (f) { return f.redacteur === id; });
     var h = head('✍️', mine ? 'Votre bureau' : w.nom, esc(w.titre || 'Journaliste'));
     h += '<div class="pb">' + (mine ? artBox() + '<div class="row"><button class="btn" data-act="open-ag" data-ag="assistant">🧠 Préparer une interview</button><button class="btn" data-act="open-ag" data-ag="secretaire">📮 Écrire à quelqu’un</button></div>' : '');
-    ['a répondu', 'brouillon', 'envoyé', 'inséré'].forEach(function (st) {
+    ['a répondu', 'brouillon', 'en_file', 'envoyé', 'inséré'].forEach(function (st) {
       var l = fs.filter(function (f) { return f.statut === st; }); if (!l.length) return;
       h += '<h3>' + STATUTS[st][0] + ' ' + esc(STATUTS[st][1]) + ' (' + l.length + ')</h3><div class="dos">' + l.map(function (f) { return dcard(f); }).join('') + '</div>';
     });
@@ -2235,6 +2236,9 @@
     h += dejaHTML(dejaContacte(f.contact.email, f.fiche_id));
     if (relancePrete(f) && rw) h += relanceBlock(f);
     if (f.statut === 'brouillon' && rw) h += '<div class="acts"><button class="go" data-act="open-valid" data-id="' + esc(f.fiche_id) + '">📮 Relire le mail à valider</button></div>';
+    // File d'envoi (02/11/2026) : mail validé qui attend sa place (3 min entre deux premiers mails d'une même boîte, 10 par heure).
+    if (f.statut === 'en_file') h += '<div class="lead">⏳ Mail validé, en file d’envoi : il partira tout seul ' + (f.envoi_prevu_le ? 'vers ' + esc(heureTxt(f.envoi_prevu_le)) : 'dans quelques minutes') + ', même si vous fermez le lab (les envois d’une même boîte sont espacés pour ne pas être pris pour du spam).</div>' +
+      (rw ? '<div class="acts"><button data-act="file-annuler" data-id="' + esc(f.fiche_id) + '">↩️ Annuler l’envoi (retour en brouillon)</button></div>' : '');
     // la réponse et son insertion dans l'article
     if (f.reponse) {
       ccRattraper(f);
@@ -5595,9 +5599,15 @@
         var f1 = fiche(id), sujet = val('wl-v-sujet').trim(), corps = val('wl-v-corps').trim();
         if (!sujet || !corps) { toast('Objet ou message vide.', true); break; }
         var ck4 = S.clicking; confirmer('Envoyer ce mail à ' + f1.contact.nom + ' (' + f1.contact.email + ') ?').then(function (ok) { if (!ok) return; S.clicking = ck4; setTimeout(function () { S.clicking = null; }, 0);
-          work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps, pieces: pjsData('v:' + id) })).then(function () {
-            forget(id); if (S.pjs) delete S.pjs['v:' + id]; fermerDoc(); toast('📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
+          work('secretaire', 'envoie le mail', api('envoyer', { fiche_id: id, valide: '1', sujet: sujet, corps: corps, pieces: pjsData('v:' + id) })).then(function (r) {
+            forget(id); if (S.pjs) delete S.pjs['v:' + id]; fermerDoc();
+            toast(r && r.file ? '⏳ Mail en file : il partira tout seul vers ' + heureTxt(r.prevu_le) + ' (envois espacés pour ne pas être pris pour du spam).' : '📨 Mail envoyé à ' + f1.contact.nom + '.'); return refresh(true);
           });
+        });
+        break;
+      case 'file-annuler':
+        var ckF = S.clicking; confirmer('Annuler l’envoi de ce mail ?\n\nIl revient en brouillon, prêt à être revu et renvoyé.').then(function (ok) { if (!ok) return; S.clicking = ckF;
+          citApi({ action: 'envoi_annuler', fiche_id: id }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'annulation impossible'), true); return refresh(true); } toast('↩️ Envoi annulé : le mail est revenu en brouillon.'); return refresh(true); });
         });
         break;
       case 'archive':
