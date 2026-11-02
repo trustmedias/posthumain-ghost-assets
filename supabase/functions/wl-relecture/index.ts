@@ -23,6 +23,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 import { parEmail, type Membre } from "./equipe.ts";
 import { contexteKb } from "./kb.ts";
+import { blocsPayants, extraitGuide, marquerCoupure, messageConversion, normaliserCoupure, OUTIL_CONVERSION, poserCoupure, raisonRefus, systemeConversion } from "./premium.ts";
 import { appliquer, blocPourIA, type Bloc, court, dimensionsImage, extraireBlocs, normaliserCorrections, remplacerImage } from "./blocs.ts";
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
@@ -215,16 +216,183 @@ async function soumettre(id: number, tour: number, params: unknown): Promise<str
   if (!r.ok || !j.id) throw new Error("envoi au Correcteur refusé (" + r.status + ") : " + court(j?.error?.message, 200));
   return String(j.id);
 }
+// 27/10/2026 — RELAIS DIRECT (n8n). Le traitement par lot n'a aucun délai garanti (relectures restées plus de 4 h dans la file le 26/10)
+// et Supabase coupe toute tâche de fond à 150 s (mesuré le 27/10) : un appel direct long ne peut donc pas tourner ici. Les appels directs
+// (tour de relecture dont le lot traîne, refonte de graphique) sont confiés au workflow n8n « Posthumain — Writinglab Correcteur (relais
+// direct) », qui appelle Anthropic (jusqu'à 15 min) puis renvoie le résultat à cette fonction (action direct_resultat, même secret que le tic).
+const ATTENTE_LOT_MS = 20 * 60e3;   // 🎛️ attente maximale d'un lot avant de passer en direct
+const DIRECT_MAX_MS = 20 * 60e3;    // 🎛️ au-delà, un appel direct sans retour est déclaré interrompu
+const RELAIS = "https://trustmedias.app.n8n.cloud/webhook/wl-correcteur-5682680b3cc91aca96d9eccf";
+async function relais(ref: Record<string, unknown>, params: unknown, betas = "web-fetch-2025-09-10") {
+  const secret = await reglage("relecture_cron_secret");
+  const r = await fetch(RELAIS, { method: "POST", signal: AbortSignal.timeout(20000), headers: { "content-type": "application/json" },
+    body: JSON.stringify({ ref, params, betas, secret, retour: env("SUPABASE_URL").replace(/\/+$/g, "") + "/functions/v1/wl-relecture" }) });
+  if (!r.ok) throw new Error("relais n8n injoignable (" + r.status + ")");
+}
+// Retour du relais : même traitement qu'un lot terminé (relecture) ou qu'une refonte terminée (graphique).
+// deno-lint-ignore no-explicit-any
+async function recevoirDirect(b: any) {
+  // deno-lint-ignore no-explicit-any
+  const ref: any = b.ref || {}, msg: any = b.message || {};
+  const ok = Number(b.statut) >= 200 && Number(b.statut) < 300 && Array.isArray(msg.content);
+  const why = "Correcteur (direct) : " + (b.erreur ? court(b.erreur, 200) : "refusé (" + b.statut + ") " + court(msg?.error?.message || "", 200));
+  const id = Number(ref.id);
+  if (ref.genre === "graphique") {
+    const k = Number(ref.k);
+    const { data } = await db.from("wl_relectures").select("id,titre,statut,resultat,graphes,lance_par,meta").eq("id", id).limit(1);
+    const row = data && data[0];
+    // deno-lint-ignore no-explicit-any
+    const g = row && (row.graphes || []).find((x: any) => x.k === k);
+    if (!g || g.statut !== "en_cours") return { ok: true, ignore: true };
+    if (!ok) { await majGraphe(id, k, { statut: "erreur", erreur: why }); return { ok: true, r: "erreur" }; }
+    try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture_graphique", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: Math.round(coutDe(u) * 2 * 1e4) / 1e4 }); } catch (_) { /* facultatif */ }
+    const tour = Number(ref.tour) || 0, nom = String(ref.nom || g.nom || "");
+    if (msg.stop_reason === "pause_turn" && tour < 3) {
+      // tour interrompu (exécution de code longue) : on reprend dans le même conteneur
+      const contenus = (Array.isArray(ref.contenus) ? ref.contenus : []).concat([msg.content]);
+      const p = await paramsGraphique(row, (row.resultat?.graphiques || [])[k], k, nom);
+      p.messages = p.messages.concat(contenus.map((c: unknown) => ({ role: "assistant", content: c })));
+      if (msg.container?.id) p.container = { id: msg.container.id, skills: p.container.skills };
+      await relais({ ...ref, tour: tour + 1, contenus }, p, BETAS_GRAPHIQUE);
+      await majGraphe(id, k, { lance: new Date().toISOString() });
+      return { ok: true, r: "relancé" };
+    }
+    return { ok: true, r: await recevoirGraphique(row, k, nom, msg) };
+  }
+  const { data } = await db.from("wl_relectures").select("*").eq("id", id).limit(1);
+  const row = data && data[0];
+  if (!row || row.statut !== "en_cours" || row.batch_id !== ref.bid) return { ok: true, ignore: true };   // écartée ou déjà relancée entre-temps
+  if (!ok) { await db.from("wl_relectures").update({ statut: "erreur", erreur: why, updated_at: new Date().toISOString() }).eq("id", id); return { ok: true, r: "erreur" }; }
+  return { ok: true, r: await terminer(row, msg) };
+}
 async function texteSkill() {
   const [skill, guide, lundi] = await Promise.all([reglage("relecture_skill"), reglage("relecture_guide"), reglage("relecture_lundi")]);
   if (!skill || !guide) throw new Error("le texte du skill de relecture n’est pas encore enregistré (réglages relecture_skill / relecture_guide)");
   return { skill, guide, lundi };
 }
 
+// ---------- Conversion en actu premium (02/11/2026, demande de Jonathan ; premium.ts) ----------
+// Même chaîne que la relecture (lot à moitié prix, relais direct passé ATTENTE_LOT_MS, validation du rédacteur en chef), autre mission :
+// la section finale enrichie avec les sources déjà citées (2 recherches web au plus), la coupure et la phrase d'amorce. Opus 5.5,
+// effort moyen (règle de Jonathan du 24/10 pour tout ce qui demande de bien comprendre un long article).
+// deno-lint-ignore no-explicit-any
+const estConv = (row: any) => row?.meta?.mode === "actu_premium";
+async function paramsConversion(titre: string, messages: unknown[]) {
+  const guide = await reglage("relecture_guide");
+  const kb = (await contexteKb(db, "redaction", titre).catch(() => ({ texte: "" }))).texte;
+  return { model: MODELE, max_tokens: 24000, thinking: { type: "adaptive" }, output_config: { effort: "medium" },
+    system: [{ type: "text", text: systemeConversion(extraitGuide(guide), kb), cache_control: { type: "ephemeral" } }],
+    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }, { type: "web_fetch_20250910", name: "web_fetch", max_uses: 6, max_content_tokens: 6000 }, OUTIL_CONVERSION],
+    tool_choice: { type: "auto" }, messages };
+}
+// Paramètres d'un tour (premier, suivant, ou relais direct) selon la mission de la ligne.
+// deno-lint-ignore no-explicit-any
+async function paramsPour(row: any, messages: unknown[]) {
+  if (estConv(row)) return await paramsConversion(String(row.titre || ""), messages);
+  const s = await texteSkill();
+  const kb = (await contexteKb(db, "redaction", String(row.titre || "")).catch(() => ({ texte: "" }))).texte;
+  return await paramsRequete(systeme(s.skill, s.guide, s.lundi, kb), messages);
+}
+// deno-lint-ignore no-explicit-any
+async function messagesDepart(row: any) {
+  const m = row.meta || {};
+  if (estConv(row)) return [{ role: "user", content: messageConversion({ title: m.titre, custom_excerpt: m.extrait, tags: m.tags || [], status: m.statut }, row.blocs) }];
+  return [{ role: "user", content: await messageInitial({ ...m, title: m.titre, custom_excerpt: m.extrait, visibility: m.visibilite, tags: [], created_at: row.created_at }, row.blocs) }];
+}
+async function lancerConversion(postId: string, qui: string, essai = false) {
+  const { data: lignes } = await db.from("wl_relectures").select("id,statut,meta").eq("post_id", postId).in("statut", ["en_cours", "prete"]).order("created_at", { ascending: false }).limit(10);
+  const enCours = (lignes || []).filter((r: { meta?: { mode?: string } }) => r.meta?.mode === "actu_premium");
+  if (enCours[0]) return { ok: true, id: enCours[0].id, deja: enCours[0].statut };
+  const p = await lirePost(postId);
+  const refus = raisonRefus(p);
+  if (refus) throw new Error(refus);
+  const blocs = extraireBlocs(p.lexical);
+  if (blocs.filter((b) => b.t !== "protege").length < 6) throw new Error("article trop court pour une actu premium");
+  const meta = { mode: "actu_premium", titre: p.title || "", extrait: p.custom_excerpt || "", visibilite: p.visibility, statut: p.status,
+    tags: (p.tags || []).map((t: { id: string; name: string; slug: string }) => ({ id: t.id, name: t.name, slug: t.slug })), image: p.feature_image || "",
+    editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id, apercu: p.uuid ? SITE + "/p/" + p.uuid + "/" : "", ...(essai ? { essai: true } : {}) };
+  const { data: row, error } = await db.from("wl_relectures").insert({ post_id: p.id, titre: p.title || "", statut: "en_cours", auto: false, lance_par: qui, post_maj: p.updated_at, blocs, meta }).select("id").limit(1);
+  if (error || !row || !row[0]) throw new Error("enregistrement impossible : " + (error && error.message));
+  const id = Number(row[0].id);
+  try {
+    const batch = await soumettre(id, 0, await paramsConversion(p.title || "", [{ role: "user", content: messageConversion(p, blocs) }]));
+    await db.from("wl_relectures").update({ batch_id: batch, updated_at: new Date().toISOString() }).eq("id", id);
+  } catch (e) {
+    await db.from("wl_relectures").update({ statut: "erreur", erreur: court((e as Error).message, 400), updated_at: new Date().toISOString() }).eq("id", id);
+    throw e;
+  }
+  return { ok: true, id };
+}
+// deno-lint-ignore no-explicit-any
+async function terminerConversion(row: any, o: any, contenu: any[], msg: any, cout: number, now: string) {
+  const blocs: Bloc[] = row.blocs || [];
+  const n = normaliserCorrections(o, blocs);
+  for (const x of [...n.corrections, ...n.insertions]) if (!x.categories.length) x.categories = ["premium"];   // rangées sous « 💎 Premium » dans l'écran de validation
+  const c = normaliserCoupure(o.coupure, blocs);
+  const echec = async (why: string) => { await db.from("wl_relectures").update({ statut: "erreur", erreur: "Conversion : " + why + " (relancez-la)", cout_eur: cout, suite: null, updated_at: now }).eq("id", row.id); return "erreur"; };
+  if ("erreur" in c) return await echec(c.erreur);
+  if (blocsPayants(blocs, c.apres, n.insertions) < 2) return await echec("la partie payante serait vide ou presque");
+  const cor = n.corrections.find((x: { bloc: number }) => x.bloc === c.apres);
+  const resultat = { mode: "actu_premium", resume: court(o.resume, 800), corrections: n.corrections, insertions: n.insertions, rejets: n.rejets,
+    coupure: { ...c, tension: cor ? (cor.md || "") : ((blocs.find((b) => b.i === c.apres) || {}).md || "") },
+    // deno-lint-ignore no-explicit-any
+    a_verifier: (Array.isArray(o.a_verifier) ? o.a_verifier : []).map((x: any) => court(x, 600)).filter(Boolean).slice(0, 10),
+    stats: { tours: row.tours + 1, recherches: Number(msg.usage?.server_tool_use?.web_search_requests || 0), pages: contenu.filter((x) => x.type === "server_tool_use" && x.name === "web_fetch").length } };
+  await db.from("wl_relectures").update({ statut: "prete", resultat, cout_eur: cout, suite: null, erreur: null, updated_at: now }).eq("id", row.id);
+  if (!row.meta?.essai) await pushChefs("💎 Actu premium prête", "« " + court(row.titre, 90) + " » : section finale enrichie et coupure à valider.");
+  return "prête";
+}
+// Radar (Airtable) : la ligne de l'article passe ActuPremium, pour que le batch du soir et les règles de push le traitent en actu premium.
+async function airtableActuPremium(postId: string, ancre: string): Promise<string> {
+  const key = env("AIRTABLE_TOKEN") || env("POSTHUMAIN_AIRTABLE_TOKEN") || env("AIRTABLE_API_KEY") || env("AIRTABLE_PAT");
+  if (!key) return "clé Airtable absente";
+  const base = env("AIRTABLE_BASE") || "appPc2y4ts9tVZCjQ";
+  try {
+    const r = await fetch(`https://api.airtable.com/v0/${base}/Radar?maxRecords=1&filterByFormula=${encodeURIComponent(`{GhostPostId}='${postId.replace(/[^a-f0-9]/g, "")}'`)}`, { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(15000) });
+    const j = await r.json().catch(() => ({}));
+    const rec = (j.records || [])[0];
+    if (!rec) return "ligne du Radar introuvable";
+    const u = await fetch(`https://api.airtable.com/v0/${base}/Radar/${rec.id}`, { method: "PATCH", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields: { ActuPremium: true, PaywallAnchor: ancre } }), signal: AbortSignal.timeout(15000) });
+    return u.ok ? "ok" : "Airtable " + u.status;
+  } catch (e) { return court((e as Error).message, 120); }
+}
+// deno-lint-ignore no-explicit-any
+async function validerConversion(row: any, b: any, me: Membre) {
+  const R = row.resultat || {};
+  if (!R.coupure) throw new Error("conversion sans coupure");
+  const tout = b.tout === true;
+  const cIdx: number[] = tout ? (R.corrections || []).map((_: unknown, k: number) => k) : (Array.isArray(b.corrections) ? b.corrections : []).map(Number).filter((k: number) => R.corrections && R.corrections[k]);
+  const iIdx: number[] = tout ? (R.insertions || []).map((_: unknown, k: number) => k) : (Array.isArray(b.insertions) ? b.insertions : []).map(Number).filter((k: number) => R.insertions && R.insertions[k]);
+  const corrections = cIdx.map((k) => R.corrections[k]), insertions = iIdx.map((k) => R.insertions[k]);
+  for (let essai = 0; essai < 2; essai++) {
+    const p = await lirePost(row.post_id);
+    const refus = raisonRefus(p);
+    if (refus) throw new Error(refus);
+    const lex = JSON.parse(p.lexical);
+    marquerCoupure(lex, row.blocs || [], R.coupure.apres);
+    const a = appliquer(lex, row.blocs || [], corrections, insertions);
+    poserCoupure(a.lexical, String(R.coupure.amorce || ""));
+    // deno-lint-ignore no-explicit-any
+    const tags: any[] = (p.tags || []).map((t: { id: string }) => ({ id: t.id }));
+    tags.push({ name: "actu-premium", slug: "actu-premium" });
+    try {
+      await ghost(`posts/${p.id}/`, "PUT", { posts: [{ lexical: JSON.stringify(a.lexical), visibility: "paid", tags, updated_at: p.updated_at }] });
+    } catch (e) { if ((e as { statut?: number }).statut === 409 && essai === 0) continue; throw e; }
+    const airtable = await airtableActuPremium(p.id, "Converti depuis le Writinglab le " + new Date().toISOString().slice(0, 10) + " : coupure dans la section finale, après « " + court(String(R.coupure.tension || "").replace(/\*+/g, ""), 160) + " » ; amorce : « " + court(R.coupure.amorce, 200) + " »");
+    const appliquees = { corrections: a.appliquees.map((k) => cIdx[k]), insertions: a.inserees.map((k) => iIdx[k]),
+      conflits: a.conflits.map((c) => ({ ...c, ref: (c.ref[0] === "c" ? "c" + cIdx[Number(c.ref.slice(1))] : "i" + iIdx[Number(c.ref.slice(1))]) })), premium: true, airtable };
+    await db.from("wl_relectures").update({ statut: "validee", appliquees, validee_le: new Date().toISOString(), validee_par: me.id, updated_at: new Date().toISOString() }).eq("id", row.id);
+    return { ok: true, id: row.id, appliquees };
+  }
+  throw new Error("Ghost a refusé l’enregistrement (article modifié au même moment) : réessayez");
+}
+
 // ---------- Lancer une relecture ----------
 async function lancer(postId: string, qui: string, auto = false, essai = false) {
-  const { data: enCours } = await db.from("wl_relectures").select("id,statut").eq("post_id", postId).in("statut", ["en_cours", "prete"]).order("created_at", { ascending: false }).limit(1);
-  if (enCours && enCours[0]) return { ok: true, id: enCours[0].id, deja: enCours[0].statut };
+  // deno-lint-ignore no-explicit-any
+  const { data: enCours0 } = await db.from("wl_relectures").select("id,statut,meta").eq("post_id", postId).in("statut", ["en_cours", "prete"]).order("created_at", { ascending: false }).limit(10);
+  const enCours = (enCours0 || []).filter((r: { meta?: { mode?: string } }) => r.meta?.mode !== "actu_premium");   // une conversion en actu premium n'empêche pas une relecture
+  if (enCours[0]) return { ok: true, id: enCours[0].id, deja: enCours[0].statut };
   const p = await lirePost(postId);
   // 25/10/2026 (Jonathan) : un article publié se relit sur demande (bouton) ; la relecture AUTOMATIQUE ne prend que les brouillons du jour.
   if (p.status === "published" && auto) throw new Error("article déjà publié : la relecture automatique ne prend que les brouillons");
@@ -250,27 +418,35 @@ async function lancer(postId: string, qui: string, auto = false, essai = false) 
 
 // ---------- Suivi des lots (tic) ----------
 // deno-lint-ignore no-explicit-any
-function coutDe(u: any) {
+function coutDe(u: any, direct = false) {
   if (!u) return 0;
+  if (direct) return Math.round(coutDe(u) * 2 * 1e4) / 1e4; // appel direct : plein tarif (le lot est à moitié prix)
   const usd = (Number(u.input_tokens || 0) * TARIF_LOT.in + Number(u.output_tokens || 0) * TARIF_LOT.out + Number(u.cache_creation_input_tokens || 0) * TARIF_LOT.cw + Number(u.cache_read_input_tokens || 0) * TARIF_LOT.cr) / 1e6 + Number(u.server_tool_use?.web_search_requests || 0) * TARIF_LOT.web;
   return Math.round(usd * 0.92 * 1e4) / 1e4;
 }
 // deno-lint-ignore no-explicit-any
 async function terminer(row: any, msg: any) {
   const now = new Date().toISOString();
-  const cout = Math.round(((Number(row.cout_eur) || 0) + coutDe(msg.usage)) * 1e4) / 1e4;
-  try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0) + Number(u.cache_creation_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: coutDe(u) }); } catch (_) { /* facultatif */ }
+  const dir = !!row.meta?.direct;
+  const cout = Math.round(((Number(row.cout_eur) || 0) + coutDe(msg.usage, dir)) * 1e4) / 1e4;
+  try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: estConv(row) ? "actu_premium" : "relecture", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0) + Number(u.cache_creation_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: coutDe(u, dir) }); } catch (_) { /* facultatif */ }
   // deno-lint-ignore no-explicit-any
   const contenu: any[] = Array.isArray(msg.content) ? msg.content : [];
-  const outil = contenu.find((c) => c.type === "tool_use" && c.name === "rendre_relecture");
+  const nomOutil = estConv(row) ? "rendre_conversion" : "rendre_relecture";
+  const outil = contenu.find((c) => c.type === "tool_use" && c.name === nomOutil);
   const suite = row.suite && Array.isArray(row.suite.messages) ? row.suite.messages : null;
   // tour interrompu (boucle d'outils serveur) ou réponse sans l'outil de rendu : on relance, 6 tours au plus
   if (!outil && (msg.stop_reason === "pause_turn" || msg.stop_reason === "end_turn") && row.tours < 6) {
-    const s = await texteSkill();
-    const kb = (await contexteKb(db, "redaction", String(row.titre || "")).catch(() => ({ texte: "" }))).texte;
-    const base = suite || [{ role: "user", content: await messageInitial({ ...row.meta, title: row.meta?.titre, custom_excerpt: row.meta?.extrait, visibility: row.meta?.visibilite, tags: [], created_at: row.created_at }, row.blocs) }];
-    const messages = base.concat([{ role: "assistant", content: contenu }]).concat(msg.stop_reason === "end_turn" ? [{ role: "user", content: "Rends maintenant le résultat complet avec l’outil « rendre_relecture » (un seul appel)." }] : []);
-    const batch = await soumettre(row.id, row.tours + 1, await paramsRequete(systeme(s.skill, s.guide, s.lundi, kb), messages));
+    const base = suite || await messagesDepart(row);
+    const messages = base.concat([{ role: "assistant", content: contenu }]).concat(msg.stop_reason === "end_turn" ? [{ role: "user", content: "Rends maintenant le résultat complet avec l’outil « " + nomOutil + " » (un seul appel)." }] : []);
+    const params = await paramsPour(row, messages);
+    if (dir) {   // une fois passée en direct, la relecture y reste jusqu'au bout
+      const bid = "direct:" + Date.now();
+      await relais({ genre: "relecture", id: row.id, bid }, params);
+      await db.from("wl_relectures").update({ batch_id: bid, tours: row.tours + 1, suite: { messages }, cout_eur: cout, updated_at: now }).eq("id", row.id);
+      return "relancé (direct)";
+    }
+    const batch = await soumettre(row.id, row.tours + 1, params);
     await db.from("wl_relectures").update({ batch_id: batch, tours: row.tours + 1, suite: { messages }, cout_eur: cout, updated_at: now }).eq("id", row.id);
     return "relancé";
   }
@@ -278,6 +454,7 @@ async function terminer(row: any, msg: any) {
     await db.from("wl_relectures").update({ statut: "erreur", erreur: msg.stop_reason === "max_tokens" ? "réponse trop longue (max_tokens) : relancez la relecture" : "le Correcteur n’a pas rendu de résultat (" + msg.stop_reason + ")", cout_eur: cout, suite: null, updated_at: now }).eq("id", row.id);
     return "erreur";
   }
+  if (estConv(row)) return await terminerConversion(row, outil.input || {}, contenu, msg, cout, now);
   // deno-lint-ignore no-explicit-any
   const o: any = outil.input || {}, m = row.meta || {};
   const n = normaliserCorrections(o, row.blocs || []);
@@ -311,9 +488,26 @@ async function suivreLots() {
   for (const row of data || []) {
     try {
       if (!row.batch_id) { if (Date.now() - Date.parse(row.created_at) > 10 * 60e3) await db.from("wl_relectures").update({ statut: "erreur", erreur: "envoi au Correcteur interrompu" }).eq("id", row.id); continue; }
+      const depuis = Date.now() - Date.parse(row.updated_at || row.created_at);   // updated_at = heure du dernier envoi (lot ou relais)
+      if (String(row.batch_id).startsWith("direct:")) {
+        if (depuis > DIRECT_MAX_MS) await db.from("wl_relectures").update({ statut: "erreur", erreur: "relecture directe sans réponse depuis 20 min : relancez-la", updated_at: new Date().toISOString() }).eq("id", row.id).eq("batch_id", row.batch_id);
+        else res.push(row.id + " : direct depuis " + Math.round(depuis / 60e3) + " min");
+        continue;
+      }
       const r = await anthropic("messages/batches/" + row.batch_id); const b = await r.json().catch(() => ({}));
       if (!r.ok) { res.push(row.id + " : lot illisible " + r.status); continue; }
-      if (b.processing_status !== "ended") { if (Date.now() - Date.parse(row.created_at) > 30 * 3600e3) await db.from("wl_relectures").update({ statut: "erreur", erreur: "relecture expirée (plus de 24 h de traitement)" }).eq("id", row.id); continue; }
+      if (b.processing_status !== "ended") {
+        // Lot trop lent (aucun délai garanti par Anthropic) : passé ATTENTE_LOT_MS, ce tour et les suivants partent en direct par le relais.
+        if (depuis > ATTENTE_LOT_MS) {
+          const messages = row.suite && Array.isArray(row.suite.messages) ? row.suite.messages : await messagesDepart(row);
+          const bid = "direct:" + Date.now();
+          await relais({ genre: "relecture", id: row.id, bid }, await paramsPour(row, messages));
+          await db.from("wl_relectures").update({ batch_id: bid, meta: { ...(row.meta || {}), direct: true, lot_abandonne: row.batch_id }, updated_at: new Date().toISOString() }).eq("id", row.id);
+          anthropic("messages/batches/" + row.batch_id + "/cancel", { method: "POST" }).catch(() => null);
+          res.push(row.id + " : lot en file depuis " + Math.round(depuis / 60e3) + " min, passé en direct");
+        } else res.push(row.id + " : lot " + b.processing_status + " depuis " + Math.round(depuis / 60e3) + " min");
+        continue;
+      }
       const rr = await anthropic("messages/batches/" + row.batch_id + "/results");
       const lignes = (await rr.text()).split("\n").filter((x) => x.trim());
       // deno-lint-ignore no-explicit-any
@@ -339,7 +533,8 @@ async function relectureAuto() {
   // deno-lint-ignore no-explicit-any
   const posts = (r.posts || []).filter((p: any) => !p.email_only && !(p.tags || []).some((t: any) => ["videos", "hash-version-longue"].includes(String(t.slug))));
   if (!posts.length) return "aucun brouillon du jour";
-  const { data: deja } = await db.from("wl_relectures").select("post_id").gte("created_at", minuit).in("post_id", posts.map((p: { id: string }) => p.id));
+  const { data: deja0 } = await db.from("wl_relectures").select("post_id,meta").gte("created_at", minuit).in("post_id", posts.map((p: { id: string }) => p.id));
+  const deja = (deja0 || []).filter((r: { meta?: { mode?: string } }) => r.meta?.mode !== "actu_premium");
   const faits = new Set((deja || []).map((x: { post_id: string }) => x.post_id));
   const lances: string[] = [];
   for (const p of posts) { if (faits.has(p.id)) continue; try { await lancer(p.id, "auto", true); lances.push(court(p.title, 60)); } catch (e) { lances.push(court(p.title, 40) + " : " + court((e as Error).message, 120)); } }
@@ -377,6 +572,17 @@ async function lancerGraphique(id: number, k: number) {
   const deja = (row.graphes || []).find((x: { k: number; statut: string }) => x.k === k);
   if (deja && ["en_cours", "pret"].includes(deja.statut)) return { ok: true, deja: deja.statut };
   const nom = "chart-" + slugDe(row.titre) + "-" + (k + 1) + "-corrige.jpg";
+  const params = await paramsGraphique(row, g, k, nom);
+  // Appel DIRECT (24/10/2026) : en traitement par lot, un graphique a attendu 6 heures. Depuis le 27/10 il passe par le relais n8n
+  // (une tâche de fond Supabase est coupée à 150 s) ; le tic la déclare en erreur si elle n'a pas abouti au bout de 20 minutes.
+  await majGraphe(id, k, { statut: "en_cours", batch_id: null, nom, src_avant: g.src, legende: g.refaire.legende || "", alt: g.refaire.titre || "", erreur: null, lance: new Date().toISOString() });
+  try { await relais({ genre: "graphique", id, k, nom, tour: 0 }, params, BETAS_GRAPHIQUE); }
+  catch (e) { await majGraphe(id, k, { statut: "erreur", erreur: court((e as Error).message, 200) }); }
+  return { ok: true };
+}
+// Requête de refonte d'un graphique (reconstruite à l'identique pour chaque tour repris par le relais).
+// deno-lint-ignore no-explicit-any
+async function paramsGraphique(row: any, g: any, k: number, nom: string): Promise<any> {
   const img = await imageB64(g.src);
   // deno-lint-ignore no-explicit-any
   const contenu: any[] = [{ type: "text", text: [
@@ -389,32 +595,7 @@ async function lancerGraphique(id: number, k: number) {
   if (img) contenu.push({ type: "image", source: { type: "base64", ...img } });
   const params = { model: MODELE, max_tokens: 16000, thinking: { type: "adaptive" }, output_config: { effort: "medium" }, container: { skills: [{ type: "custom", skill_id: SKILL_GRAPHIQUES, version: "latest" }] },
     tools: [{ type: "code_execution_20250825", name: "code_execution" }], messages: [{ role: "user", content: contenu }] };
-  // Appel DIRECT (24/10/2026) : en traitement par lot, un graphique a attendu 6 heures. La refonte tourne en tâche de fond de la
-  // fonction (quelques minutes) ; le tic la déclare en erreur si elle n'a pas abouti au bout de 15 minutes.
-  await majGraphe(id, k, { statut: "en_cours", batch_id: null, nom, src_avant: g.src, legende: g.refaire.legende || "", alt: g.refaire.titre || "", erreur: null, lance: new Date().toISOString() });
-  const tache = refaireDirect(row, k, nom, params).catch(async (e) => { await majGraphe(id, k, { statut: "erreur", erreur: court((e as Error).message, 200) }); });
-  // deno-lint-ignore no-explicit-any
-  const er = (globalThis as any).EdgeRuntime;
-  if (er && typeof er.waitUntil === "function") er.waitUntil(tache); else await tache;
-  return { ok: true };
-}
-// deno-lint-ignore no-explicit-any
-async function refaireDirect(row: any, k: number, nom: string, params: any) {
-  // deno-lint-ignore no-explicit-any
-  let messages: any[] = params.messages, msg: any = null, container: any = params.container;
-  for (let tour = 0; tour < 4; tour++) {
-    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(330000),
-      headers: { "x-api-key": env("ANTHROPIC_API_KEY"), "anthropic-version": "2023-06-01", "anthropic-beta": BETAS_GRAPHIQUE, "content-type": "application/json" },
-      body: JSON.stringify({ ...params, container, messages }) });
-    msg = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error("refonte refusée (" + r.status + ") : " + court(msg?.error?.message, 200));
-    try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture_graphique", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: Math.round(coutDe(u) * 2 * 1e4) / 1e4 }); } catch (_) { /* facultatif */ }
-    if (msg.stop_reason !== "pause_turn") break;
-    // tour interrompu (exécution de code longue) : on reprend dans le même conteneur
-    messages = messages.concat([{ role: "assistant", content: msg.content }]);
-    if (msg.container?.id) container = { id: msg.container.id, skills: params.container.skills };
-  }
-  await recevoirGraphique(row, k, nom, msg);
+  return params;
 }
 // deno-lint-ignore no-explicit-any
 async function recevoirGraphique(row: any, k: number, nom: string, msg: any) {
@@ -450,7 +631,7 @@ async function suivreGraphiques() {
   for (const row of data || []) for (const g of (row.graphes || []).filter((x: { statut: string }) => x.statut === "en_cours")) {
     try {
       if (!g.batch_id) {
-        if (Date.now() - Date.parse(g.lance || g.maj) > 15 * 60e3) { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte interrompue : relancez-la" }); res.push("g" + row.id + "." + g.k + " : interrompue"); }
+        if (Date.now() - Date.parse(g.lance || g.maj) > DIRECT_MAX_MS) { await majGraphe(row.id, g.k, { statut: "erreur", erreur: "refonte interrompue : relancez-la" }); res.push("g" + row.id + "." + g.k + " : interrompue"); }
         continue;
       }
       const r = await anthropic("messages/batches/" + g.batch_id, {}, BETAS_GRAPHIQUE); const b = await r.json().catch(() => ({}));
@@ -480,6 +661,7 @@ async function valider(b: any, me: Membre) {
   const row = data && data[0];
   if (!row) throw new Error("relecture introuvable");
   if (row.statut !== "prete") throw new Error(row.statut === "validee" ? "déjà validée" : "cette relecture n’est pas prête (" + row.statut + ")");
+  if (estConv(row)) return await validerConversion(row, b, me);
   const R = row.resultat || {};
   const tout = b.tout === true;
   const cIdx: number[] = tout ? (R.corrections || []).map((_: unknown, k: number) => k) : (Array.isArray(b.corrections) ? b.corrections : []).map(Number).filter((k: number) => R.corrections && R.corrections[k]);
@@ -518,7 +700,7 @@ async function valider(b: any, me: Membre) {
 // deno-lint-ignore no-explicit-any
 function resumeLigne(r: any) {
   const R = r.resultat || {};
-  return { id: r.id, post_id: r.post_id, titre: r.titre, statut: r.statut, auto: r.auto, erreur: r.erreur, cree: r.created_at, maj: r.updated_at, validee_le: r.validee_le, cout_eur: r.cout_eur,
+  return { id: r.id, post_id: r.post_id, titre: r.titre, mode: r.meta?.mode || "relecture", statut: r.statut, auto: r.auto, erreur: r.erreur, cree: r.created_at, maj: r.updated_at, validee_le: r.validee_le, cout_eur: r.cout_eur,
     image: r.meta?.image || "", editeur: r.meta?.editeur || "", apercu: r.meta?.apercu || "", visibilite: r.meta?.visibilite || "",
     nb: (R.corrections || []).length + (R.insertions || []).length + (R.titre ? 1 : 0) + (R.extrait ? 1 : 0) + (R.meta_title ? 1 : 0) + (R.meta_description ? 1 : 0),
     graphiques_a_refaire: (R.graphiques || []).filter((g: { a_refaire: boolean }) => g.a_refaire).length, resume: R.resume || "", appliquees: r.appliquees || null,
@@ -534,12 +716,14 @@ Deno.serve(async (req) => {
   let b: any; try { b = await req.json(); } catch { return out({ ok: false, why: "bad_json" }, 400); }
   try {
     // pg_cron : suivi des lots + relecture automatique ; diagnostics (secret du réglage relecture_cron_secret)
-    if (["tic", "diag_blocs", "diag_outils", "essai"].includes(b.action)) {
+    if (["tic", "diag_blocs", "diag_outils", "essai", "essai_conversion", "direct_resultat"].includes(b.action)) {
       const s = await reglage("relecture_cron_secret");
       if (!s || String(b.secret || "") !== s) return out({ ok: false, why: "unauthorized" }, 401);
+      if (b.action === "direct_resultat") return out(await recevoirDirect(b));
       if (b.action === "tic") { const lots = (await suivreLots()).concat(await suivreGraphiques()); let auto = ""; try { auto = await relectureAuto(); } catch (e) { auto = "erreur : " + court((e as Error).message, 200); } return out({ ok: true, lots, auto }); }
       // essai de bout en bout sur un article (même publié) : lecture seule, sans notification ; « valider » refuse un article publié
       if (b.action === "essai") return out(await lancer(String(b.post_id || ""), "essai", false, true));
+      if (b.action === "essai_conversion") return out(await lancerConversion(String(b.post_id || ""), "essai", true));
       if (b.action === "diag_blocs") { const p = await lirePost(String(b.post_id || "")); const bl = extraireBlocs(p.lexical); return out({ ok: true, titre: p.title, visibilite: p.visibility, n: bl.length, types: bl.map((x) => x.t + (x.genre ? ":" + x.genre : "")), texte: bl.map(blocPourIA).join("\n").slice(0, 20000), noeuds: JSON.parse(p.lexical).root.children.map((n: { type: string }) => n.type) }); }
       // vérifie que le modèle et les outils serveur sont acceptés (petite requête, Haiku)
       const r = await anthropic("messages", { method: "POST", body: JSON.stringify({ model: "claude-haiku-5-5", max_tokens: 50, tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }, { type: "web_fetch_20250910", name: "web_fetch", max_uses: 1, max_content_tokens: 1000 }, OUTIL], messages: [{ role: "user", content: "Réponds seulement OK, sans outil." }] }) });
@@ -573,6 +757,7 @@ Deno.serve(async (req) => {
       return out({ ok: true, relecture: data[0] });
     }
     if (b.action === "lancer") return out(await lancer(String(b.post_id || ""), me.id));
+    if (b.action === "convertir") return out(await lancerConversion(String(b.post_id || ""), me.id));
     if (b.action === "valider") return out(await valider(b, me));
     if (b.action === "refaire_graphique") return out(await lancerGraphique(Number(b.id), Number(b.k)));
     // graphique refait poussé seul (la relecture a déjà été validée, ou l'on ne veut que lui)

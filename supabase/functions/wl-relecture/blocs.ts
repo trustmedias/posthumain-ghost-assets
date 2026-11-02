@@ -5,7 +5,7 @@
 // sont modifiables. Tout le reste (encarts d'abonnement kg-gated-block, cartes d'amorce premium data-ph-teaser-*, encart vidéo, images et
 // graphiques, coupure paywall, cartes HTML diverses) est un bloc PROTÉGÉ : il n'est jamais réécrit, son nœud Lexical repart tel quel
 // (visibilité web/email comprise). On n'envoie jamais de HTML à Ghost : uniquement le Lexical, modifié bloc par bloc.
-// Mise en forme dans le texte : **gras**, *italique*, [texte](https://lien), \[ \] pour des crochets littéraux, retour à la ligne = saut.
+// Mise en forme dans le texte : **gras**, *italique*, [texte](https://lien), \\[ \\] pour des crochets littéraux, retour à la ligne = saut.
 // deno-lint-ignore-file no-explicit-any
 type Any = any;
 

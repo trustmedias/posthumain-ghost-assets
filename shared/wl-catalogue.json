@@ -102,7 +102,7 @@
       "contexte": ["relectures"],
       "mail": null,
       "plan": { "x": 500, "y": 215, "teinte": 340 },
-      "capacites": ["relire_article", "ouvrir"]
+      "capacites": ["relire_article", "convertir_actu_premium", "ouvrir"]
     }
   ],
   "capacites": [
@@ -385,6 +385,20 @@
       "mode": "clic",
       "executeur": { "type": "page", "fonction": "relecture", "resultat": "relecture lancée" },
       "carte": { "titre": "🖍️ Relecture de l'article", "bouton": "🖍️ Lancer la relecture" }
+    },
+    {
+      "id": "convertir_actu_premium",
+      "nom": "💎 Convertir en actu premium",
+      "postes": ["correcteur"],
+      "description": "ouvre le bureau du Correcteur et lance la conversion d'une actu (brouillon ou article programmé, jamais un article publié) en actu premium : l'article reste tel quel, la section finale (« La stratégie Posthumain ») est enrichie avec les sources déjà citées (2 recherches web au plus), puis le Correcteur choisit la coupure et la phrase d'amorce. Rien n'est écrit dans Ghost : la proposition arrive en 5 à 30 minutes et le rédacteur en chef la valide (réécritures, cartes d'amorce, coupure, visibilité abonnés payants, tag actu-premium). Paramètres : article_id (brouillon ou article programmé)",
+      "aide": "Transforme une actu en actu premium sans la réécrire : section finale enrichie avec les sources déjà citées, coupure et phrase d'amorce. Brouillons et articles programmés seulement ; rien ne part dans Ghost sans votre validation.",
+      "fournir": "l'actu à convertir (ouverte ou nommée), en brouillon ou programmée",
+      "exemples": ["Passe l'article sur l'édition génétique en actu premium.", "Convertis le brouillon de ce soir en actu premium."],
+      "params": {"article_id": {"type": "article", "requis": true}},
+      "droits": "chef",
+      "mode": "clic",
+      "executeur": {"type": "page", "fonction": "actuPremium", "resultat": "conversion lancée"},
+      "carte": {"titre": "💎 Conversion en actu premium", "bouton": "💎 Lancer la conversion"}
     },
     {
       "id": "ouvrir",
