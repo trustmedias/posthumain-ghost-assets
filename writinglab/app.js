@@ -1263,7 +1263,7 @@
     var img = /^image\//.test(f.type) && f.url;
     return '<a class="pj" href="' + esc(f.url || '#') + '" target="_blank" rel="noopener" data-stop="1" style="display:flex;gap:10px;align-items:center;margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,190,90,.2);text-decoration:none">' +
       (img ? '<img src="' + esc(f.url) + '" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:6px">' : '<span style="font-size:24px">📎</span>') +
-      '<span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f3ece0">' + esc(f.nom) + '</b><span class="muted">' + esc(catNom(f.categorie)) + ' · ' + taille(f.taille) + (f.url ? '' : ' · lien expiré, ↻') + '</span></span></a>';
+      '<span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f3ece0">' + esc(f.nom) + '</b><span class="muted">' + esc(catNom(f.categorie)) + (f.taille ? ' · ' + taille(f.taille) : '') + (f.url ? '' : ' · lien expiré, ↻') + '</span></span></a>';
   }
   function piecesHTML(list) {
     if (!list || !list.length) return '';
@@ -1306,8 +1306,8 @@
     if (bas) S.root.scrollTop = S.root.scrollHeight;
   }
   function viewInterphone() {
-    var ms = D().messages;
-    var fichiers = ms.filter(function (m) { return m.fichier; });
+    var fichiers = classeurFichiers();
+    if (!S.factures) chargerFactures();
     var list = chatListe();
     var a = art(S.art);
     return '<p class="muted" style="margin-top:14px">Les messages et fichiers entre la rédaction et le rédacteur en chef. Entrée pour envoyer, Maj + Entrée pour aller à la ligne. Les fichiers échangés sont rangés dans le classeur, à droite.</p>' + classeurHTML(fichiers) +
@@ -1320,10 +1320,19 @@
       '<span style="flex:1"></span><button class="btn go" data-act="send-msg">Envoyer</button></div></div>';
   }
   // Classeur : tiroir replié sur le bord droit (poignée), ouvert par-dessus le fil sans rien pousser ; plein écran sur mobile.
+  // 02/11/2026 : le classeur range aussi les factures émises (PDF du Comptable, wl-facture « liste » : chacun ne voit que les siennes,
+  // le rédacteur en chef les voit toutes). Avant, il ne montrait que les pièces jointes de l'interphone : une facture émise n'y figurait pas.
+  function classeurFichiers() {
+    var l = D().messages.filter(function (m) { return m.fichier; }).map(function (m) { return { nom: m.nom, le: m.le, fichier: m.fichier }; });
+    ((S.factures || {}).factures || []).filter(function (f) { return f.pdf_path; }).forEach(function (f) {
+      l.push({ nom: '🧮 Le Comptable', le: f.emise_le || f.created_at, fichier: { nom: 'Facture ' + moisTxt(f.mois) + (D().me.chef ? ' · ' + (f.nom || membre(f.membre).nom) : '') + ' · N° ' + f.numero + '.pdf', categorie: 'factures', type: 'application/pdf', url: f.url || '' } });
+    });
+    return l.sort(function (a, b) { return Date.parse(a.le || 0) - Date.parse(b.le || 0); });
+  }
   function classeurBody(fichiers) {
-    fichiers = fichiers || D().messages.filter(function (m) { return m.fichier; });
+    fichiers = fichiers || classeurFichiers();
     var fc = S.filtreCat || '';
-    if (!fichiers.length) return '<p class="muted">Aucun fichier pour l’instant. Les pièces jointes envoyées dans l’interphone (factures, documents, images…) se rangent ici par catégorie.</p>';
+    if (!fichiers.length) return '<p class="muted">' + (S.factures ? 'Aucun fichier pour l’instant. Les pièces jointes envoyées dans l’interphone (documents, images…) et les factures émises par le Comptable se rangent ici par catégorie.' : 'Chargement…') + '</p>';
     var l = fichiers.filter(function (m) { return !fc || m.fichier.categorie === fc; }).slice().reverse();
     return '<div class="clsr-cats"><span class="chip' + (fc ? '' : ' art') + '" data-act="filtre-cat" data-id="">Tout (' + fichiers.length + ')</span>' +
       CATS.map(function (c) { var n = fichiers.filter(function (m) { return m.fichier.categorie === c[0]; }).length; return n ? '<span class="chip' + (fc === c[0] ? ' art' : '') + '" data-act="filtre-cat" data-id="' + c[0] + '">' + c[1] + ' (' + n + ')</span>' : ''; }).join('') + '</div>' +
@@ -1333,6 +1342,13 @@
     var o = S.clsr ? ' open' : '';
     return '<button type="button" class="clsr-h' + o + '" data-act="clsr" aria-label="Ouvrir le classeur"><span class="ic">🗂️</span><span class="lb">Classeur</span>' + (fichiers.length ? '<span class="n">' + fichiers.length + '</span>' : '') + '</button>' +
       '<div class="clsr-bg' + o + '" data-act="clsr"></div><aside class="clsr' + o + '" aria-label="Classeur"><div class="clsr-top"><b>🗂️ Classeur</b><span class="x" data-act="clsr" role="button" aria-label="Fermer">✕</span></div><div class="clsr-body">' + classeurBody(fichiers) + '</div></aside>';
+  }
+  function majClasseurCompte() {
+    var h = S.root && S.root.querySelector('.clsr-h'); if (!h) return;
+    var n = classeurFichiers().length, e = h.querySelector('.n');
+    if (!n) { if (e) e.remove(); return; }
+    if (!e) { e = document.createElement('span'); e.className = 'n'; h.appendChild(e); }
+    e.textContent = n;
   }
   function majClasseur() {
     var r = S.root; if (!r) return;
@@ -5808,7 +5824,7 @@
       case 'pj-choisir': var inp = S.root.querySelector('#wl-pj'); if (inp) inp.click(); break;
       case 'pj-retirer': S.pj = null; majPj(); break;
       case 'filtre-cat': S.filtreCat = id || ''; majClasseur(); break;
-      case 'clsr': S.clsr = !S.clsr; majClasseur(); break;
+      case 'clsr': S.clsr = !S.clsr; majClasseur(); if (S.clsr) chargerFactures(); break;
     }
   }
   function onInput(e) {
@@ -5898,7 +5914,7 @@
   function factApi(body) { var a = body && body.action; return actif(a && a !== 'liste' && a !== 'zip' ? ['compta'] : [], supa(FACT, body)); }
   function chargerFactures() {
     if (S.factP) return S.factP;
-    S.factP = factApi({ action: 'liste' }).then(function (r) { S.factP = null; if (r && r.ok) { S.factures = r; if (S.panel === 'compta' || S.panel === 'parametres') paintPanel(); } }, function () { S.factP = null; });
+    S.factP = factApi({ action: 'liste' }).then(function (r) { S.factP = null; if (r && r.ok) { S.factures = r; if (S.panel === 'compta' || S.panel === 'parametres') paintPanel(); majClasseurCompte(); majClasseur(); } }, function () { S.factP = null; });
     return S.factP;
   }
   var MOISN = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
