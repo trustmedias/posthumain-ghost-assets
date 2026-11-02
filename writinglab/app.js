@@ -1809,7 +1809,7 @@
   function chargerJournal() {
     if (S.jrLd) return S.jrLd;
     S.jrLd = Promise.all([radarApi({ action: 'journal' }), radarApi({ action: 'speciaux' })]).then(function (r) {
-      S.jrLd = null; S.journal = r[0] && r[0].ok ? r[0].journal || [] : (S.journal || []); S.speciaux = r[1] && r[1].ok ? r[1].speciaux || [] : (S.speciaux || []); if (S.panel === 'marbre') paintPanel();
+      S.jrLd = null; S.journal = r[0] && r[0].ok ? r[0].journal || [] : (S.journal || []); S.speciaux = r[1] && r[1].ok ? r[1].speciaux || [] : (S.speciaux || []); if (S.panel === 'marbre') paintPanel(); else if (S.panel === 'mk') mlCartes();
     }, function () { S.jrLd = null; });
     return S.jrLd;
   }
@@ -1855,15 +1855,28 @@
   function specHTML(chef) {
     var L = S.speciaux;
     if (!L || !L.length) return '';
-    return '<div class="cz-t">📬 Envois spéciaux</div>' + L.map(function (x) {
-      var bo = x.type === 'bestof', gf = x.type === 'grandformat';
-      var st = x.annule ? '<span class="tag r">annulé · repassé en brouillon</span>' : x.valide ? '<span class="tag g">✅ validé · envoi programmé</span>' : bo ? '<span class="tag a">à valider</span>' : gf && x.programme ? '<span class="tag b">programmé ' + esc(alDate(x.programme)) + '</span>' : '';
-      return '<div class="cz-l"><div class="rd-t">' + (bo ? '📬 Best-of mensuel' : gf ? '📺 Grand Format du samedi' : '📬 Envoi spécial') + '</div><div class="cz-s">' + esc(alDate(x.at)) + ' ' + st + '</div>' +
-        '<div class="rd-a" style="white-space:pre-wrap">' + esc(x.texte || x.titre) + '</div><div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' +
-        (x.editeur ? '<a class="btn small" href="' + esc(x.editeur) + '" target="_blank" rel="noopener">✏️ Relire dans Ghost</a>' : '') +
-        (chef && bo && x.peut_valider ? '<button class="btn small go" data-act="sp-valider" data-id="' + esc(String(x.id)) + '">✅ Valider</button>' : '') +
-        (chef && gf && x.programme && !x.annule ? '<button class="btn small red" data-act="sp-annuler" data-id="' + esc(String(x.id)) + '">✖️ Annuler l’envoi</button>' : '') + '</div></div>';
-    }).join('');
+    return '<div class="cz-t">📬 Envois spéciaux</div>' + L.map(function (x) { return specCarte(x, chef); }).join('');
+  }
+  // Une carte d'envoi spécial (Marbre, et Best-of dans ✉️ Mails marketing). Best-of (02/11/2026) : état lu dans Ghost
+  // (à valider / programmé / envoyé), Relire · Valider · Annuler ; validable aussi depuis le bouton Telegram.
+  function specEtat(x) {
+    var bo = x.type === 'bestof', gf = x.type === 'grandformat';
+    if (bo && x.statut_ghost) {
+      if (x.envoye) return '<span class="tag g">📨 envoyé ' + esc(alDate(x.envoye)) + '</span>';
+      if (x.statut_ghost === 'scheduled') return '<span class="tag g">✅ validé · part ' + esc(alDate(x.programme)) + '</span>';
+      if (x.statut_ghost === 'introuvable') return '<span class="tag r">post introuvable dans Ghost</span>';
+      return x.annule ? '<span class="tag r">annulé · à revalider</span>' : '<span class="tag a">à valider</span>';
+    }
+    return x.annule ? '<span class="tag r">annulé · repassé en brouillon</span>' : x.valide ? '<span class="tag g">✅ validé · envoi programmé</span>' : bo ? '<span class="tag a">à valider</span>' : gf && x.programme ? '<span class="tag b">programmé ' + esc(alDate(x.programme)) + '</span>' : '';
+  }
+  function specCarte(x, chef) {
+    var bo = x.type === 'bestof', gf = x.type === 'grandformat';
+    var annulable = bo ? !!x.peut_annuler : gf && x.programme && !x.annule;
+    return '<div class="cz-l"><div class="rd-t">' + (bo ? '📬 Best-of mensuel' : gf ? '📺 Grand Format du samedi' : '📬 Envoi spécial') + '</div><div class="cz-s">' + esc(alDate(x.at)) + ' ' + specEtat(x) + '</div>' +
+      '<div class="rd-a" style="white-space:pre-wrap">' + esc(x.texte || x.titre) + '</div><div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' +
+      (x.editeur ? '<a class="btn small" href="' + esc(x.editeur) + '" target="_blank" rel="noopener">✏️ Relire dans Ghost</a>' : '') +
+      (chef && bo && x.peut_valider ? '<button class="btn small go" data-act="sp-valider" data-id="' + esc(String(x.id)) + '">✅ Valider</button>' : '') +
+      (chef && annulable ? '<button class="btn small red" data-act="sp-annuler" data-id="' + esc(String(x.id)) + '">✖️ Annuler l’envoi</button>' : '') + '</div></div>';
   }
   // Tableau de bord : bilan des inscriptions newsletter (Meta + popup), envoyé chaque soir par le workflow des inscrits.
   function inscriptionsHTML() {
@@ -4490,13 +4503,22 @@
         }
         var non = ML.brouillon[t.id] && mlSale(t.id);
         return '<button type="button" class="mlc" data-ml-ouvrir="' + esc(t.id) + '"><span class="mlc-e">' + esc(t.emoji) + '</span><span class="mlc-t"><b>' + esc(t.nom) + '</b><span class="mlc-s">' + (st || 'Ouvrir pour voir l’état') + (non ? ' · <span class="mlc-ns">● non enregistré</span>' : '') + '</span></span><span class="mlc-go">✏️ Modifier</span></button>';
-      }).join('') + '</div></div>';
+      }).join('') + '</div>' + mlBestOf() + '</div>';
+  }
+  // Best-of premium mensuel (02/11/2026) : pas un mail éditable ici (il est rédigé chaque mois par le workflow n8n), mais sa carte
+  // de validation, la même qu'au Marbre (Relire · Valider · Annuler). Le dernier Best-of seulement ; il part le dimanche choisi.
+  function mlBestOf() {
+    var L = (S.speciaux || []).filter(function (x) { return x.type === 'bestof'; });
+    var h = '<div class="set-s" style="margin:14px 0 6px"><b>📬 Best-of premium mensuel</b> · préparé le 1er dimanche du mois, il ne part qu’après votre validation (ici, au Marbre ou par le bouton Telegram).</div>';
+    if (!S.speciaux) return h + '<p class="muted">Lecture…</p>';
+    return h + (L.length ? specCarte(L[0], true) : '<p class="muted">Aucun Best-of ces 5 dernières semaines.</p>');
   }
   // appelé par paintPanel : écoute des cartes et lecture discrète de l'état de chaque mail (une fois)
   function mlRattacher() {
     var slot = S.root && S.panel === 'mk' && D().me.chef ? S.root.querySelector('#wl-ml-slot') : null;
     if (!slot || slot.getAttribute('data-ml-ok')) return;
     slot.setAttribute('data-ml-ok', '1');
+    if (!S.speciaux) chargerJournal();
     slot.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-ml-ouvrir]'); if (b) { e.preventDefault(); e.stopPropagation(); mlStudio(b.getAttribute('data-ml-ouvrir')); } });
     mlTypes().forEach(function (t) {
       if (ML.etat[t.id] || ML.charge[t.id]) return;
@@ -5362,8 +5384,9 @@
         });
         break;
       case 'sp-annuler':
-        var ck15 = S.clicking; confirmer('Annuler le Grand Format programmé ?\n\nLe post repasse en brouillon dans Ghost : rien ne part samedi. Vous pourrez le reprogrammer à la main dans Ghost.').then(function (ok) { if (!ok) return; S.clicking = ck15;
-          radarApi({ action: 'annuler_special', id: Number(id) }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✖️ ' + (r.why || 'Grand Format annulé.')); chargerJournal(); });
+        var s15 = (S.speciaux || []).filter(function (x) { return String(x.id) === id; })[0], bo15 = s15 && s15.type === 'bestof', ck15 = S.clicking;
+        confirmer(bo15 ? 'Annuler l’envoi du Best-of ?\n\nLe post repasse en brouillon dans Ghost : rien ne part dimanche. Vous pourrez le revalider ensuite.' : 'Annuler le Grand Format programmé ?\n\nLe post repasse en brouillon dans Ghost : rien ne part samedi. Vous pourrez le reprogrammer à la main dans Ghost.').then(function (ok) { if (!ok) return; S.clicking = ck15;
+          radarApi({ action: 'annuler_special', id: Number(id) }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✖️ ' + (r.why || (bo15 ? 'Best-of annulé.' : 'Grand Format annulé.'))); chargerJournal(); });
         });
         break;
       case 'fini':
@@ -5606,8 +5629,8 @@
         });
         break;
       case 'file-annuler':
-        var ckF = S.clicking; confirmer('Annuler l’envoi de ce mail ?\n\nIl revient en brouillon, prêt à être revu et renvoyé.').then(function (ok) { if (!ok) return; S.clicking = ckF;
-          citApi({ action: 'envoi_annuler', fiche_id: id }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'annulation impossible'), true); return refresh(true); } toast('↩️ Envoi annulé : le mail est revenu en brouillon.'); return refresh(true); });
+        var ckF = S.clicking; confirmer('Annuler l’envoi de ce mail ?\n\nIl revient en brouillon, prêt à être revu et renvoyé.').then(function (ok) { if (!ok) return; S.clicking = ckF; setTimeout(function () { S.clicking = null; }, 0);
+          citApi({ action: 'envoi_annuler', fiche_id: id }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'annulation impossible'), true); return refresh(true); } fermerDoc(); toast('↩️ Envoi annulé : le mail est revenu en brouillon.'); return refresh(true); });
         });
         break;
       case 'archive':

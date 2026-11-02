@@ -248,12 +248,16 @@ async function recevoirEvenement(b: any) {
     await noterEvenement({ genre: "alerte", titre: "Tag #fini non retiré à la publication", texte: d.finiErreurs.map((x: unknown) => "• " + txt(x, 300)).join("\n"), donnees: { source: "batch" }, test });
   if (genre === "soir" && d.kind === "brief" && d.sent === false && Array.isArray(d.problems) && d.problems.length)
     await noterEvenement({ genre: "alerte", titre: "Brief du soir non envoyé", texte: d.problems.map((x: unknown) => "• " + txt(typeof x === "string" ? x : JSON.stringify(x), 300)).join("\n"), donnees: { source: "brief" }, test });
+  if (genre === "special" && /^échec/.test(String(d.telegram || "")))
+    await noterEvenement({ genre: "alerte", titre: "Best-of : le message Telegram n’est pas parti", texte: "Validez depuis le lab (✉️ Mails marketing ou Marbre).\n" + txt(d.telegram, 300), donnees: { source: "bestof" }, test });
   if (test) return { ok: true, id: (r as any).id, push: false };
   const chefs = await chefsIds();
   if (genre === "brouillon") await pushEquipe(chefs, "📝 Brouillon prêt", titre.replace(/^📝\s*/, "") || "Un nouveau brouillon de l’Usine est sur le Marbre.", "marbre");
   else if (genre === "echec") await pushEquipe(chefs, "⚠️ Rédaction échouée", titre || "L’Usine n’a pas pu rédiger le sujet.", "radar");
   else if (genre === "alerte") await pushEquipe(chefs, "⚠️ Usine : alerte", titre, "radar");
   else if (genre === "radar" && (await reglage("push_radar_matin")) === "1") await pushEquipe(chefs, "📡 Radar du jour", titre || "Les sujets du jour sont arrivés.", "radar");
+  // 02/11/2026 (Jonathan) : le Best-of attend la validation du chef ; sans notification, il était resté en brouillon un dimanche.
+  else if (genre === "special" && d.type === "bestof") await pushEquipe(chefs, "📬 Best-of à valider", "« " + txt(d.objet, 120) + " » : relisez puis validez (Telegram, ou ✉️ Mails marketing du lab). Rien ne part sans vous.", "mk");
   return { ok: true, id: (r as any).id };
 }
 // Tags d'un post Ghost (Admin API) ; écrit le tableau de tags complet (Ghost remplace la liste).
@@ -568,10 +572,24 @@ Deno.serve(async (req) => {
     }
     // Envois spéciaux (Best-of mensuel, Grand Format du samedi) : 14 derniers jours, lecture équipe. Le lien de programmation du
     // Best-of (il contient la clé du webhook) ne quitte jamais le serveur.
+    // 02/11/2026 : l'état du Best-of est lu dans Ghost (brouillon / programmé / envoyé), qu'il ait été validé depuis le lab ou depuis
+    // le bouton Telegram ; il peut être annulé (retour en brouillon) puis revalidé. Fenêtre de 35 jours (un Best-of par mois).
     if (b.action === "speciaux") {
-      const { data } = await db.from("usine_evenements").select("id,at,titre,texte,donnees").eq("genre", "special").eq("test", false).gte("at", new Date(Date.now() - 14 * 864e5).toISOString()).order("at", { ascending: false }).limit(10);
-      return out({ ok: true, speciaux: (data || []).map((x: any) => { const d = { ...(x.donnees || {}) }; const lien = !!d.lien; delete d.lien;
-        return { id: x.id, at: x.at, titre: x.titre || "", texte: x.texte || "", type: d.type || "", post_id: d.post_id || "", editeur: d.post_id ? ghostUrl() + "/ghost/#/editor/post/" + d.post_id : "", programme: d.programme || d.scheduledAt || "", valide: !!d.valide_le, annule: !!d.annule_le, peut_valider: lien && !d.valide_le, donnees: d }; }) });
+      const { data } = await db.from("usine_evenements").select("id,at,titre,texte,donnees").eq("genre", "special").eq("test", false).gte("at", new Date(Date.now() - 35 * 864e5).toISOString()).order("at", { ascending: false }).limit(12);
+      const l = await Promise.all((data || []).map(async (x: any) => { const d = { ...(x.donnees || {}) }; const lien = !!d.lien; delete d.lien;
+        const e: any = { id: x.id, at: x.at, titre: x.titre || "", texte: x.texte || "", type: d.type || "", post_id: d.post_id || "", editeur: d.post_id ? ghostUrl() + "/ghost/#/editor/post/" + d.post_id : "", programme: d.programme || d.scheduledAt || "", valide: !!d.valide_le, annule: !!d.annule_le, peut_valider: lien && !d.valide_le, donnees: d };
+        if (d.type === "bestof" && /^[a-f0-9]{24}$/.test(String(d.post_id || ""))) {
+          const pg: any = await ghost(`posts/${d.post_id}/?fields=id,status,published_at`).then((j: any) => j.posts?.[0], () => null);
+          if (pg) {
+            e.statut_ghost = pg.status;
+            e.valide = pg.status !== "draft"; e.annule = pg.status === "draft" && !!d.annule_le;
+            e.programme = pg.status === "scheduled" ? pg.published_at : "";
+            e.envoye = pg.status === "sent" || pg.status === "published" ? pg.published_at || "" : "";
+            e.peut_valider = lien && pg.status === "draft"; e.peut_annuler = pg.status === "scheduled";
+          } else e.statut_ghost = "introuvable";
+        }
+        return e; }));
+      return out({ ok: true, speciaux: l });
     }
     if (b.action === "valider_special" || b.action === "annuler_special") {
       const { data } = await db.from("usine_evenements").select("id,donnees").eq("id", Number(b.id) || 0).eq("genre", "special").limit(1);
@@ -580,21 +598,33 @@ Deno.serve(async (req) => {
       const d = ev.donnees || {};
       if (b.action === "valider_special") {
         if (d.type !== "bestof" || !d.lien) return out({ ok: false, why: "rien à valider pour cet envoi" });
-        if (d.valide_le) return out({ ok: true, deja: true, why: "déjà validé" });
+        const pv: any = /^[a-f0-9]{24}$/.test(String(d.post_id || "")) ? await ghost(`posts/${d.post_id}/?fields=id,status,published_at`).then((j: any) => j.posts?.[0], () => null) : null;
+        if (pv && pv.status === "scheduled") return out({ ok: true, deja: true, why: "déjà programmé" });
+        if (pv && pv.status !== "draft") return out({ ok: false, why: "déjà envoyé" });
+        if (!pv && d.valide_le) return out({ ok: true, deja: true, why: "déjà validé" });
         const r = await fetch(String(d.lien), { method: "GET" }).catch(() => null);
         const html = r ? await r.text().catch(() => "") : "";
         const t = (html.match(/<h1[^>]*>([^<]*)<\/h1>/i) || [])[1] || "", p2 = ((html.match(/<p>([\s\S]*?)<\/p>/i) || [])[1] || "").replace(/<[^>]+>/g, "").trim();
         const ok = !!r && r.ok && !/invalide|erreur/i.test(t);
-        if (ok) await db.from("usine_evenements").update({ donnees: { ...d, valide_le: new Date().toISOString(), valide_msg: (t + " — " + p2).slice(0, 300) } }).eq("id", ev.id);
+        if (ok) { const d2 = { ...d, valide_le: new Date().toISOString(), valide_msg: (t + " — " + p2).slice(0, 300) }; delete (d2 as any).annule_le; await db.from("usine_evenements").update({ donnees: d2 }).eq("id", ev.id); }
         return out({ ok, why: (t ? t + (p2 ? " : " + p2 : "") : (r ? "réponse " + r.status : "le workflow ne répond pas")).slice(0, 300) });
       }
-      // Annuler le Grand Format programmé : repasse le post en brouillon (rien n'est envoyé).
-      if (d.type !== "grandformat" || !/^[a-f0-9]{24}$/.test(String(d.post_id || ""))) return out({ ok: false, why: "rien à annuler pour cet envoi" });
+      // Annuler le Grand Format ou le Best-of programmé : repasse le post en brouillon (rien n'est envoyé).
+      // Best-of (02/11/2026) : la fiche Airtable BestOfEnvois revient aussi « brouillon », pour qu'il puisse être revalidé.
+      if ((d.type !== "grandformat" && d.type !== "bestof") || !/^[a-f0-9]{24}$/.test(String(d.post_id || ""))) return out({ ok: false, why: "rien à annuler pour cet envoi" });
       const pg: any = ((await ghost(`posts/${d.post_id}/?fields=id,status,updated_at`)) as any).posts?.[0];
       if (!pg) return out({ ok: false, why: "post introuvable dans Ghost" });
       if (pg.status !== "scheduled") return out({ ok: false, why: pg.status === "draft" ? "déjà annulé (brouillon)" : "déjà envoyé (" + pg.status + ")" });
       await ghostEcrire(`posts/${d.post_id}/`, "PUT", { posts: [{ status: "draft", updated_at: pg.updated_at }] });
-      await db.from("usine_evenements").update({ donnees: { ...d, annule_le: new Date().toISOString() } }).eq("id", ev.id);
+      const d3: any = { ...d, annule_le: new Date().toISOString() }; delete d3.valide_le;
+      await db.from("usine_evenements").update({ donnees: d3 }).eq("id", ev.id);
+      if (d.type === "bestof") {
+        if (/^rec[A-Za-z0-9]{14}$/.test(String(d.rec || ""))) {
+          try { await air("BestOfEnvois/" + d.rec, { method: "PATCH", body: JSON.stringify({ fields: { Statut: "brouillon", EnvoiPrevu: null }, typecast: true }) }); }
+          catch (e) { return out({ ok: true, why: "Best-of annulé (brouillon dans Ghost), mais Airtable n’a pas suivi : " + String((e as Error).message || e).slice(0, 120) }); }
+        }
+        return out({ ok: true, why: "Best-of annulé : le post est repassé en brouillon, vous pouvez le revalider" });
+      }
       return out({ ok: true, why: "Grand Format annulé : le post est repassé en brouillon" });
     }
     // Bilan des inscriptions newsletter (Meta Ads + popup) envoyé chaque soir par le workflow des inscrits : 14 derniers bilans.
