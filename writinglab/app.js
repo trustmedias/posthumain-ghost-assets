@@ -3063,7 +3063,9 @@
       return rlApi({ action: 'convertir', post_id: postId }).then(function (r) {
         if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'conversion impossible'), true); return r; }
         toast(r.deja === 'prete' ? '💎 Une conversion de cet article attend déjà votre validation.' : r.deja ? '💎 La conversion de cet article est déjà en cours.' : '💎 Conversion lancée : proposition dans 5 à 30 minutes, avec une notification.');
-        chargerRelectures(); return r;
+        var ld = chargerRelectures(); // l'onglet Articles affiche aussitôt « conversion en cours » (sauf si l'on tape dans la recherche)
+        if (ld && ld.then) ld.then(function () { var f = document.activeElement; if (S.tab === 'articles' && !(f && /INPUT|TEXTAREA/.test(f.tagName))) render(); });
+        return r;
       });
     };
     if (sansConfirmer) return go();
