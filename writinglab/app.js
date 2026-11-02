@@ -922,7 +922,15 @@
     return '<div class="box iv"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><b>🎙️ ' + l.length + ' enquête' + pl(l.length) + ' attend' + (l.length > 1 ? 'ent' : '') + ' ses interviews</b><button class="btn small" data-act="a-interviewer">Voir la file</button></div>' +
       l.slice(0, 3).map(function (a) { return '<div class="ivl"><span>' + esc(a.titre) + '</span>' + btnMails(a.id) + '</div>'; }).join('') + '</div>';
   }
+  // 02/11/2026 : l'onglet Articles affiche l'état des relectures et des conversions ; elles se chargent à la première carte (avant, les
+  // boutons « Relire » / « Convertir » s'affichaient même quand une relecture ou une conversion était déjà faite ou en cours).
+  function rlChargerPourArticles() {
+    if (!D().me.chef || S.rl || S.rlLd) return;
+    var ld = chargerRelectures();
+    if (ld && ld.then) ld.then(function () { var f = document.activeElement; if (S.tab === 'articles' && S.rl && !(f && /INPUT|TEXTAREA/.test(f.tagName))) render(); });
+  }
   function artCard(a) {
+    rlChargerPourArticles();
     var n = D().fiches.filter(function (f) { return f.article_id === a.id; }).length;
     return '<div class="ar' + (a.id === S.art ? ' sel' : '') + '" data-act="pick-art" data-id="' + esc(a.id) + '"><div class="ph">' + (a.image ? '<img loading="lazy" alt="" src="' + esc(a.image) + '">' : '📰') + '</div><div class="b"><div class="ti">' + esc(a.titre) + '</div><div class="me">' +
       (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + finiTag(a) + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
