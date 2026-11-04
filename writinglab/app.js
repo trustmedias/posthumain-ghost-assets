@@ -2526,11 +2526,29 @@
   function expertsCites(aid) {
     return D().fiches.filter(function (x) { return x.article_id === aid && x.statut === 'inséré'; }).map(function (x) { return { nom: x.contact.nom, role: x.contact.role, institution: x.contact.institution }; });
   }
+  // 04/11/2026 (Jonathan) : la mention en début d'article n'est plus un bouton facultatif. Dès qu'un article a une citation insérée et
+  // aucune mention, l'Assistant la PROPOSE de lui-même (une fois par article et par session) ; la journaliste n'a plus qu'à la valider.
+  // Avant : ajoutée sur 2 articles sur 4 (« 22 000 qubits » : l'interview n'apparaissait qu'au 15e paragraphe).
+  function chapoFaite(aid) {
+    return D().fiches.some(function (x) { return x.article_id === aid && (x.historique || []).some(function (e) { return /^experts évoqués en début/.test(String((e && e.e) || '')); }); });
+  }
+  function chapoProposer(fc) {
+    if (!fc) return;
+    S.chapo = { aid: fc.article_id, props: null, fait: {} }; paintDoc();
+    work('assistant', 'cherche où évoquer les experts', api('chapo', { article_id: fc.article_id, experts: expertsCites(fc.article_id) })).then(function (r) {
+      if (S.chapo && S.chapo.aid === fc.article_id) S.chapo.props = r.propositions || []; paintDoc();
+    }, function () { S.chapo = null; paintDoc(); });
+  }
   function chapoBlock(f) {
     var ex = expertsCites(f.article_id), ch = S.chapo && S.chapo.aid === f.article_id ? S.chapo : null;
     if (!ex.length) return '';
+    var faite = chapoFaite(f.article_id);
+    S.chapoAuto = S.chapoAuto || {};
+    if (!ch && !faite && !S.chapoAuto[f.article_id] && !S.busy.assistant) { S.chapoAuto[f.article_id] = 1; setTimeout(function () { chapoProposer(f); }, 0); }
     var h = '<div class="chapo"><div class="ch-t">💡 Mettre en avant les interviews dès le début</div><div class="ch-s">' + esc(ex.map(function (x) { return x.nom; }).join(', ')) + ' ' + (ex.length > 1 ? 'sont cités' : 'est cité') + ' dans l’article. Le dire dans les premiers paragraphes (partie gratuite) montre le sérieux de l’enquête et donne envie de lire la suite.</div>';
-    if (!ch || !ch.props) return h + '<div class="acts"><button class="go" data-act="chapo" data-id="' + esc(f.fiche_id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>✨ Proposer une mention</button></div></div>';
+    if (!ch && faite) return h + '<div class="acts"><span class="tag g">✅ déjà évoqué' + (ex.length > 1 ? 's' : '') + ' en début d’article</span> <button data-act="chapo" data-id="' + esc(f.fiche_id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>✨ Proposer une autre mention</button></div></div>';
+    if (ch && !ch.props) return h + '<div class="ch-s">⏳ L’Assistant prépare une mention à valider…</div></div>';
+    if (!ch) return h + '<div class="acts"><button class="go" data-act="chapo" data-id="' + esc(f.fiche_id) + '"' + (S.busy.assistant ? ' disabled' : '') + '>✨ Proposer une mention</button></div></div>';
     h += ch.props.map(function (x, k) {
       var fait = ch.fait[k];
       var bloc = x.mode === 'apres' ? '<div class="ctx">' + esc(x.avant) + '</div><div class="neo"><p>' + esc(x.texte) + '</p></div>' : '<div class="neo"><p>' + esc(x.avant) + ' <mark>' + esc(x.texte) + '</mark></p></div>';
@@ -5720,13 +5738,7 @@
           }, function () {});
         });
         break;
-      case 'chapo':
-        var fc = fiche(id); if (!fc) break;
-        S.chapo = { aid: fc.article_id, props: null, fait: {} }; paintDoc();
-        work('assistant', 'cherche où évoquer les experts', api('chapo', { article_id: fc.article_id, experts: expertsCites(fc.article_id) })).then(function (r) {
-          if (S.chapo && S.chapo.aid === fc.article_id) S.chapo.props = r.propositions || []; paintDoc();
-        }, function () { S.chapo = null; paintDoc(); });
-        break;
+      case 'chapo': chapoProposer(fiche(id)); break;
       case 'chapo-ok':
         var CH = S.chapo, xp = CH && CH.props && CH.props[i]; if (!xp) break;
         var ckH = S.clicking; confirmer('Ajouter cette mention au début de l’article ?\n\n« ' + xp.texte + ' »').then(function (ok) { if (!ok) return; S.clicking = ckH; setTimeout(function () { S.clicking = null; }, 0);
