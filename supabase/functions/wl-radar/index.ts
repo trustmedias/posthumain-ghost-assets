@@ -527,7 +527,10 @@ Deno.serve(async (req) => {
     // Lancer l'Usine maintenant (= /usine) : même webhook Telegram que « Relancer le Radar » ; l'Usine applique ses propres garde-fous
     // (pas deux /usine en 12 min, pas pendant un passage programmé) et répond aussi sur Telegram. Verrou du lab : 12 minutes.
     if (b.action === "lancer_usine") {
-      const now = new Date(), hm = Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", hour: "2-digit", hour12: false }).format(now)) * 60 + Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", minute: "2-digit" }).format(now));
+      // 10/11/2026 : heure lue par parties (le format « fr-CH » rendait « 8 h » → NaN, et ce garde-fou ne se déclenchait jamais).
+      const now = new Date(), pz: Record<string, string> = {};
+      new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Zurich", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now).forEach((x) => { pz[x.type] = x.value; });
+      const hm = parseInt(pz.hour, 10) * 60 + parseInt(pz.minute, 10);
       if ((hm >= 510 && hm < 525) || (hm >= 720 && hm < 735)) return out({ ok: false, why: "un passage programmé de l’Usine est en cours (" + (hm < 600 ? "8 h 30" : "12 h") + ") : attendez le brouillon" });
       const last = Date.parse(await reglage("usine_lance_le")) || 0;
       if (Date.now() - last < 12 * 60e3) return out({ ok: false, why: "Usine déjà lancée il y a moins de 12 minutes : le brouillon arrive (environ 8 min)" });
@@ -544,7 +547,10 @@ Deno.serve(async (req) => {
     // 1 exécution n8n par clic : seulement s'il y a un article approuvé en attente, après le batch de 18:30, pas pendant le passage
     // de 21 h, et au plus une fois toutes les 10 minutes.
     if (b.action === "publier_maintenant") {
-      const now = new Date(), hm = Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", hour: "2-digit", hour12: false }).format(now)) * 60 + Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", minute: "2-digit" }).format(now));
+      // Heure de Zurich par parties (en-GB, h23) : le format « fr-CH » rend « 18 h », que Number() ne sait pas lire.
+      const now = new Date(), pz: Record<string, string> = {};
+      new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Zurich", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now).forEach((x) => { pz[x.type] = x.value; });
+      const hm = parseInt(pz.hour, 10) * 60 + parseInt(pz.minute, 10);
       if (hm < 18 * 60 + 32) return out({ ok: false, why: "le batch de 18 h 30 publiera les articles approuvés : rien à faire d’ici là" });
       if (hm >= 21 * 60 && hm < 21 * 60 + 5) return out({ ok: false, why: "le passage de 21 h est en train de publier les articles approuvés : actualisez dans 2 minutes" });
       const sec = env("TV_ADMIN_SECRET");

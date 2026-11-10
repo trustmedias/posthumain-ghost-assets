@@ -2021,8 +2021,8 @@
   // batch tout de suite, comme une relance à la main dans n8n : utile pour qu'une enquête premium parte sans attendre 21 h, ou pour
   // un article approuvé après 21 h (sinon il attend le batch du lendemain). Le verrou de 21 h empêche tout doublon.
   function mbSoir() {
-    var d = new Date(), f = function (o) { return Number(new Intl.DateTimeFormat('fr-CH', Object.assign({ timeZone: 'Europe/Zurich' }, o)).format(d)); };
-    var hm = f({ hour: '2-digit', hour12: false }) * 60 + f({ minute: '2-digit' });
+    var pz = {}; new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).forEach(function (x) { pz[x.type] = x.value; });
+    var hm = parseInt(pz.hour, 10) * 60 + parseInt(pz.minute, 10);
     return hm < 18 * 60 + 32 ? 'avant' : hm < 21 * 60 ? 'attente' : hm < 21 * 60 + 5 ? 'verrou' : 'tard';
   }
   function mbQuand() { var p = mbSoir(); return p === 'avant' ? 'publié au batch de 18 h 30' : p === 'attente' ? 'publication automatique à 21 h' : p === 'verrou' ? 'publication de 21 h en cours' : 'publié au prochain batch de 18 h 30'; }
