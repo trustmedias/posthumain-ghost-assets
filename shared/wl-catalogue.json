@@ -475,7 +475,8 @@
     "annuler_special": "« Annuler l'envoi » du Grand Format programmé : le post repasse en brouillon (rédacteur en chef, confirmation)",
     "inscriptions": "Tableau de bord : bilan des inscriptions newsletter (rédacteur en chef)",
     "fini": "« ✅ J'ai fini — prêt à relire » : pose le tag interne #fini (journaliste ; jamais sur un article publié)",
-    "reprendre": "« Reprendre » : retire le tag #fini"
+    "reprendre": "« Reprendre » : retire le tag #fini",
+    "publier_maintenant": "« 🚀 Publier maintenant » du Marbre (chef seul, après 18 h 30, s'il y a un article approuvé en attente) : relance le batch du soir dans n8n comme une relance à la main ; le verrou de 21 h empêche tout doublon"
   },
   "aiguillage": {
     "_pourquoi": "Règles d'aiguillage générées dans la fiche de poste de chaque IA (wl-tel) et dans l'aide ⓘ. contacts_interview : le poste qui écrit à toute personne qui a une fiche d'interview ; un poste qui a une boîte de courrier (mail) ne reçoit jamais ces demandes (vérifié aussi par le serveur avant une transmission).",

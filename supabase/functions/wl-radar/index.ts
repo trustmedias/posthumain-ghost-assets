@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const chef = !!qui.chef;
-  const ecrit = ["proposer", "preciser", "choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar", "lancer_usine", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
+  const ecrit = ["proposer", "preciser", "choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar", "lancer_usine", "publier_maintenant", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
   if (ecrit.includes(String(b.action)) && !chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
   try {
     // État de configuration (aucune valeur de secret n'est renvoyée).
@@ -536,6 +536,34 @@ Deno.serve(async (req) => {
       const r = await fetch(USINE_TELEGRAM_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(upd) }).catch(() => null);
       if (!r || !r.ok) return out({ ok: false, why: "l’Usine ne répond pas (" + (r ? r.status : "réseau") + ")" });
       return out({ ok: true, why: "Usine lancée : le brouillon arrive sur le Marbre d’ici 8 à 10 minutes" });
+    }
+    // Publier maintenant (10/11/2026) : rattrape une validation tardive sans attendre 21 h ni ouvrir n8n. Appelle le webhook
+    // « 🧪 Lab — publier maintenant » de l'Usine (en-tête x-tv-secret = TV_ADMIN_SECRET), branché sur « Config batch » : c'est
+    // EXACTEMENT une relance à la main du batch de 18:30 (premium = email natif à tous ; actu = site + brief ; push selon les règles
+    // du soir). Le verrou de 21 h empêche tout doublon (un seul brief par soir, un article déjà publié n'est jamais republié).
+    // 1 exécution n8n par clic : seulement s'il y a un article approuvé en attente, après le batch de 18:30, pas pendant le passage
+    // de 21 h, et au plus une fois toutes les 10 minutes.
+    if (b.action === "publier_maintenant") {
+      const now = new Date(), hm = Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", hour: "2-digit", hour12: false }).format(now)) * 60 + Number(new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", minute: "2-digit" }).format(now));
+      if (hm < 18 * 60 + 32) return out({ ok: false, why: "le batch de 18 h 30 publiera les articles approuvés : rien à faire d’ici là" });
+      if (hm >= 21 * 60 && hm < 21 * 60 + 5) return out({ ok: false, why: "le passage de 21 h est en train de publier les articles approuvés : actualisez dans 2 minutes" });
+      const sec = env("TV_ADMIN_SECRET");
+      if (!sec) return out({ ok: false, why: "secret TV_ADMIN_SECRET absent de Supabase" });
+      const r0 = await air("Radar" + q("AND({Status}='approved',NOT({GhostPostId}=''))", "&maxRecords=10"));
+      const attente = (r0.records || []).map(sujet);
+      if (!attente.length) return out({ ok: false, why: "aucun article approuvé en attente de publication" });
+      const last = Date.parse(await reglage("batch_lance_le")) || 0;
+      if (Date.now() - last < 10 * 60e3) return out({ ok: false, why: "publication déjà lancée il y a moins de 10 minutes : actualisez le Marbre" });
+      await db.from("wl_reglages").upsert({ cle: "batch_lance_le", valeur: now.toISOString(), updated_at: now.toISOString() }, { onConflict: "cle" });
+      const r = await fetch("https://trustmedias.app.n8n.cloud/webhook/posthumain-publier-maintenant", { method: "POST", headers: { "Content-Type": "application/json", "x-tv-secret": sec }, body: JSON.stringify({ source: "writinglab", par: qui.email || "", ids: attente.map((x: any) => x.id) }), signal: AbortSignal.timeout(20000) }).catch(() => null);
+      if (!r || !r.ok) {
+        await db.from("wl_reglages").upsert({ cle: "batch_lance_le", valeur: "", updated_at: new Date().toISOString() }, { onConflict: "cle" });
+        return out({ ok: false, why: "l’Usine ne répond pas (" + (r ? r.status : "réseau") + ") : réessayez, ou relancez le batch de 18 h 30 dans n8n" });
+      }
+      const prem = attente.filter((x: any) => x.type === "premium").length;
+      const why = (prem ? "Publication lancée : l’enquête premium part par email d’ici une minute." : "Publication lancée : les articles sont en ligne d’ici une minute.") +
+        (hm >= 21 * 60 + 5 ? " Pas de brief ce soir : les actus partiront dans le prochain." : "");
+      return out({ ok: true, why, n: attente.length, premium: prem, titres: attente.map((x: any) => x.titre) });
     }
     // Onglet ⚠️ Alertes du Radar (chef seul) : alertes et échecs de l'Usine + pannes des workflows (wl_alertes).
     if (b.action === "alertes") {
