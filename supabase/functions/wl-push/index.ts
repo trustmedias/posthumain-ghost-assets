@@ -280,8 +280,28 @@ Deno.serve(async (req) => {
     const st = b.statut === "acquis" ? "acquis" : b.statut === "annule" ? "annule" : "";
     const id = Number(b.id);
     if (!st || !id) return out({ ok: false, why: "décision invalide" }, 400);
-    const { data, error } = await db.from("wl_pieces").update({ statut: st, decide_par: qui, decide_le: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id).select();
-    if (error || !data || !data.length) return out({ ok: false, why: "pièces introuvables" }, 404);
+    // 11/11/2026 : exception du rédacteur en chef (ex. vraie interview téléphonique d'une heure, créneau manqué d'un jour) :
+    // il accorde le nombre de pièces qu'il choisit (la page propose le dernier palier du barème), tracé dans le motif.
+    // Impossible sur des pièces déjà comptabilisées (le montant converti en euros ne doit plus bouger).
+    const exc = st === "acquis" && b.montant !== undefined && b.montant !== null && b.montant !== "";
+    const maj: Record<string, unknown> = { statut: st, decide_par: qui, decide_le: new Date().toISOString(), updated_at: new Date().toISOString() };
+    let avant: any = null;
+    if (exc) {
+      const n = Math.round(Number(String(b.montant).replace(",", ".")));
+      if (!isFinite(n) || n < 1 || n > 1000) return out({ ok: false, why: "nombre de pièces invalide (de 1 à 1000)" }, 400);
+      const { data: p0 } = await db.from("wl_pieces").select("*").eq("id", id).limit(1);
+      avant = p0 && p0[0];
+      if (!avant) return out({ ok: false, why: "pièces introuvables" }, 404);
+      if (avant.conversion_id) return out({ ok: false, why: "ces pièces sont déjà comptabilisées" });
+      const lab = avant.statut === "manque" ? "créneau manqué" : avant.statut === "annule" ? "pièces annulées" : avant.statut === "a_verifier" ? "à vérifier" : "acquises";
+      maj.montant = n;
+      maj.motif = (String(avant.motif || "").replace(/ · 🎁 exception[^·]*$/, "") + " · 🎁 exception de " + ((moi && moi.nom.split(" ")[0]) || "Jonathan") + " : " + n + " pièce" + (n > 1 ? "s" : "") + " (au lieu de " + Number(avant.montant || 0) + ", " + lab + ")").slice(0, 900);
+    }
+    const { data, error } = await db.from("wl_pieces").update(maj).eq("id", id).is("conversion_id", null).select();
+    if (error || !data || !data.length) return out({ ok: false, why: exc ? "pièces introuvables ou déjà comptabilisées" : "pièces introuvables" }, 404);
+    if (exc && avant && avant.membre && avant.membre !== qui) {
+      await prevenir(String(avant.membre), "🎁 +" + maj.montant + " pièces (exception)", ((moi && moi.nom.split(" ")[0]) || "Jonathan") + " t’accorde " + maj.montant + " pièces pour " + (avant.contact || "ton interview") + (avant.article_titre ? " — " + String(avant.article_titre).slice(0, 120) : "") + ".");
+    }
     return out({ ok: true, piece: data[0] });
   }
   if (b.action === "signatures") return out({ ok: true, signatures: await signatures() });
