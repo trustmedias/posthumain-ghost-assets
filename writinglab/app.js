@@ -5235,7 +5235,7 @@
     if (der.length) h += '<div class="cz-t">🪙 Dernières pièces</div>' + der.map(function (p) {
       var st = PST2[p.statut] || ['·', p.statut, ''];
       return '<div class="cz-l"><div><b>' + (p.montant ? '+' + p.montant : '0') + '</b> <span class="tag ' + st[2] + '">' + st[0] + ' ' + esc(st[1]) + '</span>' + (me.chef ? ' · ' + esc(membre(p.membre).nom) : '') + '<div class="cz-s">' + esc(p.contact || '') + ' — ' + esc(p.article_titre || '') + ' · ' + esc(when(p.created_at)) + (me.chef ? '<br>' + esc(p.motif || '') : '') + '</div></div>' +
-        (me.chef && p.statut === 'a_verifier' ? '<div class="row" style="gap:6px;margin-top:6px"><button class="btn small go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button><button class="btn small red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button></div>' : '') + '</div>';
+        (me.chef && (p.statut === 'a_verifier' || excPieces(p)) ? '<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">' + (p.statut === 'a_verifier' ? '<button class="btn small go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button><button class="btn small red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button>' : '') + (excPieces(p) ? '<button class="btn small" data-act="pc-exc" data-id="' + p.id + '">🎁 Faire une exception</button>' : '') + '</div>' : '') + '</div>';
     }).join('');
     h += '<details class="cz-d"><summary>Barème</summary><p>' + barDetail() + '</p></details>';
     if (me.chef && testRec()) h += '<div class="cz-l" style="border-color:rgba(255,176,32,.5)">🧪 <b>Mode récompense (test) actif</b> : vous gagnez aussi des pièces, avec votre propre caisse. Désactivable dans ⚙️ Paramètres.</div>';
@@ -5305,7 +5305,7 @@
       var st = PST2[p.statut] || ['·', p.statut, ''];
       return '<div class="pc"><div><b>' + (p.montant ? '+' + p.montant : '0') + '</b> <span class="tag ' + st[2] + '">' + st[0] + ' ' + esc(st[1]) + '</span> · ' + esc(membre(p.membre).nom) + '</div>' +
         '<div class="muted" style="font-size:13.5px">' + esc(p.contact || '') + ' — ' + esc(p.article_titre || '') + '<br>' + esc(p.motif || '') + ' · ' + esc(when(p.created_at)) + '</div>' +
-        (me.chef && (p.statut === 'a_verifier' || p.statut === 'acquis') ? '<div class="acts" style="margin-top:6px">' + (p.statut === 'a_verifier' ? '<button class="go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button>' : '') + '<button class="red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button></div>' : '') + '</div>';
+        (me.chef && (p.statut === 'a_verifier' || p.statut === 'acquis' || excPieces(p)) ? '<div class="acts" style="margin-top:6px">' + (p.statut === 'a_verifier' ? '<button class="go" data-act="pc-ok" data-id="' + p.id + '">✅ Valider</button>' : '') + (p.statut === 'a_verifier' || p.statut === 'acquis' ? '<button class="red" data-act="pc-annule" data-id="' + p.id + '">✖️ Annuler</button>' : '') + (excPieces(p) ? '<button data-act="pc-exc" data-id="' + p.id + '">🎁 Faire une exception</button>' : '') + '</div>' : '') + '</div>';
     }).join('') || '<p class="muted">Pas encore de pièces : le premier parcours complet arrive bientôt.</p>');
     return h + '</div>';
   }
@@ -5356,6 +5356,25 @@
       bg.addEventListener('click', function (e) { var b = e.target.closest('[data-cfm]'); if (b) { e.stopPropagation(); fin(b.getAttribute('data-cfm') === '1'); } else if (e.target === bg) fin(false); });
       document.addEventListener('keydown', kd, true);
       S.root.appendChild(bg); requestAnimationFrame(function () { bg.classList.add('on'); var b = bg.querySelector('[data-cfm="1"]'); if (b) b.focus(); });
+    });
+  }
+  // Exception du rédacteur en chef sur des pièces (11/11/2026) : créneau manqué de peu, vraie interview par téléphone…
+  // Le nombre proposé est celui du dernier palier du barème (ou le montant déjà calculé s'il y en a un), modifiable de 1 à 1000.
+  function excPieces(p) { return !!(p && !p.conversion_id && (p.statut === 'manque' || p.statut === 'annule' || p.statut === 'a_verifier')); }
+  function excDefaut(p) { var b = barO().paliers; return Number(p && p.montant) > 0 ? Number(p.montant) : Number(b[b.length - 1].pieces) || 1; }
+  function confirmerException(p) {
+    return new Promise(function (resolve) {
+      var def = excDefaut(p), b = barO().paliers, der = b[b.length - 1];
+      masquerTip(); var bg = document.createElement('div'); bg.className = 'cfm-bg';
+      bg.innerHTML = '<div class="cfm" role="dialog" aria-modal="true"><div class="cfm-ic">🎁</div><div class="cfm-t">Faire une exception pour ' + esc(membre(p.membre).nom) + ' ?</div>' +
+        '<div class="cfm-d">' + esc(p.contact || '') + (p.article_titre ? ' — ' + esc(p.article_titre) : '') + '<br><span style="opacity:.75">' + esc(p.motif || '') + '</span><br><br>Proposé : le dernier palier du barème (' + pTxt(Number(der.pieces)) + ' jusqu’à ' + jTxt(Number(der.jours)) + '). Vous pouvez en donner plus ou moins.</div>' +
+        '<div class="row" style="gap:8px;align-items:center;justify-content:center;margin:0 0 14px"><input class="in" id="wl-exc-n" type="number" min="1" max="1000" step="1" value="' + def + '" style="width:96px;margin:0;text-align:center" inputmode="numeric"> pièces</div>' +
+        '<div class="cfm-a"><button type="button" class="btn" data-cfm="0">Annuler</button><button type="button" class="btn go" data-cfm="1">🎁 Accorder</button></div></div>';
+      var fin = function (v) { document.removeEventListener('keydown', kd, true); var i = bg.querySelector('#wl-exc-n'), n = Math.round(Number(i ? String(i.value).replace(',', '.') : def)); bg.classList.remove('on'); setTimeout(function () { if (bg.parentNode) bg.parentNode.removeChild(bg); }, 180); resolve({ ok: v, n: n }); };
+      var kd = function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fin(false); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); fin(true); } };
+      bg.addEventListener('click', function (e) { var x = e.target.closest('[data-cfm]'); if (x) { e.stopPropagation(); fin(x.getAttribute('data-cfm') === '1'); } else if (e.target === bg) fin(false); });
+      document.addEventListener('keydown', kd, true);
+      S.root.appendChild(bg); requestAnimationFrame(function () { bg.classList.add('on'); var i = bg.querySelector('#wl-exc-n'); if (i) { i.focus(); i.select(); } });
     });
   }
   function val(id) { var e = S.root.querySelector('#' + id); return e ? e.value : ''; }
@@ -5895,6 +5914,14 @@
         var pcSt = name === 'pc-ok' ? 'acquis' : 'annule', pcId = id;
         var ck9 = S.clicking; confirmer(pcSt === 'acquis' ? 'Valider ces pièces ?' : 'Annuler ces pièces ?').then(function (ok) { if (!ok) return; S.clicking = ck9;
           pushApi({ action: 'pieces_decision', id: pcId, statut: pcSt }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast(pcSt === 'acquis' ? '🪙 Pièces validées.' : '✖️ Pièces annulées.'); chargerPieces(); });
+        });
+        break;
+      case 'pc-exc':
+        var pcE = ((S.pieces && S.pieces.pieces) || []).filter(function (x) { return String(x.id) === String(id); })[0];
+        if (!pcE || !excPieces(pcE)) { toast('Ces pièces ne peuvent plus être modifiées.', true); break; }
+        var ck10 = S.clicking; confirmerException(pcE).then(function (rx) { if (!rx.ok) return; S.clicking = ck10;
+          if (!isFinite(rx.n) || rx.n < 1 || rx.n > 1000) { toast('⚠️ Nombre de pièces invalide (de 1 à 1000).', true); return; }
+          pushApi({ action: 'pieces_decision', id: pcE.id, statut: 'acquis', montant: rx.n }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('🎁 Exception accordée : ' + pTxt(rx.n) + ' pour ' + membre(pcE.membre).nom + '.'); chargerPieces(); refresh(true); });
         });
         break;
       case 'dos-toggle': S.dosFocus = null; S.dosOuvert = S.dosOuvert || {}; var dEl = S.root.querySelector('#sdos-' + id); S.dosOuvert[id] = !(dEl && dEl.classList.contains('open')); paintPanel(); break;
