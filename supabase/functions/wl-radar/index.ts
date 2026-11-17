@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
   const qui = await membre(String(b.token || "")).catch(() => null);
   if (!qui) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
   const chef = !!qui.chef;
-  const ecrit = ["proposer", "preciser", "choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "ecarter_brouillon", "relancer_radar", "lancer_usine", "publier_maintenant", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
+  const ecrit = ["proposer", "preciser", "choisir", "decocher", "ecarter", "remettre", "imposer", "ordre", "approuver", "approuver_fini", "ecarter_brouillon", "relancer_radar", "lancer_usine", "publier_maintenant", "alertes", "alertes_lu", "reglage_radar", "valider_special", "annuler_special", "inscriptions"];
   if (ecrit.includes(String(b.action)) && !chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
   try {
     // État de configuration (aucune valeur de secret n'est renvoyée).
@@ -496,6 +496,35 @@ Deno.serve(async (req) => {
       if (s.statut === "approved") return out({ ok: true, sujet: s, deja: true });
       if (s.statut !== "drafted" || !s.ghost_id) return out({ ok: false, why: "ce sujet n’est pas un brouillon en attente (statut : " + s.statut + ")" });
       return out({ ok: true, sujet: await patch(s.id, { Status: "approved" }) });
+    }
+    // Approuver un brouillon #fini qui ne vient PAS de l'Usine (17/11/2026, article premium rédigé au nom de Jonathan, relu par Valisoa) :
+    // le batch du soir ne publie que les lignes « approved » du Radar. On crée donc (ou on réutilise) la ligne Radar de ce post Ghost,
+    // au statut « approved » : il part au batch de 18 h 30 (ou à 21 h, ou via « Publier maintenant ») exactement comme un brouillon de
+    // l'Usine. Type déduit des tags Ghost (premium → enquête premium, email natif à tous ; actu-premium → paywall d'actu). Le post Ghost
+    // n'est jamais modifié ici.
+    if (b.action === "approuver_fini") {
+      const pid = String(b.post_id || "");
+      if (!/^[a-f0-9]{24}$/.test(pid)) return out({ ok: false, why: "identifiant d’article invalide" }, 400);
+      const g: any = await ghost(`posts/${pid}/?fields=id,title,status,visibility&include=tags`).catch(() => null);
+      const p = g && Array.isArray(g.posts) ? g.posts[0] : null;
+      if (!p) return out({ ok: false, why: "article introuvable dans Ghost" });
+      if (p.status !== "draft" && p.status !== "scheduled") return out({ ok: false, why: "cet article n’est plus un brouillon (statut Ghost : " + p.status + ")" });
+      const slugs = (Array.isArray(p.tags) ? p.tags : []).map((t: any) => String(t.slug || t.name || "").toLowerCase());
+      const type = slugs.includes("premium") ? "premium" : "actu";
+      const actuPremium = type === "actu" && slugs.includes("actu-premium");
+      const exist = await air("Radar" + q(`{GhostPostId}='${pid}'`, "&maxRecords=5"));
+      const deja = (exist.records || []).map(sujet);
+      const ok = deja.find((s: any) => s.statut === "approved");
+      if (ok) return out({ ok: true, sujet: ok, deja: true });
+      const enAttente = deja.find((s: any) => s.statut === "drafted");
+      if (enAttente) return out({ ok: true, sujet: await patch(enAttente.id, { Status: "approved" }) });
+      if (deja.some((s: any) => s.statut === "published")) return out({ ok: false, why: "cet article figure déjà comme publié dans le Radar" });
+      const jour = new Intl.DateTimeFormat("fr-CH", { timeZone: "Europe/Zurich", day: "2-digit", month: "2-digit" }).format(new Date()).replace(".", "/");
+      const fields: Record<string, unknown> = { Title: String(p.title || "").slice(0, 250), Type: type, Status: "approved", GhostPostId: pid, PlannedNewsletter: "posthumain", Score: 50,
+        CreatedAt: new Date().toISOString(), Rationale: "[MANUEL] Brouillon hors Usine marqué #fini, approuvé depuis le Marbre le " + jour + " par " + (qui.nom || "le rédacteur en chef") + "." };
+      if (actuPremium) fields.ActuPremium = true;
+      const r = await air("Radar", { method: "POST", body: JSON.stringify({ fields, typecast: true }) });
+      return out({ ok: true, sujet: sujet(r), cree: true });
     }
     // Écarter un brouillon de l'Usine depuis le Marbre (22/10/2026) : il ne sera pas publié au batch du soir.
     // Même écriture qu'un sujet écarté ({ Status:'skipped', Choisir:false }) + trace dans Rationale. Le post Ghost n'est JAMAIS touché.

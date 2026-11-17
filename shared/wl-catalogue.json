@@ -463,6 +463,7 @@
     "lancer_usine": "« Lancer l'Usine maintenant » = /usine (rédacteur en chef, confirmation, verrou de 12 minutes, l'Usine garde ses propres garde-fous)",
     "marbre": "le Marbre : brouillons de l'Usine, rapports, #fini, publiés du jour",
     "approuver": "« Approuver » un brouillon de l'Usine (rédacteur en chef, confirmation)",
+    "approuver_fini": "« Approuver » un brouillon #fini écrit hors de l'Usine : crée sa ligne Radar « approved » pour le batch du soir (rédacteur en chef, confirmation)",
     "ecarter_brouillon": "« Écarter » un brouillon de l'Usine (rédacteur en chef, confirmation ; Ghost non touché)",
     "rapport": "Usine → lab (serveur à serveur) : rapport détaillé du brouillon",
     "evenement": "Usine et workflows → lab (serveur à serveur) : copie d'un message Telegram (brouillon prêt, échec, alerte, Radar, journal du soir, envois spéciaux, inscriptions)",
