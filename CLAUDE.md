@@ -40,7 +40,7 @@ chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_share
 - **⚖️ IA contre la journaliste** (25/11/2026, `comparaison.ts`, table `wl_comparaisons`) : mesure si le Correcteur relit aussi bien que la
   journaliste les articles de l'Usine. Chaîne À PART des relectures : la version d'origine vient de l'historique Ghost (`post_revisions`,
   raison `initial_revision`), le Correcteur la relit à l'aveugle (même requête qu'une relecture), puis un juge compare les deux relectures
-  sous les noms A / B tirés au sort (il ne sait pas laquelle vient de l'IA). Une comparaison n'écrit jamais dans Ghost, ne refait aucun
+  sous les noms A / B, en alternance d'une comparaison à l'autre (il ne sait pas laquelle vient de l'IA). Une comparaison n'écrit jamais dans Ghost, ne refait aucun
   graphique et n'apparaît jamais dans « Prêtes à valider ». Suivi par le même `tic`, après les relectures et sans pouvoir les bloquer ;
   contrôle du lundi matin réglable (`comparaison_auto` dans `wl_reglages`, désactivé par défaut). Page : section du bureau du Correcteur
   et bouton « ⚖️ Comparer à la journaliste » des articles publiés. Tests hors ligne : `deno test supabase/functions/wl-relecture/comparaison_test.ts`.

@@ -8,7 +8,7 @@
 //     attribué à celui qui l'a écrit (historique des versions) : ce qu'ont changé le rédacteur en chef ou les automates entre-temps
 //     est « hors match », ni pour ni contre elle.
 //  3. Le CORRECTEUR relit la version d'origine sans rien voir de ce travail (relecture normale, jamais poussée dans Ghost).
-//  4. Un JUGE reçoit les deux relectures sous les noms « Relecture A » et « Relecture B », tirés au sort : il ne sait pas laquelle
+//  4. Un JUGE reçoit les deux relectures sous les noms « Relecture A » et « Relecture B », en alternance : il ne sait pas laquelle
 //     vient de l'IA. Il vérifie sur le web les faits que l'une ou l'autre a changés, note chacune et dit qui a fait le meilleur travail.
 // deno-lint-ignore-file no-explicit-any
 import { type Bloc, court } from "./blocs.ts";

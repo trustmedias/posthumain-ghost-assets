@@ -703,8 +703,8 @@ async function valider(b: any, me: Membre) {
 //  - comparer { post_id } (bouton du rédacteur en chef, ou tirage du lundi) : version d'origine de l'Usine = première version de
 //    l'historique Ghost (raison « initial_revision ») ; le travail de la journaliste = ce qu'elle a changé jusqu'à sa dernière version.
 //  - statut « relecture » : le Correcteur relit la version d'origine À L'AVEUGLE (même requête qu'une relecture normale, par lot).
-//  - statut « jugement » : un juge (Opus 5.5, effort élevé, vérifications web) reçoit les deux relectures sous les noms A et B tirés
-//    au sort, sans savoir laquelle vient de l'IA. Verdict + notes + constats → statut « prete », notification au rédacteur en chef.
+//  - statut « jugement » : un juge (Opus 5.5, effort élevé, vérifications web) reçoit les deux relectures sous les noms A et B, en
+//    alternance d'une comparaison à l'autre, sans savoir laquelle vient de l'IA. Verdict + notes + constats → statut « prete », notification au rédacteur en chef.
 //  - suivi par le tic, après les relectures ; lots seulement (pas de relais direct : rien ne presse), abandon au bout de 26 h.
 type CmpAuto = { actif: boolean; nombre: number };
 async function lireCmpAuto(): Promise<CmpAuto> {
@@ -829,7 +829,9 @@ async function avancerComparaison(row: any, msg: any): Promise<string> {
     const nouveau = (v: unknown, avant: string, max: number) => { const x = court(v && typeof v === "object" ? (v as { nouveau?: string }).nouveau : "", max); return x && x !== avant ? x : ""; };
     const ia = { resume: court(o.resume, 800), titre: nouveau(o.titre, String(m.titre || ""), 200), extrait: nouveau(o.extrait, String(m.extrait || ""), 300), corrections: n.corrections, insertions: n.insertions,
       stats: { tours: Number(row.tours) + 1, recherches: Number(msg.usage?.server_tool_use?.web_search_requests || 0), pages: contenu.filter((c) => c.type === "server_tool_use" && c.name === "web_fetch").length } };
-    const ordre: Ordre = Math.random() < 0.5 ? "ia_A" : "ia_B";
+    // A / B en alternance d'une comparaison à l'autre (26/11/2026) : au tirage au sort, l'IA a été « A » cinq fois de suite sur les cinq
+    // premiers essais. L'alternance garantit que le bilan ne dépend pas d'une préférence du juge pour l'une des deux places.
+    const ordre: Ordre = Number(row.id) % 2 === 0 ? "ia_B" : "ia_A";
     const suivante = { ...row, ia, ordre };
     const batch = await soumettre(row.id, 0, await paramsCmp(suivante, "jugement", await messagesCmp(suivante, "jugement")), "cmpj");
     await db.from("wl_comparaisons").update({ statut: "jugement", ia, ordre, batch_id: batch, tours: 0, suite: null, cout_eur: cout, updated_at: now }).eq("id", row.id);

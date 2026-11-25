@@ -3112,7 +3112,7 @@
   // ================= ⚖️ IA contre la journaliste (25/11/2026 ; wl-relecture « comparer », comparaison.ts) =================
   // Demande de Jonathan (25/10/2026) : mesurer avec le temps si le Correcteur relit aussi bien que la journaliste les articles sortis de
   // l'Usine. Le Correcteur relit la version d'origine (historique Ghost) sans voir le travail de la journaliste ; un juge compare les deux
-  // relectures à l'aveugle (noms A / B tirés au sort). Rien n'est écrit dans Ghost. Rédacteur en chef seulement : bureau du Correcteur
+  // relectures à l'aveugle (noms A / B en alternance). Rien n'est écrit dans Ghost. Rédacteur en chef seulement : bureau du Correcteur
   // (bilan cumulé, détail, contrôle du lundi) et bouton « ⚖️ Comparer à la journaliste » des articles publiés.
   var CMP_ST = { relecture: ['', '⏳ relecture à l’aveugle…'], jugement: ['', '⏳ chez le juge…'], prete: ['g', '✅ terminée'], erreur: ['r', '⚠️ erreur'] };
   var CMP_CRIT = [['faits', 'Faits'], ['sources', 'Sources'], ['style', 'Style'], ['lisibilite', 'Lisibilité'], ['globale', 'Note globale']];
