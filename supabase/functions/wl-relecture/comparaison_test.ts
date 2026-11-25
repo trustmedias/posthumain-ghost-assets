@@ -80,6 +80,9 @@ Deno.test("mapperVerdict : les lettres deviennent les vrais noms", () => {
   eq([w.gagnant, w.notes.ia.faits, w.points[0].type], ["journaliste", 3, "erreur_corrigee_journaliste"], "ordre inverse : A = journaliste");
   vrai(w.resume.startsWith("La relecture de la journaliste corrige"), "sans nom : « la journaliste »");
   eq(mapperVerdict({ gagnant: "bof" }, "ia_A", "V").gagnant, "egalite", "verdict illisible = égalité");
+  const seul = (t: string, ordre: "ia_A" | "ia_B" = "ia_A") => mapperVerdict({ gagnant: "A", resume: t }, ordre, "Valisoa").resume;
+  eq(seul("B a retiré quelques virgules. A a corrigé la date, contre B."), "La relecture de Valisoa a retiré quelques virgules. La relecture du Correcteur a corrigé la date, contre la relecture de Valisoa.", "lettres seules remplacées");
+  eq(seul("A Dallas, le service a démarré ; le plan B reste flou. Avantage à A."), "A Dallas, le service a démarré ; le plan B reste flou. Avantage à la relecture du Correcteur.", "« A Dallas » et « le plan B » ne sont pas touchés");
 });
 
 Deno.test("bilan : victoires, moyennes, tendance sur 30 jours", () => {

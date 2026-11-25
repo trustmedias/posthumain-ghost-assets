@@ -3146,7 +3146,7 @@
   }
   function cmpLancer(postId) {
     var a = D().articles.filter(function (x) { return x.id === postId; })[0], t = a ? a.titre : 'cet article', ck = S.clicking;
-    return confirmer('Comparer la relecture de la journaliste à celle de l’IA ?\n\n« ' + t + ' »\n\nLe Correcteur relit la version d’origine de l’Usine sans voir le travail de la journaliste, puis un juge compare les deux relectures à l’aveugle. Environ 2,50 € par article ; le résultat arrive en général dans l’heure, avec une notification. Rien n’est modifié dans Ghost.').then(function (ok) {
+    return confirmer('Comparer la relecture de la journaliste à celle de l’IA ?\n\n« ' + t + ' »\n\nLe Correcteur relit la version d’origine de l’Usine sans voir le travail de la journaliste, puis un juge compare les deux relectures à l’aveugle. Environ 2 € par article ; le résultat arrive en général dans l’heure, avec une notification. Rien n’est modifié dans Ghost.').then(function (ok) {
       if (!ok) return null;
       S.clicking = ck;
       return rlApi({ action: 'comparer', post_id: postId }).then(function (r) {
@@ -3179,7 +3179,7 @@
     var A = S.cmpAuto || (S.cmpAuto = { actif: !!a.actif, nombre: Number(a.nombre) || 2 });
     return '<div class="rl-auto" style="margin-top:10px"><label class="mb-chk"><input type="checkbox" id="cmp-auto-on"' + (A.actif ? ' checked' : '') + '> Contrôle du lundi : comparer seul des articles de la semaine</label>' +
       '<label class="rl-h" style="margin-top:8px">Articles par semaine <select class="in" id="cmp-auto-n" style="width:auto">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (A.nombre === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>' +
-      '<p class="cz-s">Chaque lundi matin, des articles publiés dans les 7 derniers jours, relus par la journaliste et jamais comparés, sont tirés au hasard (environ 2,50 € par article). Vous recevez une notification à chaque comparaison terminée.</p>' +
+      '<p class="cz-s">Chaque lundi matin, des articles publiés dans les 7 derniers jours, relus par la journaliste et jamais comparés, sont tirés au hasard (environ 2 € par article). Vous recevez une notification à chaque comparaison terminée.</p>' +
       '<button class="btn small go" data-act="cmp-auto">💾 Enregistrer</button></div>';
   }
   // section du bureau du Correcteur

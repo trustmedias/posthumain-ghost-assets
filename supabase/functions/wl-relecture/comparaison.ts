@@ -136,7 +136,7 @@ export function systemeJuge(): string {
       "Les différences de pur goût (deux formulations également bonnes) ne départagent pas : dans ce cas, « egalite ».",
     ].map((x) => "- " + x).join("\n"),
     "NOTES : pour chaque relecture, de 0 à 10, sur les faits, les sources, le style, la lisibilité, puis une note globale (les faits pèsent le plus). 5 = l'article n'est ni meilleur ni pire qu'avant ; au-dessus, la relecture l'a amélioré ; au-dessous, elle l'a abîmé.",
-    "DANS TES TEXTES (résumé, explications, limites), désigne toujours les deux relectures par les mots exacts « Relecture A » et « Relecture B » : ils seront remplacés par les vrais noms après ton verdict.",
+    "DANS TES TEXTES (résumé, explications, limites), désigne toujours les deux relectures par les mots exacts « Relecture A » et « Relecture B », jamais « A » ou « B » tout seuls : ils seront remplacés par les vrais noms après ton verdict.",
   ].join("\n\n");
 }
 const bloc = (c: Changement, k: number) => "Passage " + (k + 1) + "\nAVANT : " + (c.avant || "(rien : passage ajouté)") + "\nAPRÈS : " + (c.apres || "(passage supprimé)");
@@ -170,7 +170,12 @@ const notes = (o: Any): Notes => ({ faits: note(o?.faits), sources: note(o?.sour
 export function mapperVerdict(o: Any, ordre: Ordre, nomJournaliste: string): Verdict {
   const iaEst = ordre === "ia_A" ? "A" : "B", qui = (lettre: string) => (lettre === iaEst ? "ia" : "journaliste");
   // « la Relecture A » → « la relecture du Correcteur » / « la relecture de <journaliste> » (l'article « la » est ajouté s'il manque)
-  const noms = (s: unknown, n: number) => court(s, n).replace(/(\bla\s+)?\brelecture ([AB])\b/gi, (_m, _art, l) => "la relecture " + (String(l).toUpperCase() === iaEst ? "du Correcteur" : "de " + (nomJournaliste || "la journaliste")))
+  // Le juge écrit parfois « A » ou « B » tout court : remplacés seulement là où la lettre désigne sans doute une relecture (après
+  // « de », « par », « à »…, ou en tête de phrase devant un verbe), jamais ailleurs (« A Dallas », « le plan B »).
+  const nomDe = (l: string) => "la relecture " + (l.toUpperCase() === iaEst ? "du Correcteur" : "de " + (nomJournaliste || "la journaliste"));
+  const noms = (s: unknown, n: number) => court(s, n).replace(/(\bla\s+)?\brelecture ([AB])\b/gi, (_m, _art, l) => nomDe(String(l)))
+    .replace(/(^|[\s(«])(de|par|que|et|ou|chez|pour|comme|contre|à) ([AB])(?=$|[\s,.;:!?)»])/g, (_m, a, mot, l) => a + mot + " " + nomDe(l))
+    .replace(/(^|[.!?:;]\s+)([AB])(?= (?:a|et|ou|n’a|n'a|est|corrige|laisse|ajoute|remplace|retire|garde|règle|fait|perd) )/g, (_m, a, l) => a + nomDe(l))
     .replace(/(^|[.!?:]\s+)(la relecture d)/g, (_m, a) => a + "La relecture d");
   const g = String(o?.gagnant || "");
   const points = (Array.isArray(o?.points) ? o.points : []).slice(0, 25).map((p: Any) => {

@@ -32,7 +32,7 @@ const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
 const MODELE = "claude-opus-5-5";
-const TARIF_LOT = { in: 2.5, out: 12.5, cw: 3.125, cr: 0.25, web: 0.01 }; // USD (moitié du tarif Opus en traitement par lot), recherche web 10 $ / 1000
+const TARIF_LOT = { in: 2, out: 10, cw: 2.5, cr: 0.1, web: 0.01 }; // USD par million : moitié du tarif d'Opus 5.5 (4 $ / 20 $, cache 5 $ / 0,20 $) en traitement par lot ; recherche web 10 $ / 1000. Corrigé le 25/11/2026 : c'était encore le tarif d'Opus 4.8, les coûts affichés étaient surestimés d'environ 20 %.
 const ghostUrl = () => (env("GHOST_ADMIN_API_URL") || "https://the-last-journal.ghost.io").replace(/\/+$/g, "");
 const txt = (v: unknown, max: number) => String(v ?? "").slice(0, max);
 
