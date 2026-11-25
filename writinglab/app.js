@@ -937,7 +937,7 @@
       (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + finiTag(a) + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
       '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) || n || prepEtat(a.id) ? '<div style="margin-top:8px">' + btnMails(a.id) + '</div>' : '') +
       (a.mien && !D().me.chef && a.statut !== 'published' && S.marbre && S.marbre.ok ? '<div style="margin-top:8px">' + finiBtn(a.id, finiDe(a.id)) + '</div>' : '') +
-      (D().me.chef ? '<div style="margin-top:8px">' + rlBouton(a.id) + ' ' + cvBouton(a.id, a.statut, a.visibilite) + '</div>' : '') + '</div></div></div>';
+      (D().me.chef ? '<div style="margin-top:8px">' + rlBouton(a.id) + ' ' + cvBouton(a.id, a.statut, a.visibilite) + ' ' + cmpBouton(a.id, a.statut) + '</div>' : '') + '</div></div></div>';
   }
   // Onglet Articles (23/10/2026) : « Tous les brouillons » listait aussi les publiés. Trois onglets compacts (brouillons, programmés,
   // publiés) et une recherche qui filtre les trois (titre, auteur).
@@ -3109,6 +3109,156 @@
   // tant qu'une relecture tourne et que son bureau (ou le Marbre) est ouvert : nouvelle lecture toutes les 30 s
   function rlSuivre() { clearTimeout(S.rlT); S.rlT = setTimeout(function () { if (!document.hidden && (S.panel === 'correcteur' || S.panel === 'marbre' || S.rlD)) chargerRelectures(); }, 30000); }
   function rlDe(postId) { return ((S.rl && S.rl.relectures) || []).filter(function (x) { return x.post_id === postId && x.mode !== 'actu_premium' && x.statut !== 'ecartee'; })[0] || null; }
+  // ================= ⚖️ IA contre la journaliste (25/11/2026 ; wl-relecture « comparer », comparaison.ts) =================
+  // Demande de Jonathan (25/10/2026) : mesurer avec le temps si le Correcteur relit aussi bien que la journaliste les articles sortis de
+  // l'Usine. Le Correcteur relit la version d'origine (historique Ghost) sans voir le travail de la journaliste ; un juge compare les deux
+  // relectures à l'aveugle (noms A / B tirés au sort). Rien n'est écrit dans Ghost. Rédacteur en chef seulement : bureau du Correcteur
+  // (bilan cumulé, détail, contrôle du lundi) et bouton « ⚖️ Comparer à la journaliste » des articles publiés.
+  var CMP_ST = { relecture: ['', '⏳ relecture à l’aveugle…'], jugement: ['', '⏳ chez le juge…'], prete: ['g', '✅ terminée'], erreur: ['r', '⚠️ erreur'] };
+  var CMP_CRIT = [['faits', 'Faits'], ['sources', 'Sources'], ['style', 'Style'], ['lisibilite', 'Lisibilité'], ['globale', 'Note globale']];
+  var CMP_TYPES = [['erreur_introduite', '🔴 Erreurs introduites'], ['erreur_corrigee', '✅ Erreurs corrigées'], ['erreur_manquee', '🕳️ Erreurs que personne n’a vues'], ['amelioration', '✨ Améliorations'], ['apport_propre', '🎙️ Apports propres (hors match)']];
+  function cmpNote(v) { return v == null ? '–' : String(Number(v).toFixed(1)).replace('.', ','); }
+  function cmpEur(v) { return String(Number(v).toFixed(2)).replace('.', ',') + ' €'; }
+  function cmpEcart(v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + String(Math.abs(Number(v)).toFixed(1)).replace('.', ','); }
+  function cmpNom(x) { return (x && x.journaliste_nom) || 'la journaliste'; }
+  function cmpGagnant(x) { return x.gagnant === 'ia' ? '🤖 avantage au Correcteur (IA)' : x.gagnant === 'journaliste' ? '✍️ avantage à ' + cmpNom(x) : '🤝 égalité'; }
+  function chargerComparaisons() {
+    if (!D().me.chef) return null;
+    if (S.cmpLd) return S.cmpLd;
+    S.cmpLd = rlApi({ action: 'comparaisons' }).then(function (r) {
+      S.cmpLd = null;
+      if (r && r.ok) S.cmp = r; else if (!S.cmp || !S.cmp.comparaisons) S.cmp = { erreur: (r && r.why) || 'lecture impossible' };
+      if (S.panel === 'correcteur') paintPanel();
+      if ((S.cmp.comparaisons || []).some(function (x) { return x.statut === 'relecture' || x.statut === 'jugement'; })) cmpSuivre();
+    }, function () { S.cmpLd = null; });
+    return S.cmpLd;
+  }
+  // tant qu'une comparaison tourne et que le bureau du Correcteur est ouvert : nouvelle lecture chaque minute
+  function cmpSuivre() { clearTimeout(S.cmpT); S.cmpT = setTimeout(function () { if (!document.hidden && S.panel === 'correcteur') chargerComparaisons(); }, 60000); }
+  function cmpDe(postId) { return ((S.cmp && S.cmp.comparaisons) || []).filter(function (x) { return x.post_id === postId; })[0] || null; }
+  // bouton ou état de comparaison d'un article publié (onglet Articles, bureau du Correcteur)
+  function cmpBouton(postId, statut) {
+    if (!D().me.chef || !postId || statut !== 'published') return '';
+    var x = cmpDe(postId);
+    if (x && (x.statut === 'relecture' || x.statut === 'jugement')) return '<span class="tag">⚖️ comparaison en cours…</span>';
+    if (x && x.statut === 'prete') return '<button class="btn small" data-act="cmp-voir" data-id="' + x.id + '">⚖️ Voir la comparaison</button>';
+    return '<button class="btn small" data-act="cmp-lancer" data-id="' + esc(postId) + '" title="Le Correcteur relit la version d’origine à l’aveugle, puis un juge compare les deux relectures">⚖️ Comparer à la journaliste</button>';
+  }
+  function cmpLancer(postId) {
+    var a = D().articles.filter(function (x) { return x.id === postId; })[0], t = a ? a.titre : 'cet article', ck = S.clicking;
+    return confirmer('Comparer la relecture de la journaliste à celle de l’IA ?\n\n« ' + t + ' »\n\nLe Correcteur relit la version d’origine de l’Usine sans voir le travail de la journaliste, puis un juge compare les deux relectures à l’aveugle. Environ 2,50 € par article ; le résultat arrive en général dans l’heure, avec une notification. Rien n’est modifié dans Ghost.').then(function (ok) {
+      if (!ok) return null;
+      S.clicking = ck;
+      return rlApi({ action: 'comparer', post_id: postId }).then(function (r) {
+        if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'comparaison impossible'), true); return r; }
+        if (r.deja === 'prete') { toast('⚖️ Cet article a déjà été comparé.'); cmpOuvrir(r.id); }
+        else toast(r.deja ? '⚖️ La comparaison de cet article est déjà en cours.' : '⚖️ Comparaison lancée : résultat en général dans l’heure, avec une notification.');
+        chargerComparaisons(); return r;
+      });
+    });
+  }
+  // notes côte à côte (IA / journaliste)
+  function cmpTableau(a, j, nom) {
+    var c = function (t, gras, droite) { return '<div style="' + (droite ? 'text-align:right;' : '') + (gras ? 'font-weight:700' : '') + '">' + t + '</div>'; };
+    return '<div style="display:grid;grid-template-columns:1fr auto auto;gap:5px 16px;margin:10px 0;font-size:14.5px">' + c('', false) + c('🤖 IA', true, true) + c('✍️ ' + esc(nom), true, true) +
+      CMP_CRIT.map(function (k) { var g = k[0] === 'globale'; return c(k[1], g) + c(cmpNote(a && a[k[0]]), g, true) + c(cmpNote(j && j[k[0]]), g, true); }).join('') + '</div>';
+  }
+  function cmpCarte(x) {
+    var st = CMP_ST[x.statut] || ['', x.statut];
+    return '<div class="cz-l rl-l">' + (x.image ? '<img class="mb-img" loading="lazy" alt="" src="' + esc(x.image) + '">' : '') + '<div class="rd-t">' + esc(x.titre) + '</div>' +
+      '<div class="cz-s"><span class="tag ' + st[0] + '">' + st[1] + '</span>' + (x.auto ? ' <span class="tag">⏰ contrôle du lundi</span>' : '') +
+      (x.statut === 'prete' ? ' <span class="tag ' + (x.gagnant === 'ia' ? 'b' : x.gagnant === 'journaliste' ? 'a' : '') + '">' + esc(cmpGagnant(x)) + '</span>' + (x.notes ? ' · IA ' + cmpNote(x.notes.ia.globale) + ' / journaliste ' + cmpNote(x.notes.journaliste.globale) : '') : '') +
+      ' · ' + esc(when(x.maj || x.cree)) + (x.cout_eur ? ' · ' + cmpEur(x.cout_eur) : '') + '</div>' +
+      (x.erreur && x.statut === 'erreur' ? '<div class="cz-s" style="color:#ffb3bf">' + esc(x.erreur) + '</div>' : '') + (x.resume && x.statut === 'prete' ? '<div class="rd-a">' + esc(x.resume) + '</div>' : '') +
+      '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' +
+      (x.statut === 'prete' ? '<button class="btn small go" data-act="cmp-voir" data-id="' + x.id + '">⚖️ Voir le détail</button>' : '') +
+      (x.statut === 'erreur' ? '<button class="btn small" data-act="cmp-lancer" data-id="' + esc(x.post_id) + '">🔁 Relancer</button>' : '') +
+      '<button class="btn small" data-act="cmp-ecarter" data-id="' + x.id + '">🗑️ Écarter</button></div></div>';
+  }
+  function cmpAutoHTML(a) {
+    var A = S.cmpAuto || (S.cmpAuto = { actif: !!a.actif, nombre: Number(a.nombre) || 2 });
+    return '<div class="rl-auto" style="margin-top:10px"><label class="mb-chk"><input type="checkbox" id="cmp-auto-on"' + (A.actif ? ' checked' : '') + '> Contrôle du lundi : comparer seul des articles de la semaine</label>' +
+      '<label class="rl-h" style="margin-top:8px">Articles par semaine <select class="in" id="cmp-auto-n" style="width:auto">' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (A.nombre === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></label>' +
+      '<p class="cz-s">Chaque lundi matin, des articles publiés dans les 7 derniers jours, relus par la journaliste et jamais comparés, sont tirés au hasard (environ 2,50 € par article). Vous recevez une notification à chaque comparaison terminée.</p>' +
+      '<button class="btn small go" data-act="cmp-auto">💾 Enregistrer</button></div>';
+  }
+  // section du bureau du Correcteur
+  function cmpSectionHTML() {
+    var C = S.cmp, h = '<div class="cz-t">⚖️ IA contre la journaliste</div>';
+    if (!C) { chargerComparaisons(); return h + '<p class="muted">Lecture des comparaisons…</p>'; }
+    if (C.erreur) return h + '<p class="muted">⚠️ ' + esc(C.erreur) + '</p><button class="btn small" data-act="cmp-actu">🔄 Réessayer</button>';
+    var L = C.comparaisons || [], B = C.bilan || { n: 0 };
+    h += '<p class="cz-s">Le Correcteur relit la version d’origine de l’Usine sans voir le travail de la journaliste, puis un juge compare les deux relectures sans savoir laquelle est laquelle. Rien n’est modifié dans Ghost.</p>';
+    if (B.n) {
+      var T = B.tendance || {}, r = T.recent || {}, av = T.avant || {};
+      h += '<div class="rl-auto"><div class="rd-t">Sur ' + B.n + ' article' + pl(B.n) + ' comparé' + pl(B.n) + ' : 🤖 IA ' + B.ia + ' · ✍️ journaliste ' + B.journaliste + ' · 🤝 égalité ' + B.egalite + '</div>' +
+        cmpTableau(B.moyennes.ia, B.moyennes.journaliste, 'Journaliste') +
+        (r.n && r.ecart != null ? '<div class="cz-s">30 derniers jours (' + r.n + ' article' + pl(r.n) + ') : note globale de l’IA à ' + cmpEcart(r.ecart) + ' point de celle de la journaliste' + (av.n && av.ecart != null ? ', contre ' + cmpEcart(av.ecart) + ' les 30 jours d’avant' : '') + '.</div>' : '') +
+        (B.n < 5 ? '<div class="cz-s">Encore peu d’articles : attendez-en au moins cinq avant de conclure.</div>' : '') + '</div>';
+    } else h += '<p class="muted">Aucune comparaison terminée pour l’instant.</p>';
+    var cours = L.filter(function (x) { return x.statut === 'relecture' || x.statut === 'jugement'; }), finies = L.filter(function (x) { return x.statut === 'prete' || x.statut === 'erreur'; });
+    if (cours.length) h += cours.map(cmpCarte).join('') + '<p class="cz-s">Une comparaison prend en général moins d’une heure (la relecture à l’aveugle, puis le juge). Vous recevez une notification à la fin.</p>';
+    h += finies.slice(0, 12).map(cmpCarte).join('');
+    var pubs = artsRecents().filter(function (a) { return a.statut === 'published' && !cmpDe(a.id); }).slice(0, 8);
+    if (pubs.length) h += '<details class="cz-d"><summary>📰 Comparer un article publié (' + pubs.length + ')</summary>' + pubs.map(function (a) {
+      return '<div class="cz-l rl-l"><div class="rd-t">' + esc(a.titre) + '</div><div class="cz-s">' + esc((a.auteurs || []).join(', ')) + ' · publié ' + esc(when(a.publie_le)) + '</div><div class="row" style="gap:6px;margin-top:6px">' + cmpBouton(a.id, a.statut) + '</div></div>';
+    }).join('') + '</details>';
+    return h + cmpAutoHTML(C.auto || { actif: false, nombre: 2 });
+  }
+  // ---------- Écran d'une comparaison ----------
+  function cmpOuvrir(id) {
+    cmpFermer(true);
+    var D0 = S.cmpD = { id: Number(id), retour: document.activeElement };
+    var bg = document.createElement('div'); bg.className = 'if-bg rl-bg';
+    bg.innerHTML = '<div class="if rl" role="dialog" aria-modal="true" aria-label="Comparaison"><p class="muted">Chargement de la comparaison…</p></div>';
+    D0.bg = bg; S.root.appendChild(bg);
+    requestAnimationFrame(function () { bg.classList.add('on'); });
+    rlApi({ action: 'comparaison', id: D0.id }).then(function (r) {
+      if (S.cmpD !== D0) return;
+      D0.bg.querySelector('.rl').innerHTML = r && r.ok ? cmpHTML(r.comparaison) : '<button class="if-x" data-act="cmp-fermer" aria-label="Fermer">✕</button><p>⚠️ ' + esc((r && r.why) || 'lecture impossible') + '</p><div style="height:20px"></div>';
+    });
+  }
+  function cmpFermer(silencieux) {
+    var D0 = S.cmpD; if (!D0) return; S.cmpD = null;
+    if (D0.bg && D0.bg.parentNode) D0.bg.parentNode.removeChild(D0.bg);
+    if (!silencieux && D0.retour && D0.retour.focus && document.contains(D0.retour)) { try { D0.retour.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function cmpPassages(titre, l) {
+    return '<details class="cz-d"><summary>' + titre + ' (' + l.length + ')</summary>' + (l.length ? l.map(function (c) {
+      var av = rlTxt(c.avant), ap = rlTxt(c.apres);
+      return '<div class="rl-i"><div class="rl-d">' + (av && ap ? rlDiff(av, ap) : ap ? '<ins>' + esc(ap).replace(/\n/g, '<br>') + '</ins>' : '<del>' + esc(av).replace(/\n/g, '<br>') + '</del>') + '</div>' +
+        (c.par === 'mixte' ? '<div class="cz-s">Passage aussi retouché par quelqu’un d’autre de la rédaction.</div>' : '') + '</div>';
+    }).join('') : '<p class="muted">Aucun passage modifié.</p>') + '</details>';
+  }
+  function cmpHTML(x) {
+    var V = x.verdict || {}, m = x.meta || {}, H = x.humain || {}, I = x.ia || {}, nom = cmpNom(x), fin = '<div style="height:20px"></div>';
+    var h = '<button class="if-x" data-act="cmp-fermer" aria-label="Fermer">✕</button><div class="if-k0">⚖️ IA contre la journaliste' + (x.auto ? ' · contrôle du lundi' : '') + '</div><h2 class="rl-ti">' + esc(x.titre) + '</h2>' +
+      '<div class="cz-s">' + esc(when(x.created_at)) + (x.cout_eur ? ' · ' + cmpEur(x.cout_eur) : '') + (m.url ? ' · <a href="' + url(m.url) + '" target="_blank" rel="noopener">👁️ Article</a>' : '') + '</div>';
+    if (x.statut !== 'prete') return h + '<p class="rl-res">' + (x.statut === 'erreur' ? '⚠️ ' + esc(x.erreur || 'erreur') : x.statut === 'ecartee' ? 'Comparaison écartée.' : '⏳ Comparaison en cours : ' + (x.statut === 'jugement' ? 'les deux relectures sont chez le juge.' : 'le Correcteur relit la version d’origine.')) + '</p>' + fin;
+    h += '<div class="rl-ok">🏆 ' + (V.gagnant === 'ia' ? 'Avantage au Correcteur (IA)' : V.gagnant === 'journaliste' ? 'Avantage à ' + esc(nom) : 'Égalité') + '</div>';
+    if (V.resume) h += '<p class="rl-res">' + esc(V.resume) + '</p>';
+    if (V.notes) h += cmpTableau(V.notes.ia, V.notes.journaliste, nom);
+    var P = V.points || [];
+    CMP_TYPES.forEach(function (ty) {
+      var l = P.filter(function (p) { return String(p.type).indexOf(ty[0]) === 0; });
+      if (!l.length) return;
+      h += '<h3 class="if-t2">' + ty[1] + ' (' + l.length + ')</h3>' + l.map(function (p) {
+        var ia = /_ia$/.test(p.type), jo = /_journaliste$/.test(p.type);
+        return '<div class="rl-i"><div class="rl-tags" style="margin-left:0"><span class="tag ' + (ia ? 'b' : jo ? 'a' : '') + '">' + (ia ? '🤖 IA' : jo ? '✍️ ' + esc(nom) : ty[0] === 'erreur_manquee' ? 'ni l’un ni l’autre' : '🤖 + ✍️ les deux') + '</span>' +
+          '<span class="tag ' + (p.gravite === 'grave' ? 'r' : '') + '">' + (p.gravite === 'grave' ? 'grave' : p.gravite === 'legere' ? 'léger' : 'moyen') + '</span></div>' +
+          (p.passage ? '<div class="rl-d">« ' + esc(p.passage) + ' »</div>' : '') + '<div style="margin-top:6px;font-size:14px;line-height:1.5">' + esc(p.explication) + '</div>' + rlLiens(p.source ? [p.source] : []) + '</div>';
+      }).join('');
+    });
+    var hj = (H.changements || []).filter(function (c) { return c.par !== 'autre'; }), hors = (H.changements || []).filter(function (c) { return c.par === 'autre'; });
+    h += '<h3 class="if-t2">📝 Ce que chacun a changé</h3>';
+    if (I.titre) h += '<div class="cz-s">🤖 Titre proposé par l’IA : « ' + esc(I.titre) + ' »</div>';
+    if (H.titre && H.titre.par !== 'autre') h += '<div class="cz-s">✍️ Titre de ' + esc(nom) + ' : « ' + esc(H.titre.apres) + ' »</div>';
+    if (m.titre) h += '<div class="cz-s">Titre d’origine : « ' + esc(m.titre) + ' »</div>';
+    h += cmpPassages('🤖 Passages changés par le Correcteur', I.changements || []) + cmpPassages('✍️ Passages changés par ' + esc(nom), hj) + (hors.length ? cmpPassages('➖ Hors match : passages changés par d’autres', hors) : '');
+    if (V.limites) h += '<p class="cz-s" style="margin-top:10px">Limites signalées par le juge : ' + esc(V.limites) + '</p>';
+    h += '<p class="cz-s" style="margin-top:10px">Le juge a comparé les deux relectures à l’aveugle (sans savoir laquelle venait de l’IA) et vérifié sur le web les faits modifiés. Les apports propres (citations d’interview, informations obtenues directement) ne comptent pas dans les notes : on compare deux relectures, pas deux enquêtes.</p>';
+    return h + '<div class="row" style="gap:6px;margin-top:10px"><button class="btn small" data-act="cmp-ecarter" data-id="' + x.id + '">🗑️ Écarter du bilan</button></div>' + fin;
+  }
   // ---------- Conversion d'une actu en ACTU PREMIUM (02/11/2026, demande de Jonathan ; wl-relecture « convertir », premium.ts) ----------
   // Brouillons et articles programmés seulement (un article publié a déjà été envoyé en entier aux inscrits gratuits). Le Correcteur
   // enrichit la section finale avec les sources déjà citées, choisit la coupure et la phrase d'amorce ; rien ne change dans Ghost avant
@@ -3175,6 +3325,7 @@
     }).join('') : '<p class="muted">Tous les brouillons récents ont une relecture.</p>');
     var faites = L.filter(function (x) { return x.statut === 'validee' || x.statut === 'ecartee' || x.statut === 'erreur'; }).slice(0, 10);
     if (faites.length) h += '<details class="cz-d"><summary>🗂️ Historique (' + faites.length + ')</summary>' + faites.map(rlCarte).join('') + '</details>';
+    h += cmpSectionHTML();
     h += rlAutoHTML(R.auto || { actif: false, jours: [1], heure: '13:00' });
     if (R.skill) h += '<p class="cz-s" style="margin-top:10px">Skill utilisé : ' + esc(R.skill) + '</p>';
     return h + '</div>';
@@ -5502,6 +5653,19 @@
       case 'rl-fermer': rlFermer(); break;
       case 'rl-valider': rlValider(); break;
       case 'rl-tout': rlToutValider(); break;
+      case 'cmp-actu': chargerComparaisons(); break;
+      case 'cmp-lancer': masquerTip(); cmpLancer(id); break;
+      case 'cmp-voir': masquerTip(); cmpOuvrir(id); break;
+      case 'cmp-fermer': cmpFermer(); break;
+      case 'cmp-ecarter':
+        var ckC = S.clicking;
+        confirmer('Écarter cette comparaison ?\n\nElle ne comptera plus dans le bilan. Rien n’est modifié dans Ghost.').then(function (ok) { if (!ok) return; S.clicking = ckC;
+          rlApi({ action: 'comparaison_ecarter', id: Number(id) }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } if (S.cmpD && String(S.cmpD.id) === String(id)) cmpFermer(); toast('🗑️ Comparaison écartée.'); chargerComparaisons(); });
+        });
+        break;
+      case 'cmp-auto':
+        if (S.cmpAuto) rlApi({ action: 'comparaison_reglage', actif: !!S.cmpAuto.actif, nombre: S.cmpAuto.nombre }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); return; } S.cmpAuto = null; if (S.cmp) S.cmp.auto = r.auto; paintPanel(); toast(r.auto.actif ? '⚖️ Contrôle du lundi enregistré : ' + r.auto.nombre + ' article' + pl(r.auto.nombre) + ' par semaine.' : '⚖️ Contrôle du lundi désactivé.'); });
+        break;
       case 'rl-cocher':
         if (S.rlD && S.rlD.data) { var on13 = id === '1', R13 = S.rlD.data.resultat || {}, C13 = S.rlD.choix; (R13.corrections || []).forEach(function (_, k) { C13.c[k] = on13; }); (R13.insertions || []).forEach(function (_, k) { C13.i[k] = on13; }); (S.rlD.data.graphes || []).forEach(function (g) { if (g.statut === 'pret') C13.g[g.k] = on13; }); C13.extrait = on13 && !!R13.extrait; C13.meta_title = on13 && !!R13.meta_title; C13.meta_description = on13 && !!R13.meta_description; if (!on13) C13.titre = 'avant'; else if (R13.titre) C13.titre = 'nouveau'; rlPeindre(); }
         break;
@@ -6005,6 +6169,8 @@
     if (t.hasAttribute && t.hasAttribute('data-rl') && S.rlD && S.rlD.choix) { var rk = t.getAttribute('data-rl').split('-'), C0 = S.rlD.choix; if (rk[0] === 'm') C0[rk.slice(1).join('_')] = !!t.checked; else C0[rk[0]][Number(rk[1])] = !!t.checked; if (e.type === 'change') rlPeindre(); return; }
     if (t.id === 'rl-auto-on' && S.rlAuto) { S.rlAuto.actif = !!t.checked; return; }
     if (t.id === 'rl-auto-h' && S.rlAuto) { S.rlAuto.heure = t.value; return; }
+    if (t.id === 'cmp-auto-on' && S.cmpAuto) { S.cmpAuto.actif = !!t.checked; return; }
+    if (t.id === 'cmp-auto-n' && S.cmpAuto) { S.cmpAuto.nombre = Number(t.value) || 2; return; }
     if (t.id === 'wl-msg') { S.msgDraft = t.value; if (t.value && Date.now() - (S.ecritEnv || 0) > 2000) { S.ecritEnv = Date.now(); rtEnvoyer('ecrit', {}); } return; }
     if (t.id === 'wl-tel-msg') { S.telVide = false; if (S.telP) { S.telP.brouillon = t.value; S.telBr = S.telBr || {}; S.telBr[S.telP.poste] = t.value; } return; }
     if (t.id === 'wl-ap-ok') { if (S.appel) { S.appel.consent = !!t.checked; var be = S.root.querySelector('[data-act="ap-ecouter"]'); if (be) be.disabled = !t.checked; } return; }
@@ -6217,7 +6383,7 @@
       rd.onload = function () { S.pj = { nom: f.name, type: f.type || 'application/octet-stream', taille: f.size, categorie: devinerCat(f), data: String(rd.result).split(',')[1] || '' }; majPj(); };
       rd.readAsDataURL(f);
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.consBloque) { e.preventDefault(); return; } if (e.key === 'Escape' && S.info) { e.preventDefault(); infoFermer(); return; } if (e.key === 'Escape' && S.rlD) { e.preventDefault(); rlFermer(); return; } if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) fermerDoc(); else closePanel(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.consBloque) { e.preventDefault(); return; } if (e.key === 'Escape' && S.info) { e.preventDefault(); infoFermer(); return; } if (e.key === 'Escape' && S.cmpD) { e.preventDefault(); cmpFermer(); return; } if (e.key === 'Escape' && S.rlD) { e.preventDefault(); rlFermer(); return; } if (e.key === 'Escape') { if (S.clsr) { S.clsr = false; majClasseur(); } else if (S.doc) fermerDoc(); else closePanel(); } });
     // Retour sur l'onglet : une seule relecture si la page n'a rien reçu depuis 5 minutes.
     document.addEventListener('visibilitychange', function () { if (!document.hidden && (S.rtAttente || Date.now() - S.last > 300000)) { S.rtAttente = false; refresh(true); } });
     // Temps réel : Supabase sonne (table wl_signal, sans aucune donnée) dès qu'un mail, une fiche ou un message change ;
