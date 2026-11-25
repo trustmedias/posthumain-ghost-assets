@@ -21,10 +21,11 @@
 // consignes du lundi sont dans wl_reglages (relecture_skill, relecture_guide, relecture_lundi, relecture_skill_version) : jamais dans
 // ce dépôt public. Ils sont recopiés AUTOMATIQUEMENT à chaque fusion sur main du dépôt du skill (GitHub Action, action skill_maj).
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import { parEmail, type Membre } from "./equipe.ts";
+import { equipe, parEmail, type Membre } from "./equipe.ts";
 import { contexteKb } from "./kb.ts";
 import { blocsPayants, extraitGuide, marquerCoupure, messageConversion, normaliserCoupure, OUTIL_CONVERSION, poserCoupure, raisonRefus, systemeConversion } from "./premium.ts";
 import { appliquer, blocPourIA, type Bloc, court, dimensionsImage, extraireBlocs, normaliserCorrections, remplacerImage } from "./blocs.ts";
+import { bilan, changementsHumains, changementsIA, mapperVerdict, messageJuge, nbChangementsJournaliste, type Ordre, OUTIL_VERDICT, type Revision, systemeJuge, textesDe } from "./comparaison.ts";
 
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
@@ -209,9 +210,9 @@ const anthropic = (path: string, init: RequestInit = {}, betas = "web-fetch-2025
   headers: { "x-api-key": env("ANTHROPIC_API_KEY"), "anthropic-version": "2023-06-01", "anthropic-beta": betas, "content-type": "application/json", ...(init.headers || {}) } });
 const BETAS_GRAPHIQUE = "code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14";
 const SKILL_GRAPHIQUES = "skill_01LUtaUvooE33Y3ptMEGKduQ"; // generate-charts (Skills API, version la plus récente : celle de l'Usine)
-async function soumettre(id: number, tour: number, params: unknown): Promise<string> {
+async function soumettre(id: number, tour: number, params: unknown, prefixe = "rl"): Promise<string> {
   if (!env("ANTHROPIC_API_KEY")) throw new Error("clé Anthropic absente");
-  const r = await anthropic("messages/batches", { method: "POST", body: JSON.stringify({ requests: [{ custom_id: "rl-" + id + "-" + tour, params }] }) });
+  const r = await anthropic("messages/batches", { method: "POST", body: JSON.stringify({ requests: [{ custom_id: prefixe + "-" + id + "-" + tour, params }] }) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.id) throw new Error("envoi au Correcteur refusé (" + r.status + ") : " + court(j?.error?.message, 200));
   return String(j.id);
@@ -696,6 +697,213 @@ async function valider(b: any, me: Membre) {
   throw new Error("Ghost a refusé l’enregistrement (article modifié au même moment) : réessayez");
 }
 
+// ---------- ⚖️ IA contre la journaliste (25/11/2026, demande de Jonathan du 25/10 ; comparaison.ts) ----------
+// Mesurer si le Correcteur relit aussi bien que la journaliste les articles sortis de l'Usine. Chaîne À PART des relectures (table
+// wl_comparaisons) : une comparaison n'apparaît jamais dans « Prêtes à valider », ne refait aucun graphique et n'écrit RIEN dans Ghost.
+//  - comparer { post_id } (bouton du rédacteur en chef, ou tirage du lundi) : version d'origine de l'Usine = première version de
+//    l'historique Ghost (raison « initial_revision ») ; le travail de la journaliste = ce qu'elle a changé jusqu'à sa dernière version.
+//  - statut « relecture » : le Correcteur relit la version d'origine À L'AVEUGLE (même requête qu'une relecture normale, par lot).
+//  - statut « jugement » : un juge (Opus 5.5, effort élevé, vérifications web) reçoit les deux relectures sous les noms A et B tirés
+//    au sort, sans savoir laquelle vient de l'IA. Verdict + notes + constats → statut « prete », notification au rédacteur en chef.
+//  - suivi par le tic, après les relectures ; lots seulement (pas de relais direct : rien ne presse), abandon au bout de 26 h.
+type CmpAuto = { actif: boolean; nombre: number };
+async function lireCmpAuto(): Promise<CmpAuto> {
+  let o: Partial<CmpAuto> = {}; try { o = JSON.parse(await reglage("comparaison_auto") || "{}"); } catch { o = {}; }
+  return { actif: o.actif === true, nombre: Math.min(5, Math.max(1, Math.round(Number(o.nombre)) || 2)) };
+}
+const normNom = (s: unknown) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+async function nomMembre(id: string | null) { const m = (await equipe(db)).find((x) => x.id === id); return m ? m.nom : ""; }
+// Article + historique des versions, de la plus ancienne à la plus récente ; qui(r) = la journaliste de l'équipe qui a enregistré r.
+async function lireRevisions(postId: string) {
+  if (!/^[a-f0-9]{24}$/.test(postId)) throw new Error("identifiant d’article invalide");
+  const p = (await ghost(`posts/${postId}/?formats=lexical&include=tags,authors,post_revisions,post_revisions.author&fields=${CHAMPS},lexical,published_at`)).posts?.[0];
+  if (!p) throw new Error("article introuvable dans Ghost");
+  const journalistes = (await equipe(db)).filter((m) => !m.chef);
+  // deno-lint-ignore no-explicit-any
+  const ts = (r: any) => Number(r?.created_at_ts) || Date.parse(String(r?.created_at || "")) || 0;
+  // deno-lint-ignore no-explicit-any
+  const revs: any[] = (Array.isArray(p.post_revisions) ? p.post_revisions : []).slice().sort((a: any, b: any) => ts(a) - ts(b));
+  // deno-lint-ignore no-explicit-any
+  const qui = (r: any): Membre | null => { const n = normNom(r?.author?.name), e = String(r?.author?.email || "").toLowerCase(); return journalistes.find((m) => (!!n && normNom(m.nom) === n) || (!!e && m.email === e)) || null; };
+  return { p, revs, qui };
+}
+// Tout ce qu'il faut pour comparer, ou une erreur claire si l'article ne s'y prête pas (aucun appel à Claude ici).
+async function preparerComparaison(postId: string) {
+  const { p, revs, qui } = await lireRevisions(postId);
+  if (p.status !== "published") throw new Error("la comparaison porte sur un article publié (le travail de la journaliste doit être terminé)");
+  if (!revs.length || revs[0].reason !== "initial_revision") throw new Error("version d’origine introuvable : Ghost n’a gardé que les " + revs.length + " dernières versions de cet article");
+  if (qui(revs[0])) throw new Error("cet article a été écrit par la journaliste elle-même : il n’y a pas de version de l’Usine à comparer");
+  const compte: Record<string, number> = {};
+  for (const r of revs.slice(1)) { const m = qui(r); if (m) compte[m.id] = (compte[m.id] || 0) + 1; }
+  const journaliste = Object.keys(compte).sort((a, b) => compte[b] - compte[a])[0];
+  if (!journaliste) throw new Error("aucune version enregistrée par une journaliste dans l’historique de cet article");
+  let blocs: Bloc[] = [];
+  try { blocs = extraireBlocs(revs[0].lexical); } catch (_) { blocs = []; }
+  if (blocs.filter((b) => b.t !== "protege").length < 6) throw new Error("version d’origine trop courte ou illisible pour une comparaison");
+  const R: Revision[] = [];
+  for (let k = 0; k < revs.length; k++) {
+    const r = revs[k]; let textes: string[] = [];
+    try { textes = textesDe(extraireBlocs(r.lexical)); } catch (_) { textes = []; }
+    if (!textes.length && k > 0) continue;   // version illisible : ignorée (elle fausserait l'attribution des passages)
+    R.push({ date: String(r.created_at || ""), auteur: String(r.author?.name || ""), journaliste: qui(r)?.id === journaliste, titre: String(r.title || ""), extrait: String(r.custom_excerpt || ""), textes });
+  }
+  const humain = changementsHumains(R);
+  if (!humain || !nbChangementsJournaliste(humain)) throw new Error("la journaliste n’a modifié aucun passage du texte de cet article");
+  return { p, origine: revs[0], blocs, humain, journaliste };
+}
+// deno-lint-ignore no-explicit-any
+async function diagRevisions(postId: string): Promise<any> {
+  const { p, revs, qui } = await lireRevisions(postId);
+  // deno-lint-ignore no-explicit-any
+  const versions = revs.map((r: any) => ({ date: r.created_at, raison: r.reason, statut: r.post_status, auteur: court(r.author?.name, 60), journaliste: qui(r)?.id || null, taille: String(r.lexical || "").length }));
+  try {
+    const c = await preparerComparaison(postId);
+    const par = (k: string) => c.humain.changements.filter((x) => x.par === k).length;
+    return { ok: true, titre: p.title, statut: p.status, versions, comparable: true, journaliste: c.journaliste, blocs_origine: c.blocs.length,
+      changements: { journaliste: par("journaliste"), mixte: par("mixte"), autre: par("autre"), titre: c.humain.titre?.par || null, extrait: c.humain.extrait?.par || null }, exemple: c.humain.changements.filter((x) => x.par !== "autre").slice(0, 3).map((x) => ({ avant: court(x.avant, 200), apres: court(x.apres, 200), par: x.par })) };
+  } catch (e) { return { ok: true, titre: p.title, statut: p.status, versions, comparable: false, raison: court((e as Error).message, 300) }; }
+}
+// Requête de chaque phase (reconstruite à l'identique pour un tour repris).
+// deno-lint-ignore no-explicit-any
+async function messagesCmp(row: any, phase: string): Promise<any[]> {
+  const m = row.meta || {};
+  if (phase === "jugement") return [{ role: "user", content: messageJuge({ titre: String(m.titre || ""), extrait: String(m.extrait || ""), blocs: row.blocs || [], humain: row.humain, ia: row.ia || {}, ordre: row.ordre as Ordre }) }];
+  // la version d'origine est présentée au Correcteur comme un brouillon ordinaire : il ne sait pas qu'il est comparé
+  return [{ role: "user", content: await messageInitial({ title: m.titre, custom_excerpt: m.extrait, meta_title: "", meta_description: "", og_title: "", twitter_title: "", visibility: m.visibilite, status: "draft",
+    tags: (Array.isArray(m.tags) ? m.tags : []).map((name: string) => ({ name })), created_at: m.cree }, row.blocs || []) }];
+}
+// deno-lint-ignore no-explicit-any
+async function paramsCmp(row: any, phase: string, messages: unknown[]) {
+  if (phase === "jugement") return { model: MODELE, max_tokens: 20000, thinking: { type: "adaptive" }, output_config: { effort: "high" },
+    system: [{ type: "text", text: systemeJuge(), cache_control: { type: "ephemeral" } }],
+    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 6 }, { type: "web_fetch_20250910", name: "web_fetch", max_uses: 10, max_content_tokens: 6000 }, OUTIL_VERDICT],
+    tool_choice: { type: "auto" }, messages };
+  const s = await texteSkill();
+  const kb = (await contexteKb(db, "redaction", String(row.meta?.titre || "")).catch(() => ({ texte: "" }))).texte;
+  return await paramsRequete(systeme(s.skill, s.guide, s.lundi, kb), messages);
+}
+async function comparer(postId: string, qui: string, auto = false) {
+  const { data: deja } = await db.from("wl_comparaisons").select("id,statut").eq("post_id", postId).in("statut", ["relecture", "jugement", "prete"]).order("created_at", { ascending: false }).limit(1);
+  if (deja && deja[0]) return { ok: true, id: deja[0].id, deja: deja[0].statut };
+  const c = await preparerComparaison(postId);
+  await texteSkill();   // échoue ici, avant toute écriture, si le skill de relecture n'est pas enregistré
+  const p = c.p, o = c.origine;
+  const meta = { titre: String(o.title || ""), extrait: String(o.custom_excerpt || ""), visibilite: p.visibility, cree: p.created_at, tags: (p.tags || []).map((t: { name: string }) => t.name).filter(Boolean),
+    titre_final: p.title || "", image: p.feature_image || "", url: p.url || "", editeur: ghostUrl() + "/ghost/#/editor/post/" + p.id, skill: await reglage("relecture_skill_version") };
+  const ligne = { post_id: p.id, titre: p.title || "", statut: "relecture", auto, lance_par: qui, journaliste: c.journaliste, blocs: c.blocs, meta, humain: c.humain };
+  const { data: row, error } = await db.from("wl_comparaisons").insert(ligne).select("id").limit(1);
+  if (error || !row || !row[0]) throw new Error("enregistrement impossible : " + (error && error.message));
+  const id = Number(row[0].id);
+  try {
+    const batch = await soumettre(id, 0, await paramsCmp(ligne, "relecture", await messagesCmp(ligne, "relecture")), "cmp");
+    await db.from("wl_comparaisons").update({ batch_id: batch, updated_at: new Date().toISOString() }).eq("id", id);
+  } catch (e) {
+    await db.from("wl_comparaisons").update({ statut: "erreur", erreur: court((e as Error).message, 400), updated_at: new Date().toISOString() }).eq("id", id);
+    throw e;
+  }
+  return { ok: true, id };
+}
+// Un lot est revenu : tour repris, ou passage de la relecture au jugement, ou verdict.
+// deno-lint-ignore no-explicit-any
+async function avancerComparaison(row: any, msg: any): Promise<string> {
+  const now = new Date().toISOString(), phase = String(row.statut);
+  const cout = Math.round(((Number(row.cout_eur) || 0) + coutDe(msg.usage)) * 1e4) / 1e4;
+  try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "comparaison", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0) + Number(u.cache_creation_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: coutDe(u) }); } catch (_) { /* facultatif */ }
+  // deno-lint-ignore no-explicit-any
+  const contenu: any[] = Array.isArray(msg.content) ? msg.content : [];
+  const nomOutil = phase === "jugement" ? "rendre_verdict" : "rendre_relecture";
+  const outil = contenu.find((c) => c.type === "tool_use" && c.name === nomOutil);
+  const echec = async (why: string) => { await db.from("wl_comparaisons").update({ statut: "erreur", erreur: why, cout_eur: cout, suite: null, updated_at: now }).eq("id", row.id); return "erreur"; };
+  if (!outil && (msg.stop_reason === "pause_turn" || msg.stop_reason === "end_turn") && Number(row.tours) < 6) {
+    const base = row.suite && Array.isArray(row.suite.messages) ? row.suite.messages : await messagesCmp(row, phase);
+    const messages = base.concat([{ role: "assistant", content: contenu }]).concat(msg.stop_reason === "end_turn" ? [{ role: "user", content: "Rends maintenant le résultat complet avec l’outil « " + nomOutil + " » (un seul appel)." }] : []);
+    const batch = await soumettre(row.id, Number(row.tours) + 1, await paramsCmp(row, phase, messages), "cmp");
+    await db.from("wl_comparaisons").update({ batch_id: batch, tours: Number(row.tours) + 1, suite: { messages }, cout_eur: cout, updated_at: now }).eq("id", row.id);
+    return "relancé";
+  }
+  if (!outil) return await echec(msg.stop_reason === "max_tokens" ? "réponse trop longue (max_tokens) : relancez la comparaison" : (phase === "jugement" ? "le juge" : "le Correcteur") + " n’a pas rendu de résultat (" + msg.stop_reason + ")");
+  // deno-lint-ignore no-explicit-any
+  const o: any = outil.input || {}, m = row.meta || {};
+  if (phase !== "jugement") {
+    const n = normaliserCorrections(o, row.blocs || []);
+    const nouveau = (v: unknown, avant: string, max: number) => { const x = court(v && typeof v === "object" ? (v as { nouveau?: string }).nouveau : "", max); return x && x !== avant ? x : ""; };
+    const ia = { resume: court(o.resume, 800), titre: nouveau(o.titre, String(m.titre || ""), 200), extrait: nouveau(o.extrait, String(m.extrait || ""), 300), corrections: n.corrections, insertions: n.insertions,
+      stats: { tours: Number(row.tours) + 1, recherches: Number(msg.usage?.server_tool_use?.web_search_requests || 0), pages: contenu.filter((c) => c.type === "server_tool_use" && c.name === "web_fetch").length } };
+    const ordre: Ordre = Math.random() < 0.5 ? "ia_A" : "ia_B";
+    const suivante = { ...row, ia, ordre };
+    const batch = await soumettre(row.id, 0, await paramsCmp(suivante, "jugement", await messagesCmp(suivante, "jugement")), "cmpj");
+    await db.from("wl_comparaisons").update({ statut: "jugement", ia, ordre, batch_id: batch, tours: 0, suite: null, cout_eur: cout, updated_at: now }).eq("id", row.id);
+    return "relue, au juge";
+  }
+  const nom = await nomMembre(row.journaliste);
+  const verdict = mapperVerdict(o, row.ordre as Ordre, nom);
+  await db.from("wl_comparaisons").update({ statut: "prete", verdict, cout_eur: cout, suite: null, erreur: null, updated_at: now }).eq("id", row.id);
+  if (row.lance_par !== "essai") await pushChefs("⚖️ Comparaison prête", "« " + court(row.titre, 80) + " » : " + (verdict.gagnant === "ia" ? "avantage au Correcteur (IA)" : verdict.gagnant === "journaliste" ? "avantage à " + (nom || "la journaliste") : "égalité") + ".");
+  return "prête (" + verdict.gagnant + ")";
+}
+async function suivreComparaisons(): Promise<string[]> {
+  const { data, error } = await db.from("wl_comparaisons").select("*").in("statut", ["relecture", "jugement"]).order("created_at").limit(6);
+  const res: string[] = error ? ["comparaisons illisibles : " + court(error.message, 160)] : [];
+  for (const row of data || []) {
+    const nom = "c" + row.id;
+    try {
+      const depuis = Date.now() - Date.parse(row.updated_at || row.created_at);
+      if (!row.batch_id) { if (depuis > 10 * 60e3) await db.from("wl_comparaisons").update({ statut: "erreur", erreur: "envoi interrompu : relancez la comparaison", updated_at: new Date().toISOString() }).eq("id", row.id); continue; }
+      const r = await anthropic("messages/batches/" + row.batch_id); const b = await r.json().catch(() => ({}));
+      if (!r.ok) { res.push(nom + " : lot illisible " + r.status); continue; }
+      if (b.processing_status !== "ended") {
+        if (depuis > 26 * 3600e3) { await db.from("wl_comparaisons").update({ statut: "erreur", erreur: "lot sans réponse depuis plus d’un jour : relancez la comparaison", updated_at: new Date().toISOString() }).eq("id", row.id); res.push(nom + " : expirée"); }
+        else res.push(nom + " : " + row.statut + ", lot " + b.processing_status + " depuis " + Math.round(depuis / 60e3) + " min");
+        continue;
+      }
+      const lignes = (await (await anthropic("messages/batches/" + row.batch_id + "/results")).text()).split("\n").filter((x) => x.trim());
+      // deno-lint-ignore no-explicit-any
+      let item: any = null; for (const l of lignes) { try { const o = JSON.parse(l); if (/^cmpj?-/.test(String(o.custom_id || ""))) item = o; } catch (_) { /* ligne suivante */ } }
+      if (!item || item.result?.type !== "succeeded") {
+        const why = item ? (item.result?.type === "errored" ? court(item.result?.error?.error?.message || item.result?.error?.message || "erreur", 300) : String(item.result?.type)) : "résultat absent";
+        await db.from("wl_comparaisons").update({ statut: "erreur", erreur: (row.statut === "jugement" ? "Juge : " : "Correcteur : ") + why, updated_at: new Date().toISOString() }).eq("id", row.id);
+        res.push(nom + " : erreur"); continue;
+      }
+      res.push(nom + " : " + await avancerComparaison(row, item.result.message));
+    } catch (e) { res.push(nom + " : " + court((e as Error).message, 200)); }
+  }
+  return res;
+}
+// Contrôle périodique : le lundi matin (6 h – 12 h, Zurich), « nombre » articles publiés depuis 7 jours, relus par une journaliste et
+// jamais comparés, tirés au hasard. La semaine est marquée AVANT le tirage : un incident ne relance jamais de comparaisons payantes.
+async function comparaisonAuto(): Promise<string> {
+  const a = await lireCmpAuto(); if (!a.actif) return "désactivée";
+  const z = zurich(); if (z.jour !== 1 || z.min < 360 || z.min > 720) return "hors créneau";
+  const semaine = minuitZurich();
+  if (await reglage("comparaison_auto_semaine") === semaine) return "déjà faite cette semaine";
+  await ecrireReglage("comparaison_auto_semaine", semaine);
+  const depuis = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 19).replace("T", " ");
+  const r = await ghost(`posts/?filter=${encodeURIComponent(`status:published+published_at:>'${depuis}'+tag:-videos`)}&limit=40&fields=id,title,email_only`);
+  // deno-lint-ignore no-explicit-any
+  let posts: any[] = (r.posts || []).filter((p: any) => !p.email_only);
+  if (!posts.length) return "aucun article publié cette semaine";
+  const { data: vus } = await db.from("wl_comparaisons").select("post_id").in("post_id", posts.map((p) => p.id));
+  const faits = new Set((vus || []).map((x: { post_id: string }) => x.post_id));
+  posts = posts.filter((p) => !faits.has(p.id)).map((p) => ({ p, k: Math.random() })).sort((x, y) => x.k - y.k).map((x) => x.p);
+  const lancees: string[] = []; let essais = 0;
+  for (const p of posts) {
+    if (lancees.length >= a.nombre || essais >= 12) break;
+    essais++;
+    try { const c = await comparer(p.id, "auto", true); if (c.ok && !("deja" in c)) lancees.push(court(p.title, 60)); } catch (_) { /* pas un article de l'Usine relu par une journaliste : au suivant */ }
+  }
+  return lancees.length ? "lancées : " + lancees.join(" ; ") : "aucun article relu par une journaliste cette semaine";
+}
+async function listeComparaisons() {
+  const { data } = await db.from("wl_comparaisons").select("id,post_id,titre,statut,auto,journaliste,meta,verdict,erreur,cout_eur,created_at,updated_at").neq("statut", "ecartee").order("created_at", { ascending: false }).limit(60);
+  const L = data || [];
+  const noms: Record<string, string> = {}; for (const m of await equipe(db)) noms[m.id] = m.nom;
+  // deno-lint-ignore no-explicit-any
+  const lignes = L.map((r: any) => ({ id: r.id, post_id: r.post_id, titre: r.titre, statut: r.statut, auto: r.auto, journaliste: r.journaliste, journaliste_nom: noms[r.journaliste] || "", erreur: r.erreur, cree: r.created_at, maj: r.updated_at, cout_eur: r.cout_eur,
+    image: r.meta?.image || "", url: r.meta?.url || "", gagnant: r.verdict?.gagnant || null, notes: r.verdict?.notes || null, resume: r.verdict?.resume || "" }));
+  // deno-lint-ignore no-explicit-any
+  return { ok: true, comparaisons: lignes, bilan: bilan(L.filter((r: any) => r.statut === "prete").map((r: any) => ({ verdict: r.verdict, cree: r.created_at }))), auto: await lireCmpAuto() };
+}
+
 // ---------- Liste pour la page ----------
 // deno-lint-ignore no-explicit-any
 function resumeLigne(r: any) {
@@ -716,14 +924,20 @@ Deno.serve(async (req) => {
   let b: any; try { b = await req.json(); } catch { return out({ ok: false, why: "bad_json" }, 400); }
   try {
     // pg_cron : suivi des lots + relecture automatique ; diagnostics (secret du réglage relecture_cron_secret)
-    if (["tic", "diag_blocs", "diag_outils", "essai", "essai_conversion", "direct_resultat"].includes(b.action)) {
+    if (["tic", "diag_blocs", "diag_outils", "essai", "essai_conversion", "direct_resultat", "essai_comparaison", "diag_revisions"].includes(b.action)) {
       const s = await reglage("relecture_cron_secret");
       if (!s || String(b.secret || "") !== s) return out({ ok: false, why: "unauthorized" }, 401);
       if (b.action === "direct_resultat") return out(await recevoirDirect(b));
-      if (b.action === "tic") { const lots = (await suivreLots()).concat(await suivreGraphiques()); let auto = ""; try { auto = await relectureAuto(); } catch (e) { auto = "erreur : " + court((e as Error).message, 200); } return out({ ok: true, lots, auto }); }
+      if (b.action === "tic") { const lots = (await suivreLots()).concat(await suivreGraphiques()); let auto = ""; try { auto = await relectureAuto(); } catch (e) { auto = "erreur : " + court((e as Error).message, 200); }
+        // ⚖️ comparaisons : toujours APRÈS les relectures, et jamais bloquant pour elles
+        let comparaisons: string[] = []; try { comparaisons = await suivreComparaisons(); comparaisons.push("auto : " + await comparaisonAuto()); } catch (e) { comparaisons.push("erreur : " + court((e as Error).message, 200)); }
+        return out({ ok: true, lots, auto, comparaisons }); }
       // essai de bout en bout sur un article (même publié) : lecture seule, sans notification ; « valider » refuse un article publié
       if (b.action === "essai") return out(await lancer(String(b.post_id || ""), "essai", false, true));
       if (b.action === "essai_conversion") return out(await lancerConversion(String(b.post_id || ""), "essai", true));
+      // ⚖️ comparaison : diagnostic gratuit de l'historique d'un article (aucun appel à Claude), puis essai de bout en bout
+      if (b.action === "diag_revisions") return out(await diagRevisions(String(b.post_id || "")));
+      if (b.action === "essai_comparaison") return out(await comparer(String(b.post_id || ""), "essai"));
       if (b.action === "diag_blocs") { const p = await lirePost(String(b.post_id || "")); const bl = extraireBlocs(p.lexical); return out({ ok: true, titre: p.title, visibilite: p.visibility, n: bl.length, types: bl.map((x) => x.t + (x.genre ? ":" + x.genre : "")), texte: bl.map(blocPourIA).join("\n").slice(0, 20000), noeuds: JSON.parse(p.lexical).root.children.map((n: { type: string }) => n.type) }); }
       // vérifie que le modèle et les outils serveur sont acceptés (petite requête, Haiku)
       const r = await anthropic("messages", { method: "POST", body: JSON.stringify({ model: "claude-haiku-5-5", max_tokens: 50, tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }, { type: "web_fetch_20250910", name: "web_fetch", max_uses: 1, max_content_tokens: 1000 }, OUTIL], messages: [{ role: "user", content: "Réponds seulement OK, sans outil." }] }) });
@@ -781,6 +995,24 @@ Deno.serve(async (req) => {
       const { error } = await db.from("wl_relectures").update({ statut: "ecartee", updated_at: new Date().toISOString() }).eq("id", Number(b.id)).in("statut", ["prete", "erreur", "en_cours"]);
       if (error) return out({ ok: false, why: error.message });
       return out({ ok: true });
+    }
+    // ⚖️ IA contre la journaliste (25/11/2026)
+    if (b.action === "comparaisons") return out(await listeComparaisons());
+    if (b.action === "comparaison") {
+      const { data } = await db.from("wl_comparaisons").select("id,post_id,titre,statut,auto,journaliste,meta,humain,ia,verdict,erreur,cout_eur,created_at,updated_at,blocs").eq("id", Number(b.id)).limit(1);
+      if (!data || !data[0]) return out({ ok: false, why: "comparaison introuvable" }, 404);
+      const { blocs, ia, ...reste } = data[0];
+      return out({ ok: true, comparaison: { ...reste, journaliste_nom: await nomMembre(reste.journaliste), ia: ia ? { resume: ia.resume, titre: ia.titre, extrait: ia.extrait, stats: ia.stats, changements: changementsIA(ia, blocs || []) } : null } });
+    }
+    if (b.action === "comparer") return out(await comparer(String(b.post_id || ""), me.id));
+    if (b.action === "comparaison_ecarter") {
+      const { error } = await db.from("wl_comparaisons").update({ statut: "ecartee", updated_at: new Date().toISOString() }).eq("id", Number(b.id)).in("statut", ["prete", "erreur", "relecture", "jugement"]);
+      return out(error ? { ok: false, why: error.message } : { ok: true });
+    }
+    if (b.action === "comparaison_reglage") {
+      const v: CmpAuto = { actif: b.actif === true, nombre: Math.min(5, Math.max(1, Math.round(Number(b.nombre)) || 2)) };
+      await ecrireReglage("comparaison_auto", JSON.stringify(v));
+      return out({ ok: true, auto: v });
     }
     if (b.action === "reglage") {
       const jours = (Array.isArray(b.jours) ? b.jours : []).map(Number).filter((x: number) => Number.isInteger(x) && x >= 0 && x <= 6);

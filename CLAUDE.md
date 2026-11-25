@@ -36,7 +36,15 @@ chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_share
 - Graphiques refaits : skill `generate-charts` de l'Usine (Skills API, version latest), en appel direct en tâche de fond (pas de lot).
 - Rien n'est écrit dans Ghost sans validation du rédacteur en chef ; seul le Lexical est envoyé (blocs protégés intacts).
   Tests hors ligne : `deno test supabase/functions/wl-relecture/blocs_test.ts`.
-- Déploiement : `index.ts`, `blocs.ts`, `equipe.ts`, `kb.ts` (copies identiques à celles de wl-tel).
+- Déploiement : `index.ts`, `blocs.ts`, `premium.ts`, `comparaison.ts`, `equipe.ts`, `kb.ts` (copies identiques à celles de wl-tel).
+- **⚖️ IA contre la journaliste** (25/11/2026, `comparaison.ts`, table `wl_comparaisons`) : mesure si le Correcteur relit aussi bien que la
+  journaliste les articles de l'Usine. Chaîne À PART des relectures : la version d'origine vient de l'historique Ghost (`post_revisions`,
+  raison `initial_revision`), le Correcteur la relit à l'aveugle (même requête qu'une relecture), puis un juge compare les deux relectures
+  sous les noms A / B tirés au sort (il ne sait pas laquelle vient de l'IA). Une comparaison n'écrit jamais dans Ghost, ne refait aucun
+  graphique et n'apparaît jamais dans « Prêtes à valider ». Suivi par le même `tic`, après les relectures et sans pouvoir les bloquer ;
+  contrôle du lundi matin réglable (`comparaison_auto` dans `wl_reglages`, désactivé par défaut). Page : section du bureau du Correcteur
+  et bouton « ⚖️ Comparer à la journaliste » des articles publiés. Tests hors ligne : `deno test supabase/functions/wl-relecture/comparaison_test.ts`.
+  Diagnostic gratuit de l'historique d'un article (secret du tic) : action `diag_revisions`.
 
 Champs d'aide obligatoires (le test échoue sinon) : sur chaque poste `aide` (une phrase pour les humains), `exemples`
 (au moins 2 phrases à dire au ☎️) et `aiguillage` (ce qu'on lui transmet) ; sur chaque capacité `nom`, `aide`, `fournir`
