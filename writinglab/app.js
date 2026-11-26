@@ -926,7 +926,7 @@
   // 02/11/2026 : l'onglet Articles affiche l'état des relectures et des conversions ; elles se chargent à la première carte (avant, les
   // boutons « Relire » / « Convertir » s'affichaient même quand une relecture ou une conversion était déjà faite ou en cours).
   function rlChargerPourArticles() {
-    if (!D().me.chef || S.rl || S.rlLd) return;
+    if (S.rl || S.rlLd) return;
     var ld = chargerRelectures();
     if (ld && ld.then) ld.then(function () { var f = document.activeElement; if (S.tab === 'articles' && S.rl && !(f && /INPUT|TEXTAREA/.test(f.tagName))) render(); });
   }
@@ -937,7 +937,7 @@
       (a.statut === 'published' ? '<span class="tag g">publié ' + esc(when(a.publie_le)) + '</span>' : '<span class="tag ' + (a.statut === 'scheduled' ? 'b' : 'a') + '">' + (a.statut === 'scheduled' ? 'programmé' : 'brouillon') + '</span>') + (premium(a) ? '<span class="tag">premium</span>' : '') + (premium(a) && !n ? '<span class="tag g">🎙️ interviews à lancer</span>' : '') + (a.mien ? '<span class="tag g">le vôtre</span>' : '') + finiTag(a) + (n ? '<span class="tag">' + n + ' contact' + pl(n) + '</span>' : '') +
       '<br>' + esc((a.auteurs || []).join(', ')) + ' · modifié ' + esc(when(a.maj)) + ' · <a href="' + esc(a.editeur) + '" target="_blank" rel="noopener" data-stop="1">ouvrir dans Ghost</a>' + (premium(a) || n || prepEtat(a.id) ? '<div style="margin-top:8px">' + btnMails(a.id) + '</div>' : '') +
       (a.mien && !D().me.chef && a.statut !== 'published' && S.marbre && S.marbre.ok ? '<div style="margin-top:8px">' + finiBtn(a.id, finiDe(a.id)) + '</div>' : '') +
-      (D().me.chef ? '<div style="margin-top:8px">' + rlBouton(a.id) + ' ' + cvBouton(a.id, a.statut, a.visibilite) + ' ' + cmpBouton(a.id, a.statut) + '</div>' : '') + '</div></div></div>';
+      (D().me.chef ? '<div style="margin-top:8px">' + rlBouton(a.id) + ' ' + cvBouton(a.id, a.statut, a.visibilite) + ' ' + cmpBouton(a.id, a.statut) + '</div>' : (rlBouton(a.id) ? '<div style="margin-top:8px">' + rlBouton(a.id) + '</div>' : '')) + '</div></div></div>';
   }
   // Onglet Articles (23/10/2026) : « Tous les brouillons » listait aussi les publiés. Trois onglets compacts (brouillons, programmés,
   // publiés) et une recherche qui filtre les trois (titre, auteur).
@@ -2060,7 +2060,7 @@
           (x.social && x.social.image ? '<details class="cz-d"><summary>📱 Visuel réseaux sociaux (' + esc(x.social.statut || '') + ')</summary><img class="mb-soc" loading="lazy" alt="" src="' + esc(x.social.image) + '"><div class="cz-s" style="white-space:pre-wrap">' + esc(x.social.legende || '') + (x.social.hashtags ? '\n' + esc(x.social.hashtags) : '') + '</div></details>' : '') +
           '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' + (p.editeur ? '<a class="btn small" href="' + esc(p.editeur) + '" target="_blank" rel="noopener">✏️ Relire dans Ghost</a>' : '') + (p.apercu ? '<a class="btn small" href="' + esc(p.apercu) + '" target="_blank" rel="noopener">👁️ Aperçu</a>' : '') +
           (chef && x.id && x.statut === 'drafted' && !x.ghost_supprime ? '<button class="btn small' + (ec ? '' : ' go') + '" data-act="mb-approuver" data-id="' + esc(x.id) + '">' + (ec ? '✅ Approuver quand même' : '✅ Approuver') + '</button>' : '') +
-          (chef && p.id ? rlBouton(p.id) + cvBouton(p.id, p.statut, p.visibilite) : '') +
+          (chef && p.id ? rlBouton(p.id) + cvBouton(p.id, p.statut, p.visibilite) : (p.id ? rlBouton(p.id) : '')) +
           (mien && p.id && (p.statut === 'draft' || p.statut === 'scheduled') ? finiBtn(p.id, p.fini) : '') +
           (chef && x.id && x.statut === 'drafted' ? '<button class="btn small" data-act="mb-ecarter" data-id="' + esc(x.id) + '" title="Ne pas publier ce brouillon (le post Ghost n’est pas supprimé)">🗑️ Écarter</button>' : '') + '</div></div>';
       }).join('') + (bs.some(function (x) { return !x.rapport; }) ? '<p class="cz-s">Les brouillons créés avant le 22/10/2026 n’ont pas de rapport détaillé : il est resté dans le message Telegram « Brouillon prêt ».</p>' : '') : '<p class="muted">Aucun brouillon de l’Usine en attente.</p>');
@@ -3093,7 +3093,6 @@
   var RL_VERDICT_G = { juste: ['✅', 'juste', 'g'], imprecision: ['🟡', 'imprécision', 'a'], faute: ['🔴', 'faute', 'r'], non_verifie: ['❔', 'non vérifié', ''] };
   var RL_JOURS = [[1, 'Lun'], [2, 'Mar'], [3, 'Mer'], [4, 'Jeu'], [5, 'Ven'], [6, 'Sam'], [0, 'Dim']];
   function chargerRelectures() {
-    if (!D().me.chef) return null;
     if (S.rlLd) return S.rlLd;
     S.rlLd = rlApi({ action: 'liste' }).then(function (r) {
       S.rlLd = null; if (!r || !r.ok) { S.rl = S.rl || { erreur: (r && r.why) || 'lecture impossible' }; return; }
@@ -3297,8 +3296,9 @@
   function rlNb(x) { return x.nb + ' correction' + pl(x.nb); }
   // bouton ou état de relecture d'un brouillon (Marbre, bureau du Correcteur)
   function rlBouton(postId) {
-    if (!D().me.chef || !postId) return '';
+    if (!postId) return '';
     var x = rlDe(postId);
+    if (!D().me.chef && (!x || x.statut === 'erreur')) return '';
     if (!x || x.statut === 'erreur') return '<button class="btn small" data-act="rl-lancer" data-id="' + esc(postId) + '" title="Relecture complète : correction, sources, graphiques">' + (x ? '🖍️ Relancer la relecture' : '🖍️ Relire') + '</button>';
     if (x.statut === 'en_cours') return '<span class="tag">🖍️ relecture en cours…</span>';
     if (x.statut === 'prete') return '<button class="btn small go" data-act="rl-voir" data-id="' + x.id + '">🖍️ ' + rlNb(x) + ' à valider</button>';
@@ -3307,7 +3307,19 @@
   }
   function panelCorrecteur() {
     var h = head('🖍️', 'Le Correcteur', 'La relecture du lundi : correction, sources, graphiques') + '<div class="pb">';
-    if (!D().me.chef) return h + '<p class="muted">Bureau réservé au rédacteur en chef.</p></div>';
+    if (!D().me.chef) {
+      var Rj = S.rl;
+      if (!Rj) { chargerRelectures(); return h + '<p class="muted">Lecture des relectures…</p></div>'; }
+      if (Rj.erreur || Rj.ferme || !Rj.journaliste) return h + '<p class="muted">Bureau réservé au rédacteur en chef.</p></div>';
+      var Lj = Rj.relectures || [], pj = Lj.filter(function (x) { return x.statut === 'prete'; }), cj = Lj.filter(function (x) { return x.statut === 'en_cours'; }), fj = Lj.filter(function (x) { return x.statut === 'validee'; }).slice(0, 10);
+      var jj = RL_JOURS.filter(function (j) { return (Rj.jours || []).indexOf(j[0]) >= 0; }).map(function (j) { return j[1]; }).join(', ');
+      h += '<p class="cz-s">Le Correcteur relit seul les brouillons : correction, vérification des faits, de chaque source et de chaque graphique. À vous de relire ses corrections en avant/après, de garder celles qui sont justes et de les pousser dans Ghost. Rien ne part sans votre validation' + (jj ? ' (articles des jours : ' + esc(jj) + ')' : '') + '.</p>';
+      h += '<div class="row" style="gap:8px;margin:6px 0"><button class="btn small" data-act="rl-actu">🔄 Actualiser</button></div>';
+      h += '<div class="cz-t">✅ À valider (' + pj.length + ')</div>' + (pj.length ? pj.map(rlCarte).join('') : '<p class="muted">Aucune relecture en attente de validation.</p>');
+      if (cj.length) h += '<div class="cz-t">⏳ En cours (' + cj.length + ')</div>' + cj.map(rlCarte).join('') + '<p class="cz-s">Une relecture prend en général quelques minutes. Vous recevez une notification quand elle est prête.</p>';
+      if (fj.length) h += '<details class="cz-d"><summary>🗂️ Déjà validées (' + fj.length + ')</summary>' + fj.map(rlCarte).join('') + '</details>';
+      return h + '</div>';
+    }
     var R = S.rl;
     if (!R) { chargerRelectures(); return h + '<p class="muted">Lecture des relectures…</p></div>'; }
     if (R.erreur) return h + '<p class="muted">⚠️ ' + esc(R.erreur) + '</p><button class="btn small" data-act="rl-actu">🔄 Réessayer</button></div>';
@@ -3340,17 +3352,20 @@
       (x.erreur ? '<div class="cz-s" style="color:#ffb3bf">' + esc(x.erreur) + '</div>' : '') + (x.resume && x.statut === 'prete' ? '<div class="rd-a">' + esc(x.resume) + '</div>' : '') +
       '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">' +
       (x.statut === 'prete' || x.statut === 'validee' ? '<button class="btn small' + (x.statut === 'prete' ? ' go' : '') + '" data-act="rl-voir" data-id="' + x.id + '">' + (x.statut === 'prete' ? '🖍️ Voir les corrections' : '👁️ Revoir') + '</button>' : '') +
-      (x.statut === 'erreur' ? '<button class="btn small" data-act="rl-lancer" data-id="' + esc(x.post_id) + '">🔁 Relancer</button>' : '') +
+      (x.statut === 'erreur' && D().me.chef ? '<button class="btn small" data-act="rl-lancer" data-id="' + esc(x.post_id) + '">🔁 Relancer</button>' : '') +
       (x.editeur ? '<a class="btn small" href="' + url(x.editeur) + '" target="_blank" rel="noopener">✏️ Ghost</a>' : '') +
-      (x.statut === 'prete' || x.statut === 'en_cours' ? '<button class="btn small" data-act="rl-ecarter" data-id="' + x.id + '">🗑️ Écarter</button>' : '') + '</div></div>';
+      (D().me.chef && (x.statut === 'prete' || x.statut === 'en_cours') ? '<button class="btn small" data-act="rl-ecarter" data-id="' + x.id + '">🗑️ Écarter</button>' : '') + '</div></div>';
   }
   function rlAutoHTML(a) {
-    var A = S.rlAuto || (S.rlAuto = { actif: !!a.actif, jours: (a.jours || []).slice(), heure: a.heure || '13:00' });
+    var A = S.rlAuto || (S.rlAuto = { actif: !!a.actif, jours: (a.jours || []).slice(), heure: a.heure || '13:00', journalistes: (a.journalistes || []).slice() });
     return '<div class="cz-t">⏰ Relecture automatique</div><div class="rl-auto">' +
       '<label class="mb-chk"><input type="checkbox" id="rl-auto-on"' + (A.actif ? ' checked' : '') + '> Relire seul les brouillons du jour</label>' +
       '<div class="rl-jours">' + RL_JOURS.map(function (j) { return '<button class="bx-c' + (A.jours.indexOf(j[0]) >= 0 ? ' on' : '') + '" data-act="rl-jour" data-id="' + j[0] + '" aria-pressed="' + (A.jours.indexOf(j[0]) >= 0) + '">' + j[1] + '</button>'; }).join('') + '</div>' +
       '<label class="rl-h">à partir de <input class="in" type="time" id="rl-auto-h" value="' + esc(A.heure) + '"></label>' +
       '<p class="cz-s">Les jours choisis, chaque brouillon créé le jour même (hors vidéos et e-mails seuls) est relu dans les 4 heures qui suivent cette heure. Vous recevez une notification à chaque relecture prête ; rien ne part dans Ghost sans votre validation.</p>' +
+      '<div class="cz-t" style="margin-top:12px">👩‍💻 Validation par la journaliste</div>' +
+      '<div class="rl-jours">' + RL_JOURS.map(function (j) { return '<button class="bx-c' + (A.journalistes.indexOf(j[0]) >= 0 ? ' on' : '') + '" data-act="rl-jourj" data-id="' + j[0] + '" aria-pressed="' + (A.journalistes.indexOf(j[0]) >= 0) + '">' + j[1] + '</button>'; }).join('') + '</div>' +
+      '<p class="cz-s">Les relectures lancées ces jours-là s’ouvrent aussi à la journaliste : même écran que vous (corrections en avant/après, validation, graphiques refaits) et une notification quand elles sont prêtes. Elle ne peut ni lancer ni écarter une relecture, et ne voit ni les coûts, ni les réglages, ni les comparaisons. Aucun jour coché : vous seul validez.</p>' +
       '<button class="btn small go" data-act="rl-auto">💾 Enregistrer</button></div>';
   }
   // ---------- Lancer ----------
@@ -3497,7 +3512,7 @@
     if ((R.suggestions || []).length) h += '<details class="if-c"><summary>💬 Suggestions (non appliquées) (' + R.suggestions.length + ')</summary><div class="if-cb"><ul class="mb-ul">' + R.suggestions.map(function (y) { return '<li>' + esc(y) + '</li>'; }).join('') + '</ul></div></details>';
     if (R.preservation) h += '<details class="if-c"><summary>🧾 Rapport de préservation</summary><div class="if-cb">' + esc(R.preservation) + '</div></details>';
     if ((R.rejets || []).length) h += '<details class="if-c"><summary>🔒 Écarté par le lab (' + R.rejets.length + ')</summary><div class="if-cb"><p class="cz-s">Ce que le Correcteur voulait toucher dans un bloc protégé (encarts, cartes d’amorce, graphiques) : rien n’a été modifié.</p><ul class="mb-ul">' + R.rejets.map(function (y) { return '<li>' + esc(y) + '</li>'; }).join('') + '</ul></div></details>';
-    if (prete) h += '<div class="rl-f"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn go" data-act="rl-valider"' + (nbSel || m.mode === 'actu_premium' ? '' : ' disabled') + '>' + (m.mode === 'actu_premium' ? '💎 Convertir et pousser dans Ghost (' + nbSel + ' réécriture' + pl(nbSel) + ')' : '✅ Valider ' + nbSel + ' correction' + pl(nbSel) + ' et pousser dans Ghost') + '</button><button class="btn small" data-act="rl-cocher" data-id="1">Tout cocher</button><button class="btn small" data-act="rl-cocher" data-id="0">Tout décocher</button><button class="btn small" data-act="rl-ecarter" data-id="' + x.id + '">🗑️ Écarter</button></div><p class="cz-s">' + (m.mode === 'actu_premium' ? 'L’article garde son statut (brouillon ou programmé). Tout ce qui n’est pas coché ci-dessus reste tel quel ; décochez une réécriture pour la laisser de côté, la coupure est posée dans tous les cas.' : 'Le brouillon reste un brouillon. Les encarts d’abonnement, les cartes d’amorce et les graphiques non refaits ne sont jamais réécrits.') + '</p></div>';
+    if (prete) h += '<div class="rl-f"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn go" data-act="rl-valider"' + (nbSel || m.mode === 'actu_premium' ? '' : ' disabled') + '>' + (m.mode === 'actu_premium' ? '💎 Convertir et pousser dans Ghost (' + nbSel + ' réécriture' + pl(nbSel) + ')' : '✅ Valider ' + nbSel + ' correction' + pl(nbSel) + ' et pousser dans Ghost') + '</button><button class="btn small" data-act="rl-cocher" data-id="1">Tout cocher</button><button class="btn small" data-act="rl-cocher" data-id="0">Tout décocher</button>' + (D().me.chef ? '<button class="btn small" data-act="rl-ecarter" data-id="' + x.id + '">🗑️ Écarter</button>' : '') + '</div><p class="cz-s">' + (m.mode === 'actu_premium' ? 'L’article garde son statut (brouillon ou programmé). Tout ce qui n’est pas coché ci-dessus reste tel quel ; décochez une réécriture pour la laisser de côté, la coupure est posée dans tous les cas.' : 'Le brouillon reste un brouillon. Les encarts d’abonnement, les cartes d’amorce et les graphiques non refaits ne sont jamais réécrits.') + '</p></div>';
     return h;
   }
   function rlItem(cle, coche, prete, titre, details, diff, sources, tags, fait) {
@@ -5682,9 +5697,10 @@
       case 'rl-appliquer-g':
         if (S.rlD) rlApi({ action: 'appliquer_graphique', id: S.rlD.id, k: Number(id) }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'impossible'), true); return; } toast('✅ Graphique remplacé dans Ghost.'); rlRelireDetail(); chargerRelectures(); });
         break;
+      case 'rl-jourj': if (S.rlAuto) { var j16 = Number(id), ix16 = S.rlAuto.journalistes.indexOf(j16); if (ix16 >= 0) S.rlAuto.journalistes.splice(ix16, 1); else S.rlAuto.journalistes.push(j16); paintPanel(); } break;
       case 'rl-jour': if (S.rlAuto) { var j15 = Number(id), ix15 = S.rlAuto.jours.indexOf(j15); if (ix15 >= 0) S.rlAuto.jours.splice(ix15, 1); else S.rlAuto.jours.push(j15); paintPanel(); } break;
       case 'rl-auto':
-        if (S.rlAuto) rlApi({ action: 'reglage', actif: !!S.rlAuto.actif, jours: S.rlAuto.jours, heure: S.rlAuto.heure }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); return; } S.rlAuto = null; if (S.rl) S.rl.auto = r.auto; paintPanel(); toast(r.auto.actif && r.auto.jours.length ? '⏰ Relecture automatique enregistrée : ' + RL_JOURS.filter(function (j) { return r.auto.jours.indexOf(j[0]) >= 0; }).map(function (j) { return j[1]; }).join(', ') + ' dès ' + r.auto.heure + '.' : '⏰ Relecture automatique désactivée.'); });
+        if (S.rlAuto) rlApi({ action: 'reglage', actif: !!S.rlAuto.actif, jours: S.rlAuto.jours, heure: S.rlAuto.heure, journalistes: S.rlAuto.journalistes }).then(function (r) { if (!r || !r.ok) { toast('⚠️ ' + ((r && r.why) || 'enregistrement impossible'), true); return; } S.rlAuto = null; if (S.rl) S.rl.auto = r.auto; paintPanel(); toast(r.auto.actif && r.auto.jours.length ? '⏰ Relecture automatique enregistrée : ' + RL_JOURS.filter(function (j) { return r.auto.jours.indexOf(j[0]) >= 0; }).map(function (j) { return j[1]; }).join(', ') + ' dès ' + r.auto.heure + '.' : '⏰ Relecture automatique désactivée.'); });
         break;
       case 'close-panel': closePanel(); break;
       case 'close-doc': fermerDoc(); break;

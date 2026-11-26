@@ -98,15 +98,38 @@ const zurich = () => { const p = Object.fromEntries(new Intl.DateTimeFormat("en-
 // ---------- Réglages, notifications ----------
 async function reglage(cle: string) { const { data } = await db.from("wl_reglages").select("valeur").eq("cle", cle).limit(1); return String((data && data[0] && data[0].valeur) || ""); }
 async function ecrireReglage(cle: string, valeur: string) { await db.from("wl_reglages").upsert({ cle, valeur, updated_at: new Date().toISOString() }, { onConflict: "cle" }); }
-type Auto = { actif: boolean; jours: number[]; heure: string };
+// journalistes (26/11/2026) : jours dont les relectures sont AUSSI validées par les journalistes (vide = rédacteur en chef seul, comme avant)
+type Auto = { actif: boolean; jours: number[]; heure: string; journalistes: number[] };
 async function lireAuto(): Promise<Auto> {
   let o: Partial<Auto> = {}; try { o = JSON.parse(await reglage("relecture_auto") || "{}"); } catch { o = {}; }
   const jours = (Array.isArray(o.jours) ? o.jours : [1]).map(Number).filter((x) => x >= 0 && x <= 6);
-  return { actif: o.actif !== false, jours: [...new Set(jours)].sort(), heure: /^\d{2}:\d{2}$/.test(String(o.heure)) ? String(o.heure) : "13:00" };
+  const journalistes = (Array.isArray(o.journalistes) ? o.journalistes : []).map(Number).filter((x) => Number.isInteger(x) && x >= 0 && x <= 6);
+  return { actif: o.actif !== false, jours: [...new Set(jours)].sort(), heure: /^\d{2}:\d{2}$/.test(String(o.heure)) ? String(o.heure) : "13:00", journalistes: [...new Set(journalistes)].sort() };
 }
 async function chefsIds(): Promise<string[]> {
   const { data } = await db.from("wl_equipe").select("id").eq("role", "chef").eq("actif", true);
   const l = (data || []).map((x: { id: string }) => String(x.id)); return l.length ? l : ["jonathan"];
+}
+// Validation par les journalistes (26/11/2026, Jonathan) : une relecture leur est ouverte quand elle a été lancée un des jours cochés
+// (heure de Zurich) ; jamais une conversion en actu premium ni un essai. Mêmes écrans que le rédacteur en chef pour ces relectures-là :
+// liste, détail, validation, graphiques. Tout le reste (lancer, écarter, réglages, coûts, comparaisons) reste au rédacteur en chef.
+const jourZurichDe = (iso: string) => { const d = new Date(iso); return isNaN(d.getTime()) ? -1 : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Zurich", weekday: "short" }).format(d)); };
+// deno-lint-ignore no-explicit-any
+const pourJournaliste = (row: any, jours: number[]) => !!row && row?.meta?.mode !== "actu_premium" && !row?.meta?.essai && jours.includes(jourZurichDe(String(row.created_at || "")));
+async function pushValideurs(id: number, title: string, message: string) {
+  try {
+    const to = await chefsIds();
+    const jours = (await lireAuto()).journalistes;
+    if (jours.length) {
+      const { data } = await db.from("wl_relectures").select("created_at,meta").eq("id", id).limit(1);
+      if (pourJournaliste(data && data[0], jours)) {
+        const { data: eq } = await db.from("wl_equipe").select("id,role,actif,test").neq("role", "chef");
+        for (const m of eq || []) if (m.actif !== false && !m.test && !to.includes(String(m.id))) to.push(String(m.id));
+      }
+    }
+    await fetch(env("SUPABASE_URL") + "/functions/v1/wl-db", { method: "POST", signal: AbortSignal.timeout(15000), headers: { "Content-Type": "application/json", "x-tv-secret": env("TV_ADMIN_SECRET") },
+      body: JSON.stringify({ action: "push", to, title, message, ancre: "correcteur" }) });
+  } catch (_) { /* notification facultative */ }
 }
 async function pushChefs(title: string, message: string) {
   try {
@@ -480,7 +503,7 @@ async function terminer(row: any, msg: any) {
   for (let k = 0; k < resultat.graphiques.length; k++) { const g = resultat.graphiques[k]; if (g.a_refaire && g.refaire && g.src) { try { await lancerGraphique(row.id, k); } catch (_) { /* le bouton reste disponible */ } } }
   const nb = n.corrections.length + n.insertions.length + (resultat.titre ? 1 : 0) + (resultat.extrait ? 1 : 0);
   const fautes = resultat.graphiques.filter((g: { a_refaire: boolean }) => g.a_refaire).length;
-  if (!row.meta?.essai) await pushChefs("🖍️ Relecture prête", "« " + court(row.titre, 90) + " » : " + nb + " correction" + (nb > 1 ? "s" : "") + " à valider" + (fautes ? " · " + fautes + " graphique" + (fautes > 1 ? "s" : "") + " à refaire" : "") + ".");
+  if (!row.meta?.essai) await pushValideurs(row.id, "🖍️ Relecture prête", "« " + court(row.titre, 90) + " » : " + nb + " correction" + (nb > 1 ? "s" : "") + " à valider" + (fautes ? " · " + fautes + " graphique" + (fautes > 1 ? "s" : "") + " à refaire" : "") + ".");
   return "prête";
 }
 async function suivreLots() {
@@ -613,7 +636,7 @@ async function recevoirGraphique(row: any, k: number, nom: string, msg: any) {
   await majGraphe(row.id, k, { statut: "pret", src, largeur: dim.largeur, hauteur: dim.hauteur, erreur: null });
   anthropic("files/" + fid, { method: "DELETE" }, BETAS_GRAPHIQUE).catch(() => null);
   const { data } = await db.from("wl_relectures").select("meta").eq("id", row.id).limit(1);
-  if (!data?.[0]?.meta?.essai) await pushChefs("🎨 Graphique refait", "« " + court(row.titre, 90) + " » : le graphique corrigé est prêt à valider.");
+  if (!data?.[0]?.meta?.essai) await pushValideurs(row.id, "🎨 Graphique refait", "« " + court(row.titre, 90) + " » : le graphique corrigé est prêt à valider.");
   return "prêt";
 }
 // deno-lint-ignore no-explicit-any
@@ -962,15 +985,27 @@ Deno.serve(async (req) => {
     }
     const me = await membre(String(b.token || "")).catch(() => null);
     if (!me) return out({ ok: false, why: "accès réservé à l’équipe" }, 401);
-    if (!me.chef) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+    let joursJ: number[] = [];
+    if (!me.chef) {
+      if (!["liste", "detail", "valider", "refaire_graphique", "appliquer_graphique"].includes(String(b.action))) return out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+      joursJ = (await lireAuto()).journalistes;
+      if (!joursJ.length) return b.action === "liste" ? out({ ok: true, ferme: true, relectures: [] }) : out({ ok: false, why: "réservé au rédacteur en chef" }, 403);
+      if (b.action !== "liste") {
+        const { data: dr } = await db.from("wl_relectures").select("created_at,meta").eq("id", Number(b.id)).limit(1);
+        if (!pourJournaliste(dr && dr[0], joursJ)) return out({ ok: false, why: "cette relecture est réservée au rédacteur en chef" }, 403);
+        b.tout = false;   // une journaliste valide ce qu'elle a coché à l'écran, jamais « tout » d'un coup
+      }
+    }
     if (b.action === "liste") {
       const { data } = await db.from("wl_relectures").select("id,post_id,titre,statut,auto,erreur,created_at,updated_at,validee_le,cout_eur,meta,resultat,appliquees,graphes").order("created_at", { ascending: false }).limit(40);
+      // deno-lint-ignore no-explicit-any
+      if (!me.chef) return out({ ok: true, journaliste: true, jours: joursJ, relectures: (data || []).filter((r: any) => pourJournaliste(r, joursJ) && r.statut !== "ecartee" && r.statut !== "erreur").map(resumeLigne).map((x: any) => ({ ...x, cout_eur: null })) });
       return out({ ok: true, relectures: (data || []).map(resumeLigne), auto: await lireAuto(), skill: await reglage("relecture_skill_version") });
     }
     if (b.action === "detail") {
       const { data } = await db.from("wl_relectures").select("id,post_id,titre,statut,auto,erreur,created_at,validee_le,cout_eur,meta,blocs,resultat,appliquees,graphes").eq("id", Number(b.id)).limit(1);
       if (!data || !data[0]) return out({ ok: false, why: "relecture introuvable" }, 404);
-      return out({ ok: true, relecture: data[0] });
+      return out({ ok: true, relecture: me.chef ? data[0] : { ...data[0], cout_eur: null } });
     }
     if (b.action === "lancer") return out(await lancer(String(b.post_id || ""), me.id));
     if (b.action === "convertir") return out(await lancerConversion(String(b.post_id || ""), me.id));
@@ -1019,7 +1054,8 @@ Deno.serve(async (req) => {
     if (b.action === "reglage") {
       const jours = (Array.isArray(b.jours) ? b.jours : []).map(Number).filter((x: number) => Number.isInteger(x) && x >= 0 && x <= 6);
       const heure = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(b.heure)) ? String(b.heure) : "13:00";
-      const v: Auto = { actif: b.actif === true, jours: [...new Set(jours)].sort() as number[], heure };
+      const jj = Array.isArray(b.journalistes) ? b.journalistes.map(Number).filter((x: number) => Number.isInteger(x) && x >= 0 && x <= 6) : (await lireAuto()).journalistes;
+      const v: Auto = { actif: b.actif === true, jours: [...new Set(jours)].sort() as number[], heure, journalistes: [...new Set(jj)].sort() as number[] };
       await ecrireReglage("relecture_auto", JSON.stringify(v));
       return out({ ok: true, auto: v });
     }

@@ -34,7 +34,11 @@ chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_share
   par la GitHub Action du dépôt privé `claude-posthumain-article-corrector` à chaque fusion sur main (action `skill_maj`, secret
   `relecture_skill_secret`) : GitHub est la seule source, ne jamais le modifier à la main ni le mettre dans ce dépôt public.
 - Graphiques refaits : skill `generate-charts` de l'Usine (Skills API, version latest), en appel direct en tâche de fond (pas de lot).
-- Rien n'est écrit dans Ghost sans validation du rédacteur en chef ; seul le Lexical est envoyé (blocs protégés intacts).
+- Rien n'est écrit dans Ghost sans validation humaine (rédacteur en chef, ou journaliste les jours ouverts, voir ci-dessous) ; seul le Lexical est envoyé (blocs protégés intacts).
+- **👩‍💻 Validation par la journaliste** (26/11/2026) : `relecture_auto.journalistes` = jours (0–6, heure de Zurich) dont les relectures
+  s'ouvrent aussi aux journalistes (vide par défaut = rédacteur en chef seul). Elles ont alors `liste`, `detail`, `valider` (jamais `tout`),
+  `refaire_graphique`, `appliquer_graphique` sur ces relectures-là, et la notification « prête ». Jamais : lancer, écarter, convertir en actu
+  premium, réglages, coûts, comparaisons. Droits vérifiés côté serveur (`pourJournaliste`) ; `validee_par` garde qui a validé.
   Tests hors ligne : `deno test supabase/functions/wl-relecture/blocs_test.ts`.
 - Déploiement : `index.ts`, `blocs.ts`, `premium.ts`, `comparaison.ts`, `equipe.ts`, `kb.ts` (copies identiques à celles de wl-tel).
 - **⚖️ IA contre la journaliste** (25/11/2026, `comparaison.ts`, table `wl_comparaisons`) : mesure si le Correcteur relit aussi bien que la
