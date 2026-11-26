@@ -33,7 +33,9 @@ chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_share
 - Le texte du skill est recopié AUTOMATIQUEMENT dans `wl_reglages` (`relecture_skill`, `relecture_guide`, `relecture_skill_version`)
   par la GitHub Action du dépôt privé `claude-posthumain-article-corrector` à chaque fusion sur main (action `skill_maj`, secret
   `relecture_skill_secret`) : GitHub est la seule source, ne jamais le modifier à la main ni le mettre dans ce dépôt public.
-- Graphiques refaits : skill `generate-charts` de l'Usine (Skills API, version latest), en appel direct en tâche de fond (pas de lot).
+- Graphiques refaits : skill `generate-charts` de l'Usine (Skills API, version latest), en appel direct en tâche de fond (pas de lot),
+  avec Sonnet 5.5 depuis le 26/11/2026 (`MODELE_GRAPHIQUE` ; Opus coûtait environ 1,40 € par graphique). Essai sans risque sur une
+  relecture d'essai (secret du tic) : action `essai_graphique { id, k }`.
 - Rien n'est écrit dans Ghost sans validation humaine (rédacteur en chef, ou journaliste les jours ouverts, voir ci-dessous) ; seul le Lexical est envoyé (blocs protégés intacts).
 - **👩‍💻 Validation par la journaliste** (26/11/2026) : `relecture_auto.journalistes` = jours (0–6, heure de Zurich) dont les relectures
   s'ouvrent aussi aux journalistes (vide par défaut = rédacteur en chef seul). Elles ont alors `liste`, `detail`, `valider` (jamais `tout`),

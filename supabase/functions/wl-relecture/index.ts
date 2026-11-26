@@ -32,6 +32,9 @@ const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
 const SITE = "https://posthumain.com";
 const ORIGINES = ["https://posthumain.com", "https://www.posthumain.com"];
 const MODELE = "claude-opus-5-5";
+// Graphiques refaits : Sonnet 5.5 (26/11/2026, Jonathan). Un graphique refait relit 230 000 à 410 000 jetons (boucle skill + exécution de code)
+// pour en écrire 2 000 à 3 000 : environ 1,40 € avec Opus. Les données corrigées viennent déjà de la relecture (Opus) ; il ne reste qu'à dessiner.
+const MODELE_GRAPHIQUE = "claude-sonnet-5-5";
 const TARIF_LOT = { in: 2, out: 10, cw: 2.5, cr: 0.1, web: 0.01 }; // USD par million : moitié du tarif d'Opus 5.5 (4 $ / 20 $, cache 5 $ / 0,20 $) en traitement par lot ; recherche web 10 $ / 1000. Corrigé le 25/11/2026 : c'était encore le tarif d'Opus 4.8, les coûts affichés étaient surestimés d'environ 20 %.
 const ghostUrl = () => (env("GHOST_ADMIN_API_URL") || "https://the-last-journal.ghost.io").replace(/\/+$/g, "");
 const txt = (v: unknown, max: number) => String(v ?? "").slice(0, max);
@@ -269,7 +272,7 @@ async function recevoirDirect(b: any) {
     const g = row && (row.graphes || []).find((x: any) => x.k === k);
     if (!g || g.statut !== "en_cours") return { ok: true, ignore: true };
     if (!ok) { await majGraphe(id, k, { statut: "erreur", erreur: why }); return { ok: true, r: "erreur" }; }
-    try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture_graphique", modele: String(msg.model || MODELE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: Math.round(coutDe(u) * 2 * 1e4) / 1e4 }); } catch (_) { /* facultatif */ }
+    try { const u = msg.usage || {}; await db.from("wl_couts").insert({ membre: row.lance_par || null, usage: "relecture_graphique", modele: String(msg.model || MODELE_GRAPHIQUE), tokens_in: Number(u.input_tokens || 0) + Number(u.cache_read_input_tokens || 0), tokens_out: Number(u.output_tokens || 0), cout_eur: Math.round(coutDe(u) * (/sonnet/.test(String(msg.model || MODELE_GRAPHIQUE)) ? 1 : 2) * 1e4) / 1e4 }); /* appel direct : Sonnet 5.5 (2 $ / 10 $) = TARIF_LOT, Opus = le double */ } catch (_) { /* facultatif */ }
     const tour = Number(ref.tour) || 0, nom = String(ref.nom || g.nom || "");
     if (msg.stop_reason === "pause_turn" && tour < 3) {
       // tour interrompu (exécution de code longue) : on reprend dans le même conteneur
@@ -617,7 +620,7 @@ async function paramsGraphique(row: any, g: any, k: number, nom: string): Promis
     "Rends UN SEUL fichier image JPEG nommé " + nom + " (rien d'autre), puis réponds en une phrase.",
   ].filter(Boolean).join("\n\n") }];
   if (img) contenu.push({ type: "image", source: { type: "base64", ...img } });
-  const params = { model: MODELE, max_tokens: 16000, thinking: { type: "adaptive" }, output_config: { effort: "medium" }, container: { skills: [{ type: "custom", skill_id: SKILL_GRAPHIQUES, version: "latest" }] },
+  const params = { model: MODELE_GRAPHIQUE, max_tokens: 16000, thinking: { type: "adaptive" }, output_config: { effort: "medium" }, container: { skills: [{ type: "custom", skill_id: SKILL_GRAPHIQUES, version: "latest" }] },
     tools: [{ type: "code_execution_20250825", name: "code_execution" }], messages: [{ role: "user", content: contenu }] };
   return params;
 }
@@ -963,6 +966,13 @@ Deno.serve(async (req) => {
       // ⚖️ comparaison : diagnostic gratuit de l'historique d'un article (aucun appel à Claude), puis essai de bout en bout
       if (b.action === "diag_revisions") return out(await diagRevisions(String(b.post_id || "")));
       if (b.action === "essai_comparaison") return out(await comparer(String(b.post_id || ""), "essai"));
+      if (b.action === "essai_graphique") {
+        const { data } = await db.from("wl_relectures").select("id,meta,graphes").eq("id", Number(b.id)).limit(1);
+        if (!data?.[0]?.meta?.essai) return out({ ok: false, why: "réservé aux relectures d’essai" });
+        const k = Number(b.k), g = (data[0].graphes || []).find((x: { k: number }) => x.k === k);
+        if (g && g.statut !== "en_cours") await majGraphe(Number(b.id), k, { statut: "essai", src_precedent: g.src || null });
+        return out(await lancerGraphique(Number(b.id), k));
+      }
       if (b.action === "diag_blocs") { const p = await lirePost(String(b.post_id || "")); const bl = extraireBlocs(p.lexical); return out({ ok: true, titre: p.title, visibilite: p.visibility, n: bl.length, types: bl.map((x) => x.t + (x.genre ? ":" + x.genre : "")), texte: bl.map(blocPourIA).join("\n").slice(0, 20000), noeuds: JSON.parse(p.lexical).root.children.map((n: { type: string }) => n.type) }); }
       // vérifie que le modèle et les outils serveur sont acceptés (petite requête, Haiku)
       const r = await anthropic("messages", { method: "POST", body: JSON.stringify({ model: "claude-haiku-5-5", max_tokens: 50, tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }, { type: "web_fetch_20250910", name: "web_fetch", max_uses: 1, max_content_tokens: 1000 }, OUTIL], messages: [{ role: "user", content: "Réponds seulement OK, sans outil." }] }) });
