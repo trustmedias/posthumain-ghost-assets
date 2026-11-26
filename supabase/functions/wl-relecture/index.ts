@@ -952,7 +952,7 @@ Deno.serve(async (req) => {
   let b: any; try { b = await req.json(); } catch { return out({ ok: false, why: "bad_json" }, 400); }
   try {
     // pg_cron : suivi des lots + relecture automatique ; diagnostics (secret du réglage relecture_cron_secret)
-    if (["tic", "diag_blocs", "diag_outils", "essai", "essai_conversion", "direct_resultat", "essai_comparaison", "diag_revisions"].includes(b.action)) {
+    if (["tic", "diag_blocs", "diag_outils", "essai", "essai_conversion", "direct_resultat", "essai_comparaison", "diag_revisions", "essai_graphique"].includes(b.action)) {
       const s = await reglage("relecture_cron_secret");
       if (!s || String(b.secret || "") !== s) return out({ ok: false, why: "unauthorized" }, 401);
       if (b.action === "direct_resultat") return out(await recevoirDirect(b));
