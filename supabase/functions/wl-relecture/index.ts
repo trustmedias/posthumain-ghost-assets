@@ -566,8 +566,21 @@ async function relectureAuto() {
   const tous = (r.posts || []).filter((p: any) => !p.email_only && !(p.tags || []).some((t: any) => ["videos", "hash-version-longue"].includes(String(t.slug))));
   if (!tous.length) return "aucun brouillon du jour";
   // deno-lint-ignore no-explicit-any
-  const posts = tous.filter((p: any) => !(Date.now() - new Date(String(p.created_at || 0)).getTime() < 20 * 60000));
-  if (!posts.length) return "brouillon trop récent (moins de 20 min)";
+  const recents = tous.filter((p: any) => !(Date.now() - new Date(String(p.created_at || 0)).getTime() < 20 * 60000));
+  if (!recents.length) return "brouillon trop récent (moins de 20 min)";
+  // Seulement les articles de l'Usine (27/11/2026, Jonathan) : ni une annonce ni un édito écrits à la main. Seul signal fiable, posé par l'Usine
+  // au moment où elle crée le brouillon : son rapport (usine_rapports) ou son événement « brouillon » (usine_evenements). Les autres articles
+  // se relisent à la demande, avec le bouton « Relire ».
+  const idsR = recents.map((p: { id: string }) => String(p.id));
+  const [rp, ev] = await Promise.all([
+    db.from("usine_rapports").select("post_id").in("post_id", idsR),
+    db.from("usine_evenements").select("donnees").eq("genre", "brouillon").gte("at", new Date(Date.now() - 36 * 3600e3).toISOString()).limit(200),
+  ]);
+  // deno-lint-ignore no-explicit-any
+  const usine = new Set<string>([...(rp.data || []).map((x: any) => String(x.post_id)), ...(ev.data || []).map((x: any) => String(x.donnees?.post_id || ""))]);
+  // deno-lint-ignore no-explicit-any
+  const posts = recents.filter((p: any) => usine.has(String(p.id)));
+  if (!posts.length) return "aucun brouillon de l’Usine à relire";
   const { data: deja0 } = await db.from("wl_relectures").select("post_id,meta").gte("created_at", minuit).in("post_id", posts.map((p: { id: string }) => p.id));
   const deja = (deja0 || []).filter((r: { meta?: { mode?: string } }) => r.meta?.mode !== "actu_premium");
   const faits = new Set((deja || []).map((x: { post_id: string }) => x.post_id));

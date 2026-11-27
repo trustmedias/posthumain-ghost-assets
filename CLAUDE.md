@@ -39,6 +39,8 @@ chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_share
   action `essai_graphique { id, k }`.
 - Relecture automatique (`relecture_auto` : `actif`, `jours`, `heure`) : les jours cochés, de l'heure réglée jusqu'à 19 h (au moins 4 h), chaque `tic`
   lance la relecture des brouillons du jour créés depuis plus de 20 minutes et pas encore relus (27/11/2026 : avant, 4 h seulement après l'heure).
+  Seulement les articles de l'Usine : post présent dans `usine_rapports` ou dans un événement « brouillon » de `usine_evenements` ; un article
+  écrit à la main ne se relit qu'à la demande.
 - Rien n'est écrit dans Ghost sans validation humaine (rédacteur en chef, ou journaliste les jours ouverts, voir ci-dessous) ; seul le Lexical est envoyé (blocs protégés intacts).
 - **👩‍💻 Validation par la journaliste** (26/11/2026) : `relecture_auto.journalistes` = jours (0–6, heure de Zurich) dont les relectures
   s'ouvrent aussi aux journalistes (vide par défaut = rédacteur en chef seul). Elles ont alors `liste`, `detail`, `valider` (jamais `tout`),
