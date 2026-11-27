@@ -26,6 +26,18 @@ Base de connaissances : un domaine = une entrée dans `connaissances` du catalog
 chaque poste déclare `connaissances` (id ou `null`). `supabase/functions/_shared/kb.ts` est copié tel quel en `wl-tel/kb.ts` et
 `wl-kb/kb.ts` (et aussi `wl-mails/kb.ts`, `wl-relecture/kb.ts`) : modifier toutes les copies ensemble.
 
+## Writinglab : l'état du lab (fonction `wl-etat`) et le forfait n8n
+
+- **Chaque exécution n8n compte dans le forfait** (objectif : rester sous 2 000 par mois pour revenir au forfait Starter, 2 500). Ne jamais
+  faire passer par n8n une lecture que Supabase peut servir, ni une vérification périodique : pg_cron + fonction Supabase d'abord.
+- L'état affiché par la page (articles en cours, fiches, interphone, courrier, prospection) est lu dans Supabase par `wl-etat`
+  (27/11/2026) : `etat.ts` est la copie fidèle des nœuds « État — assembler » et « État — canal » du workflow n8n « Writinglab ».
+  La page (`lireEtat` dans app.js) appelle `wl-etat` et ne retombe sur n8n (mode `etat`) que si Supabase ne répond pas : toute évolution
+  de l'état se fait dans `etat.ts`, et la branche n8n doit rester identique tant qu'elle sert de secours.
+- Contrôle sans sortir de données (secret du tic du Correcteur) : action `empreinte { membre }` → nombre d'éléments et empreintes par
+  liste, à comparer à l'état d'une exécution n8n. Tests hors ligne : `deno test supabase/functions/wl-etat/etat_test.ts`.
+- Déploiement : `index.ts`, `etat.ts`, `equipe.ts` (copie de `wl-db/equipe.ts`).
+
 ## Writinglab : le Correcteur (relecture des brouillons, fonction `wl-relecture`)
 
 - Reprend la relecture du lundi (skill `posthumain-revision:revise-article` + audit des sources + audit des graphiques) en

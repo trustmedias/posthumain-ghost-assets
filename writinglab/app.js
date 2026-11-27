@@ -201,9 +201,23 @@
     return p.then(function (r) { delete S.busy[who]; paintFloor(); paintPanel(); return r; },
       function (e) { delete S.busy[who]; paintFloor(); paintPanel(); toast('⚠️ ' + e.message, true); throw e; });
   }
+  // État du lab (27/11/2026) : lu directement dans Supabase (fonction wl-etat, copie fidèle de la branche « etat » du workflow n8n),
+  // donc SANS exécution n8n : c'était le premier poste du forfait (une exécution à chaque retour sur l'onglet, à chaque mail ou message,
+  // après chaque action, pour chaque page ouverte). Si Supabase ne répond pas, ou répond autre chose qu'un état complet, l'ancienne
+  // lecture par n8n prend le relais : la page ne reste jamais sans état.
+  var ETAT_FN = 'https://jfmzhndapfmvdhphuwfm.supabase.co/functions/v1/wl-etat';
+  function lireEtat() {
+    var key = S.clicking || null; S.clicking = null;
+    if (key) OCC.debut(key, true);
+    var fin = function () { if (key) OCC.fin(key, true); };
+    return PHL.supa(ETAT_FN, {}).then(function (r) {
+      if (r && r.ok === true && r.me && Array.isArray(r.fiches) && Array.isArray(r.articles) && Array.isArray(r.messages)) { fin(); return r; }
+      return api('etat').then(function (d) { fin(); return d; }, function (e) { fin(); throw e; });
+    });
+  }
   function refresh(silent) {
     S.last = Date.now();
-    return api('etat').then(function (d) {
+    return lireEtat().then(function (d) {
       // nouveaux mails arrivés sur subs@ / redaction@ depuis la dernière fois : le Courrier les porte au bureau de Julien
       if (S.data && S.data.courrier) {
         var vus = {}; S.data.courrier.forEach(function (m) { vus[m.mail_id] = 1; });
