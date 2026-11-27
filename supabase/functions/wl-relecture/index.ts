@@ -556,12 +556,18 @@ async function suivreLots() {
 async function relectureAuto() {
   const a = await lireAuto(); if (!a.actif) return "désactivée";
   const z = zurich(), [hh, mm] = a.heure.split(":").map(Number), debut = hh * 60 + mm;
-  if (!a.jours.includes(z.jour) || z.min < debut || z.min > debut + 240) return "hors créneau";
+  // Créneau (27/11/2026, Jonathan) : de l'heure réglée jusqu'à 19 h (au moins 4 h), pour prendre l'article du matin ET celui de l'après-midi
+  // dès qu'ils sortent de l'Usine, sans attendre une heure fixe. Un brouillon n'est pris que 20 minutes après sa création : l'Usine a fini
+  // d'y poser ses images et ses graphiques.
+  if (!a.jours.includes(z.jour) || z.min < debut || z.min > Math.max(debut + 240, 19 * 60)) return "hors créneau";
   const minuit = minuitZurich();
-  const r = await ghost(`posts/?filter=${encodeURIComponent(`status:draft+created_at:>'${minuit.slice(0, 19).replace("T", " ")}'`)}&limit=20&fields=id,title,email_only&include=tags`);
+  const r = await ghost(`posts/?filter=${encodeURIComponent(`status:draft+created_at:>'${minuit.slice(0, 19).replace("T", " ")}'`)}&limit=20&fields=id,title,email_only,created_at&include=tags`);
   // deno-lint-ignore no-explicit-any
-  const posts = (r.posts || []).filter((p: any) => !p.email_only && !(p.tags || []).some((t: any) => ["videos", "hash-version-longue"].includes(String(t.slug))));
-  if (!posts.length) return "aucun brouillon du jour";
+  const tous = (r.posts || []).filter((p: any) => !p.email_only && !(p.tags || []).some((t: any) => ["videos", "hash-version-longue"].includes(String(t.slug))));
+  if (!tous.length) return "aucun brouillon du jour";
+  // deno-lint-ignore no-explicit-any
+  const posts = tous.filter((p: any) => !(Date.now() - new Date(String(p.created_at || 0)).getTime() < 20 * 60000));
+  if (!posts.length) return "brouillon trop récent (moins de 20 min)";
   const { data: deja0 } = await db.from("wl_relectures").select("post_id,meta").gte("created_at", minuit).in("post_id", posts.map((p: { id: string }) => p.id));
   const deja = (deja0 || []).filter((r: { meta?: { mode?: string } }) => r.meta?.mode !== "actu_premium");
   const faits = new Set((deja || []).map((x: { post_id: string }) => x.post_id));
