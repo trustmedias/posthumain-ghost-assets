@@ -92,6 +92,6 @@ export async function empreinte(e: any) {
   const h = async (v: any) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(sansLiens(v)))))).slice(0, 6).map((b) => b.toString(16).padStart(2, "0")).join("");
   const cle: Record<string, string> = { articles: "id", fiches: "fiche_id", messages: "id", courrier: "mail_id", campagnes: "campagne_id", prospects: "prospect_id", equipe: "id", boites: "id" };
   const o: Record<string, any> = { me: await h(e.me), ghost: e.ghost, cles: Object.keys(e).sort().join(",") };
-  for (const [liste, k] of Object.entries(cle)) { const l = Array.isArray(e[liste]) ? e[liste] : []; const m: Record<string, string> = {}; for (const x of l) m[String(x[k])] = await h(x); o[liste] = { n: l.length, ordre: await h(l.map((x: any) => x[k])), e: m }; }
+  for (const [liste, k] of Object.entries(cle)) { const l = Array.isArray(e[liste]) ? e[liste] : []; const m: Record<string, string> = {}; for (const x of l) m[String(x[k])] = await h(x); o[liste] = { n: l.length, ordre: await h(l.map((x: any) => x[k])), tout: await h(Object.keys(m).sort().map((i) => i + ":" + m[i])), e: m }; }
   return o;
 }
